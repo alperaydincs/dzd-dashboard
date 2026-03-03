@@ -10,20 +10,13 @@ public class AppDbContext : DbContext
 {
     private readonly IHttpContextAccessor? _httpContextAccessor;
 
-    public AppDbContext(DbContextOptions<AppDbContext> options)
-        : base(options)
-    {
-    }
-
-    public AppDbContext(DbContextOptions<AppDbContext> options, IHttpContextAccessor httpContextAccessor)
+    public AppDbContext(DbContextOptions<AppDbContext> options, IHttpContextAccessor? httpContextAccessor = null)
         : base(options)
     {
         _httpContextAccessor = httpContextAccessor;
     }
 
     public DbSet<User> Users { get; set; }
-    public DbSet<Role> Roles { get; set; }
-    public DbSet<UserRole> UserRoles { get; set; }
     public DbSet<Bank> Banks { get; set; }
     public DbSet<Bid> Bids { get; set; }
     public DbSet<ProjectDocument> ProjectDocuments { get; set; }

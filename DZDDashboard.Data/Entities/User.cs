@@ -106,5 +106,4 @@ public class User : IAuditableEntity
     public DateTime? ModifiedAt { get; set; }
     public int? ModifiedById { get; set; }
     public User? ModifiedBy { get; set; }
-    public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 }

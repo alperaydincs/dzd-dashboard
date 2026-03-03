@@ -21,11 +21,9 @@ public class MappingProfile : Profile
         CreateMap<PayrollLocation, PayrollLocationDto>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Location));
 
-        CreateMap<Role, RoleDto>();
-
         CreateMap<User, UserDto>()
             .ForMember(dest => dest.Roles,
-                opt => opt.MapFrom(src => src.UserRoles.Select(ur => ur.Role)))
+                opt => opt.MapFrom(_ => Array.Empty<RoleDto>()))
             .ForMember(dest => dest.ReportsToName, 
                 opt => opt.MapFrom(src => src.ReportsTo != null ? $"{src.ReportsTo.FirstName} {src.ReportsTo.LastName}" : null));
 
@@ -46,7 +44,6 @@ public class MappingProfile : Profile
         CreateMap<ExCompanyHistory, ExCompanyHistoryDto>();
         CreateMap<UserTraining, UserTrainingDto>();
         CreateMap<UserGroup, UserGroupDto>();
-        CreateMap<UserRole, UserRoleDto>();
         CreateMap<UserDocument, UserDocumentDto>();
         CreateMap<UserDocumentCategory, UserDocumentCategoryDto>();
 

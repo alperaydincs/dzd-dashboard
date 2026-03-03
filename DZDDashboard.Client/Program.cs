@@ -20,10 +20,18 @@ builder.Services
     {
         builder.Configuration.Bind("AzureAd", options);
         options.SaveTokens = true;
-    });
+        options.TokenValidationParameters.RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
+        
+        var apiScope = builder.Configuration["DownstreamApi:Scopes"];
+        if (!string.IsNullOrEmpty(apiScope))
+        {
+            options.Scope.Add(apiScope);
+        }
+    })
+    .EnableTokenAcquisitionToCallDownstreamApi(new[] { builder.Configuration["DownstreamApi:Scopes"] ?? string.Empty })
+    .AddInMemoryTokenCaches();
 
 builder.Services.AddAuthorization();
-builder.Services.AddScoped<AuthSyncService>();
 builder.Services.AddScoped<AuthTokenHandler>();
 builder.Services.AddControllersWithViews().AddMicrosoftIdentityUI();
 

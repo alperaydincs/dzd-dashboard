@@ -135,11 +135,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                .HasForeignKey(u => u.ModifiedById)
                .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasMany(u => u.UserRoles)
-               .WithOne(ur => ur.User)
-               .HasForeignKey(ur => ur.UserId)
-               .IsRequired();
-
         builder.HasOne(u => u.Avatar)
                .WithOne(a => a.User)
                .HasForeignKey<UserAvatar>(a => a.UserId)

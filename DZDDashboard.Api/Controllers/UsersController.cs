@@ -1,3 +1,4 @@
+using DZDDashboard.Common.DTOs;
 using DZDDashboard.Common.DTOs.Users;
 using DZDDashboard.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -89,7 +90,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("my-profile")]
-    [AllowAnonymous]
+    [Authorize]
     public async Task<ActionResult<UserProfileDto>> GetMyProfile()
     {
         var userIdString = User.FindFirstValue("database_user_id");
@@ -109,7 +110,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpPut("my-profile/contact-info")]
-    [AllowAnonymous]
+    [Authorize]
     public async Task<IActionResult> UpdateMyContactInfo([FromBody] UpdateContactInfoDto dto)
     {
         var userIdString = User.FindFirstValue("database_user_id");
@@ -135,7 +136,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("my-avatar")]
-    [AllowAnonymous]
+    [Authorize]
     public async Task<ActionResult<UserAvatarDto>> GetMyAvatar()
     {
         var userIdString = User.FindFirstValue("database_user_id");
@@ -174,7 +175,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost("my-profile/avatar")]
-    [AllowAnonymous]
+    [Authorize]
     public async Task<IActionResult> UploadMyAvatar([FromForm] IFormFile file)
     {
         try

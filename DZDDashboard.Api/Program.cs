@@ -1,7 +1,6 @@
 using DZDDashboard.Api.Services;
 using DZDDashboard.Api.Middleware;
 using DZDDashboard.Data;
-using DZDDashboard.Data.Entities;
 using DZDDashboard.Services;
 using DZDDashboard.Services.Mapping;
 using Microsoft.EntityFrameworkCore;
@@ -16,25 +15,33 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services
-    .AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApi(options =>
-    {
-        builder.Configuration.Bind("AzureAd", options);
+    builder.Services
+        .AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
+        .AddMicrosoftIdentityWebApi(options =>
+        {
+            builder.Configuration.Bind("AzureAd", options);
+            options.TokenValidationParameters.RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
 
-        options.TokenValidationParameters.ValidateAudience = false;
-        options.TokenValidationParameters.RoleClaimType = "roles"; 
-        
-        options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents();
+        var clientId = builder.Configuration["AzureAd:ClientId"];
+        if (!string.IsNullOrWhiteSpace(clientId))
+        {
+            options.TokenValidationParameters.ValidAudiences = new[]
+            {
+                clientId,
+                $"api://{clientId}"
+            };
+        }
     }, options =>
     {
         builder.Configuration.Bind("AzureAd", options);
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = options.DefaultPolicy;
+});
 
 builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<RoleService>();
 builder.Services.AddScoped<IOrganizationService, OrganizationService>();
 builder.Services.AddScoped<OrganizationPositionService>();
 builder.Services.AddHttpContextAccessor();
@@ -64,18 +71,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-await SeedAsync(app.Services);
-
 await app.RunAsync();
-
-static async Task SeedAsync(IServiceProvider services)
-{
-    using var scope = services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-    if (!await db.Roles.AnyAsync())
-    {
-        db.Roles.AddRange(new Role { Name = "Admin" }, new Role { Name = "HR" });
-        await db.SaveChangesAsync();
-    }
-}

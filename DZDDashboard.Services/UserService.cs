@@ -82,8 +82,6 @@ namespace DZDDashboard.Services
             user.NormalizedEmail = dto.Email.ToUpperInvariant();
 
             _context.Users.Add(user);
-            var defaultRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "User");
-            _context.UserRoles.Add(new UserRole { User = user, Role = defaultRole });
             await _context.SaveChangesAsync();
             var resultDto = _mapper.Map<UserDto>(user);
 
@@ -92,9 +90,7 @@ namespace DZDDashboard.Services
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var user = await _context.Users
-                .Include(u => u.UserRoles)
-                .FirstOrDefaultAsync(u => u.Id == id);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
 
             if (user is null) return false;
             _context.Users.Remove(user);
