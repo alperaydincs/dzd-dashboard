@@ -1,0 +1,184 @@
+@using DZDDashboard.Common.DTOs
+@using DZDDashboard.Common.DTOs.Organization
+@using DZDDashboard.Common.DTOs.Users
+@using DZDDashboard.Client.OrgChart
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="3">
+            @if (_selectedOrgPositionId.HasValue)
+            {
+                 <MudText>Selected Position: <b>@GetPositionName(_selectedOrgPositionId.Value)</b></MudText>
+            }
+            else
+            {
+                 <MudText>Select a position from the chart:</MudText>
+            }
+            
+            <div style="height: 400px; overflow: auto; border: 1px solid #ccc; padding: 10px;">
+                <OrgChartTree Nodes="_orgNodes" 
+                              IsSelectionMode="true" 
+                              OnNodeSelected="HandleNodeSelected" />
+            </div>
+
+            @if (_potentialManagers.Any())
+            {
+                <MudSelect T="int?" Label="Reports To (Manager)" @bind-Value="_selectedManagerId" 
+                           Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"
+                           RequiredError="Reports To is required">
+                    <MudSelectItem Value="@((int?)null)">None</MudSelectItem>
+                    @foreach (var mgr in _potentialManagers)
+                    {
+                        <MudSelectItem Value="@((int?)mgr.Id)">@mgr.FirstName @mgr.LastName</MudSelectItem>
+                    }
+                </MudSelect>
+            }
+            else if (_selectedOrgPositionId.HasValue)
+            {
+                <MudAlert Severity="Severity.Info">No managers found in the parent position.</MudAlert>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        @if (InitialPositionId.HasValue)
+        {
+            <MudButton Color="Color.Error" OnClick="RemoveAssignment">Remove Assignment</MudButton>
+        }
+        <MudSpacer />
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public List<OrganizationPositionDto> OrganizationPositions { get; set; } = new();
+    [Parameter] public List<UserDto> AllUsers { get; set; } = new();
+    [Parameter] public int? InitialPositionId { get; set; }
+    [Parameter] public int? InitialManagerId { get; set; }
+    [Parameter] public int? CurrentUserId { get; set; }
+
+    private int? _selectedOrgPositionId;
+    private int? _selectedManagerId;
+    private List<UserDto> _potentialManagers = new();
+    private List<OrgChartNodeItem> _orgNodes = new();
+
+    protected override void OnInitialized()
+    {
+        _selectedOrgPositionId = InitialPositionId;
+        _selectedManagerId = InitialManagerId;
+        
+        BuildOrgChart(OrganizationPositions, AllUsers);
+        OnPositionChanged();
+        
+        if (_selectedManagerId.HasValue && !_potentialManagers.Any(u => u.Id == _selectedManagerId))
+        {
+             var mgr = AllUsers.FirstOrDefault(u => u.Id == _selectedManagerId);
+             if (mgr != null) _potentialManagers.Add(mgr);
+        }
+    }
+
+    private void HandleNodeSelected(OrgChartNodeItem node)
+    {
+        _selectedOrgPositionId = node.Position.Id;
+        OnPositionChanged();
+        StateHasChanged();
+    }
+
+    private string GetPositionName(int id) => OrganizationPositions.FirstOrDefault(p => p.Id == id)?.Name ?? "Unknown";
+
+    private void OnPositionChanged()
+    {
+        _potentialManagers.Clear();
+        
+        if (MudDialog == null) return;
+
+        if (_selectedOrgPositionId.HasValue)
+        {
+            var currentPos = OrganizationPositions.FirstOrDefault(p => p.Id == _selectedOrgPositionId.Value);
+            
+            while (currentPos != null && currentPos.ParentId.HasValue)
+            {
+                var parentId = currentPos.ParentId.Value;
+                var managersInParentPos = AllUsers.Where(u => u.OrganizationPositionId == parentId).ToList();
+
+                if (CurrentUserId.HasValue)
+                {
+                    managersInParentPos = managersInParentPos.Where(u => u.Id != CurrentUserId.Value).ToList();
+                }
+                
+                if (managersInParentPos.Any())
+                {
+                    _potentialManagers = managersInParentPos;
+                    break;
+                }
+                
+                currentPos = OrganizationPositions.FirstOrDefault(p => p.Id == parentId);
+            }
+        }
+    }
+
+    private void Submit()
+    {
+        MudDialog.Close(DialogResult.Ok(new AssignmentResult { PositionId = _selectedOrgPositionId, ManagerId = _selectedManagerId }));
+    }
+
+    private void RemoveAssignment()
+    {
+        MudDialog.Close(DialogResult.Ok(new AssignmentResult { PositionId = null, ManagerId = null }));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void BuildOrgChart(List<OrganizationPositionDto> positions, List<UserDto> users)
+    {
+        _orgNodes = new List<OrgChartNodeItem>();
+        
+        var usersByPosition = users
+            .Where(u => u.OrganizationPositionId.HasValue)
+            .GroupBy(u => u.OrganizationPositionId!.Value)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        var childPositionsMap = positions
+            .Where(p => p.ParentId.HasValue)
+            .GroupBy(p => p.ParentId!.Value)
+            .ToDictionary(g => g.Key, g => g.OrderBy(p => p.Name).ToList());
+
+        var rootPositions = positions.Where(p => p.ParentId == null).OrderBy(p => p.Name).ToList();
+
+        foreach (var rootPos in rootPositions)
+        {
+             _orgNodes.Add(CreateNode(rootPos, childPositionsMap, usersByPosition));
+        }
+    }
+
+    private OrgChartNodeItem CreateNode(OrganizationPositionDto pos, 
+        Dictionary<int, List<OrganizationPositionDto>> childMap,
+        Dictionary<int, List<UserDto>> usersMap)
+    {
+        var node = new OrgChartNodeItem
+        {
+            Position = pos,
+            Users = usersMap.TryGetValue(pos.Id, out var u) ? u : new List<UserDto>(),
+            Children = new List<OrgChartNodeItem>(),
+            IsExpanded = true
+        };
+
+        if (childMap.TryGetValue(pos.Id, out var children))
+        {
+            foreach (var child in children)
+            {
+                node.Children.Add(CreateNode(child, childMap, usersMap));
+            }
+        }
+        return node;
+    }
+
+    public class AssignmentResult
+    {
+        public int? PositionId { get; set; }
+        public int? ManagerId { get; set; }
+    }
+}

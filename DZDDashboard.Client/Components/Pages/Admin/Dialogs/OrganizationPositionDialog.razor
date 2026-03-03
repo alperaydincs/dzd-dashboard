@@ -1,0 +1,74 @@
+@using DZDDashboard.Common.DTOs.Organization
+@using MudBlazor
+@inject IHttpClientFactory HttpClientFactory
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Value="_name" Label="Name" Required="true" />
+        @if (!IsQuickAdd)
+        {
+            <MudSelect T="int?" Label="Parent Position" @bind-Value="_parentId">
+                <MudSelectItem Value="@((int?)null)">No Parent (Root Position)</MudSelectItem>
+                @foreach (var pos in _allPositions)
+                {
+                    @if (CurrentId == null || pos.Id != CurrentId.Value)
+                    {
+                        <MudSelectItem Value="@((int?)pos.Id)">@pos.Name</MudSelectItem>
+                    }
+                }
+            </MudSelect>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public string Name { get; set; } = "";
+    [Parameter] public int? ParentId { get; set; }
+    [Parameter] public int? CurrentId { get; set; } 
+    [Parameter] public bool IsQuickAdd { get; set; } = false; 
+    private string _name = string.Empty;
+    private int? _parentId;
+    private List<OrganizationPositionDto> _allPositions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _name = Name;
+        _parentId = ParentId;
+        
+        if (!IsQuickAdd)
+        {
+            await LoadAllPositions();
+        }
+        StateHasChanged();
+    }
+
+    private async Task LoadAllPositions()
+    {
+        try 
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            var all = await client.GetFromJsonAsync<List<OrganizationPositionDto>>("api/OrganizationPosition");
+            if (all != null)
+            {
+                _allPositions = all.ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading positions: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Submit()
+    {
+        MudDialog.Close(DialogResult.Ok(new { Name = _name, ParentId = _parentId }));
+    }
+}

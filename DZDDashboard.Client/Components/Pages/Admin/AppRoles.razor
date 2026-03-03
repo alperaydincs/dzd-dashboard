@@ -1,0 +1,141 @@
+﻿@page "/app-roles"
+@using DZDDashboard.Client.Components.Pages.Admin.Dialogs
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject IHttpClientFactory HttpClientFactory
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudText Typo="Typo.h5" Class="mb-4">Role Management</MudText>
+
+    <MudPaper Class="pa-4">
+        @if (_loading)
+        {
+            <div class="d-flex justify-center pa-4">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            </div>
+        }
+        else if (!string.IsNullOrEmpty(_error))
+        {
+            <MudAlert Severity="Severity.Error">@_error</MudAlert>
+        }
+        else
+        {
+            <MudTable Items="_roles" Dense="true" Hover="true" Bordered="true">
+                <HeaderContent>
+                    <MudTh>Name</MudTh>
+                    <MudTh style="width:140px;">Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.Name</MudTd>
+                    <MudTd>
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="() => EditRole(context)" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => DeleteRole(context)" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </MudPaper>
+
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4"
+               OnClick="AddRole" Disabled="_loading">Add Role</MudButton>
+</MudContainer>
+
+@code {
+    private List<RoleDto> _roles = [];
+    private bool _loading;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _loading = true;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            _roles = await client.GetFromJsonAsync<List<RoleDto>>("api/roles") ?? [];
+        }
+        catch (Exception ex)
+        {
+            _error = $"Failed to load roles: {ex.Message}";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task AddRole()
+    {
+        var client = HttpClientFactory.CreateClient("Api");
+        var dialog = await DialogService.ShowAsync<AppRoleDialog>("Add Role", new DialogParameters { ["RoleName"] = "" });
+        var result = await dialog.Result;
+        if (result == null || result.Canceled) return;
+        var name = result.Data?.ToString();
+        if (string.IsNullOrWhiteSpace(name)) return;
+
+        if (_roles.Any(r => string.Equals(r.Name, name, StringComparison.OrdinalIgnoreCase)))
+        {
+            Snackbar.Add("Role already exists.", Severity.Warning);
+            return;
+        }
+
+        var response = await client.PostAsJsonAsync("api/roles", new { Name = name });
+        if (response.IsSuccessStatusCode)
+        {
+            var created = await response.Content.ReadFromJsonAsync<RoleDto>();
+            if (created is not null)
+            {
+                _roles.Add(created);
+                _roles = _roles.OrderBy(r => r.Name).ToList();
+                Snackbar.Add("Role created.", Severity.Success);
+            }
+        }
+        else
+        {
+            Snackbar.Add("Create failed", Severity.Error);
+        }
+    }
+
+    private async Task EditRole(RoleDto role)
+    {
+        var client = HttpClientFactory.CreateClient("Api");
+        var dialog = await DialogService.ShowAsync<AppRoleDialog>("Edit Role", new DialogParameters { ["RoleName"] = role.Name });
+        var result = await dialog.Result;
+        if (result == null || result.Canceled) return;
+        var name = result.Data?.ToString();
+        if (string.IsNullOrWhiteSpace(name) || name == role.Name) return;
+
+        if (_roles.Any(r => r.Id != role.Id && string.Equals(r.Name, name, StringComparison.OrdinalIgnoreCase)))
+        {
+            Snackbar.Add("Another role with that name exists.", Severity.Warning);
+            return;
+        }
+
+        var response = await client.PutAsJsonAsync($"api/roles/{role.Id}", new { Name = name });
+        if (response.IsSuccessStatusCode)
+        {
+            var idx = _roles.FindIndex(r => r.Id == role.Id);
+            if (idx >= 0) _roles[idx] = new RoleDto { Id = role.Id, Name = name };
+            Snackbar.Add("Role updated.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Update failed", Severity.Error);
+        }
+    }
+
+    private async Task DeleteRole(RoleDto role)
+    {
+        var client = HttpClientFactory.CreateClient("Api");
+        var response = await client.DeleteAsync($"api/roles/{role.Id}");
+        if (response.IsSuccessStatusCode)
+        {
+            _roles.Remove(role);
+            Snackbar.Add("Role deleted.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Delete failed", Severity.Error);
+        }
+    }
+
+}

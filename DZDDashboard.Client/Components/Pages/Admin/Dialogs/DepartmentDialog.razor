@@ -1,0 +1,55 @@
+@using DZDDashboard.Common.DTOs
+@using MudBlazor
+@inject IHttpClientFactory HttpClientFactory
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Value="Department.Name" Label="Name" Required="true" />
+        <MudSelect T="int?" Label="Company" @bind-Value="Department.CompanyId">
+            @foreach (var company in Companies)
+            {
+                <MudSelectItem Value="@((int?)company.Id)">@company.Name</MudSelectItem>
+            }
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public DepartmentDto Department { get; set; } = new();
+    [Parameter] public List<CompanyDto> Companies { get; set; } = new();
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        if (string.IsNullOrWhiteSpace(Department.Name))
+        {
+            Snackbar.Add("Name is required", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            if (Department.Id == 0)
+            {
+                await client.PostAsJsonAsync("api/organization/departments", Department);
+            }
+            else
+            {
+                await client.PutAsJsonAsync("api/organization/departments", Department);
+            }
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error saving: {ex.Message}", Severity.Error);
+        }
+    }
+}

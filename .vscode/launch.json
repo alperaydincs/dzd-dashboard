@@ -1,0 +1,27 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "API",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/DZDDashboard.Api/bin/Debug/net9.0/DZDDashboard.Api.dll",
+      "cwd": "${workspaceFolder}/DZDDashboard.Api",
+      "preLaunchTask": "build-solution"
+    },
+    {
+      "name": "Client",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/DZDDashboard.Client/bin/Debug/net9.0/DZDDashboard.Client.dll",
+      "cwd": "${workspaceFolder}/DZDDashboard.Client",
+      "preLaunchTask": "build-solution"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "API + Client",
+      "configurations": ["API", "Client"]
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+@using DZDDashboard.Common.DTOs
+@using MudBlazor
+
+<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Value="Grade.Level" Label="Level" Required="true" />
+        <MudNumericField @bind-Value="Grade.MinSalary" Label="Min Salary" Required="true" Format="N2" />
+        <MudNumericField @bind-Value="Grade.MaxSalary" Label="Max Salary" Required="true" Format="N2" />
+        <MudTextField @bind-Value="Grade.Currency" Label="Currency" Required="true" />
+        <MudSelect T="int?" Label="Next Step" @bind-Value="Grade.NextStepId">
+            <MudSelectItem T="int?" Value="null">None</MudSelectItem>
+            @foreach (var g in Grades)
+            {
+                if (g.Id != Grade.Id) 
+                {
+                    <MudSelectItem T="int?" Value="@g.Id">@g.Level</MudSelectItem>
+                }
+            }
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public GradeDto Grade { get; set; } = new();
+    [Parameter] public List<GradeDto> Grades { get; set; } = new();
+
+    [Inject] HttpClient Http { get; set; } = default!;
+
+    private async Task Submit()
+    {
+        if (Grade.Id == 0)
+        {
+            await Http.PostAsJsonAsync("api/organization/grades", Grade);
+        }
+        else
+        {
+            await Http.PutAsJsonAsync("api/organization/grades", Grade);
+        }
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

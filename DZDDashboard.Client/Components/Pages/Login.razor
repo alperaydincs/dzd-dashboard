@@ -1,0 +1,25 @@
+@page "/login"
+@inject NavigationManager Nav
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-16">
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h5" Align="Align.Center">Sign in required</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Class="mb-4">You need to sign in with your Microsoft account to continue.</MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Href="/MicrosoftIdentity/Account/SignIn">
+                Sign in with Microsoft
+            </MudButton>
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Nav.NavigateTo("/MicrosoftIdentity/Account/SignIn", forceLoad: true, replace: true);
+    }
+}

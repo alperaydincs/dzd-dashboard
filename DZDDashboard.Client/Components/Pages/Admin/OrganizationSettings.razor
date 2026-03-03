@@ -1,0 +1,512 @@
+@using DZDDashboard.Client.OrgChart
+@using DZDDashboard.Common.DTOs
+@using DZDDashboard.Common.DTOs.Organization
+@using DZDDashboard.Common.DTOs.Users
+@using DZDDashboard.Client.Components.Pages.Admin.Dialogs
+@using DZDDashboard.Client.Components.Pages.Employees
+@inject IHttpClientFactory HttpClientFactory
+@inject ISnackbar Snackbar
+
+<MudExpansionPanels MultiExpansion="false" Class="pa-4">
+
+    <!-- Organization Positions -->
+    <MudExpansionPanel Text="Organization Positions" Icon="@Icons.Material.Filled.AccountTree">
+        @if (_loading)
+        {
+            <MudProgressCircular Indeterminate="true" />
+        }
+        else if (!_orgNodes.Any())
+        {
+            <MudStack Class="pa-4" AlignItems="AlignItems.Center" Spacing="2">
+                <MudText Typo="Typo.body2" Color="Color.Secondary">No organization positions defined yet.</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => OpenOrganizationPositionDialog())">Add Root Position</MudButton>
+            </MudStack>
+        }
+        else
+        {
+            <MudStack Class="mb-3">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => OpenOrganizationPositionDialog())">Add Root Position</MudButton>
+            </MudStack>
+            <div style="overflow-x: auto; padding-bottom: 20px;">
+                <OrgChartTree Nodes="_orgNodes" 
+                              IsEditMode="true" 
+                              OnAddChild="AddChildNode"
+                              OnEditNode="EditNode"
+                              OnDeleteNode="DeleteNode" />
+            </div>
+        }
+    </MudExpansionPanel>
+
+    <!-- Companies -->
+    <MudExpansionPanel Text="Companies" Icon="@Icons.Material.Filled.Business">
+        <MudTable Items="@_companies" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading" Dense="true" Elevation="0">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Companies</MudText>
+                <MudSpacer />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => OpenCompanyDialog())">Add</MudButton>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>Name</MudTh>
+                <MudTh>Description</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Name">@context.Name</MudTd>
+                <MudTd DataLabel="Description">@context.Description</MudTd>
+                <MudTd DataLabel="Actions">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenCompanyDialog(context))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteCompany(context.Id))" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudExpansionPanel>
+
+    <!-- Departments -->
+    <MudExpansionPanel Text="Departments" Icon="@Icons.Material.Filled.Apartment">
+        <MudTable Items="@_departments" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading" Dense="true" Elevation="0">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Departments</MudText>
+                <MudSpacer />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => OpenDepartmentDialog())">Add</MudButton>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>Name</MudTh>
+                <MudTh>Company</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Name">@context.Name</MudTd>
+                <MudTd DataLabel="Company">@context.CompanyName</MudTd>
+                <MudTd DataLabel="Actions">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenDepartmentDialog(context))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteDepartment(context.Id))" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudExpansionPanel>
+
+    <!-- Teams -->
+    <MudExpansionPanel Text="Teams" Icon="@Icons.Material.Filled.Groups">
+        <MudTable Items="@_teams" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading" Dense="true" Elevation="0">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Teams</MudText>
+                <MudSpacer />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => OpenTeamDialog())">Add</MudButton>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>Name</MudTh>
+                <MudTh>Department</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Name">@context.Name</MudTd>
+                <MudTd DataLabel="Department">@context.DepartmentName</MudTd>
+                <MudTd DataLabel="Actions">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenTeamDialog(context))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteTeam(context.Id))" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudExpansionPanel>
+
+    <!-- Work Types -->
+    <MudExpansionPanel Text="Work Types" Icon="@Icons.Material.Filled.Work">
+        <MudTable Items="@_workTypes" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading" Dense="true" Elevation="0">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Work Types</MudText>
+                <MudSpacer />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => OpenWorkTypeDialog())">Add</MudButton>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>Name</MudTh>
+                <MudTh>Description</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Name">@context.Name</MudTd>
+                <MudTd DataLabel="Description">@context.Description</MudTd>
+                <MudTd DataLabel="Actions">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenWorkTypeDialog(context))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteWorkType(context.Id))" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudExpansionPanel>
+
+    <!-- Job Titles -->
+    <MudExpansionPanel Text="Job Titles" Icon="@Icons.Material.Filled.Badge">
+        <MudTable Items="@_jobs" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading" Dense="true" Elevation="0">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Job Titles</MudText>
+                <MudSpacer />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => OpenJobDialog())">Add</MudButton>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>Title</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Title">@context.Name</MudTd>
+                <MudTd DataLabel="Actions">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenJobDialog(context))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteJob(context.Id))" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudExpansionPanel>
+
+    <!-- Grades -->
+    <MudExpansionPanel Text="Grades / Career Path" Icon="@Icons.Material.Filled.TrendingUp">
+        <MudTable Items="@_grades" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading" Dense="true" Elevation="0">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Grades</MudText>
+                <MudSpacer />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => OpenGradeDialog())">Add</MudButton>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>Level</MudTh>
+                <MudTh>Salary Range</MudTh>
+                <MudTh>Next Step</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Level">@context.Level</MudTd>
+                <MudTd DataLabel="Salary Range">@context.MinSalary.ToString("N0") - @context.MaxSalary.ToString("N0") @context.Currency</MudTd>
+                <MudTd DataLabel="Next Step">@context.NextStepLevel</MudTd>
+                <MudTd DataLabel="Actions">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenGradeDialog(context))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteGrade(context.Id))" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudExpansionPanel>
+</MudExpansionPanels>
+
+@code {
+    private bool _loading = true;
+    private List<OrgChartNodeItem> _orgNodes = new();
+    private List<CompanyDto> _companies = new();
+    private List<OrganizationPositionDto> _organizationPositions = new();
+    private List<DepartmentDto> _departments = new();
+    private List<TeamDto> _teams = new();
+    private List<WorkTypeDto> _workTypes = new();
+    private List<JobDto> _jobs = new();
+    private List<GradeDto> _grades = new();
+
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _loading = true;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            _organizationPositions = await client.GetFromJsonAsync<List<OrganizationPositionDto>>("api/OrganizationPosition") ?? new();
+            BuildOrgChart(_organizationPositions);
+            _companies = await client.GetFromJsonAsync<List<CompanyDto>>("api/organization/companies") ?? new();
+            _departments = await client.GetFromJsonAsync<List<DepartmentDto>>("api/organization/departments") ?? new();
+            _teams = await client.GetFromJsonAsync<List<TeamDto>>("api/organization/teams") ?? new();
+            _workTypes = await client.GetFromJsonAsync<List<WorkTypeDto>>("api/organization/worktypes") ?? new();
+            _jobs = await client.GetFromJsonAsync<List<JobDto>>("api/organization/jobs") ?? new();
+            _grades = await client.GetFromJsonAsync<List<GradeDto>>("api/organization/grades") ?? new();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading data: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void BuildOrgChart(List<OrganizationPositionDto> positions)
+    {
+        _orgNodes = new List<OrgChartNodeItem>();
+        
+        var childPositionsMap = positions
+            .Where(p => p.ParentId.HasValue)
+            .GroupBy(p => p.ParentId!.Value)
+            .ToDictionary(g => g.Key, g => g.OrderBy(p => p.Name).ToList());
+
+        var rootPositions = positions.Where(p => p.ParentId == null).OrderBy(p => p.Name).ToList();
+
+        foreach (var rootPos in rootPositions)
+        {
+             var node = CreateNode(rootPos, childPositionsMap);
+             _orgNodes.Add(node);
+        }
+    }
+
+    private OrgChartNodeItem CreateNode(OrganizationPositionDto pos, Dictionary<int, List<OrganizationPositionDto>> childMap)
+    {
+        var node = new OrgChartNodeItem
+        {
+            Position = pos,
+            Users = new List<UserDto>(),
+            Children = new List<OrgChartNodeItem>(),
+            IsExpanded = true
+        };
+
+        if (childMap.TryGetValue(pos.Id, out var children))
+        {
+            foreach (var child in children)
+            {
+                node.Children.Add(CreateNode(child, childMap));
+            }
+        }
+        return node;
+    }
+
+    private async Task AddChildNode(OrgChartNodeItem node)
+    {
+        await OpenOrganizationPositionDialog(parentId: node.Position.Id, isQuickAdd: true);
+    }
+    
+    private async Task EditNode(OrgChartNodeItem node)
+    {
+        await OpenOrganizationPositionDialog(node.Position);
+    }
+
+    private async Task DeleteNode(OrgChartNodeItem node)
+    {
+        await DeleteOrganizationPosition(node.Position.Id);
+    }
+
+    private async Task OpenOrganizationPositionDialog(OrganizationPositionDto? dto = null, int? parentId = null, bool isQuickAdd = false)
+    {
+        bool isEdit = dto != null && dto.Id > 0;
+        var parameters = new DialogParameters 
+        { 
+            ["Name"] = dto?.Name ?? "",
+            ["ParentId"] = parentId ?? dto?.ParentId,
+            ["CurrentId"] = isEdit ? dto!.Id : (int?)null,
+            ["IsQuickAdd"] = isQuickAdd
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<OrganizationPositionDialog>(isEdit ? "Edit Position" : "Add Position", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            try
+            {
+                var client = HttpClientFactory.CreateClient("Api");
+                var data = (dynamic)result.Data!;
+                if (!isEdit)
+                {
+                    var createDto = new CreateOrganizationPositionDto 
+                    { 
+                        Name = data.Name, 
+                        ParentId = data.ParentId 
+                    };
+                    var response = await client.PostAsJsonAsync("api/OrganizationPosition", createDto);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        var error = await response.Content.ReadAsStringAsync();
+                        Snackbar.Add($"Error creating position: {error}", Severity.Error);
+                        return;
+                    }
+                    Snackbar.Add("Position created successfully.", Severity.Success);
+                }
+                else
+                {
+                    var updateDto = new UpdateOrganizationPositionDto 
+                    { 
+                        Id = dto!.Id,
+                        Name = data.Name, 
+                        ParentId = data.ParentId 
+                    };
+                    var response = await client.PutAsJsonAsync($"api/OrganizationPosition/{dto!.Id}", updateDto);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        var error = await response.Content.ReadAsStringAsync();
+                        Snackbar.Add($"Error updating position: {error}", Severity.Error);
+                        return;
+                    }
+                    Snackbar.Add("Position updated successfully.", Severity.Success);
+                }
+                await LoadData();
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error processing dialog: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private async Task DeleteOrganizationPosition(int id)
+    {
+        if (await DialogService.ShowMessageBox("Delete", "Are you sure?", yesText: "Delete", cancelText: "Cancel") == true)
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            var response = await client.DeleteAsync($"api/OrganizationPosition/{id}");
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Snackbar.Add(error, Severity.Error);
+            }
+            else
+            {
+                await LoadData();
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task OpenCompanyDialog(CompanyDto? dto = null)
+    {
+        var parameters = new DialogParameters { ["Company"] = dto ?? new CompanyDto() };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CompanyDialog>(dto == null ? "Add Company" : "Edit Company", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await LoadData();
+        }
+    }
+
+    private async Task DeleteCompany(int id)
+    {
+        if (await DialogService.ShowMessageBox("Delete", "Are you sure?", yesText: "Delete", cancelText: "Cancel") == true)
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            await client.DeleteAsync($"api/organization/companies/{id}");
+            await LoadData();
+        }
+    }
+
+    private async Task OpenDepartmentDialog(DepartmentDto? dto = null)
+    {
+        var parameters = new DialogParameters 
+        { 
+            ["Department"] = dto ?? new DepartmentDto(),
+            ["Companies"] = _companies
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<DepartmentDialog>(dto == null ? "Add Department" : "Edit Department", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await LoadData();
+        }
+    }
+
+    private async Task DeleteDepartment(int id)
+    {
+        if (await DialogService.ShowMessageBox("Delete", "Are you sure?", yesText: "Delete", cancelText: "Cancel") == true)
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            await client.DeleteAsync($"api/organization/departments/{id}");
+            await LoadData();
+        }
+    }
+
+    private async Task OpenTeamDialog(TeamDto? dto = null)
+    {
+        var parameters = new DialogParameters 
+        { 
+            ["Team"] = dto ?? new TeamDto(),
+            ["Departments"] = _departments
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<TeamDialog>(dto == null ? "Add Team" : "Edit Team", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await LoadData();
+        }
+    }
+
+    private async Task DeleteTeam(int id)
+    {
+        if (await DialogService.ShowMessageBox("Delete", "Are you sure?", yesText: "Delete", cancelText: "Cancel") == true)
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            await client.DeleteAsync($"api/organization/teams/{id}");
+            await LoadData();
+        }
+    }
+
+    private async Task OpenWorkTypeDialog(WorkTypeDto? dto = null)
+    {
+        var parameters = new DialogParameters { ["WorkType"] = dto ?? new WorkTypeDto() };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<WorkTypeDialog>(dto == null ? "Add Work Type" : "Edit Work Type", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await LoadData();
+        }
+    }
+
+    private async Task DeleteWorkType(int id)
+    {
+        if (await DialogService.ShowMessageBox("Delete", "Are you sure?", yesText: "Delete", cancelText: "Cancel") == true)
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            await client.DeleteAsync($"api/organization/worktypes/{id}");
+            await LoadData();
+        }
+    }
+
+    private async Task OpenJobDialog(JobDto? dto = null)
+    {
+        var parameters = new DialogParameters { ["Job"] = dto ?? new JobDto() };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<JobDialog>(dto == null ? "Add Job Title" : "Edit Job Title", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await LoadData();
+        }
+    }
+
+    private async Task DeleteJob(int id)
+    {
+        if (await DialogService.ShowMessageBox("Delete", "Are you sure?", yesText: "Delete", cancelText: "Cancel") == true)
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            await client.DeleteAsync($"api/organization/jobs/{id}");
+            await LoadData();
+        }
+    }
+
+    private async Task OpenGradeDialog(GradeDto? dto = null)
+    {
+        var parameters = new DialogParameters 
+        { 
+            ["Grade"] = dto ?? new GradeDto(),
+            ["Grades"] = _grades
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<GradeDialog>(dto == null ? "Add Grade" : "Edit Grade", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await LoadData();
+        }
+    }
+
+    private async Task DeleteGrade(int id)
+    {
+        if (await DialogService.ShowMessageBox("Delete", "Are you sure?", yesText: "Delete", cancelText: "Cancel") == true)
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            await client.DeleteAsync($"api/organization/grades/{id}");
+            await LoadData();
+        }
+    }
+}

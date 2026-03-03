@@ -1,0 +1,170 @@
+@page "/employees/create"
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthStateProvider
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+    <MudPaper Class="pa-6">
+        @if (!_authorizedChecked)
+        {
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+        }
+        else if (!_isAdmin)
+        {
+            <MudAlert Severity="Severity.Error">Admin role is required for this page.</MudAlert>
+        }
+        else
+        {
+            <MudText Typo="Typo.h5" Class="mb-4">Create New User</MudText>
+
+            <EditForm Model="@_model" OnValidSubmit="CreateUser">
+                <DataAnnotationsValidator />
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.FirstName"
+                                      Label="First Name"
+                                      For="() => _model.FirstName"
+                                      Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.LastName"
+                                      Label="Last Name"
+                                      For="() => _model.LastName"
+                                      Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.RegistrationNumber"
+                                      Label="ID (Registration No)"
+                                      For="() => _model.RegistrationNumber"
+                                      Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudDatePicker @bind-Date="_model.UserStartDate"
+                                       Label="Start Date"
+                                       For="() => _model.UserStartDate"
+                                       Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" md="12">
+                        <MudTextField @bind-Value="_model.Email"
+                                      Label="Email"
+                                      For="() => _model.Email"
+                                      Variant="Variant.Outlined"
+                                      InputType="InputType.Email" />
+                    </MudItem>
+                </MudGrid>
+
+                <MudAlert Severity="Severity.Info" Class="mt-4">
+                    The new user will have the "User" role by default and the password will be set to "123456".
+                </MudAlert>
+
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <MudAlert Severity="Severity.Error" Class="mt-4">@_errorMessage</MudAlert>
+                }
+
+                <MudStack Row="true" Spacing="2" Class="mt-4">
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_submitting">
+                        @if (_submitting)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                            <MudText Class="ms-2">Creating...</MudText>
+                        }
+                        else
+                        {
+                            <MudText>Create User</MudText>
+                        }
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="@BackToList">Cancel</MudButton>
+                </MudStack>
+            </EditForm>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private readonly CreateUserFormModel _model = new();
+    private string? _errorMessage;
+    private bool _submitting;
+    private bool _isAdmin;
+    private bool _authorizedChecked;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _isAdmin = user.Identity?.IsAuthenticated == true && user.IsInRole("Admin");
+        _authorizedChecked = true;
+    }
+
+    private async Task CreateUser()
+    {
+        if (!_isAdmin) return;
+        if (_submitting) return;
+
+        _errorMessage = null;
+        _submitting = true;
+
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            var email = _model.Email.Trim();
+            var dto = new CreateUserDto
+            {
+                Email = email,
+                Password = "123456",
+                FirstName = _model.FirstName.Trim(),
+                LastName = _model.LastName.Trim(),
+                RegistrationNumber = _model.RegistrationNumber.Trim(),
+                UserStartDate = _model.UserStartDate
+            };
+
+            var response = await client.PostAsJsonAsync("api/users", dto);
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("User created successfully.", Severity.Success);
+                Nav.NavigateTo("/employees");
+            }
+            else
+            {
+                var errorBody = await response.Content.ReadAsStringAsync();
+                _errorMessage = $"Failed to create user. Server responded with: {errorBody}";
+                Snackbar.Add(_errorMessage, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"An unexpected error occurred: {ex.Message}";
+            Snackbar.Add(_errorMessage, Severity.Error);
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+
+    private void BackToList() => Nav.NavigateTo("/employees");
+
+
+    private sealed class CreateUserFormModel
+    {
+        [Required(ErrorMessage = "First Name is required.")]
+        [StringLength(64, ErrorMessage = "First Name cannot exceed 64 characters.")]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Last Name is required.")]
+        [StringLength(64, ErrorMessage = "Last Name cannot exceed 64 characters.")]
+        public string LastName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "ID (Registration Number) is required.")]
+        public string RegistrationNumber { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Start Date is required.")]
+        public DateTime? UserStartDate { get; set; }
+
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Please enter a valid email address.")]
+        [StringLength(256, ErrorMessage = "Email cannot exceed 256 characters.")]
+        public string Email { get; set; } = string.Empty;
+    }
+}

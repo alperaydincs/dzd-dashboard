@@ -1,0 +1,163 @@
+@using DZDDashboard.Client.OrgChart
+@using DZDDashboard.Common.DTOs.Organization
+@using DZDDashboard.Common.DTOs.Users
+@inject NavigationManager Nav
+
+<li>
+    <MudStack Spacing="2" AlignItems="AlignItems.Center" Class="node-container">
+        @if (Node.Users != null && Node.Users.Any())
+        {
+            @foreach (var user in Node.Users)
+            {
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0">
+                    <MudPaper Class="@GetNodeCardClass()" Elevation="2" @onclick="@(() => HandleNodeClick(user, isUser: true))" Style="flex: 1;">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                            <MudAvatar Color="GetAvatarColor(user)" Size="Size.Large">
+                                @if (user.Avatar != null && !string.IsNullOrEmpty(user.Avatar.ContentBase64))
+                                {
+                                    <MudImage Src="@($"data:{user.Avatar.ContentType};base64,{user.Avatar.ContentBase64}")" />
+                                }
+                                else
+                                {
+                                    @(user.FirstName?.FirstOrDefault())@(user.LastName?.FirstOrDefault())
+                                }
+                            </MudAvatar>
+                            <MudStack Spacing="0" AlignItems="AlignItems.Start">
+                                <MudText Typo="Typo.body2" Class="fw-bold">@user.FirstName @user.LastName</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@GetPositionName()</MudText>
+                            </MudStack>
+                        </MudStack>
+                    </MudPaper>
+                    @if (IsEditMode)
+                    {
+                        <MudStack Spacing="1" Class="ms-2">
+                            <MudTooltip Text="Add Child Position">
+                                <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Small" Color="Color.Success" 
+                                               OnClick="@(() => OnAddChild.InvokeAsync(Node))" />
+                            </MudTooltip>
+                            <MudTooltip Text="Delete Position">
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" 
+                                               OnClick="@(() => OnDeleteNode.InvokeAsync(Node))" />
+                            </MudTooltip>
+                        </MudStack>
+                    }
+                </MudStack>
+            }
+        }
+        else
+        {
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0">
+                <MudPaper Class="@GetNodeCardClass()" Elevation="1" Style="opacity: 0.7; flex: 1;" @onclick="@(() => HandleNodeClick(null, isUser: false))">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                        <MudAvatar Color="Color.Default" Size="Size.Large">
+                            <MudIcon Icon="@Icons.Material.Filled.PersonOutline" />
+                        </MudAvatar>
+                        <MudStack Spacing="0" AlignItems="AlignItems.Start">
+                            <MudText Typo="Typo.body2" Class="fw-bold" Color="Color.Warning">Empty</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@GetPositionName()</MudText>
+                        </MudStack>
+                    </MudStack>
+                </MudPaper>
+                @if (IsEditMode)
+                {
+                    <MudStack Spacing="1" Class="ms-2">
+                        <MudTooltip Text="Add Child Position">
+                            <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Small" Color="Color.Success" 
+                                           OnClick="@(() => OnAddChild.InvokeAsync(Node))" />
+                        </MudTooltip>
+                        <MudTooltip Text="Delete Position">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" 
+                                           OnClick="@(() => OnDeleteNode.InvokeAsync(Node))" />
+                        </MudTooltip>
+                    </MudStack>
+                }
+            </MudStack>
+        }
+
+        @if (Node.Children.Any())
+        {
+            <MudIconButton Icon="@(Node.IsExpanded ? Icons.Material.Filled.KeyboardArrowUp : Icons.Material.Filled.KeyboardArrowDown)"
+                           Size="Size.Small"
+                           Color="Color.Primary"
+                           OnClick="ToggleExpand"
+                           Class="expand-btn" />
+        }
+    </MudStack>
+
+    @if (Node.IsExpanded && Node.Children.Any())
+    {
+        <ul>
+            @foreach (var child in Node.Children)
+            {
+                <OrgChartNode Node="child" 
+                              IsEditMode="IsEditMode" 
+                              IsSelectionMode="IsSelectionMode"
+                              OnAddChild="OnAddChild"
+                              OnEditNode="OnEditNode"
+                              OnDeleteNode="OnDeleteNode"
+                              OnNodeSelected="OnNodeSelected" />
+            }
+        </ul>
+    }
+</li>
+
+@code {
+    [Parameter, EditorRequired] public OrgChartNodeItem Node { get; set; } = default!;
+    
+    [Parameter] public bool IsEditMode { get; set; }
+    [Parameter] public bool IsSelectionMode { get; set; }
+    
+    [Parameter] public EventCallback<OrgChartNodeItem> OnAddChild { get; set; }
+    [Parameter] public EventCallback<OrgChartNodeItem> OnEditNode { get; set; }
+    [Parameter] public EventCallback<OrgChartNodeItem> OnDeleteNode { get; set; }
+    [Parameter] public EventCallback<OrgChartNodeItem> OnNodeSelected { get; set; }
+
+    private void ToggleExpand()
+    {
+        Node.IsExpanded = !Node.IsExpanded;
+    }
+
+    private async Task HandleNodeClick(UserDto? user, bool isUser)
+    {
+        if (IsSelectionMode)
+        {
+             await OnNodeSelected.InvokeAsync(Node);
+        }
+        else if (IsEditMode)
+        {
+            await OnEditNode.InvokeAsync(Node);
+        }
+        else if (isUser && user != null)
+        {
+            Nav.NavigateTo($"/employee/card/{user.Id}");
+        }
+    }
+
+    private string GetPositionName()
+    {
+        if (Node?.Position == null) return "Unknown";
+        return !string.IsNullOrWhiteSpace(Node.Position.Name) ? Node.Position.Name : $"Position {Node.Position.Id}";
+    }
+
+    private string GetNodeCardClass()
+    {
+        var baseClass = "node-card pa-2";
+        if (IsSelectionMode) return baseClass + " cursor-pointer"; 
+        if (IsEditMode) return baseClass + " cursor-pointer";
+        if (Node.Users != null && Node.Users.Any()) return baseClass + " cursor-pointer";
+        return baseClass;
+    }
+
+    private static Color GetAvatarColor(UserDto u)
+    {
+        return (u.Id % 6) switch
+        {
+            0 => Color.Primary,
+            1 => Color.Secondary,
+            2 => Color.Info,
+            3 => Color.Success,
+            4 => Color.Warning,
+            _ => Color.Tertiary
+        };
+    }
+}

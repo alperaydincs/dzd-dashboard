@@ -1,0 +1,73 @@
+﻿@page "/"
+@using Microsoft.JSInterop
+
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<PageTitle>Home</PageTitle>
+
+@if (!_authChecked)
+{
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}
+else if (!(_user.Identity?.IsAuthenticated ?? false))
+{
+    <p>Redirecting to login...</p>
+}
+else
+{
+    <MudPaper Class="pa-4">
+        <MudText Typo="Typo.h4" GutterBottom="true">Welcome, @_user.Identity!.Name!</MudText>
+        <MudText Typo="Typo.body1">This is your dashboard. You can add more components and information here.</MudText>
+
+        @if (_roles.Any())
+        {
+            <MudText Typo="Typo.h6" Class="mt-4">Your Roles:</MudText>
+            <MudList T="string">
+                @foreach (var role in _roles)
+                {
+                    <MudListItem Icon="@Icons.Material.Filled.Shield">
+                        @role
+                    </MudListItem>
+                }
+            </MudList>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Info" Class="mt-4">You do not have any assigned roles.</MudAlert>
+        }
+    </MudPaper>
+}
+
+@code {
+    private ClaimsPrincipal _user = new(new ClaimsIdentity());
+    private bool _authChecked;
+    private List<string> _roles = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _user = authState.User;
+
+        if (!(_user.Identity?.IsAuthenticated ?? false))
+        {
+            try
+            {
+                Nav.NavigateTo("/MicrosoftIdentity/Account/SignIn", forceLoad: true, replace: true);
+            }
+            catch (JSDisconnectedException)
+            {
+            }
+        }
+        else
+        {
+            _roles = _user.Claims
+                .Where(c => c.Type == ClaimTypes.Role || c.Type == "role" || c.Type == "roles")
+                .Select(c => c.Value)
+                .Distinct()
+                .OrderBy(r => r)
+                .ToList();
+        }
+        _authChecked = true;
+    }
+}

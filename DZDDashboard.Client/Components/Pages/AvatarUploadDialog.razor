@@ -1,0 +1,134 @@
+@using Microsoft.AspNetCore.Components.Forms
+@using DZDDashboard.Client.Models
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid Spacing="2" Justify="Justify.Center">
+
+            <MudItem xs="12" Class="d-flex flex-column align-center">
+                <MudText Typo="Typo.subtitle1" GutterBottom="true">
+                    @(!string.IsNullOrEmpty(previewImageDataUrl) ? "New Photo (Preview)" : "Current Photo")
+                </MudText>
+
+                <MudAvatar Color="Color.Primary" Rounded="true" Size="Size.Large" Style="width:180px; height:180px; font-size: 5rem;">
+                    @if (!string.IsNullOrEmpty(previewImageDataUrl))
+                    {
+                        <MudImage Src="@previewImageDataUrl" Alt="New Avatar Preview" />
+                    }
+                    else if (!string.IsNullOrEmpty(CurrentAvatarUrl))
+                    {
+                        <MudImage Src="@CurrentAvatarUrl" Alt="Current Avatar" />
+                    }
+                    else
+                    {
+                        @UserInitials
+                    }
+                </MudAvatar>
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudFileUpload T="IBrowserFile" Accept=".jpg,.jpeg,.png" MaximumFileCount="1" OnFilesChanged="OnInputFileChanged">
+                    <ActivatorContent>
+                        <MudButton HtmlTag="label"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.CloudUpload"
+                                   Class="mt-4">
+                            Select Photo (.png, .jpg)
+                        </MudButton>
+                    </ActivatorContent>
+                </MudFileUpload>
+                @if (selectedFile != null)
+                {
+                    <MudText Typo="Typo.body2" Class="mt-2" Align="Align.Center">
+                        Selected file: @selectedFile.Name
+                    </MudText>
+                }
+            </MudItem>
+
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Save" Disabled="@(selectedFile == null)">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public string CurrentAvatarUrl { get; set; } = string.Empty;
+    
+    [Parameter]
+    public string UserInitials { get; set; } = string.Empty;
+
+    private IBrowserFile? selectedFile;
+    private string? previewImageDataUrl;
+    private byte[]? _fileBytes;
+
+    private async Task OnInputFileChanged(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            if (e.FileCount == 0)
+            {
+                selectedFile = null;
+                previewImageDataUrl = null;
+                _fileBytes = null;
+                return; 
+            }
+            var file = e.File;
+            if (file == null) return;
+
+            long maxFileSize = 5 * 1024 * 1024; 
+            if (file.Size > maxFileSize)
+            {
+                Snackbar.Add("Dosya boyutu 5MB'dan b�y�k olamaz.", Severity.Warning);
+                selectedFile = null;
+                previewImageDataUrl = null;
+                _fileBytes = null;
+                return;
+            }
+
+            using var stream = file.OpenReadStream(maxFileSize);
+            using var ms = new MemoryStream();
+
+            await stream.CopyToAsync(ms);
+            _fileBytes = ms.ToArray();
+
+            previewImageDataUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(_fileBytes)}";
+            selectedFile = file;
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            
+            Console.WriteLine($"Dosya okuma hatas�: {ex.Message}");
+            Snackbar.Add("Dosya i�lenirken bir hata olu�tu.", Severity.Error);
+
+            selectedFile = null;
+            previewImageDataUrl = null;
+            _fileBytes = null;
+        }
+    }
+
+    void Save()
+    {
+        if (selectedFile != null && _fileBytes != null)
+        {
+            var result = new AvatarUploadResult
+            {
+                FileName = selectedFile.Name,
+                ContentType = selectedFile.ContentType,
+                Content = _fileBytes
+            };
+            MudDialog.Close(DialogResult.Ok(result));
+        }
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}

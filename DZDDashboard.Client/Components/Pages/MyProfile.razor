@@ -1,0 +1,353 @@
+@page "/my-profile"
+@using MudBlazor
+@using System.Globalization
+@using DZDDashboard.Common.DTOs.Users
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Forms
+@using DZDDashboard.Client.Models
+
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+@inject IHttpClientFactory HttpClientFactory
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IDialogService DialogService
+
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            @if (CurrentUser == null)
+            {
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                <MudText>Loading profile...</MudText>
+            }
+            else
+            {
+                <MudTabs Elevation="1" Rounded="true" Style="margin-top: 1rem;">
+                    <MudTabPanel Text="My Profile" Icon="@Icons.Material.Filled.Person">
+                        <MudGrid Style="margin-top: 1rem;" Spacing="4">
+                            <MudItem xs="12" md="8">
+                                <MudCard Elevation="2">
+                                    <MudCardContent>
+                                <MudGrid>
+                                    <MudItem xs="12" md="8">
+                                        <MudText Typo="Typo.h4" GutterBottom="true">@CurrentUser.FirstName @CurrentUser.LastName</MudText>
+                                        <MudText Typo="Typo.body1" Color="Color.Dark" Style="font-weight: 500;">@(CurrentUser.Team?.Name ?? "-") </MudText>
+                                        <MudText Typo="Typo.body2" Style="color: #6c757d;">@(CurrentUser.Department?.Name ?? "-")</MudText>
+                                    </MudItem>
+
+                                    <MudItem xs="12" md="4" Class="d-flex justify-md-end justify-start align-start pr-md-3">
+                                        <MudTooltip Text="Click to change photo">
+                                            <MudAvatar Color="Color.Primary" Rounded="true" Size="Size.Large" Style="width:120px; height:120px; font-size: 3rem; cursor: pointer;" @onclick="OpenAvatarUploadDialog">
+                                                @if (AvatarDataUrl != string.Empty)
+                                                {
+                                                    <MudImage Src="@AvatarDataUrl" Alt="Avatar" />
+                                                }
+                                                else
+                                                {
+                                                    @GetInitials(CurrentUser.FirstName, CurrentUser.LastName)
+                                                }
+                                            </MudAvatar>
+                                        </MudTooltip>
+                                    </MudItem>
+                                </MudGrid>
+
+                                <MudDivider Class="my-4" />
+
+                                <MudGrid Spacing="3">
+                                    @RenderProfileDetailItem("Start Date", CurrentUser.UserStartDate?.ToString("d MMMM yyyy", enCulture))
+                                    @RenderProfileDetailItem("Contract Type", CurrentUser.ContractType)
+                                    @RenderProfileDetailItem("Work Duration", WorkDuration)
+                                    @RenderProfileDetailItem("Contract End Date", CurrentUser.ContractEndDate?.ToString("d MMMM yyyy", enCulture))
+
+                                    <MudItem xs="12" Class="my-2"></MudItem>
+
+                                    @RenderProfileDetailItem("Position Start Date", CurrentUser.PositionStartDate?.ToString("d MMMM yyyy", enCulture))
+                                    @RenderProfileDetailItem("Work Model", CurrentUser.WorkModel)
+                                    @RenderProfileDetailItem("Company", CurrentUser.CompanyName)
+                                    @RenderProfileDetailItem("Department", CurrentUser.Department?.Name)
+                                    @RenderProfileDetailItem("Unit", CurrentUser.UnitName)
+                                    @RenderProfileDetailItem("Team", CurrentUser.Team?.Name)
+                                    @RenderProfileDetailItem("Title", CurrentUser.Job?.Name)
+                                    @RenderProfileDetailItem("Approval Unit", CurrentUser.ApprovalProcessUnit)
+                                    @RenderProfileDetailItem("Payroll Location", CurrentUser.PayrollLocation?.Name)
+                                </MudGrid>
+                                    </MudCardContent>
+                                </MudCard>
+                            </MudItem>
+
+                            <MudItem xs="12" md="4">
+                                <MudCard Elevation="2" Class="mb-4">
+                                    <MudCardHeader>
+                                        <CardHeaderContent><MudText Typo="Typo.h6">My Manager</MudText></CardHeaderContent>
+                                    </MudCardHeader>
+                                    <MudCardContent>
+                                        @if (CurrentUser.ReportsTo != null)
+                                        {
+                                            <div class="d-flex align-center">
+                                                <MudAvatar Color="Color.Primary" Class="mr-3">
+                                                    @if (!string.IsNullOrEmpty(ManagerAvatarUrl))
+                                                    {
+                                                        <MudImage Src="@ManagerAvatarUrl" Style="width:100%;height:100%;object-fit:cover;" />
+                                                    }
+                                                    else
+                                                    {
+                                                        @GetInitials(CurrentUser.ReportsTo.FirstName, CurrentUser.ReportsTo.LastName)
+                                                    }
+                                                </MudAvatar>
+                                                <div>
+                                                    <MudText Typo="Typo.body1" GutterBottom="false" Style="font-weight: 500;">@CurrentUser.ReportsTo.FirstName @CurrentUser.ReportsTo.LastName</MudText>
+                                                    <MudText Typo="Typo.body2" Style="color: #6c757d;">@CurrentUser.ReportsTo.Job?.Name</MudText>
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <MudText>No manager assigned.</MudText>
+                                        }
+                                    </MudCardContent>
+                                </MudCard>
+
+                                <MudCard Elevation="2" Class="mb-4">
+                                <MudCardHeader>
+                                    <CardHeaderContent><MudText Typo="Typo.h6">Contact</MudText></CardHeaderContent>
+                                    <CardHeaderActions>
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="OpenContactInfoDialog" />
+                                    </CardHeaderActions>
+                                </MudCardHeader>
+                                <MudCardContent>
+                                    <MudList T="string" Dense="true">
+                                        @RenderContactItem(Icons.Material.Outlined.Email, "Email (Work)", CurrentUser.Email)
+                                        @RenderContactItem(Icons.Material.Outlined.Phone, "Phone (Work)", CurrentUser.PhoneNumber)
+                                        @RenderContactItem(Icons.Material.Outlined.AlternateEmail, "Email (Personal)", CurrentUser.PersonalEmail)
+                                        @RenderContactItem(Icons.Material.Outlined.PhoneAndroid, "Phone (Personal)", CurrentUser.PersonalPhoneNumber)
+                                    </MudList>
+                                </MudCardContent>
+                            </MudCard>
+                            </MudItem>
+                        </MudGrid>
+                    </MudTabPanel>
+                </MudTabs>
+            }
+        </Authorized>
+        <NotAuthorized>
+            <MudText>You must be logged in to view this page.</MudText>
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
+@code {
+
+    private UserProfileDto? CurrentUser;
+    private string WorkDuration = "Calculating...";
+    private string AvatarDataUrl = string.Empty;
+    private string ManagerAvatarUrl = string.Empty;
+    private readonly CultureInfo enCulture = new CultureInfo("en-US");
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated ?? false)
+        {
+            await LoadUserProfileAsync(); 
+        }
+        else
+        {
+            Snackbar.Add("Please login.", Severity.Warning);
+        }
+    }
+
+    private async Task LoadUserProfileAsync()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            CurrentUser = await client.GetFromJsonAsync<UserProfileDto>("api/users/my-profile");
+
+            if (CurrentUser != null)
+            {
+                CalculateWorkDuration();
+                SetAvatarDataUrl(CurrentUser.Avatar, (url) => AvatarDataUrl = url);
+                SetAvatarDataUrl(CurrentUser.ReportsTo?.Avatar, (url) => ManagerAvatarUrl = url);
+                StateHasChanged(); 
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading profile: {ex.Message}", Severity.Error);
+        }
+    }
+
+  
+    private void SetAvatarDataUrl(UserAvatarDto? avatarDto, Action<string> setUrlAction)
+    {
+        if (avatarDto != null && !string.IsNullOrEmpty(avatarDto.ContentBase64))
+        {
+            var url = $"data:{avatarDto.ContentType ?? "image/png"};base64,{avatarDto.ContentBase64}";
+            setUrlAction(url);
+        }
+        else
+        {
+            setUrlAction(string.Empty);
+        }
+    }
+
+    private async Task OpenAvatarUploadDialog()
+    {
+        var parameters = new DialogParameters
+        {
+            ["CurrentAvatarUrl"] = AvatarDataUrl,
+            ["UserInitials"] = GetInitials(CurrentUser?.FirstName, CurrentUser?.LastName)
+        };
+
+        var dialog = await DialogService.ShowAsync<AvatarUploadDialog>("Update Profile Photo", parameters);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is AvatarUploadResult fileResult)
+        {
+            await UploadAvatarAsync(fileResult);
+        }
+    }
+
+    private async Task UploadAvatarAsync(AvatarUploadResult fileResult)
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            using var content = new MultipartFormDataContent();
+
+            using var stream = new MemoryStream(fileResult.Content);
+            using var streamContent = new StreamContent(stream);
+            streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(fileResult.ContentType);
+
+            content.Add(
+                content: streamContent,
+                name: "file", 
+                fileName: fileResult.FileName
+            );
+
+            var response = await client.PostAsync("api/users/my-profile/avatar", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Avatar updated successfully.", Severity.Success);
+                await LoadUserProfileAsync();
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Snackbar.Add($"Failed to upload avatar: {error}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Upload error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task OpenContactInfoDialog()
+    {
+        if (CurrentUser == null) return;
+
+        var model = new UpdateContactInfoDto
+        {
+            WorkPhoneNumber = CurrentUser.PhoneNumber,
+            PersonalEmail = CurrentUser.PersonalEmail,
+            PersonalPhoneNumber = CurrentUser.PersonalPhoneNumber
+        };
+
+        var parameters = new DialogParameters
+        {
+            ["Model"] = model,
+            ["WorkEmail"] = CurrentUser.Email
+        };
+
+        var dialog = await DialogService.ShowAsync<ContactInfoDialog>("Edit Contact Information", parameters);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is UpdateContactInfoDto updatedModel)
+        {
+            await UpdateContactInfoAsync(updatedModel);
+        }
+    }
+
+    private async Task UpdateContactInfoAsync(UpdateContactInfoDto dto)
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            var response = await client.PutAsJsonAsync("api/users/my-profile/contact-info", dto);
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Contact information updated.", Severity.Success);
+                await LoadUserProfileAsync();
+            }
+            else
+            {
+                Snackbar.Add("Failed to update contact info.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+    
+    private RenderFragment RenderProfileDetailItem(string label, string? value) => __builder =>
+    {
+        <MudItem xs="12" sm="6">
+            <MudText Typo="Typo.caption" Style="color: #6c757d;">@label</MudText>
+            <MudText Typo="Typo.body1" Style="font-weight: 500;">@(value ?? "-")</MudText>
+        </MudItem>
+    };
+
+
+    private RenderFragment RenderContactItem(string icon, string label, string? value) => __builder =>
+    {
+        <MudListItem T="string" Icon="@icon" IconColor="Color.Primary">
+            <div class="d-flex justify-space-between align-center" style="width: 100%">
+                <div class="d-flex flex-column">
+                    <MudText Typo="Typo.caption" Style="color: #6c757d;">@label</MudText>
+                    <MudText Typo="Typo.body2">@(string.IsNullOrEmpty(value) ? "-" : value)</MudText>
+                </div>
+                @if (!string.IsNullOrEmpty(value))
+                {
+                    <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" OnClick="@(async () => await CopyToClipboard(value))" />
+                }
+            </div>
+        </MudListItem>
+    };
+
+    private async Task CopyToClipboard(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return;
+        await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+        Snackbar.Add($"'{text}' copied to clipboard.", Severity.Info);
+    }
+    private string GetInitials(string? firstName, string? lastName)
+    {
+        return $"{firstName?.FirstOrDefault()}{lastName?.FirstOrDefault()}".ToUpper();
+    }
+
+    private void CalculateWorkDuration()
+    {
+        if (CurrentUser?.UserStartDate.HasValue ?? false)
+        {
+            var startDate = CurrentUser.UserStartDate.Value;
+            var endDate = DateTime.Today;
+            
+            int years = endDate.Year - startDate.Year;
+            int months = endDate.Month - startDate.Month;
+            int days = endDate.Day - startDate.Day;
+
+            if (days < 0) { months--; days += DateTime.DaysInMonth(endDate.Year, endDate.AddMonths(-1).Month); }
+            if (months < 0) { years--; months += 12; }
+
+            WorkDuration = $"{years} year{(years > 1 ? "s" : "")} {months} month{(months > 1 ? "s" : "")} {days} day{(days > 1 ? "s" : "")}";
+        }
+        else
+        {
+            WorkDuration = "No Start Date";
+        }
+    }
+}

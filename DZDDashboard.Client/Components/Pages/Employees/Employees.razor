@@ -1,0 +1,440 @@
+@page "/employees"
+@using DZDDashboard.Client.OrgChart
+@using DZDDashboard.Common.DTOs.Organization
+@using DZDDashboard.Client.Theme
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthStateProvider
+
+<MudContainer MaxWidth="MaxWidth.False" Class="mt-6">
+    @if (!_authorizedChecked)
+    {
+        <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="py-8">
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+        </MudStack>
+    }
+    else if (!_isAdmin)
+    {
+        <MudAlert Severity="Severity.Error">Admin or HR Role is required for this page.</MudAlert>
+    }
+    else
+    {
+        <MudStack Spacing="3">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                <MudStack Spacing="1">
+                    <MudText Typo="Typo.h5">Employee Management</MudText>
+                    <MudText Typo="Typo.body2">
+                        Manage your team members and their information
+                    </MudText>
+                </MudStack>
+
+                <MudStack Row="true" Spacing="1">
+                    <MudButton Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@CreateUser">
+                        Add Employee
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+
+            <MudGrid>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudPaper Elevation="1" Class="pa-4">
+                        <MudStack Spacing="1">
+                            <MudText Typo="Typo.caption">Total Employees</MudText>
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                <MudText Typo="Typo.h5">@_users.Count</MudText>
+                                <MudIcon Icon="@Icons.Material.Filled.Groups" Color="Color.Primary" />
+                            </MudStack>
+                        </MudStack>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudPaper Elevation="1" Class="pa-4">
+                        <MudStack Spacing="1">
+                            <MudText Typo="Typo.caption">Active</MudText>
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                <MudText Typo="Typo.h5">@_users.Count(u => u.IsActive)</MudText>
+                                <MudIcon Icon="@Icons.Material.Filled.PersonAddAlt1" Color="Color.Success" />
+                            </MudStack>
+                        </MudStack>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudPaper Elevation="1" Class="pa-4">
+                        <MudStack Spacing="1">
+                            <MudText Typo="Typo.caption">On Leave</MudText>
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                <MudText Typo="Typo.h5">@_users.Count(u => !u.IsActive)</MudText>
+                                <MudIcon Icon="@Icons.Material.Filled.HolidayVillage" Color="Color.Warning" />
+                            </MudStack>
+                        </MudStack>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudPaper Elevation="1" Class="pa-4">
+                        <MudStack Spacing="1">
+                            <MudText Typo="Typo.caption">Departments</MudText>
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                <MudText Typo="Typo.h5">0</MudText>
+                                <MudIcon Icon="@Icons.Material.Filled.Apartment" Color="Color.Info" />
+                            </MudStack>
+                        </MudStack>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="_search"
+                                  Variant="Variant.Outlined"
+                                  Placeholder="Search employees..."
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  Immediate="true"
+                                  Clearable="true" />
+                </MudItem>
+                <MudItem xs="6" md="3">
+                    <MudSelect T="string" @bind-Value="_statusFilter" Variant="Variant.Outlined">
+                        <MudSelectItem Value=@("All")>All</MudSelectItem>
+                        <MudSelectItem Value=@("Active")>Active</MudSelectItem>
+                        <MudSelectItem Value=@("OnLeave")>On Leave</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6" md="3">
+                    <MudSelect T="string" @bind-Value="_roleFilter" Variant="Variant.Outlined">
+                        <MudSelectItem Value=@("All")>All Departments</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+
+            <MudTabs @bind-ActivePanelIndex="_activeViewIndex">
+                <MudTabPanel Text="Table View" />
+                <MudTabPanel Text="Card View" />
+                <MudTabPanel Text="Org Chart View" />
+            </MudTabs>
+
+            @if (_activeViewIndex == 0)
+            {
+                <MudStack Spacing="2">
+                    @if (!string.IsNullOrWhiteSpace(_error))
+                    {
+                        <MudAlert Severity="Severity.Error" Dense="true">@_error</MudAlert>
+                    }
+                    <MudPaper Elevation="1">
+                        <MudTable Items="_filteredUsers" Dense="true" Hover="true" Bordered="true" Loading="@_loading" LoadingProgressColor="Color.Primary">
+                            <HeaderContent>
+                                <MudTh style="min-width:280px">Employee</MudTh>
+                                <MudTh>Department</MudTh>
+                                <MudTh>Team</MudTh>
+                                <MudTh>Position</MudTh>
+                                <MudTh>Start Date</MudTh>
+                                <MudTh>Status</MudTh>
+                                <MudTh style="width:140px; white-space:nowrap;">Actions</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Employee">
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                        <MudAvatar Size="Size.Medium"
+                                                   Color="@GetAvatarColor(context)"
+                                                   Variant="Variant.Filled"
+                                                   Class="elevation-1">
+                                            @if (context.Avatar != null && !string.IsNullOrEmpty(context.Avatar.ContentBase64))
+                                            {
+                                                <MudImage Src="@($"data:{context.Avatar.ContentType};base64,{context.Avatar.ContentBase64}")" />
+                                            }
+                                            else
+                                            {
+                                                @GetInitials(context)
+                                            }
+                                        </MudAvatar>
+                                        <MudStack Spacing="0">
+                                            <MudText Typo="Typo.subtitle2">@GetDisplayName(context)</MudText>
+                                            <MudText Typo="Typo.caption" Class="text-gray-default">@context.Email</MudText>
+                                        </MudStack>
+                                    </MudStack>
+                                </MudTd>
+
+                                <MudTd DataLabel="Department">
+                                    @if (context.Department != null && !string.IsNullOrWhiteSpace(context.Department.Name))
+                                    {
+                                        <MudText>@context.Department.Name</MudText>
+                                    }
+                                    else
+                                    {
+                                        <MudText Class="text-gray-default">-</MudText>
+                                    }
+                                </MudTd>
+
+                                <MudTd DataLabel="Team">
+                                    @if (context.Team != null && !string.IsNullOrWhiteSpace(context.Team.Name))
+                                    {
+                                        <MudText>@context.Team.Name</MudText>
+                                    }
+                                    else
+                                    {
+                                        <MudText Class="text-gray-default">-</MudText>
+                                    }
+                                </MudTd>
+
+                                <MudTd DataLabel="Position">
+                                    @if (context.Job != null && !string.IsNullOrWhiteSpace(context.Job.Name))
+                                    {
+                                        <MudText>@context.Job.Name</MudText>
+                                    }
+                                    else
+                                    {
+                                        <MudText Class="text-gray-default">-</MudText>
+                                    }
+                                </MudTd>
+
+                                <MudTd DataLabel="Start Date">
+                                    @if (context.UserStartDate.HasValue)
+                                    {
+                                        <MudText>@context.UserStartDate.Value.ToString("d")</MudText>
+                                    }
+                                    else
+                                    {
+                                        <MudText Class="text-gray-default">-</MudText>
+                                    }
+                                </MudTd>
+
+                                <MudTd DataLabel="Status">
+                                    <MudChip T="string" Color="@(context.IsActive ? Color.Success : Color.Warning)" Variant="Variant.Outlined" Size="Size.Small">
+                                        @(context.IsActive ? "Active" : "On Leave")
+                                    </MudChip>
+                                </MudTd>
+
+                                <MudTd DataLabel="Actions" Style="white-space:nowrap;">
+                                    <MudTooltip Text="Edit">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" Size="Size.Small"
+                                                       OnClick="@(() => Edit(context.Id))" />
+                                    </MudTooltip>
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </MudPaper>
+                </MudStack>
+            }
+            else if (_activeViewIndex == 1)
+            {
+                <MudAlert Severity="Severity.Info">Card view is not implemented yet.</MudAlert>
+            }
+            else
+            {
+                <OrgChartTree Nodes="_orgNodes" />
+            }
+        </MudStack>
+    }
+</MudContainer>
+
+@code {
+    private bool _isAdmin;
+    private bool _authorizedChecked;
+    private bool _loading;
+    private string? _error;
+    private List<UserDto> _users = new();
+    private string _search = string.Empty;
+    private string _statusFilter = "All";
+    private string _roleFilter = "All";
+    private int _activeViewIndex = 0;
+    private List<OrgChartNodeItem> _orgNodes = new();
+
+    private IEnumerable<UserDto> _filteredUsers =>
+        _users
+            .Where(u => MatchesSearch(u, _search))
+            .Where(u => _statusFilter == "All" ||
+                        (_statusFilter == "Active" && u.IsActive) ||
+                        (_statusFilter == "OnLeave" && !u.IsActive));
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _isAdmin = user.Identity?.IsAuthenticated == true && user.IsInRole("Admin");
+        _authorizedChecked = true;
+
+        if (_isAdmin)
+            await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        _error = null;
+        _loading = true;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            var usersTask = client.GetFromJsonAsync<List<UserDto>>("api/users/");
+            var positionsTask = client.GetFromJsonAsync<List<OrganizationPositionDto>>("api/OrganizationPosition");
+
+            await Task.WhenAll(usersTask, positionsTask);
+
+            _users = usersTask.Result ?? new();
+            var positions = positionsTask.Result ?? new();
+            
+            BuildOrgChart(positions, _users);
+        }
+        catch (Exception ex)
+        {
+            _error = "Failed to load data.";
+            Snackbar.Add($"{_error} {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void BuildOrgChart(List<OrganizationPositionDto> positions, List<UserDto> users)
+    {
+        _orgNodes = new List<OrgChartNodeItem>();
+
+        var usersByPosition = users
+            .Where(u => u.OrganizationPositionId.HasValue)
+            .GroupBy(u => u.OrganizationPositionId!.Value)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        var childPositionsMap = positions
+            .Where(p => p.ParentId.HasValue)
+            .GroupBy(p => p.ParentId!.Value)
+            .ToDictionary(g => g.Key, g => g.OrderBy(p => p.Name).ToList());
+
+        var rootPositions = positions.Where(p => p.ParentId == null).OrderBy(p => p.Name).ToList();
+
+        foreach (var rootPos in rootPositions)
+        {
+            if (usersByPosition.TryGetValue(rootPos.Id, out var rootUsers) && rootUsers.Any())
+            {
+                foreach (var user in rootUsers)
+                {
+                    var userNode = CreateUserNode(rootPos, user);
+                    
+                    BuildChildren(userNode, user.Id, childPositionsMap, usersByPosition);
+                    _orgNodes.Add(userNode);
+                }
+            }
+            else
+            {
+                var emptyNode = CreateEmptyNode(rootPos);
+                BuildChildren(emptyNode, null, childPositionsMap, usersByPosition);
+                _orgNodes.Add(emptyNode);
+            }
+        }
+    }
+
+    private void BuildChildren(OrgChartNodeItem parentNode, 
+        int? effectiveManagerId,
+        Dictionary<int, List<OrganizationPositionDto>> childPositionsMap, 
+        Dictionary<int, List<UserDto>> usersByPosition)
+    {
+        bool hasUsersInSubtree = false;
+
+        if (childPositionsMap.TryGetValue(parentNode.Position.Id, out var childPositions))
+        {
+            foreach (var childPos in childPositions)
+            {
+                
+                var potentialUsers = usersByPosition.TryGetValue(childPos.Id, out var list) ? list : new List<UserDto>();
+                
+                var directReports = potentialUsers
+                    .Where(u => u.ReportsToId == effectiveManagerId)
+                    .ToList();
+
+                foreach (var user in directReports)
+                {
+                    var userNode = CreateUserNode(childPos, user);
+                    
+                    parentNode.Children.Add(userNode);
+                    BuildChildren(userNode, user.Id, childPositionsMap, usersByPosition);
+                    hasUsersInSubtree = true;
+                }
+
+                var emptyNode = CreateEmptyNode(childPos);
+
+                BuildChildren(emptyNode, effectiveManagerId, childPositionsMap, usersByPosition);
+
+                if (emptyNode.HasUsersInSubtree || !directReports.Any())
+                {
+                    parentNode.Children.Add(emptyNode);
+                }
+
+                if (emptyNode.HasUsersInSubtree)
+                {
+                    hasUsersInSubtree = true;
+                }
+            }
+        }
+
+        parentNode.HasUsersInSubtree = hasUsersInSubtree || parentNode.Users.Any();
+    }
+
+    private static OrgChartNodeItem CreateUserNode(OrganizationPositionDto pos, UserDto user)
+    {
+        return new OrgChartNodeItem
+        {
+            Position = pos,
+            Users = new List<UserDto> { user },
+            Children = new List<OrgChartNodeItem>(),
+            IsExpanded = true
+        };
+    }
+
+    private static OrgChartNodeItem CreateEmptyNode(OrganizationPositionDto pos)
+    {
+        return new OrgChartNodeItem
+        {
+            Position = pos,
+            Users = new List<UserDto>(),
+            Children = new List<OrgChartNodeItem>(),
+            IsExpanded = true
+        };
+    }
+
+    private static bool MatchesSearch(UserDto u, string term)
+    {
+        if (string.IsNullOrWhiteSpace(term)) return true;
+        term = term.Trim();
+        return (u.FirstName?.Contains(term, StringComparison.OrdinalIgnoreCase) == true)
+            || (u.LastName?.Contains(term, StringComparison.OrdinalIgnoreCase) == true)
+            || (u.Username?.Contains(term, StringComparison.OrdinalIgnoreCase) == true)
+            || (u.Email?.Contains(term, StringComparison.OrdinalIgnoreCase) == true);
+    }
+
+    private static string GetDisplayName(UserDto u)
+    {
+        var displayName = string.Join(' ', new[] { u.FirstName, u.LastName }.Where(s => !string.IsNullOrWhiteSpace(s))).Trim();
+        return !string.IsNullOrWhiteSpace(displayName)
+            ? displayName
+            : (u.Username ?? $"User #{u.Id}");
+    }
+
+    private static string GetInitials(UserDto u)
+    {
+        var first = u.FirstName?.FirstOrDefault() ?? default;
+        var last = u.LastName?.FirstOrDefault() ?? default;
+
+        if (first != default || last != default)
+            return $"{(first == default ? "" : first.ToString())}{(last == default ? "" : last.ToString())}".ToUpperInvariant();
+
+        var fromUser = (u.Username ?? u.Email ?? $"U{u.Id}").Take(2);
+        return string.Concat(fromUser).ToUpperInvariant();
+    }
+
+    private static Color GetAvatarColor(UserDto u)
+    {
+        return (u.Id % 6) switch
+        {
+            0 => Color.Primary,
+            1 => Color.Secondary,
+            2 => Color.Info,
+            3 => Color.Success,
+            4 => Color.Warning,
+            _ => Color.Tertiary
+        };
+    }
+
+    private Task Reload() => LoadUsers();
+    private void CreateUser() => Nav.NavigateTo("/employees/create");
+    private void Edit(int id) => Nav.NavigateTo($"/employee/card/{id}");
+    private void View(int id) => Nav.NavigateTo($"/employee/card/{id}");
+}

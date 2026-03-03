@@ -1,0 +1,49 @@
+@using DZDDashboard.Common.DTOs
+@using MudBlazor
+@inject IHttpClientFactory HttpClientFactory
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Value="Job.Name" Label="Title" Required="true" />
+        <MudNumericField @bind-Value="Job.Level" Label="Level" Min="0" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public JobDto Job { get; set; } = new();
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        if (string.IsNullOrWhiteSpace(Job.Name))
+        {
+            Snackbar.Add("Title is required", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            if (Job.Id == 0)
+            {
+                await client.PostAsJsonAsync("api/organization/jobs", Job);
+            }
+            else
+            {
+                await client.PutAsJsonAsync("api/organization/jobs", Job);
+            }
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error saving: {ex.Message}", Severity.Error);
+        }
+    }
+}

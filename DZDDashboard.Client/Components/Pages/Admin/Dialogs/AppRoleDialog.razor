@@ -1,0 +1,17 @@
+﻿<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Value="RoleName" Label="Role Name" Required="true" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Color="Color.Secondary">Cancel</MudButton>
+        <MudButton OnClick="Save" Color="Color.Primary">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public string RoleName { get; set; } = string.Empty;
+
+    private void Save() => MudDialog.Close(DialogResult.Ok(RoleName));
+    private void Cancel() => MudDialog.Cancel();
+}
