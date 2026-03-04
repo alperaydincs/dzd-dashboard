@@ -5,10 +5,11 @@
 @using DZDDashboard.Common.DTOs.Users
 @using DZDDashboard.Client.Theme
 @using System.Security.Claims
+@using DZDDashboard.Client.Services
 
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Nav
-@inject IHttpClientFactory HttpClientFactory
+@inject UserService UserService
 
 @implements IDisposable
 
@@ -145,8 +146,7 @@
 
             try
             {
-                var client = HttpClientFactory.CreateClient("Api");
-                var avatarDto = await client.GetFromJsonAsync<UserAvatarDto>("api/users/my-avatar");
+                var avatarDto = await UserService.GetMyAvatarAsync();
 
                 if (avatarDto != null && !string.IsNullOrEmpty(avatarDto.ContentBase64))
                 {

@@ -2,11 +2,13 @@
 @using DZDDashboard.Common.DTOs.Users
 @using DZDDashboard.Common.DTOs.Organization
 @using DZDDashboard.Client.Components.Pages.Employees.Dialogs
-@inject IHttpClientFactory HttpClientFactory
+@using DZDDashboard.Client.Services
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject AuthenticationStateProvider AuthStateProvider
+@inject UserService UserService
+@inject OrganizationService OrgService
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
     @if (!_authorizedChecked)
@@ -27,7 +29,7 @@
     }
     else if (_profile is not null)
     {
-        <!-- Combined header + quick facts -->
+        
         <div class="dzd-header-container mb-4">
             <MudPaper Elevation="0" Class="dzd-header-card">
                 <MudGrid Spacing="2">
@@ -52,7 +54,7 @@
                             </MudStack>
                             <MudDivider />
                             
-                            <!-- Row 1 -->
+                            
                             <MudGrid Spacing="1" Class="mt-1">
                                 <MudItem xs="6" md="4">
                                     <MudStack Spacing="0">
@@ -83,7 +85,7 @@
                                 </MudItem>
                             </MudGrid>
 
-                            <!-- Row 2 -->
+                            
                             <MudGrid Spacing="1" Class="mt-0">
                                 <MudItem xs="6" md="4">
                                     <MudStack Spacing="0">
@@ -120,7 +122,7 @@
             </MudPaper>
         </div>
 
-        <!-- Tabs -->
+        
         <MudTabs Elevation="0" Rounded="true">
             <MudTabPanel Text="Overview">
                 <MudGrid Class="mt-1 mb-5">
@@ -164,9 +166,9 @@
                         </MudPaper>
                     </MudItem>
                 </MudGrid>
-                <!-- Cards TODO -->
+                
 
-                <!-- Info sections -->
+                
                 <MudGrid Class="mt-2 mb-4">
                     <MudItem xs="12" md="6">
                         <MudCard Class="pa-2">
@@ -244,27 +246,27 @@
                 else
                 {
                     <div class="dzd-personal-info-bg pa-6">
-                        <!-- Header / Tooltip -->
+                        
                         <MudText Typo="Typo.h6" Class="mb-1" Style="font-weight:600; color:#111827;">Personal Information</MudText>
                         <MudText Typo="Typo.body2" Class="mb-6" Style="color:#6B7280;">Manage employee's personal details and contact information</MudText>
 
-                        <!-- 1. Basic Information -->
+                        
                         <div class="dzd-section-title">
                             <span>•</span> Employee Details
                         </div>
                         <div class="dzd-card">
                             <MudGrid Spacing="4">
-                                <!-- Full Name -->
+                                
                                 <MudItem xs="12" md="6">
                                     <div class="dzd-field-label"><MudIcon Icon="@Icons.Material.Outlined.Person" Size="Size.Small" /> Full Name</div>
                                     <MudTextField Value="@(BuildFullName(_profile.FirstName, _profile.LastName))" ReadOnly="true" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
                                 </MudItem>
-                                <!-- Registry Number -->
+                                
                                 <MudItem xs="12" md="6">
                                     <div class="dzd-field-label"><MudIcon Icon="@Icons.Material.Outlined.Badge" Size="Size.Small" /> Registry Number (Sicil No)</div>
                                     <MudTextField Value="@(_personalInfo.RegistrationNumber)" ReadOnly="@(!_editingPersonalInfo)" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
                                 </MudItem>
-                                <!-- Dates -->
+                                
                                 <MudItem xs="12" md="6">
                                     <div class="dzd-field-label"><MudIcon Icon="@Icons.Material.Outlined.CalendarToday" Size="Size.Small" /> Job Start Date</div>
                                     <MudDatePicker Date="@_personalInfo.UserStartDate" DateChanged="@(d => _personalInfo.UserStartDate = d)" ReadOnly="@(!_editingPersonalInfo)" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
@@ -273,7 +275,7 @@
                                     <div class="dzd-field-label"><MudIcon Icon="@Icons.Material.Outlined.Timer" Size="Size.Small" /> Employment Duration</div>
                                     <MudTextField Value="@FormatDurationFrom(_personalInfo.UserStartDate)" ReadOnly="true" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
                                 </MudItem>
-                                <!-- Contract Info -->
+                                
                                 <MudItem xs="12" md="6">
                                     <div class="dzd-field-label"><MudIcon Icon="@Icons.Material.Outlined.Description" Size="Size.Small" /> Contract Type</div>
                                     <MudTextField @bind-Value="_personalInfo.ContractType" ReadOnly="@(!_editingPersonalInfo)" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.KeyboardArrowDown"/>
@@ -282,7 +284,7 @@
                                     <div class="dzd-field-label"><MudIcon Icon="@Icons.Material.Outlined.Event" Size="Size.Small" /> Contract End Date</div>
                                      <MudDatePicker Date="@_personalInfo.ContractEndDate" DateChanged="@(d => _personalInfo.ContractEndDate = d)" ReadOnly="@(!_editingPersonalInfo)" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" Placeholder="N/A" />
                                 </MudItem>
-                                <!-- Work Type & Location -->
+                                
                                 <MudItem xs="12" md="6">
                                     <div class="dzd-field-label"><MudIcon Icon="@Icons.Material.Outlined.WorkHistory" Size="Size.Small" /> Work Type</div>
                                     <MudTextField @bind-Value="_personalInfo.WorkModel" ReadOnly="@(!_editingPersonalInfo)" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
@@ -294,7 +296,7 @@
                             </MudGrid>
                         </div>
 
-                        <!-- 2. Manager Information -->
+                        
                         <div class="dzd-section-title">
                             <span>•</span> Manager Information
                         </div>
@@ -311,7 +313,7 @@
                             </MudGrid>
                         </div>
 
-                        <!-- 3. Contact Information (Split Cards) -->
+                        
                         <div class="dzd-section-title">
                             <span>•</span> Contact Information
                         </div>
@@ -348,7 +350,7 @@
                             </MudItem>
                         </MudGrid>
 
-                        <!-- 4. Citizenship Information -->
+                        
                         <div class="dzd-section-title">
                             <span>•</span> Citizenship Information
                         </div>
@@ -364,7 +366,7 @@
                                 </MudItem>
                                  <MudItem xs="12" md="6">
                                     <div class="dzd-field-label"><MudIcon Icon="@Icons.Material.Outlined.Accessible" Size="Size.Small" /> Disability Status</div>
-                                    <!-- Simple toggle or select -->
+                                    
                                      <MudSelect T="bool" @bind-Value="_personalInfo.DisabilityStatus" ReadOnly="@(!_editingPersonalInfo)" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
                                         <MudSelectItem Value="false">No</MudSelectItem>
                                         <MudSelectItem Value="true">Yes</MudSelectItem>
@@ -381,7 +383,7 @@
                              </MudGrid>
                         </div>
                         
-                        <!-- 5. Emergency Contact -->
+                        
                          <div class="dzd-section-title">
                             <span>•</span> Emergency Contact
                         </div>
@@ -402,7 +404,7 @@
                              </MudGrid>
                         </div>
 
-                         <!-- 6. Family Information -->
+                         
                          <div class="dzd-section-title">
                             <span>•</span> Family Information
                         </div>
@@ -420,7 +422,7 @@
                                     <div class="dzd-field-label"><MudIcon Icon="@Icons.Material.Outlined.ChildCare" Size="Size.Small" /> Number of Children</div>
                                     <MudNumericField @bind-Value="_personalInfo.ChildrenCount" ReadOnly="@(!_editingPersonalInfo)" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" Min="0" />
                                 </MudItem>
-                                <!-- Children Dates Placeholder -->
+                                
                                  <MudItem xs="12" md="6">
                                     <div class="dzd-field-label"><MudIcon Icon="@Icons.Material.Outlined.Cake" Size="Size.Small" /> Children Birth Dates</div>
                                     <MudTextField Value="@("2020-05-12")" ReadOnly="true" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
@@ -428,7 +430,7 @@
                              </MudGrid>
                         </div>
                         
-                        <!-- 7. Address Information -->
+                        
                         <div class="dzd-section-title">
                             <span>•</span> Address Information
                         </div>
@@ -436,7 +438,7 @@
                              <MudGrid Spacing="4">
                                   <MudItem xs="12" md="12">
                                     <div class="dzd-field-label"><MudIcon Icon="@Icons.Material.Outlined.Home" Size="Size.Small" /> Registered Address</div>
-                                     <!-- Assuming LegalAddress is Registered -->
+                                     
                                      <MudTextField @bind-Value="_personalInfo.LegalAddress" ReadOnly="@(!_editingPersonalInfo)" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
                                   </MudItem>
                                   <MudItem xs="12" md="12">
@@ -462,7 +464,7 @@
                              </MudGrid>
                         </div>
 
-                        <!-- 8. Education Information -->
+                        
                         <div class="dzd-section-title">
                             <span>•</span> Education Information
                         </div>
@@ -480,7 +482,7 @@
                              
                              <MudText Typo="Typo.subtitle2" Class="mb-3">Education History</MudText>
                              <MudStack Spacing="3">
-                                 <!-- High School -->
+                                 
                                  <MudPaper Class="pa-3 d-flex align-center gap-4" Elevation="0" Outlined="true" Style="border-radius:8px;">
                                      <MudAvatar Color="Color.Success" Variant="Variant.Outlined" Size="Size.Medium"><MudIcon Icon="@Icons.Material.Outlined.School" /></MudAvatar>
                                      <div style="flex-grow:1;">
@@ -490,7 +492,7 @@
                                      </div>
                                      <MudIconButton Icon="@Icons.Material.Outlined.Edit" Size="Size.Small" />
                                  </MudPaper>
-                                  <!-- Bachelors -->
+                                  
                                  <MudPaper Class="pa-3 d-flex align-center gap-4" Elevation="0" Outlined="true" Style="border-radius:8px;">
                                      <MudAvatar Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Medium"><MudIcon Icon="@Icons.Material.Outlined.School" /></MudAvatar>
                                      <div style="flex-grow:1;">
@@ -500,7 +502,7 @@
                                      </div>
                                      <MudIconButton Icon="@Icons.Material.Outlined.Edit" Size="Size.Small" />
                                  </MudPaper>
-                                 <!-- Masters -->
+                                 
                                   <MudPaper Class="pa-3 d-flex align-center gap-4" Elevation="0" Outlined="true" Style="border-radius:8px;">
                                      <MudAvatar Color="Color.Secondary" Variant="Variant.Outlined" Size="Size.Medium"><MudIcon Icon="@Icons.Material.Outlined.School" /></MudAvatar>
                                      <div style="flex-grow:1;">
@@ -515,45 +517,13 @@
                              </MudStack>
                         </div>
 
-                         <!-- Floating Action Buttons -->
+                         
                         <MudPaper Elevation="4" Class="fixed-bottom pa-4 d-flex justify-end gap-2" Style="position:sticky; bottom:0; background: #FFFFFF; border-top: 1px solid #e0e0e0; z-index:100; margin-left:-24px; margin-right:-24px; margin-bottom:-24px;">
                                 <MudButton Variant="Variant.Outlined" OnClick="@CancelEdit">Cancel</MudButton>
                                 <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@SavePersonalInfo">Save Changes</MudButton>
                         </MudPaper>
                     </div>
                 }
-            </MudTabPanel>
-            <MudTabPanel Text="Organization Assignment">
-                <MudGrid Class="mt-4">
-                    <MudItem xs="12">
-                        <MudCard Class="pa-4">
-                            <MudCardHeader>
-                                <CardHeaderContent>
-                                    <MudText Typo="Typo.h6">Assignment</MudText>
-                                </CardHeaderContent>
-                                <CardHeaderActions>
-                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="OpenAssignmentDialog" />
-                                </CardHeaderActions>
-                            </MudCardHeader>
-                            <MudCardContent>
-                                <MudGrid>
-                                    <MudItem xs="12" md="6">
-                                        <MudText Typo="Typo.subtitle2" Color="Color.Default">Position</MudText>
-                                        <MudText Typo="Typo.body1">
-                                            @(_organizationPositions.FirstOrDefault(p => p.Id == _selectedOrgPositionId)?.Name ?? "None")
-                                        </MudText>
-                                    </MudItem>
-                                    <MudItem xs="12" md="6">
-                                        <MudText Typo="Typo.subtitle2" Color="Color.Default">Reports To</MudText>
-                                        <MudText Typo="Typo.body1">
-                                            @(_profile?.ReportsTo != null ? $"{_profile.ReportsTo.FirstName} {_profile.ReportsTo.LastName}" : "None")
-                                        </MudText>
-                                    </MudItem>
-                                </MudGrid>
-                            </MudCardContent>
-                        </MudCard>
-                    </MudItem>
-                </MudGrid>
             </MudTabPanel>
         </MudTabs>
     }
@@ -581,9 +551,6 @@
     private int _totalTrainings = 0;
     private double _trainingsProgress = 0;
     private bool _editingPersonalInfo;
-    private int? _selectedOrgPositionId;
-
-    private List<OrganizationPositionDto> _organizationPositions = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -603,15 +570,13 @@
 
         try
         {
-            var client = HttpClientFactory.CreateClient("Api");
-            var profileTask = client.GetFromJsonAsync<EmployeeDetailDto>($"api/users/{Id}/details");
-            var avatarTask = client.GetFromJsonAsync<UserAvatarDto>($"api/users/{Id}/avatar");
-            var orgPositionsTask = client.GetFromJsonAsync<List<OrganizationPositionDto>>("api/OrganizationPosition");
+            var profileTask = UserService.GetEmployeeDetailsAsync(Id);
+            var avatarTask = UserService.GetUserAvatarAsync(Id);
 
-            try { _allUsers = await client.GetFromJsonAsync<List<UserDto>>("api/users") ?? new(); } catch {}
+            try { _allUsers = await UserService.GetAllUsersAsync(); } catch {}
 
             _profile = await profileTask;
-            _organizationPositions = await orgPositionsTask ?? new();
+
 
             if (_profile is null)
             {
@@ -619,7 +584,7 @@
                 return;
             }
 
-            _selectedOrgPositionId = _profile.OrganizationPositionId;
+
             if (_profile.ReportsTo != null)
             {
                 _selectedManagerId = _profile.ReportsTo.Id;
@@ -681,8 +646,7 @@
         _personalInfoLoading = true;
         try
         {
-            var client = HttpClientFactory.CreateClient("Api");
-            _personalInfo = await client.GetFromJsonAsync<PersonalInfoDto>($"api/users/{Id}/personal-info");
+            _personalInfo = await UserService.GetPersonalInfoAsync(Id);
 
             if (_personalInfo != null)
             {
@@ -792,8 +756,7 @@
 
         try
         {
-            var client = HttpClientFactory.CreateClient("Api");
-            var response = await client.PutAsJsonAsync($"api/users/{Id}/personal-info", _personalInfo);
+            var response = await UserService.UpdatePersonalInfoAsync(Id, _personalInfo);
             
             if (response.IsSuccessStatusCode)
             {
@@ -849,50 +812,8 @@
         return $"{years} year{(years > 1 ? "s" : "")} {months} month{(months > 1 ? "s" : "")}";
     }
 
-    private async Task OpenAssignmentDialog()
+    private void DeletePlaceholder()
     {
-        var parameters = new DialogParameters
-        {
-            { nameof(OrganizationAssignmentDialog.OrganizationPositions), _organizationPositions },
-            { nameof(OrganizationAssignmentDialog.AllUsers), _allUsers },
-            { nameof(OrganizationAssignmentDialog.InitialPositionId), _selectedOrgPositionId },
-            { nameof(OrganizationAssignmentDialog.InitialManagerId), _selectedManagerId },
-            { nameof(OrganizationAssignmentDialog.CurrentUserId), _profile?.Id }
-        };
-
-        var dialog = await DialogService.ShowAsync<OrganizationAssignmentDialog>("Edit Assignment", parameters);
-        var result = await dialog.Result;
-
-        if (result != null && !result.Canceled && result.Data is OrganizationAssignmentDialog.AssignmentResult assignment)
-        {
-            await SaveOrgAssignment(assignment.PositionId, assignment.ManagerId);
-        }
-    }
-
-    private async Task SaveOrgAssignment(int? positionId, int? managerId)
-    {
-        try
-        {
-            var client = HttpClientFactory.CreateClient("Api");
-            var dto = new UpdateUserOrganizationPositionDto 
-            { 
-                OrganizationPositionId = positionId,
-                ReportsToId = managerId
-            };
-            var response = await client.PutAsJsonAsync($"api/users/{Id}/organization-position", dto);
-            if (response.IsSuccessStatusCode)
-            {
-                Snackbar.Add("Organization assignment updated.", Severity.Success);
-                await LoadData();
-            }
-            else
-            {
-                Snackbar.Add("Failed to update organization assignment.", Severity.Error);
-            }
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
-        }
     }
 }
+

@@ -1,14 +1,18 @@
 @page "/my-profile"
-@using MudBlazor
+@using DZDDashboard.Client.OrgChart
+@using DZDDashboard.Common.DTOs.Organization
+@using DZDDashboard.Client.Components.Pages.Admin.Dialogs
+@using DZDDashboard.Client.Components.Pages.Employees
 @using System.Globalization
 @using DZDDashboard.Common.DTOs.Users
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Components.Forms
 @using DZDDashboard.Client.Models
+@using DZDDashboard.Client.Services
 
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
-@inject IHttpClientFactory HttpClientFactory
+@inject UserService UserService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IDialogService DialogService
 
@@ -161,8 +165,7 @@
     {
         try
         {
-            var client = HttpClientFactory.CreateClient("Api");
-            CurrentUser = await client.GetFromJsonAsync<UserProfileDto>("api/users/my-profile");
+            CurrentUser = await UserService.GetMyProfileAsync();
 
             if (CurrentUser != null)
             {
@@ -213,7 +216,6 @@
     {
         try
         {
-            var client = HttpClientFactory.CreateClient("Api");
             using var content = new MultipartFormDataContent();
 
             using var stream = new MemoryStream(fileResult.Content);
@@ -226,7 +228,7 @@
                 fileName: fileResult.FileName
             );
 
-            var response = await client.PostAsync("api/users/my-profile/avatar", content);
+            var response = await UserService.UpdateMyProfileAvatarAsync(content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -275,8 +277,7 @@
     {
         try
         {
-            var client = HttpClientFactory.CreateClient("Api");
-            var response = await client.PutAsJsonAsync("api/users/my-profile/contact-info", dto);
+            var response = await UserService.UpdateContactInfoAsync(dto);
             if (response.IsSuccessStatusCode)
             {
                 Snackbar.Add("Contact information updated.", Severity.Success);

@@ -1,0 +1,166 @@
+@using DZDDashboard.Common.DTOs.Users
+@using DZDDashboard.Client.Services
+
+
+@inject UserService UserService
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudText Typo="Typo.h6">Edit Position & Assign User</MudText>
+            
+            
+            <MudTextField @bind-Value="_positionName" 
+                          Label="Position Name" 
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense" />
+            
+            <MudDivider />
+            
+            
+            <MudText Typo="Typo.subtitle2" Style="margin-top: 8px;">User Assignment</MudText>
+            
+            @if (_users == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else if (!_users.Any())
+            {
+                <MudAlert Severity="Severity.Info">No users available</MudAlert>
+            }
+            else
+            {
+                @if (HasCurrentUser && _currentUser != null)
+                {
+                    <div style="margin-bottom: 16px;">
+                        <MudText Typo="Typo.caption" Style="opacity:.6;">Current Assignment</MudText>
+                        <MudPaper Class="pa-3 d-flex justify-space-between align-center" Outlined="true" Style="background-color: #E3F2FD; border-color: #2196F3;">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <MudAvatar Size="Size.Medium" Color="Color.Primary">
+                                    @if (_currentUser.Avatar != null && !string.IsNullOrEmpty(_currentUser.Avatar.ContentBase64))
+                                    {
+                                        <MudImage Src="@($"data:{_currentUser.Avatar.ContentType};base64,{_currentUser.Avatar.ContentBase64}")" />
+                                    }
+                                    else
+                                    {
+                                        @GetInitials(_currentUser.FirstName, _currentUser.LastName)
+                                    }
+                                </MudAvatar>
+                                <MudStack Spacing="0">
+                                    <MudText Typo="Typo.body2" Style="font-weight:500;">@_currentUser.FirstName @_currentUser.LastName</MudText>
+                                    <MudText Typo="Typo.caption">@_currentUser.Email</MudText>
+                                </MudStack>
+                            </MudStack>
+                            <MudButton 
+                                Variant="Variant.Filled" 
+                                Color="Color.Error" 
+                                Size="Size.Small"
+                                OnClick="RemoveUser">
+                                Remove
+                            </MudButton>
+                        </MudPaper>
+                    </div>
+                }
+                
+                <div style="max-height: 300px; overflow-y: auto;">
+                    @if (!(_users.Where(u => u.Id != CurrentUserId).Any()))
+                    {
+                        <MudAlert Severity="Severity.Info">All users are assigned</MudAlert>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.caption" Style="opacity:.6; margin-bottom: 8px;">Available Users</MudText>
+                        <MudStack Spacing="2">
+                            @foreach (var user in _users.Where(u => u.Id != CurrentUserId))
+                        {
+                            <MudPaper Class="pa-3 d-flex justify-space-between align-center" Outlined="true">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                    <MudAvatar Size="Size.Medium" Color="Color.Primary">
+                                        @if (user.Avatar != null && !string.IsNullOrEmpty(user.Avatar.ContentBase64))
+                                        {
+                                            <MudImage Src="@($"data:{user.Avatar.ContentType};base64,{user.Avatar.ContentBase64}")" />
+                                        }
+                                        else
+                                        {
+                                            @GetInitials(user.FirstName, user.LastName)
+                                        }
+                                    </MudAvatar>
+                                    <MudStack Spacing="0">
+                                        <MudText Typo="Typo.body2" Style="font-weight:500;">@user.FirstName @user.LastName</MudText>
+                                        <MudText Typo="Typo.caption">@user.Email</MudText>
+                                    </MudStack>
+                                </MudStack>
+                                <MudButton 
+                                    Variant="Variant.Filled" 
+                                    Color="Color.Primary" 
+                                    Size="Size.Small"
+                                    OnClick="@(() => SelectUser(user))">
+                                    Select
+                                </MudButton>
+                            </MudPaper>
+                        }
+                        </MudStack>
+                    }
+                </div>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Save">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public string PositionName { get; set; } = string.Empty;
+    [Parameter] public int? CurrentUserId { get; set; }
+    [Parameter] public bool HasCurrentUser { get; set; }
+    
+    private string _positionName = string.Empty;
+    private List<UserDto>? _users;
+    private UserDto? _currentUser;
+    private UserDto? _selectedUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _positionName = PositionName;
+        _users = await UserService.GetAllUsersAsync();
+        if (HasCurrentUser && CurrentUserId.HasValue)
+        {
+            _currentUser = _users?.FirstOrDefault(u => u.Id == CurrentUserId.Value);
+        }
+    }
+
+    private void SelectUser(UserDto user)
+    {
+        _selectedUser = user;
+        _currentUser = user;  // Update current user display
+        HasCurrentUser = true;
+        StateHasChanged();
+    }
+
+    private void RemoveUser()
+    {
+        _selectedUser = null;
+        _currentUser = null;
+        HasCurrentUser = false;
+        StateHasChanged();
+    }
+
+    private void Save()
+    {
+        var result = (Name: _positionName, User: _selectedUser);
+        MudDialog.Close(DialogResult.Ok(result));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private string GetInitials(string? firstName, string? lastName)
+    {
+        return $"{firstName?.FirstOrDefault()}{lastName?.FirstOrDefault()}".ToUpper();
+    }
+}

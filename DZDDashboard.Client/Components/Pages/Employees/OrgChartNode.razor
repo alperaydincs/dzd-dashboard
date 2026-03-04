@@ -5,44 +5,41 @@
 
 <li>
     <MudStack Spacing="2" AlignItems="AlignItems.Center" Class="node-container">
-        @if (Node.Users != null && Node.Users.Any())
+        @if (Node.User != null)
         {
-            @foreach (var user in Node.Users)
-            {
-                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0">
-                    <MudPaper Class="@GetNodeCardClass()" Elevation="2" @onclick="@(() => HandleNodeClick(user, isUser: true))" Style="flex: 1;">
-                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
-                            <MudAvatar Color="GetAvatarColor(user)" Size="Size.Large">
-                                @if (user.Avatar != null && !string.IsNullOrEmpty(user.Avatar.ContentBase64))
-                                {
-                                    <MudImage Src="@($"data:{user.Avatar.ContentType};base64,{user.Avatar.ContentBase64}")" />
-                                }
-                                else
-                                {
-                                    @(user.FirstName?.FirstOrDefault())@(user.LastName?.FirstOrDefault())
-                                }
-                            </MudAvatar>
-                            <MudStack Spacing="0" AlignItems="AlignItems.Start">
-                                <MudText Typo="Typo.body2" Class="fw-bold">@user.FirstName @user.LastName</MudText>
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">@GetPositionName()</MudText>
-                            </MudStack>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0">
+                <MudPaper Class="@GetNodeCardClass()" Elevation="2" @onclick="@(() => HandleNodeClick(Node.User, isUser: true))" Style="flex: 1;">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                        <MudAvatar Color="GetAvatarColor(Node.User)" Size="Size.Large">
+                            @if (Node.User.Avatar != null && !string.IsNullOrEmpty(Node.User.Avatar.ContentBase64))
+                            {
+                                <MudImage Src="@($"data:{Node.User.Avatar.ContentType};base64,{Node.User.Avatar.ContentBase64}")" />
+                            }
+                            else
+                            {
+                                @(Node.User.FirstName?.FirstOrDefault())@(Node.User.LastName?.FirstOrDefault())
+                            }
+                        </MudAvatar>
+                        <MudStack Spacing="0" AlignItems="AlignItems.Start">
+                            <MudText Typo="Typo.body2" Class="fw-bold">@Node.User.FirstName @Node.User.LastName</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@GetPositionName()</MudText>
                         </MudStack>
-                    </MudPaper>
-                    @if (IsEditMode)
-                    {
-                        <MudStack Spacing="1" Class="ms-2">
-                            <MudTooltip Text="Add Child Position">
-                                <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Small" Color="Color.Success" 
-                                               OnClick="@(() => OnAddChild.InvokeAsync(Node))" />
-                            </MudTooltip>
-                            <MudTooltip Text="Delete Position">
-                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" 
-                                               OnClick="@(() => OnDeleteNode.InvokeAsync(Node))" />
-                            </MudTooltip>
-                        </MudStack>
-                    }
-                </MudStack>
-            }
+                    </MudStack>
+                </MudPaper>
+                @if (IsEditMode)
+                {
+                    <MudStack Spacing="1" Class="ms-2">
+                        <MudTooltip Text="Add Child Position">
+                            <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Small" Color="Color.Success" 
+                                           OnClick="@(() => OnAddChild.InvokeAsync(Node))" />
+                        </MudTooltip>
+                        <MudTooltip Text="Delete Position">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" 
+                                           OnClick="@(() => OnDeleteNode.InvokeAsync(Node))" />
+                        </MudTooltip>
+                    </MudStack>
+                }
+            </MudStack>
         }
         else
         {
@@ -144,7 +141,7 @@
         var baseClass = "node-card pa-2";
         if (IsSelectionMode) return baseClass + " cursor-pointer"; 
         if (IsEditMode) return baseClass + " cursor-pointer";
-        if (Node.Users != null && Node.Users.Any()) return baseClass + " cursor-pointer";
+        if (Node.User != null) return baseClass + " cursor-pointer";
         return baseClass;
     }
 

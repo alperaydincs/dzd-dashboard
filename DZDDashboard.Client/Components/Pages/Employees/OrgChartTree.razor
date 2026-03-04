@@ -19,10 +19,8 @@
 
 @code {
     [Parameter] public List<OrgChartNodeItem> Nodes { get; set; } = new();
-    
     [Parameter] public bool IsEditMode { get; set; }
     [Parameter] public bool IsSelectionMode { get; set; }
-    
     [Parameter] public EventCallback<OrgChartNodeItem> OnAddChild { get; set; }
     [Parameter] public EventCallback<OrgChartNodeItem> OnEditNode { get; set; }
     [Parameter] public EventCallback<OrgChartNodeItem> OnDeleteNode { get; set; }

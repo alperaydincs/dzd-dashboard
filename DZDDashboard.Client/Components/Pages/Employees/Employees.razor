@@ -2,10 +2,12 @@
 @using DZDDashboard.Client.OrgChart
 @using DZDDashboard.Common.DTOs.Organization
 @using DZDDashboard.Client.Theme
-@inject IHttpClientFactory HttpClientFactory
+@using DZDDashboard.Client.Services
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
 @inject AuthenticationStateProvider AuthStateProvider
+@inject UserService UserService
+@inject OrganizationService OrgService
 
 <MudContainer MaxWidth="MaxWidth.False" Class="mt-6">
     @if (!_authorizedChecked)
@@ -27,12 +29,6 @@
                     <MudText Typo="Typo.body2">
                         Manage your team members and their information
                     </MudText>
-                </MudStack>
-
-                <MudStack Row="true" Spacing="1">
-                    <MudButton Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@CreateUser">
-                        Add Employee
-                    </MudButton>
                 </MudStack>
             </MudStack>
 
@@ -263,14 +259,13 @@
         _loading = true;
         try
         {
-            var client = HttpClientFactory.CreateClient("Api");
-            var usersTask = client.GetFromJsonAsync<List<UserDto>>("api/users/");
-            var positionsTask = client.GetFromJsonAsync<List<OrganizationPositionDto>>("api/OrganizationPosition");
+            var usersTask = UserService.GetAllUsersAsync();
+            var positionsTask = OrgService.GetOrganizationPositionsAsync();
 
             await Task.WhenAll(usersTask, positionsTask);
 
-            _users = usersTask.Result ?? new();
-            var positions = positionsTask.Result ?? new();
+            _users = await usersTask;
+            var positions = await positionsTask;
             
             BuildOrgChart(positions, _users);
         }
@@ -327,8 +322,6 @@
         Dictionary<int, List<OrganizationPositionDto>> childPositionsMap, 
         Dictionary<int, List<UserDto>> usersByPosition)
     {
-        bool hasUsersInSubtree = false;
-
         if (childPositionsMap.TryGetValue(parentNode.Position.Id, out var childPositions))
         {
             foreach (var childPos in childPositions)
@@ -346,26 +339,21 @@
                     
                     parentNode.Children.Add(userNode);
                     BuildChildren(userNode, user.Id, childPositionsMap, usersByPosition);
-                    hasUsersInSubtree = true;
                 }
 
                 var emptyNode = CreateEmptyNode(childPos);
 
                 BuildChildren(emptyNode, effectiveManagerId, childPositionsMap, usersByPosition);
 
-                if (emptyNode.HasUsersInSubtree || !directReports.Any())
+                if (emptyNode.Children.Any() || !directReports.Any())
                 {
                     parentNode.Children.Add(emptyNode);
                 }
 
-                if (emptyNode.HasUsersInSubtree)
-                {
-                    hasUsersInSubtree = true;
-                }
             }
         }
 
-        parentNode.HasUsersInSubtree = hasUsersInSubtree || parentNode.Users.Any();
+        parentNode.IsExpanded = true;
     }
 
     private static OrgChartNodeItem CreateUserNode(OrganizationPositionDto pos, UserDto user)
@@ -373,7 +361,7 @@
         return new OrgChartNodeItem
         {
             Position = pos,
-            Users = new List<UserDto> { user },
+            User = user,
             Children = new List<OrgChartNodeItem>(),
             IsExpanded = true
         };
@@ -384,7 +372,7 @@
         return new OrgChartNodeItem
         {
             Position = pos,
-            Users = new List<UserDto>(),
+            User = null,
             Children = new List<OrgChartNodeItem>(),
             IsExpanded = true
         };
@@ -434,7 +422,6 @@
     }
 
     private Task Reload() => LoadUsers();
-    private void CreateUser() => Nav.NavigateTo("/employees/create");
     private void Edit(int id) => Nav.NavigateTo($"/employee/card/{id}");
     private void View(int id) => Nav.NavigateTo($"/employee/card/{id}");
 }

@@ -1,4 +1,5 @@
 namespace DZDDashboard.Common.DTOs.Organization;
+using DZDDashboard.Common.DTOs.Users;
 
 public class OrganizationPositionDto
 {
@@ -9,4 +10,6 @@ public class OrganizationPositionDto
     public string? ParentName { get; set; }
     public List<OrganizationPositionDto> Children { get; set; } = new();
     public int UserCount { get; set; }
+    public int? UserId { get; set; }
+    public UserDto? User { get; set; }
 }

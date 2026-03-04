@@ -161,7 +161,7 @@
         var node = new OrgChartNodeItem
         {
             Position = pos,
-            Users = usersMap.TryGetValue(pos.Id, out var u) ? u : new List<UserDto>(),
+            User = usersMap.TryGetValue(pos.Id, out var u) ? u.FirstOrDefault() : null,
             Children = new List<OrgChartNodeItem>(),
             IsExpanded = true
         };

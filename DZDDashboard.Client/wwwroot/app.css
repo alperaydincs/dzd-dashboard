@@ -49,7 +49,7 @@ h1:focus {
     text-align: start;
 }
 
-/* --- DZD Personal Info Styles --- */
+
 
 .dzd-personal-info-bg { 
     background-color: #F9FAFB; 
@@ -85,9 +85,9 @@ h1:focus {
     gap: 6px;
 }
 
-/* Icon style in labels */
+
 .dzd-field-label .mud-icon-root {
-    color: #4F46E5 !important; /* Indigo/Blue to match design */
+    color: #4F46E5 !important; 
     font-size: 16px;
 }
 
@@ -106,51 +106,51 @@ h1:focus {
     border-radius: 8px;
 }
 
-/* Header Gradient */
+
 .dzd-header-container {
-    /* Combined Gradient based on Figma Design (Outer Background) */
+    
     background: 
-        /* Radial Overlay Layers - simulating the green tint */
+        
         radial-gradient(circle at 90% 40%, rgba(112, 163, 127, 0.1) 0%, transparent 60%),
         radial-gradient(circle at 40% 20%, rgba(112, 163, 127, 0.1) 0%, transparent 60%),
         radial-gradient(circle at 80% 80%, rgba(112, 163, 127, 0.15) 0%, transparent 60%),
         radial-gradient(circle at 20% 50%, rgba(112, 163, 127, 0.15) 0%, transparent 60%),
-        /* Base Linear Gradient from Figma */
+        
         linear-gradient(135deg, #F0F9F4 0%, #EDF7F1 30%, #F5FAF7 70%, #F8FBF9 100%);
     border-radius: 12px;
     padding: 32px;
     position: relative;
-    /* Optional: overflow hidden if we want the radials clipped strictly */
+    
     overflow: hidden; 
 }
 
 .dzd-header-card {
-    /* The white card inside */
+    
     background-color: rgba(255, 255, 255, 0.95);
     border-radius: 16px;
     box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px -4px rgba(0, 0, 0, 0.1);
-    /* Internal spacing for the card content */
+    
     padding: 24px;
     position: relative;
-    /* Ensure it sits on top of any background effects */
+    
     z-index: 1; 
 }
 
 
-/* Modern browsers supporting :has */
+
 .mud-input:has(input:-webkit-autofill) .mud-input-label.mud-input-label-outlined,
 .mud-input:has(input[data-autocompleted="true"]) .mud-input-label.mud-input-label-outlined {
-    /* Same transform MudBlazor applies when shrunk */
+    
     transform: translate(14px, -9px) scale(.75);
     max-width: calc(133% - 24px);
 }
 
-/* Firefox & standard (some builds expose :-moz-autofill) */
+
 .mud-input input:-moz-autofill ~ .mud-input-label.mud-input-label-outlined {
     transform: translate(14px, -9px) scale(.75);
 }
 
-/* Ensure legend line doesn-t collapse oddly */
+
 .mud-input:has(input:-webkit-autofill) .mud-input-outlined-legend {
     max-width: 100% !important;
 }

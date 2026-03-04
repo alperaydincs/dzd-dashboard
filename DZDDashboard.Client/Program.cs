@@ -1,5 +1,6 @@
 using DZDDashboard.Client.Components;
 using DZDDashboard.Client.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
@@ -13,6 +14,13 @@ builder.Services.AddRazorComponents()
 builder.Services.AddMudServices();
 builder.Services.AddAntiforgery();
 builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddDistributedSqlServerCache(options =>
+{
+    options.ConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    options.SchemaName = "dbo";
+    options.TableName = "TokenCache";
+});
 
 builder.Services
     .AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
@@ -29,7 +37,17 @@ builder.Services
         }
     })
     .EnableTokenAcquisitionToCallDownstreamApi(new[] { builder.Configuration["DownstreamApi:Scopes"] ?? string.Empty })
-    .AddInMemoryTokenCaches();
+    .AddDistributedTokenCaches();
+
+builder.Services.Configure<OpenIdConnectOptions>(
+    OpenIdConnectDefaults.AuthenticationScheme,
+    options => options.ResponseMode = "form_post");
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.ExpireTimeSpan = TimeSpan.FromDays(14);
+    options.SlidingExpiration = true;
+});
 
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<AuthTokenHandler>();
@@ -40,6 +58,9 @@ builder.Services.AddHttpClient("Api", client =>
     client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? throw new InvalidOperationException("ApiBaseUrl missing"));
 })
 .AddHttpMessageHandler<AuthTokenHandler>();
+
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<OrganizationService>();
 
 var app = builder.Build();
 
