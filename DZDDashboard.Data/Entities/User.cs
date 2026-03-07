@@ -7,7 +7,6 @@ public class User : IAuditableEntity
     public string? NormalizedUsername { get; set; }
     public string? Email { get; set; } 
     public string? NormalizedEmail { get; set; }
-    public string? PasswordHash { get; set; }
     public string? EntraObjectId { get; set; } 
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
@@ -30,27 +29,21 @@ public class User : IAuditableEntity
     public int? PayrollLocationId { get; set; }
     public int? AvatarId { get; set; } 
     public UserAvatar? Avatar { get; set; } 
-    
     public User? ReportsTo { get; set; } 
     public int? ReportsToId { get; set; }
     public virtual ICollection<User> Subordinates { get; set; } = new List<User>();
-    
     public int? OrganizationPositionId { get; set; }
     public OrganizationPosition? OrganizationPosition { get; set; }
-
     public string? ApprovalProcessUnit { get; set; } 
-
     public string? PhoneNumber { get; set; } 
     public string? PersonalEmail { get; set; } 
     public string? PersonalPhoneNumber { get; set; } 
-
     public DateTime? DateOfBirth { get; set; } 
     public string? Gender { get; set; } 
     public bool DisabilityStatus { get; set; } = false; 
     public string? DisabilityDegree { get; set; } 
     public string? Nationality { get; set; } 
     public string? CitizenshipNumber { get; set; } 
-
     public string? EducationStatus { get; set; } 
     public string? HighestEducationLevel { get; set; } 
     public string? HighSchoolName { get; set; } 
@@ -65,29 +58,23 @@ public class User : IAuditableEntity
     public string? DoctorateUniversityName { get; set; } 
     public string? DoctorateProgramName { get; set; } 
     public string? DoctoratePhdStatus { get; set; } 
-
     public string? EmergencyContactFullName { get; set; } 
     public string? EmergencyContactRelationship { get; set; } 
     public string? EmergencyContactPhoneNumber { get; set; } 
-
     public string? MaritalStatus { get; set; } 
     public string? SpouseFullName { get; set; } 
     public List<ChildInfo>? Children { get; set; } 
-
     public string? LegalAddress { get; set; } 
     public string? CurrentAddress { get; set; } 
     public string? City { get; set; } 
     public string? Country { get; set; } 
-
     public string? BankName { get; set; } 
     public string? Iban { get; set; }
     public List<SalaryHistory>? SalaryHistories { get; set; } 
-
     public string? RegistrationNumber { get; set; } 
     public List<GradeHistory>? GradeHistories { get; set; } 
     public DateTime? PositionUpdateDate { get; set; } 
     public string? CvFilePath { get; set; } 
-
     public string? AutoEnrollmentPensionStatus { get; set; } 
     public DateTime? EmployerPensionStartDate { get; set; } 
     public bool HasEmployerPension { get; set; } 

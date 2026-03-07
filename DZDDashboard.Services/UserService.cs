@@ -1,7 +1,6 @@
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using DZDDashboard.Common.DTOs.Users;
-using DZDDashboard.Common.Services;
 using DZDDashboard.Data;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -64,30 +63,6 @@ namespace DZDDashboard.Services
                 .FirstOrDefaultAsync();
         }
         
-        public async Task<UserDto> CreateAsync(CreateUserDto dto)
-        {
-            if (dto is null) throw new ArgumentNullException(nameof(dto));
-            if (string.IsNullOrWhiteSpace(dto.Email) ||
-                string.IsNullOrWhiteSpace(dto.Password))
-                throw new ArgumentException("Email and password required.");
-
-            if (await _context.Users.AnyAsync(x => x.NormalizedEmail == dto.Email.ToUpperInvariant()))
-                throw new InvalidOperationException("Email already exists.");
-
-            var user = _mapper.Map<User>(dto);
-            user.Username = ExtractUsernameFromEmail(dto.Email);
-            user.NormalizedUsername = user.Username.ToUpperInvariant();
-            user.IsActive = true;
-            user.PasswordHash = PasswordHasher.Hash(dto.Password);
-            user.NormalizedEmail = dto.Email.ToUpperInvariant();
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-            var resultDto = _mapper.Map<UserDto>(user);
-
-            return resultDto;
-        }
-
         public async Task<bool> DeleteAsync(int id)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
@@ -98,17 +73,6 @@ namespace DZDDashboard.Services
             return true;
         }
 
-        private static string ExtractUsernameFromEmail(string email)
-        {
-            var trimmedEmail = email.Trim();
-            var atIndex = trimmedEmail.IndexOf('@');
-
-            if (atIndex > 0)
-            {
-                return trimmedEmail[..atIndex];
-            }
-            return trimmedEmail;
-        }
         public async Task<PersonalInfoDto?> GetPersonalInfoAsync(int id)
         {
             var user = await _context.Users

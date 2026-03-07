@@ -1,5 +1,51 @@
+:root {
+    --dzd-brand-primary: #2B38F5;
+    --dzd-brand-secondary: #70A37F;
+    --dzd-brand-black: #000000;
+    --dzd-brand-orange: #F46036;
+    --dzd-brand-amber: #FEA82F;
+
+    --dzd-orange-50: #FFEDD4;
+    --dzd-orange-100: #FFD6A7;
+    --dzd-orange-500: #F46036;
+
+    --dzd-green-50: #DCFCE7;
+    --dzd-green-100: #89FBCF;
+    --dzd-green-500: #016630;
+
+    --dzd-blue-icon-bg: rgba(43, 56, 245, 0.1);
+    --dzd-blue-50: #DBEAFE;
+    --dzd-blue-100: #BEDBFF;
+    --dzd-blue-500: #193CB8;
+
+    --dzd-purple-50: #F3E8FF;
+    --dzd-purple-100: #E9D4FF;
+    --dzd-purple-500: #6E11B0;
+
+    --dzd-red-50: #FFE2E2;
+    --dzd-red-500: #E7000B;
+
+    --dzd-yellow-50: #FEF9C2;
+    --dzd-yellow-500: #894800;
+
+    --dzd-text-primary: #0A0A0A;
+    --dzd-text-secondary: #717182;
+    --dzd-text-tertiary: #9A9AAF;
+
+    --dzd-bg-primary: #FEFEFF;
+    --dzd-bg-secondary: #FAFAFA;
+    --dzd-bg-input: #F5F6FA;
+    --dzd-bg-hover: #F5F6FA;
+
+    --dzd-gradient-sidebar: linear-gradient(180deg, #222DC4 5%, #030213 100%);
+    --dzd-gradient-green: linear-gradient(135deg, rgba(112, 163, 127, 0.15) 0%, rgba(112, 163, 127, 0) 70%, #FFFFFF 100%);
+    --dzd-gradient-icon: linear-gradient(135deg, #2B38F5 0%, #70A37F 100%);
+}
+
 html, body {
     font-family: Arial, Helvetica, sans-serif;
+    color: var(--dzd-text-primary);
+    background-color: var(--dzd-bg-primary);
 }
 
 .mud-tab {
@@ -7,7 +53,7 @@ html, body {
 }
 
 .text-gray-default {
-    color: var(--mud-palette-gray-dark) !important;
+    color: var(--dzd-text-secondary) !important;
 }
 
 h1:focus {
@@ -15,15 +61,15 @@ h1:focus {
 }
 
 .valid.modified:not([type=checkbox]) {
-    outline: 1px solid #26b050;
+    outline: 1px solid var(--dzd-green-500);
 }
 
 .invalid {
-    outline: 1px solid #e50000;
+    outline: 1px solid var(--dzd-red-500);
 }
 
 .validation-message {
-    color: #e50000;
+    color: var(--dzd-red-500);
 }
 
 .blazor-error-boundary {
@@ -37,7 +83,7 @@ h1:focus {
     }
 
 .darker-border-checkbox.form-check-input {
-    border-color: #929292;
+    border-color: var(--dzd-text-tertiary);
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
@@ -52,13 +98,13 @@ h1:focus {
 
 
 .dzd-personal-info-bg { 
-    background-color: #F9FAFB; 
+    background-color: var(--dzd-bg-secondary); 
     min-height: 100%; 
     border-radius: 0px; 
 }
 
 .dzd-section-title {
-    color: #2563EB;
+    color: var(--dzd-blue-500);
     font-weight: 600;
     font-size: 14px;
     display: flex;
@@ -70,14 +116,14 @@ h1:focus {
 
 .dzd-card {
     background-color: #FFFFFF;
-    border: 1px solid #E5E7EB;
+    border: 1px solid var(--dzd-bg-input);
     border-radius: 12px;
     padding: 24px;
 }
 
 .dzd-field-label {
     font-size: 12px;
-    color: #6B7280;
+    color: var(--dzd-text-secondary);
     font-weight: 500;
     margin-bottom: 6px;
     display: flex;
@@ -87,22 +133,22 @@ h1:focus {
 
 
 .dzd-field-label .mud-icon-root {
-    color: #4F46E5 !important; 
+    color: var(--dzd-brand-primary) !important; 
     font-size: 16px;
 }
 
 .dzd-input .mud-input-outlined-border {
-    border-color: #E5E7EB !important;
+    border-color: var(--dzd-bg-input) !important;
 }
 
 .dzd-input input {
     font-size: 14px;
-    color: #111827;
+    color: var(--dzd-text-primary);
     font-weight: 500;
 }
 
 .dzd-input .mud-input-control-input-container {
-    background-color: #F9FAFB;
+    background-color: var(--dzd-bg-input);
     border-radius: 8px;
 }
 
@@ -116,7 +162,7 @@ h1:focus {
         radial-gradient(circle at 80% 80%, rgba(112, 163, 127, 0.15) 0%, transparent 60%),
         radial-gradient(circle at 20% 50%, rgba(112, 163, 127, 0.15) 0%, transparent 60%),
         
-        linear-gradient(135deg, #F0F9F4 0%, #EDF7F1 30%, #F5FAF7 70%, #F8FBF9 100%);
+        var(--dzd-gradient-green);
     border-radius: 12px;
     padding: 32px;
     position: relative;
@@ -160,5 +206,5 @@ h1:focus {
 }
 
 .nav-drawer .mud-selected-item {
-    background: linear-gradient(90deg, rgba(3, 2, 19, 0.1) 0%, rgba(34, 45, 196, 0.5) 100%) !important;
+    background: linear-gradient(90deg, rgba(3, 2, 19, 0.08) 0%, rgba(43, 56, 245, 0.28) 100%) !important;
 }

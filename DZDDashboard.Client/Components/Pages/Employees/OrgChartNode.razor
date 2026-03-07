@@ -29,14 +29,10 @@
                 @if (IsEditMode)
                 {
                     <MudStack Spacing="1" Class="ms-2">
-                        <MudTooltip Text="Add Child Position">
                             <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Small" Color="Color.Success" 
                                            OnClick="@(() => OnAddChild.InvokeAsync(Node))" />
-                        </MudTooltip>
-                        <MudTooltip Text="Delete Position">
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" 
                                            OnClick="@(() => OnDeleteNode.InvokeAsync(Node))" />
-                        </MudTooltip>
                     </MudStack>
                 }
             </MudStack>
@@ -58,14 +54,11 @@
                 @if (IsEditMode)
                 {
                     <MudStack Spacing="1" Class="ms-2">
-                        <MudTooltip Text="Add Child Position">
-                            <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Small" Color="Color.Success" 
-                                           OnClick="@(() => OnAddChild.InvokeAsync(Node))" />
-                        </MudTooltip>
-                        <MudTooltip Text="Delete Position">
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" 
-                                           OnClick="@(() => OnDeleteNode.InvokeAsync(Node))" />
-                        </MudTooltip>
+                        <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Small" Color="Color.Success" 
+                                OnClick="@(() => OnAddChild.InvokeAsync(Node))" />
+        
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" 
+                                OnClick="@(() => OnDeleteNode.InvokeAsync(Node))" />
                     </MudStack>
                 }
             </MudStack>

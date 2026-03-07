@@ -10,6 +10,7 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Nav
 @inject UserService UserService
+@inject NotificationCenterService NotificationCenter
 
 @implements IDisposable
 
@@ -30,31 +31,85 @@
         <MudSpacer />
         <AuthorizeView>
             <Authorized>
-                <MudMenu Icon="@Icons.Material.Filled.MoreVert"
-                         AnchorOrigin="Origin.BottomRight"
-                         TransformOrigin="Origin.TopRight">
-                    <ActivatorContent>
-                        <MudAvatar Color="Color.Primary" Style="cursor:pointer;">
-                            @if (!string.IsNullOrEmpty(_avatarDataUrl))
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="appbar-user-actions" Style="gap:10px;">
+                    <div style="margin-right:8px;">
+                    <MudMenu AnchorOrigin="Origin.BottomRight"
+                             TransformOrigin="Origin.TopRight"
+                             Class="notifications-menu">
+                        <ActivatorContent>
+                            @if (_unreadNotifications > 0)
                             {
-                                <MudImage Src="@_avatarDataUrl" Alt="User Avatar" />
+                                <MudBadge Content="@_unreadNotifications" Color="Color.Error" Overlap="true">
+                                    <MudIconButton Icon="@Icons.Material.Filled.NotificationsNone" Color="Color.Inherit" Size="Size.Small" Class="notifications-trigger" />
+                                </MudBadge>
                             }
                             else
                             {
-                                @_userInitials
+                                <MudIconButton Icon="@Icons.Material.Filled.NotificationsNone" Color="Color.Inherit" Size="Size.Small" Class="notifications-trigger" />
                             }
-                        </MudAvatar>
-                    </ActivatorContent>
-                    <ChildContent>
-                        <MudMenuItem Href="/my-profile" Icon="@Icons.Material.Filled.Person">My Profile</MudMenuItem>
-                        <AuthorizeView Roles="Admin,HR" Context="authContext">
-                            <Authorized>
-                                <MudMenuItem Href="/settings" Icon="@Icons.Material.Filled.Settings">Settings</MudMenuItem>
-                            </Authorized>
-                        </AuthorizeView>
-                        <MudMenuItem OnClick="Logout" Icon="@Icons.Material.Filled.Logout">Logout</MudMenuItem>
-                    </ChildContent>
-                </MudMenu>
+                        </ActivatorContent>
+                        <ChildContent>
+                            <MudStack Class="notifications-panel">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="notifications-header">
+                                    <MudText Typo="Typo.subtitle2">Notifications</MudText>
+                                    <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="MarkAllNotificationsAsRead">Mark all read</MudButton>
+                                </MudStack>
+                                <MudDivider />
+
+                                @if (_notifications.Count == 0)
+                                {
+                                    <MudText Typo="Typo.caption" Class="pa-3">No notifications yet.</MudText>
+                                }
+                                else
+                                {
+                                    @foreach (var notification in _notifications)
+                                    {
+                                        <MudListItem T="string" Class="notification-item" OnClick="@(() => MarkNotificationAsRead(notification.Id))">
+                                            <MudStack Spacing="0" Class="notification-item-content">
+                                                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                                    <MudText Typo="Typo.subtitle2">@notification.Title</MudText>
+                                                    @if (!notification.IsRead)
+                                                    {
+                                                        <MudChip T="string" Color="Color.Primary" Size="Size.Small" Variant="Variant.Text">New</MudChip>
+                                                    }
+                                                </MudStack>
+                                                <MudText Typo="Typo.caption">@notification.Message</MudText>
+                                                <MudText Typo="Typo.caption" Class="notification-time">@FormatNotificationTime(notification.CreatedAtUtc)</MudText>
+                                            </MudStack>
+                                        </MudListItem>
+                                    }
+                                }
+                            </MudStack>
+                        </ChildContent>
+                    </MudMenu>
+                    </div>
+
+                    <MudMenu AnchorOrigin="Origin.BottomRight"
+                             TransformOrigin="Origin.TopRight"
+                             Class="profile-menu">
+                        <ActivatorContent>
+                            <MudAvatar Color="Color.Primary" Style="cursor:pointer;">
+                                @if (!string.IsNullOrEmpty(_avatarDataUrl))
+                                {
+                                    <MudImage Src="@_avatarDataUrl" Alt="User Avatar" />
+                                }
+                                else
+                                {
+                                    @_userInitials
+                                }
+                            </MudAvatar>
+                        </ActivatorContent>
+                        <ChildContent>
+                            <MudMenuItem Href="/my-profile" Icon="@Icons.Material.Filled.Person">My Profile</MudMenuItem>
+                            <AuthorizeView Roles="Admin,HR" Context="authContext">
+                                <Authorized>
+                                    <MudMenuItem Href="/settings" Icon="@Icons.Material.Filled.Settings">Settings</MudMenuItem>
+                                </Authorized>
+                            </AuthorizeView>
+                            <MudMenuItem OnClick="Logout" Icon="@Icons.Material.Filled.Logout">Logout</MudMenuItem>
+                        </ChildContent>
+                    </MudMenu>
+                </MudStack>
 
             </Authorized>
             <NotAuthorized>
@@ -65,34 +120,70 @@
 
     <AuthorizeView>
         <Authorized>
-            <MudDrawer @bind-Open="_drawerOpen" Elevation="2" Variant="DrawerVariant.Mini" ClipMode="DrawerClipMode.Always" Class="nav-drawer">
-                <MudList T="string">
-                    <MudListItem Href="/" Icon="@Icons.Material.Filled.Dashboard" Class="@(_isDashboardSelected ? "mud-selected-item" : "")">
-                        Dashboard
-                    </MudListItem>
-                    <MudListItem Icon="@Icons.Material.Filled.People" OnClick="@ToggleSecondDrawer" Class="@(_isEmployeesSelected ? "mud-selected-item" : "")">
-                        Employees
-                    </MudListItem>
-                </MudList>
-            </MudDrawer>
+            <MudDrawer @bind-Open="_drawerOpen" Elevation="0" Variant="DrawerVariant.Persistent" ClipMode="DrawerClipMode.Never" Class="custom-sidebar">
+                <div class="sidebar-logo">
+                    <img src="/images/dzd_logo.png" alt="Company Logo" class="sidebar-logo-image" />
+                </div>
+                <nav class="sidebar-nav">
+                    <a href="/" class="nav-item @(_isDashboardSelected ? "nav-item-active" : "")">
+                        <MudIcon Icon="@Icons.Material.Filled.Dashboard" Class="nav-icon" />
+                        <span class="nav-label">Dashboard</span>
+                    </a>
 
-            <MudDrawer @bind-Open="_secondDrawerOpen"
-                       Class="second-drawer-offset nav-drawer"
-                       Elevation="1"
-                       Variant="DrawerVariant.Temporary"
-                       ClipMode="DrawerClipMode.Always">
-                <MudList T="string">
-                    <MudListSubheader>Employee Management</MudListSubheader>
-                    <MudListItem Href="/employees" Icon="@Icons.Material.Filled.List" Class="@(_isEmployeesSelected ? "mud-selected-item" : "")">
-                        Employees
-                    </MudListItem>
-                    <MudListItem Href="/departments" Icon="@Icons.Material.Filled.Business" Class="@(_isDepartmentsSelected ? "mud-selected-item" : "")">
-                        Departments
-                    </MudListItem>
-                    <MudListItem Href="/positions" Icon="@Icons.Material.Filled.Work" Class="@(_isPositionsSelected ? "mud-selected-item" : "")">
-                        Positions
-                    </MudListItem>
-                </MudList>
+                    <div class="nav-item @(_isEmployeesMenuActive ? "nav-item-active" : "")" @onclick="ToggleEmployeesMenu">
+                        <MudIcon Icon="@Icons.Material.Filled.People" Class="nav-icon" />
+                        <span class="nav-label">Employees</span>
+                        <MudIcon Icon="@(_employeesMenuExpanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" Class="nav-expand-icon" />
+                    </div>
+                    
+                    @if (_employeesMenuExpanded)
+                    {
+                        <div class="submenu">
+                            <a href="/employees" class="submenu-item @(_isEmployeesSelected ? "submenu-item-active" : "")">
+                                <span class="submenu-indicator"></span>
+                                <span class="submenu-label">Employees</span>
+                            </a>
+                            <a href="/departments" class="submenu-item @(_isDepartmentsSelected ? "submenu-item-active" : "")">
+                                <span class="submenu-indicator"></span>
+                                <span class="submenu-label">Departments</span>
+                            </a>
+                            <a href="/positions" class="submenu-item @(_isPositionsSelected ? "submenu-item-active" : "")">
+                                <span class="submenu-indicator"></span>
+                                <span class="submenu-label">Positions</span>
+                            </a>
+                        </div>
+                    }
+
+                    <a href="/attendance" class="nav-item @(_isAttendanceSelected ? "nav-item-active" : "")">
+                        <MudIcon Icon="@Icons.Material.Filled.Schedule" Class="nav-icon" />
+                        <span class="nav-label">Attendance</span>
+                    </a>
+
+                    <a href="/leave-management" class="nav-item @(_isLeaveManagementSelected ? "nav-item-active" : "")">
+                        <MudIcon Icon="@Icons.Material.Filled.EventAvailable" Class="nav-icon" />
+                        <span class="nav-label">Leave Management</span>
+                    </a>
+
+                    <a href="/training" class="nav-item @(_isTrainingSelected ? "nav-item-active" : "")">
+                        <MudIcon Icon="@Icons.Material.Filled.School" Class="nav-icon" />
+                        <span class="nav-label">Training</span>
+                    </a>
+
+                    <a href="/performance" class="nav-item @(_isPerformanceSelected ? "nav-item-active" : "")">
+                        <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Class="nav-icon" />
+                        <span class="nav-label">Performance</span>
+                    </a>
+
+                    <a href="/company" class="nav-item @(_isCompanySelected ? "nav-item-active" : "")">
+                        <MudIcon Icon="@Icons.Material.Filled.Business" Class="nav-icon" />
+                        <span class="nav-label">Company</span>
+                    </a>
+
+                    <a href="/settings" class="nav-item @(_isSettingsSelected ? "nav-item-active" : "")">
+                        <MudIcon Icon="@Icons.Material.Filled.Settings" Class="nav-icon" />
+                        <span class="nav-label">Settings</span>
+                    </a>
+                </nav>
             </MudDrawer>
         </Authorized>
     </AuthorizeView>
@@ -107,24 +198,32 @@
     private string _pageTitle = "DZD Dashboard";
     private readonly MudTheme _myTheme = AppTheme.Default;
     private bool _drawerOpen = true;
-    private bool _secondDrawerOpen = false;
+    private bool _employeesMenuExpanded = false;
     private bool _isEmployeesSelected;
     private bool _isDashboardSelected;
     private bool _isDepartmentsSelected;
     private bool _isPositionsSelected;
+    private bool _isAttendanceSelected;
+    private bool _isLeaveManagementSelected;
+    private bool _isTrainingSelected;
+    private bool _isPerformanceSelected;
+    private bool _isCompanySelected;
+    private bool _isSettingsSelected;
+    
+    private bool _isEmployeesMenuActive => _isEmployeesSelected || _isDepartmentsSelected || _isPositionsSelected;
     private string _avatarDataUrl = string.Empty;
     private string _userInitials = "?";
+    private List<AppNotification> _notifications = new();
+    private int _unreadNotifications;
 
     private void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
-        if (!_drawerOpen) { _secondDrawerOpen = false; }
     }
 
-    private void ToggleSecondDrawer()
+    private void ToggleEmployeesMenu()
     {
-        _secondDrawerOpen = !_secondDrawerOpen;
-        _drawerOpen = true;
+        _employeesMenuExpanded = !_employeesMenuExpanded;
     }
 
     protected override async Task OnInitializedAsync()
@@ -132,6 +231,8 @@
         UpdatePageTitle(Nav.Uri);
         AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
         Nav.LocationChanged += OnLocationChanged;
+        NotificationCenter.Changed += OnNotificationsChanged;
+        LoadNotifications();
         await LoadAvatarAsync();
     }
 
@@ -189,7 +290,6 @@
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
         UpdatePageTitle(e.Location);
-        if (_secondDrawerOpen) { _secondDrawerOpen = false; }
         InvokeAsync(StateHasChanged);
     }
 
@@ -209,29 +309,122 @@
     {
         AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
         Nav.LocationChanged -= OnLocationChanged;
+        NotificationCenter.Changed -= OnNotificationsChanged;
+    }
+
+    private void OnNotificationsChanged()
+    {
+        LoadNotifications();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void LoadNotifications()
+    {
+        _notifications = NotificationCenter.GetAll().ToList();
+        _unreadNotifications = NotificationCenter.UnreadCount;
+    }
+
+    private void MarkNotificationAsRead(int id)
+    {
+        NotificationCenter.MarkAsRead(id);
+    }
+
+    private void MarkAllNotificationsAsRead()
+    {
+        NotificationCenter.MarkAllAsRead();
+    }
+
+    private static string FormatNotificationTime(DateTime createdAtUtc)
+    {
+        var elapsed = DateTime.UtcNow - createdAtUtc;
+        if (elapsed.TotalMinutes < 1)
+        {
+            return "now";
+        }
+
+        if (elapsed.TotalHours < 1)
+        {
+            return $"{(int)elapsed.TotalMinutes}m ago";
+        }
+
+        if (elapsed.TotalDays < 1)
+        {
+            return $"{(int)elapsed.TotalHours}h ago";
+        }
+
+        return $"{(int)elapsed.TotalDays}d ago";
     }
 
     private void UpdatePageTitle(string location)
     {
         var relativePath = Nav.ToBaseRelativePath(location);
         
-        _isEmployeesSelected = relativePath.StartsWith("employees", StringComparison.OrdinalIgnoreCase) || 
-                               relativePath.StartsWith("employee", StringComparison.OrdinalIgnoreCase);
-        _isDepartmentsSelected = relativePath.StartsWith("departments", StringComparison.OrdinalIgnoreCase);
-        _isPositionsSelected = relativePath.StartsWith("positions", StringComparison.OrdinalIgnoreCase);
-        _isDashboardSelected = string.IsNullOrEmpty(relativePath);
+        // Reset all selections
+        _isEmployeesSelected = false;
+        _isDepartmentsSelected = false;
+        _isPositionsSelected = false;
+        _isDashboardSelected = false;
+        _isAttendanceSelected = false;
+        _isLeaveManagementSelected = false;
+        _isTrainingSelected = false;
+        _isPerformanceSelected = false;
+        _isCompanySelected = false;
+        _isSettingsSelected = false;
 
-        if (_isEmployeesSelected)
+        // Set current selection
+        if (string.IsNullOrEmpty(relativePath))
         {
+            _isDashboardSelected = true;
+            _pageTitle = "DZD Dashboard";
+        }
+        else if (relativePath.StartsWith("employees", StringComparison.OrdinalIgnoreCase) || 
+                 relativePath.StartsWith("employee", StringComparison.OrdinalIgnoreCase))
+        {
+            _isEmployeesSelected = true;
+            _employeesMenuExpanded = true;
             _pageTitle = "Employees";
         }
-        else if (_isDepartmentsSelected)
+        else if (relativePath.StartsWith("departments", StringComparison.OrdinalIgnoreCase))
         {
+            _isDepartmentsSelected = true;
+            _employeesMenuExpanded = true;
             _pageTitle = "Departments";
         }
-        else if (_isPositionsSelected)
+        else if (relativePath.StartsWith("positions", StringComparison.OrdinalIgnoreCase))
         {
+            _isPositionsSelected = true;
+            _employeesMenuExpanded = true;
             _pageTitle = "Positions";
+        }
+        else if (relativePath.StartsWith("attendance", StringComparison.OrdinalIgnoreCase))
+        {
+            _isAttendanceSelected = true;
+            _pageTitle = "Attendance";
+        }
+        else if (relativePath.StartsWith("leave-management", StringComparison.OrdinalIgnoreCase))
+        {
+            _isLeaveManagementSelected = true;
+            _pageTitle = "Leave Management";
+        }
+        else if (relativePath.StartsWith("training", StringComparison.OrdinalIgnoreCase))
+        {
+            _isTrainingSelected = true;
+            _pageTitle = "Training";
+        }
+        else if (relativePath.StartsWith("performance", StringComparison.OrdinalIgnoreCase))
+        {
+            _isPerformanceSelected = true;
+            _pageTitle = "Performance";
+        }
+        else if (relativePath.StartsWith("company", StringComparison.OrdinalIgnoreCase))
+        {
+            _isCompanySelected = true;
+            _pageTitle = "Company";
+        }
+        else if (relativePath.StartsWith("settings", StringComparison.OrdinalIgnoreCase))
+        {
+            _isSettingsSelected = true;
+            _pageTitle = "Settings";
         }
         else if (relativePath.Equals("my-profile", StringComparison.OrdinalIgnoreCase))
         {

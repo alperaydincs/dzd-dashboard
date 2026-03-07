@@ -5,9 +5,7 @@
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
                 <NotAuthorized>
-                    <MudPaper Class="pa-6 mt-8">
-                        <MudText Typo="Typo.h6">Bu sayfa için yetkiniz yok veya giriş gerekli.</MudText>
-                    </MudPaper>
+                    <RedirectToLogin />
                 </NotAuthorized>
             </AuthorizeRouteView>
             <FocusOnNavigate RouteData="routeData" Selector="h1" />

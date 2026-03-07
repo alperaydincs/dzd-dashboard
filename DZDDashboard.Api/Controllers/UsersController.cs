@@ -37,36 +37,6 @@ public class UsersController : ControllerBase
         return Ok(user);
     }
 
-    [HttpPost]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<UserDto>> Create([FromBody] CreateUserDto dto)
-    {
-        if (dto is null) return BadRequest("Payload required.");
-        try
-        {
-            var created = await _userService.CreateAsync(dto);
-            return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
-        }
-        catch (InvalidOperationException ex) when (IsConflictMessage(ex.Message))
-        {
-            return Conflict(new { message = ex.Message }); 
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new { message = ex.Message }); 
-        }
-        catch (InvalidOperationException ex)
-        {
-            _logger.LogWarning(ex, "Create user failed.");
-            return BadRequest(new { message = ex.Message }); 
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error creating user.");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Unexpected server error." }); 
-        }
-    }
-
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
@@ -207,9 +177,6 @@ public class UsersController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error during upload.");
         }
     }
-
-    private static bool IsConflictMessage(string msg) =>
-        msg.Contains("exists", StringComparison.OrdinalIgnoreCase);
 
     [HttpPut("{id}/organization-position")]
     [Authorize(Roles = "Admin")]

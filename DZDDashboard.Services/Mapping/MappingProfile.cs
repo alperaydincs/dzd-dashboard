@@ -27,8 +27,6 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.ReportsToName, 
                 opt => opt.MapFrom(src => src.ReportsTo != null ? $"{src.ReportsTo.FirstName} {src.ReportsTo.LastName}" : null));
 
-        CreateMap<CreateUserDto, User>();
-
         CreateMap<UserAvatar, UserAvatarDto>();
 
         CreateMap<User, UserProfileReportsToDto>();
@@ -89,7 +87,6 @@ public class MappingProfile : Profile
 
         CreateMap<PersonalInfoDto, User>()
             .ForMember(dest => dest.Username, opt => opt.Ignore()) 
-            .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
             .ForMember(dest => dest.Children, opt => opt.Ignore())
             .ForMember(dest => dest.ModifiedAt, opt => opt.Ignore())
             .ForMember(dest => dest.ModifiedBy, opt => opt.Ignore())

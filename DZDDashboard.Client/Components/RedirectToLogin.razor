@@ -1,0 +1,47 @@
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@if (_showAccessDenied)
+{
+    <MudPaper Class="pa-6 mt-8">
+        <MudText Typo="Typo.h6">Bu sayfa icin yetkiniz bulunmuyor.</MudText>
+    </MudPaper>
+}
+else
+{
+    <MudPaper Class="pa-6 mt-8">
+        <MudText Typo="Typo.h6">Giris ekranina yonlendiriliyorsunuz...</MudText>
+    </MudPaper>
+}
+
+@code {
+    private bool _showAccessDenied;
+    private bool _navigated;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _navigated)
+        {
+            return;
+        }
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var isAuthenticated = authState.User.Identity?.IsAuthenticated == true;
+
+        if (isAuthenticated)
+        {
+            _showAccessDenied = true;
+            StateHasChanged();
+            return;
+        }
+
+        var relativePath = Navigation.ToBaseRelativePath(Navigation.Uri);
+        var returnUrl = string.IsNullOrWhiteSpace(relativePath)
+            ? "/"
+            : $"/{relativePath}";
+
+        _navigated = true;
+        var signInUrl = $"/MicrosoftIdentity/Account/SignIn?returnUrl={Uri.EscapeDataString(returnUrl)}";
+        Navigation.NavigateTo(signInUrl, forceLoad: true, replace: true);
+    }
+}

@@ -7,8 +7,11 @@ public record UserDto
     public int Id { get; init; }
     public string? Username { get; init; }
     public string? Email { get; init; }
+    public string? PhoneNumber { get; init; }
     public string? FirstName { get; init; }
     public string? LastName { get; init; }
+    public string? City { get; init; }
+    public string? Country { get; init; }
     public bool IsActive { get; init; }
     public DateTime? UserStartDate { get; init; }
     public UserAvatarDto? Avatar { get; init; }

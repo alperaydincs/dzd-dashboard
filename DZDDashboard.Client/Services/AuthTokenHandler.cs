@@ -24,20 +24,16 @@ public class AuthTokenHandler : DelegatingHandler
             _logger.LogError("DownstreamApi:Scopes configuration is required for API token acquisition.");
             throw new InvalidOperationException("DownstreamApi:Scopes configuration is required for API token acquisition.");
         }
-        
-        _logger.LogInformation($"AuthTokenHandler initialized with scopes: {string.Join(", ", _scopes)}");
     }
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         try
         {
-            _logger.LogInformation($"Acquiring token for request to {request.RequestUri}");
             var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(_scopes);
             
             if (!string.IsNullOrEmpty(accessToken))
             {
-                _logger.LogInformation("Token acquired successfully, adding to request");
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
             }
             else
@@ -47,7 +43,7 @@ public class AuthTokenHandler : DelegatingHandler
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Failed to acquire token: {ex.Message}");
+            _logger.LogError(ex, "Failed to acquire token");
         }
 
         return await base.SendAsync(request, cancellationToken);
