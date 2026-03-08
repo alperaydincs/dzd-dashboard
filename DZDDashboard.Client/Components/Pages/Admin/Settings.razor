@@ -1,18 +1,16 @@
 @page "/settings"
 @using Microsoft.AspNetCore.Authorization
-@using DZDDashboard.Client.OrgChart
-@using DZDDashboard.Common.DTOs
-@using DZDDashboard.Common.DTOs.Organization
-@using DZDDashboard.Common.DTOs.Users
+@using DZDDashboard.Client.Components.OrgChart
 @using DZDDashboard.Client.Components.Pages.Admin.Dialogs
 @using DZDDashboard.Client.Components.Pages.Employees
 @using DZDDashboard.Client.Services
+@using DZDDashboard.Common.DTOs
 @attribute [Authorize(Roles = "Admin,HR")]
 
+@inject IDialogService DialogServiceRef
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
 @inject OrganizationService OrgService
-@inject IDialogService DialogServiceRef
 
 <div class="settings-scope">
 <MudContainer MaxWidth="MaxWidth.False" Class="settings-page mt-4">
@@ -378,3 +376,4 @@
         }
     }
 }
+

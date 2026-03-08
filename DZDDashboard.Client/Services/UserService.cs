@@ -1,4 +1,4 @@
-using DZDDashboard.Common.DTOs.Users;
+using DZDDashboard.Common.DTOs;
 
 namespace DZDDashboard.Client.Services;
 
@@ -25,7 +25,7 @@ public class UserService : ApiServiceBase
         => await GetAsync<PersonalInfoDto>($"api/users/{userId}/personal-info");
 
     public async Task<HttpResponseMessage> UpdateMyProfileAvatarAsync(MultipartFormDataContent content)
-        => await ApiClient.PostAsync("api/users/my-profile/avatar", content);
+        => await PostMultipartAsync("api/users/my-profile/avatar", content);
 
     public async Task<HttpResponseMessage> UpdateContactInfoAsync(UpdateContactInfoDto dto)
         => await PutAsync("api/users/my-profile/contact-info", dto);

@@ -182,8 +182,6 @@ h1:focus {
     z-index: 1; 
 }
 
-
-
 .mud-input:has(input:-webkit-autofill) .mud-input-label.mud-input-label-outlined,
 .mud-input:has(input[data-autocompleted="true"]) .mud-input-label.mud-input-label-outlined {
     
@@ -207,4 +205,50 @@ h1:focus {
 
 .nav-drawer .mud-selected-item {
     background: linear-gradient(90deg, rgba(3, 2, 19, 0.08) 0%, rgba(43, 56, 245, 0.28) 100%) !important;
+}
+
+/* Reusable avatar system: initials scale with circle diameter */
+.dzd-avatar {
+    --dzd-avatar-size: 48px;
+    width: var(--dzd-avatar-size) !important;
+    height: var(--dzd-avatar-size) !important;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dzd-avatar .mud-avatar-text {
+    font-size: calc(var(--dzd-avatar-size) * 0.38);
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.dzd-avatar .mud-image,
+.dzd-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.dzd-avatar-sm {
+    --dzd-avatar-size: 40px;
+}
+
+.dzd-avatar-md {
+    --dzd-avatar-size: 48px;
+}
+
+.dzd-avatar-lg {
+    --dzd-avatar-size: 64px;
+}
+
+.dzd-avatar-card {
+    --dzd-avatar-size: 72px;
+}
+
+.dzd-avatar-xl {
+    --dzd-avatar-size: 100px;
 }

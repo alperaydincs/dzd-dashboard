@@ -1,4 +1,4 @@
-﻿namespace DZDDashboard.Common.DTOs
+namespace DZDDashboard.Common.DTOs
 {
     public record JobDto
     {
@@ -7,3 +7,4 @@
         public int? Level { get; set; }
     }
 }
+

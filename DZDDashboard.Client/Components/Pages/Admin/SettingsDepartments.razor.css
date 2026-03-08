@@ -1,15 +1,3 @@
-::deep .settings-detail-header {
-    padding: 0 0 10px;
-    border-bottom: 1px solid rgba(17, 24, 39, 0.06);
-    margin-bottom: 12px !important;
-}
-
-::deep .settings-detail-title {
-    font-size: 1.875rem;
-    font-weight: 500;
-    color: var(--dzd-text-primary);
-}
-
 ::deep .department-card {
     background: #ffffff;
     border-radius: 14px;

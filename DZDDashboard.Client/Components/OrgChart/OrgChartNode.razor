@@ -1,6 +1,4 @@
-@using DZDDashboard.Client.OrgChart
-@using DZDDashboard.Common.DTOs.Organization
-@using DZDDashboard.Common.DTOs.Users
+@using DZDDashboard.Client.Components.OrgChart
 @inject NavigationManager Nav
 
 <li>
@@ -10,7 +8,7 @@
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="node-card-content">
                     @if (Node.User != null)
                     {
-                        <MudAvatar Color="GetAvatarColor(Node.User)" Size="Size.Large" Class="node-avatar">
+                        <MudAvatar Color="GetAvatarColor(Node.User)" Size="Size.Large" Class="node-avatar dzd-avatar dzd-avatar-lg">
                             @if (Node.User.Avatar != null && !string.IsNullOrEmpty(Node.User.Avatar.ContentBase64))
                             {
                                 <MudImage Src="@($"data:{Node.User.Avatar.ContentType};base64,{Node.User.Avatar.ContentBase64}")" />
@@ -23,7 +21,7 @@
                     }
                     else
                     {
-                        <MudAvatar Color="Color.Default" Size="Size.Large" Class="node-avatar node-avatar-empty">
+                        <MudAvatar Color="Color.Default" Size="Size.Large" Class="node-avatar node-avatar-empty dzd-avatar dzd-avatar-lg">
                             <MudIcon Icon="@Icons.Material.Filled.PersonOutline" />
                         </MudAvatar>
                     }
@@ -205,3 +203,4 @@
         };
     }
 }
+

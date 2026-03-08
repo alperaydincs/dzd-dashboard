@@ -1,5 +1,4 @@
-namespace DZDDashboard.Common.DTOs.Organization;
-using DZDDashboard.Common.DTOs.Users;
+namespace DZDDashboard.Common.DTOs;
 
 public class OrganizationPositionDto
 {
@@ -13,3 +12,4 @@ public class OrganizationPositionDto
     public int? UserId { get; set; }
     public UserDto? User { get; set; }
 }
+

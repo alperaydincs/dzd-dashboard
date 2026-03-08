@@ -11,3 +11,4 @@ namespace DZDDashboard.Common.DTOs
         public string? NextStepLevel { get; set; }
     }
 }
+

@@ -1,4 +1,3 @@
-@using DZDDashboard.Common.DTOs.Users
 @using DZDDashboard.Client.Services
 
 
@@ -36,7 +35,7 @@
                         <MudText Typo="Typo.caption" Style="opacity:.6;">Current Assignment</MudText>
                         <MudPaper Class="pa-3 d-flex justify-space-between align-center" Outlined="true" Style="background-color: #E3F2FD; border-color: #2196F3;">
                             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                <MudAvatar Size="Size.Medium" Color="Color.Primary">
+                                <MudAvatar Size="Size.Medium" Color="@GetAvatarColor(_currentUser)">
                                     @if (_currentUser.Avatar != null && !string.IsNullOrEmpty(_currentUser.Avatar.ContentBase64))
                                     {
                                         <MudImage Src="@($"data:{_currentUser.Avatar.ContentType};base64,{_currentUser.Avatar.ContentBase64}")" />
@@ -75,7 +74,7 @@
                         {
                             <MudPaper Class="pa-3 d-flex justify-space-between align-center" Outlined="true">
                                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                    <MudAvatar Size="Size.Medium" Color="Color.Primary">
+                                    <MudAvatar Size="Size.Medium" Color="@GetAvatarColor(user)">
                                         @if (user.Avatar != null && !string.IsNullOrEmpty(user.Avatar.ContentBase64))
                                         {
                                             <MudImage Src="@($"data:{user.Avatar.ContentType};base64,{user.Avatar.ContentBase64}")" />
@@ -163,4 +162,23 @@
     {
         return $"{firstName?.FirstOrDefault()}{lastName?.FirstOrDefault()}".ToUpper();
     }
+
+    private static Color GetAvatarColor(UserDto? user)
+    {
+        if (user is null)
+        {
+            return Color.Primary;
+        }
+
+        return (user.Id % 6) switch
+        {
+            0 => Color.Primary,
+            1 => Color.Secondary,
+            2 => Color.Info,
+            3 => Color.Success,
+            4 => Color.Warning,
+            _ => Color.Tertiary
+        };
+    }
 }
+

@@ -1,4 +1,4 @@
-namespace DZDDashboard.Common.DTOs.Users;
+namespace DZDDashboard.Common.DTOs;
 
 public class PersonalInfoDto
 {
@@ -58,3 +58,4 @@ public class PersonalInfoDto
     public DateTime? BachelorsGraduatedDate { get; set; }
     public DateTime? MastersGraduatedDate { get; set; }
 }
+

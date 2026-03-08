@@ -1,3 +1,4 @@
+
 namespace DZDDashboard.Common.DTOs
 {
     public record HeadLeadCoefficientDto
@@ -10,3 +11,4 @@ namespace DZDDashboard.Common.DTOs
         public decimal Coefficient { get; init; }
     }
 }
+

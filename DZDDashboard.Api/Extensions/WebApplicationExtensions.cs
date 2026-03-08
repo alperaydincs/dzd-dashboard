@@ -17,7 +17,6 @@ public static class WebApplicationExtensions
         app.UseAuthentication();
         app.UseMiddleware<EntraUserSyncMiddleware>();
         app.UseAuthorization();
-
         app.MapControllers();
 
         return app;

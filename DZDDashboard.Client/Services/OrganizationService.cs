@@ -1,5 +1,4 @@
 using DZDDashboard.Common.DTOs;
-using DZDDashboard.Common.DTOs.Organization;
 
 namespace DZDDashboard.Client.Services;
 
@@ -8,7 +7,7 @@ public class OrganizationService : ApiServiceBase
     public OrganizationService(IHttpClientFactory httpClientFactory) : base(httpClientFactory) { }
 
     public async Task<List<OrganizationPositionDto>> GetOrganizationPositionsAsync()
-        => await GetAsync<List<OrganizationPositionDto>>("api/OrganizationPosition") ?? new();
+        => await GetAsync<List<OrganizationPositionDto>>("api/organization/positions") ?? new();
 
     public async Task<List<CompanyDto>> GetCompaniesAsync()
         => await GetAsync<List<CompanyDto>>("api/organization/companies") ?? new();
@@ -29,13 +28,13 @@ public class OrganizationService : ApiServiceBase
         => await GetAsync<List<GradeDto>>("api/organization/grades") ?? new();
 
     public async Task<HttpResponseMessage> CreateOrganizationPositionAsync(CreateOrganizationPositionDto dto)
-        => await PostAsync("api/OrganizationPosition", dto);
+        => await PostAsync("api/organization/positions", dto);
 
     public async Task<HttpResponseMessage> UpdateOrganizationPositionAsync(int positionId, UpdateOrganizationPositionDto dto)
-        => await PutAsync($"api/OrganizationPosition/{positionId}", dto);
+        => await PutAsync($"api/organization/positions/{positionId}", dto);
 
     public async Task<HttpResponseMessage> DeleteOrganizationPositionAsync(int positionId)
-        => await DeleteAsync($"api/OrganizationPosition/{positionId}");
+        => await DeleteAsync($"api/organization/positions/{positionId}");
 
     public async Task<HttpResponseMessage> DeleteCompanyAsync(int companyId)
         => await DeleteAsync($"api/organization/companies/{companyId}");

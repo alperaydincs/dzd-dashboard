@@ -1,20 +1,18 @@
 @page "/my-profile"
-@using DZDDashboard.Client.OrgChart
-@using DZDDashboard.Common.DTOs.Organization
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Globalization
+@using System.Security.Claims
+@using DZDDashboard.Client.Components.OrgChart
 @using DZDDashboard.Client.Components.Pages.Admin.Dialogs
 @using DZDDashboard.Client.Components.Pages.Employees
-@using System.Globalization
-@using DZDDashboard.Common.DTOs.Users
-@using System.Security.Claims
-@using Microsoft.AspNetCore.Components.Forms
 @using DZDDashboard.Client.Models
 @using DZDDashboard.Client.Services
 
-@inject ISnackbar Snackbar
-@inject IJSRuntime JSRuntime
-@inject UserService UserService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IDialogService DialogService
+@inject IJSRuntime JSRuntime
+@inject ISnackbar Snackbar
+@inject UserService UserService
 
 <CascadingAuthenticationState>
     <AuthorizeView>
@@ -352,3 +350,4 @@
         }
     }
 }
+

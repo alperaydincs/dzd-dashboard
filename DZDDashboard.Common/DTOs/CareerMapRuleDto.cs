@@ -1,3 +1,4 @@
+
 namespace DZDDashboard.Common.DTOs
 {
     public record CareerMapRuleDto
@@ -19,3 +20,4 @@ namespace DZDDashboard.Common.DTOs
         public bool CommitteeApproval { get; init; }
     }
 }
+

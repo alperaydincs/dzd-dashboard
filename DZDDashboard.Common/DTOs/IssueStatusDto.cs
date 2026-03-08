@@ -6,3 +6,4 @@ namespace DZDDashboard.Common.DTOs
         public string? StatusName { get; init; }
     }
 }
+

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace DZDDashboard.Common.DTOs.Organization;
+namespace DZDDashboard.Common.DTOs;
 
 public class UpdateOrganizationPositionDto
 {
@@ -10,3 +10,4 @@ public class UpdateOrganizationPositionDto
     public int? ParentId { get; set; }
     public int? UserId { get; set; }
 }
+

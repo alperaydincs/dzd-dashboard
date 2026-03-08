@@ -1,4 +1,4 @@
-﻿namespace DZDDashboard.Common.DTOs.Users
+namespace DZDDashboard.Common.DTOs
 {
     public class UserAvatarDto
     {
@@ -6,3 +6,4 @@
         public string? ContentType { get; set; }
     }
 }
+

@@ -76,4 +76,17 @@ public abstract class ApiServiceBase
             throw;
         }
     }
+
+    protected async Task<HttpResponseMessage> PostMultipartAsync(string endpoint, MultipartFormDataContent content)
+    {
+        try
+        {
+            return await ApiClient.PostAsync(endpoint, content);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"POST (multipart) {endpoint} failed: {ex.Message}");
+            throw;
+        }
+    }
 }

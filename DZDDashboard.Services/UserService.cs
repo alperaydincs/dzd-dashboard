@@ -1,6 +1,6 @@
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using DZDDashboard.Common.DTOs.Users;
+using DZDDashboard.Common.DTOs;
 using DZDDashboard.Data;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -85,62 +85,14 @@ namespace DZDDashboard.Services
 
         public async Task<bool> UpdatePersonalInfoAsync(int id, PersonalInfoDto dto)
         {
-            var user = await _context.Users.Include(u => u.Children).FirstOrDefaultAsync(u => u.Id == id);
+            var user = await _context.Users
+                .Include(u => u.Children)
+                .FirstOrDefaultAsync(u => u.Id == id);
+            
             if (user is null) return false;
 
-            user.FirstName = dto.FirstName;
-            user.LastName = dto.LastName;
-            user.CompanyName = dto.CompanyName;
-            user.RegistrationNumber = dto.RegistrationNumber;
-            user.Grade = dto.Grade;
-            user.JobId = dto.JobId;
-            user.DepartmentId = dto.DepartmentId;
-            user.TeamId = dto.TeamId;
-            user.PositionStartDate = dto.PositionStartDate;
-            user.UserStartDate = dto.UserStartDate;
-            user.ContractType = dto.ContractType;
-            user.ContractEndDate = dto.ContractEndDate;
-            user.WorkModel = dto.WorkModel;
-            user.PayrollLocationId = dto.PayrollLocationId;
-            user.ReportsToId = dto.ReportsToId;
-            user.ApprovalProcessUnit = dto.ApprovalProcessUnit;
-
-            user.Email = dto.Email;
-            user.PhoneNumber = dto.PhoneNumber;
-            user.PersonalEmail = dto.PersonalEmail;
-            user.PersonalPhoneNumber = dto.PersonalPhoneNumber;
-
-            user.DateOfBirth = dto.DateOfBirth;
-            user.Gender = dto.Gender;
-            user.DisabilityStatus = dto.DisabilityStatus;
-            user.DisabilityDegree = dto.DisabilityDegree;
-            user.Nationality = dto.Nationality;
-            user.CitizenshipNumber = dto.CitizenshipNumber;
-
-            user.EmergencyContactFullName = dto.EmergencyContactFullName;
-            user.EmergencyContactRelationship = dto.EmergencyContactRelationship;
-            user.EmergencyContactPhoneNumber = dto.EmergencyContactPhoneNumber;
-
-            user.MaritalStatus = dto.MaritalStatus;
-            user.SpouseFullName = dto.SpouseFullName;
-
-            user.LegalAddress = dto.LegalAddress;
-            user.CurrentAddress = dto.CurrentAddress;
-            user.City = dto.City;
-            user.Country = dto.Country;
-
-            user.EducationStatus = dto.EducationStatus;
-            user.HighestEducationLevel = dto.HighestEducationLevel;
-            user.HighSchoolName = dto.HighSchoolName;
-            user.BachelorsUniversityName = dto.BachelorsUniversityName;
-            user.BachelorsProgramName = dto.BachelorsProgramName;
-            user.MastersUniversityName = dto.MastersUniversityName;
-            user.MastersProgramName = dto.MastersProgramName;
-            user.BachelorsGraduatedDate = dto.BachelorsGraduatedDate;
-            user.MastersGraduatedDate = dto.MastersGraduatedDate;
-
+            _mapper.Map(dto, user);
             user.ModifiedAt = DateTime.UtcNow;
-
             await _context.SaveChangesAsync();
             return true;
         }
@@ -237,12 +189,9 @@ namespace DZDDashboard.Services
         public async Task<bool> UpdateContactInfoAsync(int userId, UpdateContactInfoDto dto)
         {
             var user = await _context.Users.FindAsync(userId);
-            if (user == null) return false;
+            if (user is null) return false;
 
-            user.PhoneNumber = dto.WorkPhoneNumber;
-            user.PersonalEmail = dto.PersonalEmail;
-            user.PersonalPhoneNumber = dto.PersonalPhoneNumber;
-
+            _mapper.Map(dto, user);
             await _context.SaveChangesAsync();
             return true;
         }

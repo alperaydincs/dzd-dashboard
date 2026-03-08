@@ -7,3 +7,4 @@ namespace DZDDashboard.Common.DTOs
         public DateTime? DateOfBirth { get; init; }
     }
 }
+

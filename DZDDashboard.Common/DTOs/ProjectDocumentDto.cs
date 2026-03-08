@@ -8,3 +8,4 @@ namespace DZDDashboard.Common.DTOs
         public string? ContentType { get; init; }
     }
 }
+

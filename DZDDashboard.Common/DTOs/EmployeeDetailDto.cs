@@ -1,4 +1,5 @@
-﻿namespace DZDDashboard.Common.DTOs.Users
+
+namespace DZDDashboard.Common.DTOs
 {
     public record EmployeeDetailDto
     {
@@ -30,3 +31,4 @@
         public string? OrganizationPositionName { get; init; }
     }
 }
+

@@ -1,3 +1,4 @@
+using AutoMapper;
 using DZDDashboard.Common.DTOs;
 using DZDDashboard.Data;
 using DZDDashboard.Data.Entities;
@@ -36,31 +37,32 @@ public interface IOrganizationService
     Task UpdateUserGroupAsync(UserGroupDto dto);
     Task DeleteUserGroupAsync(int id);
     Task<UserGroupDto> GetUserGroupWithMembersAsync(int id);
+    Task<List<OrganizationPositionDto>> GetAllPositionsAsync();
+    Task<OrganizationPositionDto> CreatePositionAsync(CreateOrganizationPositionDto dto);
+    Task<OrganizationPositionDto> UpdatePositionAsync(UpdateOrganizationPositionDto dto);
+    Task DeletePositionAsync(int id);
 }
 
 public class OrganizationService : IOrganizationService
 {
     private readonly AppDbContext _context;
+    private readonly IMapper _mapper;
 
-    public OrganizationService(AppDbContext context)
+    public OrganizationService(AppDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
     public async Task<List<CompanyDto>> GetCompaniesAsync()
-    {
-        return await _context.Companies
-            .Select(c => new CompanyDto { Id = c.Id, Name = c.Name, Description = c.Description })
-            .ToListAsync();
-    }
+        => _mapper.Map<List<CompanyDto>>(await _context.Companies.ToListAsync());
 
     public async Task<CompanyDto> CreateCompanyAsync(CompanyDto dto)
     {
-        var entity = new Company { Name = dto.Name, Description = dto.Description };
+        var entity = _mapper.Map<Company>(dto);
         _context.Companies.Add(entity);
         await _context.SaveChangesAsync();
-        dto.Id = entity.Id;
-        return dto;
+        return _mapper.Map<CompanyDto>(entity);
     }
 
     public async Task UpdateCompanyAsync(CompanyDto dto)
@@ -68,8 +70,7 @@ public class OrganizationService : IOrganizationService
         var entity = await _context.Companies.FindAsync(dto.Id);
         if (entity != null)
         {
-            entity.Name = dto.Name;
-            entity.Description = dto.Description;
+            _mapper.Map(dto, entity);
             await _context.SaveChangesAsync();
         }
     }
@@ -77,28 +78,19 @@ public class OrganizationService : IOrganizationService
     public async Task DeleteCompanyAsync(int id)
     {
         var entity = await _context.Companies.FindAsync(id);
-        if (entity == null)
-        {
-            return;
-        }
+        if (entity == null) return;
 
-        var departments = await _context.Departments
-            .Where(d => d.CompanyId == id)
-            .ToListAsync();
-
-        if (departments.Count > 0)
+        var departments = await _context.Departments.Where(d => d.CompanyId == id).ToListAsync();
+        if (departments.Any())
         {
             var departmentIds = departments.Select(d => d.Id).ToList();
-
             var teams = await _context.Set<Team>()
                 .Where(t => t.DepartmentId.HasValue && departmentIds.Contains(t.DepartmentId.Value))
                 .ToListAsync();
-
-            if (teams.Count > 0)
-            {
+            
+            if (teams.Any())
                 _context.Set<Team>().RemoveRange(teams);
-            }
-
+            
             _context.Departments.RemoveRange(departments);
         }
 
@@ -107,26 +99,14 @@ public class OrganizationService : IOrganizationService
     }
 
     public async Task<List<DepartmentDto>> GetDepartmentsAsync()
-    {
-        return await _context.Departments
-            .Include(d => d.Company)
-            .Select(d => new DepartmentDto
-            {
-                Id = d.Id,
-                Name = d.DepartmentName,
-                CompanyId = d.CompanyId,
-                CompanyName = d.Company != null ? d.Company.Name : null
-            })
-            .ToListAsync();
-    }
+        => _mapper.Map<List<DepartmentDto>>(await _context.Departments.Include(d => d.Company).ToListAsync());
 
     public async Task<DepartmentDto> CreateDepartmentAsync(DepartmentDto dto)
     {
-        var entity = new Department { DepartmentName = dto.Name, CompanyId = dto.CompanyId };
+        var entity = _mapper.Map<Department>(dto);
         _context.Departments.Add(entity);
         await _context.SaveChangesAsync();
-        dto.Id = entity.Id;
-        return dto;
+        return _mapper.Map<DepartmentDto>(entity);
     }
 
     public async Task UpdateDepartmentAsync(DepartmentDto dto)
@@ -134,8 +114,7 @@ public class OrganizationService : IOrganizationService
         var entity = await _context.Departments.FindAsync(dto.Id);
         if (entity != null)
         {
-            entity.DepartmentName = dto.Name;
-            entity.CompanyId = dto.CompanyId;
+            _mapper.Map(dto, entity);
             await _context.SaveChangesAsync();
         }
     }
@@ -151,26 +130,14 @@ public class OrganizationService : IOrganizationService
     }
 
     public async Task<List<TeamDto>> GetTeamsAsync()
-    {
-        return await _context.Set<Team>()
-            .Include(t => t.Department)
-            .Select(t => new TeamDto
-            {
-                Id = t.Id,
-                Name = t.TeamName,
-                DepartmentId = t.DepartmentId,
-                DepartmentName = t.Department != null ? t.Department.DepartmentName : null
-            })
-            .ToListAsync();
-    }
+        => _mapper.Map<List<TeamDto>>(await _context.Set<Team>().Include(t => t.Department).ToListAsync());
 
     public async Task<TeamDto> CreateTeamAsync(TeamDto dto)
     {
-        var entity = new Team { TeamName = dto.Name, DepartmentId = dto.DepartmentId };
+        var entity = _mapper.Map<Team>(dto);
         _context.Set<Team>().Add(entity);
         await _context.SaveChangesAsync();
-        dto.Id = entity.Id;
-        return dto;
+        return _mapper.Map<TeamDto>(entity);
     }
 
     public async Task UpdateTeamAsync(TeamDto dto)
@@ -178,8 +145,7 @@ public class OrganizationService : IOrganizationService
         var entity = await _context.Set<Team>().FindAsync(dto.Id);
         if (entity != null)
         {
-            entity.TeamName = dto.Name;
-            entity.DepartmentId = dto.DepartmentId;
+            _mapper.Map(dto, entity);
             await _context.SaveChangesAsync();
         }
     }
@@ -195,19 +161,14 @@ public class OrganizationService : IOrganizationService
     }
 
     public async Task<List<WorkTypeDto>> GetWorkTypesAsync()
-    {
-        return await _context.WorkTypes
-            .Select(w => new WorkTypeDto { Id = w.Id, Name = w.Name, Description = w.Description })
-            .ToListAsync();
-    }
+        => _mapper.Map<List<WorkTypeDto>>(await _context.WorkTypes.ToListAsync());
 
     public async Task<WorkTypeDto> CreateWorkTypeAsync(WorkTypeDto dto)
     {
-        var entity = new WorkType { Name = dto.Name, Description = dto.Description };
+        var entity = _mapper.Map<WorkType>(dto);
         _context.WorkTypes.Add(entity);
         await _context.SaveChangesAsync();
-        dto.Id = entity.Id;
-        return dto;
+        return _mapper.Map<WorkTypeDto>(entity);
     }
 
     public async Task UpdateWorkTypeAsync(WorkTypeDto dto)
@@ -215,8 +176,7 @@ public class OrganizationService : IOrganizationService
         var entity = await _context.WorkTypes.FindAsync(dto.Id);
         if (entity != null)
         {
-            entity.Name = dto.Name;
-            entity.Description = dto.Description;
+            _mapper.Map(dto, entity);
             await _context.SaveChangesAsync();
         }
     }
@@ -232,19 +192,14 @@ public class OrganizationService : IOrganizationService
     }
 
     public async Task<List<JobDto>> GetJobsAsync()
-    {
-        return await _context.Jobs
-            .Select(j => new JobDto { Id = j.Id, Name = j.Title, Level = j.Level })
-            .ToListAsync();
-    }
+        => _mapper.Map<List<JobDto>>(await _context.Jobs.ToListAsync());
 
     public async Task<JobDto> CreateJobAsync(JobDto dto)
     {
-        var entity = new Job { Title = dto.Name, Level = dto.Level };
+        var entity = _mapper.Map<Job>(dto);
         _context.Jobs.Add(entity);
         await _context.SaveChangesAsync();
-        dto.Id = entity.Id;
-        return dto;
+        return _mapper.Map<JobDto>(entity);
     }
 
     public async Task UpdateJobAsync(JobDto dto)
@@ -252,8 +207,7 @@ public class OrganizationService : IOrganizationService
         var entity = await _context.Jobs.FindAsync(dto.Id);
         if (entity != null)
         {
-            entity.Title = dto.Name;
-            entity.Level = dto.Level;
+            _mapper.Map(dto, entity);
             await _context.SaveChangesAsync();
         }
     }
@@ -269,36 +223,14 @@ public class OrganizationService : IOrganizationService
     }
 
     public async Task<List<GradeDto>> GetGradesAsync()
-    {
-        return await _context.Grades
-            .Include(g => g.NextStep)
-            .Select(g => new GradeDto
-            {
-                Id = g.Id,
-                Level = g.Level,
-                MinSalary = g.MinSalary,
-                MaxSalary = g.MaxSalary,
-                Currency = g.Currency,
-                NextStepId = g.NextStepId,
-                NextStepLevel = g.NextStep != null ? g.NextStep.Level : null
-            })
-            .ToListAsync();
-    }
+        => _mapper.Map<List<GradeDto>>(await _context.Grades.Include(g => g.NextStep).ToListAsync());
 
     public async Task<GradeDto> CreateGradeAsync(GradeDto dto)
     {
-        var entity = new Grade
-        {
-            Level = dto.Level,
-            MinSalary = dto.MinSalary,
-            MaxSalary = dto.MaxSalary,
-            Currency = dto.Currency,
-            NextStepId = dto.NextStepId
-        };
+        var entity = _mapper.Map<Grade>(dto);
         _context.Grades.Add(entity);
         await _context.SaveChangesAsync();
-        dto.Id = entity.Id;
-        return dto;
+        return _mapper.Map<GradeDto>(entity);
     }
 
     public async Task UpdateGradeAsync(GradeDto dto)
@@ -306,11 +238,7 @@ public class OrganizationService : IOrganizationService
         var entity = await _context.Grades.FindAsync(dto.Id);
         if (entity != null)
         {
-            entity.Level = dto.Level;
-            entity.MinSalary = dto.MinSalary;
-            entity.MaxSalary = dto.MaxSalary;
-            entity.Currency = dto.Currency;
-            entity.NextStepId = dto.NextStepId;
+            _mapper.Map(dto, entity);
             await _context.SaveChangesAsync();
         }
     }
@@ -326,19 +254,14 @@ public class OrganizationService : IOrganizationService
     }
 
     public async Task<List<UserGroupDto>> GetUserGroupsAsync()
-    {
-        return await _context.UserGroups
-            .Select(ug => new UserGroupDto { Id = ug.Id, GroupName = ug.GroupName })
-            .ToListAsync();
-    }
+        => _mapper.Map<List<UserGroupDto>>(await _context.UserGroups.ToListAsync());
 
     public async Task<UserGroupDto> CreateUserGroupAsync(UserGroupDto dto)
     {
-        var entity = new UserGroup { GroupName = dto.GroupName };
+        var entity = _mapper.Map<UserGroup>(dto);
         _context.UserGroups.Add(entity);
         await _context.SaveChangesAsync();
-        dto.Id = entity.Id;
-        return dto;
+        return _mapper.Map<UserGroupDto>(entity);
     }
 
     public async Task UpdateUserGroupAsync(UserGroupDto dto)
@@ -346,7 +269,7 @@ public class OrganizationService : IOrganizationService
         var entity = await _context.UserGroups.FindAsync(dto.Id);
         if (entity != null)
         {
-            entity.GroupName = dto.GroupName;
+            _mapper.Map(dto, entity);
             await _context.SaveChangesAsync();
         }
     }
@@ -363,17 +286,142 @@ public class OrganizationService : IOrganizationService
 
     public async Task<UserGroupDto> GetUserGroupWithMembersAsync(int id)
     {
-        var entity = await _context.UserGroups
-            .Include(ug => ug.User)
-            .FirstOrDefaultAsync(ug => ug.Id == id);
+        var entity = await _context.UserGroups.Include(ug => ug.User).FirstOrDefaultAsync(ug => ug.Id == id);
+        return entity == null ? new UserGroupDto() : _mapper.Map<UserGroupDto>(entity);
+    }
 
-        if (entity == null)
-            return new UserGroupDto();
+    public async Task<List<OrganizationPositionDto>> GetAllPositionsAsync()
+    {
+        var positions = await _context.OrganizationPositions
+            .AsNoTracking()
+            .Include(x => x.Parent)
+            .Include(x => x.Users)
+            .ThenInclude(x => x.Avatar)
+            .OrderBy(x => x.Name)
+            .ToListAsync();
 
-        return new UserGroupDto 
-        { 
-            Id = entity.Id, 
-            GroupName = entity.GroupName
-        };
+        return _mapper.Map<List<OrganizationPositionDto>>(positions);
+    }
+
+    public async Task<OrganizationPositionDto> CreatePositionAsync(CreateOrganizationPositionDto dto)
+    {
+        if (dto.ParentId.HasValue)
+        {
+            var parent = await _context.OrganizationPositions.FindAsync(dto.ParentId.Value);
+            if (parent == null)
+                throw new InvalidOperationException("Parent position not found.");
+        }
+
+        var entity = _mapper.Map<OrganizationPosition>(dto);
+
+        _context.OrganizationPositions.Add(entity);
+
+        await _context.SaveChangesAsync();
+
+        return await GetPositionByIdAsync(entity.Id);
+    }
+
+    public async Task<OrganizationPositionDto> UpdatePositionAsync(UpdateOrganizationPositionDto dto)
+    {
+        var entity = await _context.OrganizationPositions.FindAsync(dto.Id);
+        if (entity == null) throw new KeyNotFoundException("Position not found");
+        
+        if (dto.ParentId.HasValue)
+        {
+            if (dto.ParentId == dto.Id)
+                throw new InvalidOperationException("Cannot be parent of itself.");
+            
+            var parent = await _context.OrganizationPositions.FindAsync(dto.ParentId.Value);
+            if (parent == null)
+                throw new InvalidOperationException("Parent position not found.");
+
+            if (await IsPositionDescendantAsync(dto.Id, dto.ParentId.Value))
+                throw new InvalidOperationException("Cannot set a descendant as parent (circular dependency).");
+        }
+
+        _mapper.Map(dto, entity);
+        await SetPositionUserAsync(dto.Id, dto.UserId);
+        await _context.SaveChangesAsync();
+
+        return await GetPositionByIdAsync(dto.Id);
+    }
+
+    public async Task DeletePositionAsync(int id)
+    {
+        var entity = await _context.OrganizationPositions
+            .Include(x => x.Children)
+            .Include(x => x.Users)
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (entity == null) throw new KeyNotFoundException("Position not found");
+
+        if (entity.Children.Any())
+            throw new InvalidOperationException("Cannot delete position with children.");
+
+        if (entity.Users.Any())
+            throw new InvalidOperationException("Cannot delete position with assigned users.");
+
+        _context.OrganizationPositions.Remove(entity);
+        await _context.SaveChangesAsync();
+    }
+
+    private async Task<bool> IsPositionDescendantAsync(int ancestorId, int potentialDescendantId)
+    {
+        var current = await _context.OrganizationPositions.FindAsync(potentialDescendantId);
+        
+        while (current?.ParentId != null)
+        {
+            if (current.ParentId == ancestorId)
+                return true;
+            
+            current = await _context.OrganizationPositions.FindAsync(current.ParentId.Value);
+        }
+        
+        return false;
+    }
+
+    private async Task SetPositionUserAsync(int positionId, int? userId)
+    {
+        var currentlyAssignedUsers = await _context.Users
+            .Where(x => x.OrganizationPositionId == positionId)
+            .ToListAsync();
+
+        foreach (var user in currentlyAssignedUsers)
+        {
+            if (!userId.HasValue || user.Id != userId.Value)
+            {
+                user.OrganizationPositionId = null;
+            }
+        }
+
+        if (!userId.HasValue)
+        {
+            return;
+        }
+
+        var userToAssign = await _context.Users.FindAsync(userId.Value);
+        if (userToAssign == null)
+        {
+            throw new InvalidOperationException("User not found.");
+        }
+
+        userToAssign.OrganizationPositionId = positionId;
+    }
+
+    private async Task<OrganizationPositionDto> GetPositionByIdAsync(int id)
+    {
+        var position = await _context.OrganizationPositions
+            .AsNoTracking()
+            .Include(x => x.Parent)
+            .Include(x => x.Users)
+            .ThenInclude(x => x.Avatar)
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (position == null)
+        {
+            throw new KeyNotFoundException("Position not found");
+        }
+
+        return _mapper.Map<OrganizationPositionDto>(position);
     }
 }

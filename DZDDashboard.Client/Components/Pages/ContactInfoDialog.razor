@@ -1,5 +1,5 @@
-@using MudBlazor
-@using DZDDashboard.Common.DTOs.Users
+@using DZDDashboard.Common.DTOs
+@inject ISnackbar Snackbar
 
 <MudDialog>
     <DialogContent>
@@ -29,3 +29,4 @@
     void Submit() => MudDialog.Close(DialogResult.Ok(Model));
     void Cancel() => MudDialog.Cancel();
 }
+

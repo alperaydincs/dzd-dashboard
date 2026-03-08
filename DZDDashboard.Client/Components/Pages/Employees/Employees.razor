@@ -1,13 +1,11 @@
 @page "/employees"
-@using DZDDashboard.Client.OrgChart
-@using DZDDashboard.Common.DTOs.Organization
-@using DZDDashboard.Common.DTOs.Users
+@using DZDDashboard.Client.Components.OrgChart
 @using DZDDashboard.Client.Services
-@inject NavigationManager Nav
-@inject ISnackbar Snackbar
 @inject AuthenticationStateProvider AuthStateProvider
-@inject UserService UserService
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
 @inject OrganizationService OrgService
+@inject UserService UserService
 
 <div class="employees-scope">
 <MudContainer MaxWidth="MaxWidth.False" Class="employees-page mt-4">
@@ -143,7 +141,7 @@
                             <RowTemplate>
                                 <MudTd DataLabel="Employee">
                                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                        <MudAvatar Size="Size.Medium" Class="employee-avatar" Color="@GetAvatarColor(context)" Variant="Variant.Filled">
+                                        <MudAvatar Size="Size.Medium" Class="employee-avatar dzd-avatar dzd-avatar-md" Color="@GetAvatarColor(context)" Variant="Variant.Filled">
                                             @if (context.Avatar != null && !string.IsNullOrEmpty(context.Avatar.ContentBase64))
                                             {
                                                 <MudImage Src="@($"data:{context.Avatar.ContentType};base64,{context.Avatar.ContentBase64}")" />
@@ -184,7 +182,7 @@
                             <MudPaper Elevation="3" Class="employee-card pa-4" @onclick="@(() => View(user.Id))">
                                 <div class="employee-card-header">
                                     <div class="employee-card-profile">
-                                        <MudAvatar Size="Size.Large" Class="employee-avatar employee-card-avatar" Color="@GetAvatarColor(user)">
+                                        <MudAvatar Size="Size.Large" Class="employee-avatar employee-card-avatar dzd-avatar dzd-avatar-card" Color="@GetAvatarColor(user)">
                                             @if (user.Avatar != null && !string.IsNullOrEmpty(user.Avatar.ContentBase64))
                                             {
                                                 <MudImage Src="@($"data:{user.Avatar.ContentType};base64,{user.Avatar.ContentBase64}")"
@@ -490,3 +488,4 @@
     private void Edit(int id) => Nav.NavigateTo($"/employee/card/{id}");
     private void View(int id) => Nav.NavigateTo($"/employee/card/{id}");
 }
+

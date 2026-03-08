@@ -9,3 +9,4 @@ namespace DZDDashboard.Common.DTOs
         public DateTime? EndDate { get; init; }
     }
 }
+

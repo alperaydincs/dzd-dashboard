@@ -1,8 +1,7 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Routing
 @using Microsoft.JSInterop
-@using DZDDashboard.Common.DTOs.Users
 @using DZDDashboard.Client.Theme
 @using System.Security.Claims
 @using DZDDashboard.Client.Services
@@ -261,7 +260,7 @@
             catch (Exception ex)
             {
                 _avatarDataUrl = string.Empty;
-                Console.WriteLine($"MainLayout: Avatar yüklenemedi: {ex.Message}");
+                Console.WriteLine($"MainLayout: Avatar y�klenemedi: {ex.Message}");
             }
         }
         else

@@ -1,4 +1,4 @@
-namespace DZDDashboard.Common.DTOs.Users
+namespace DZDDashboard.Common.DTOs
 {
     public record UserTrainingDto
     {
@@ -9,3 +9,4 @@ namespace DZDDashboard.Common.DTOs.Users
         public string? Description { get; init; }
     }
 }
+

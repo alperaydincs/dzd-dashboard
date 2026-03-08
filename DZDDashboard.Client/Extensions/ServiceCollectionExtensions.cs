@@ -1,4 +1,5 @@
 using DZDDashboard.Client.Services;
+using DZDDashboard.Services.Mapping;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
@@ -52,7 +53,6 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddAuthorization();
-        services.AddScoped<AuthTokenHandler>();
         services.AddControllersWithViews().AddMicrosoftIdentityUI();
 
         services.AddHttpClient("Api", client =>
@@ -61,9 +61,18 @@ public static class ServiceCollectionExtensions
         })
         .AddHttpMessageHandler<AuthTokenHandler>();
 
+        services.AddApplicationServices();
+
+        return services;
+    }
+
+    private static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    {
+        services.AddScoped<AuthTokenHandler>();
         services.AddScoped<UserService>();
         services.AddScoped<OrganizationService>();
         services.AddScoped<NotificationCenterService>();
+        services.AddAutoMapper(typeof(OrganizationMappingProfile).Assembly);
 
         return services;
     }

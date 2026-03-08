@@ -1,4 +1,4 @@
-﻿namespace DZDDashboard.Common.DTOs
+namespace DZDDashboard.Common.DTOs
 {
     public record DepartmentDto
     {
@@ -8,3 +8,4 @@
         public string? CompanyName { get; set; }
     }
 }
+

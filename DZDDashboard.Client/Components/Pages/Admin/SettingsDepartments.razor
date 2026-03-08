@@ -1,23 +1,22 @@
 @page "/settings/departments"
 @using Microsoft.AspNetCore.Authorization
-@using DZDDashboard.Common.DTOs.Organization
 @using DZDDashboard.Client.Components.Pages.Admin.Dialogs
 @using DZDDashboard.Client.Services
 @attribute [Authorize(Roles = "Admin,HR")]
 
+@inject IDialogService DialogServiceRef
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
 @inject OrganizationService OrgService
-@inject IDialogService DialogServiceRef
 
 <div class="settings-detail-page">
     <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6 mb-4">
-        <MudStack Row="true" AlignItems="AlignItems.Start" Justify="Justify.SpaceBetween" Class="settings-detail-header">
-            <MudText Typo="Typo.h4" Class="settings-detail-title">Departments</MudText>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-6">
+            <MudText Typo="Typo.h4">Departments</MudText>
             <MudButton StartIcon="@Icons.Material.Filled.ArrowBack"
                        Color="Color.Primary"
-                       Variant="Variant.Outlined"
-                       @onclick="GoBack">
+                       Variant="Variant.Text"
+                       @onclick="NavigateToSettings">
                 Back to Settings
             </MudButton>
         </MudStack>
@@ -156,6 +155,8 @@
     private List<TeamDto> _teams = new();
     private CompanyDto? _selectedCompany;
 
+    private void NavigateToSettings() => Nav.NavigateTo("/settings");
+
     private List<DepartmentDto> FilteredDepartments =>
         _selectedCompany == null ? _departments : _departments.Where(d => d.CompanyId == _selectedCompany.Id).ToList();
 
@@ -246,3 +247,4 @@
     }
 
 }
+

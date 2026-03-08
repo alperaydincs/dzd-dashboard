@@ -9,3 +9,4 @@ namespace DZDDashboard.Common.DTOs
         public PeriodDto? Period { get; init; }
     }
 }
+

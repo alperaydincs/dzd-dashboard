@@ -1,4 +1,3 @@
-using DZDDashboard.Common.DTOs.Users;
 
 namespace DZDDashboard.Common.DTOs
 {
@@ -37,3 +36,4 @@ namespace DZDDashboard.Common.DTOs
         public bool IsIncludedInBonus { get; init; }
     }
 }
+

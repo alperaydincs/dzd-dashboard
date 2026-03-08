@@ -1,30 +1,28 @@
 @page "/settings/teams"
 @using Microsoft.AspNetCore.Authorization
-@using DZDDashboard.Common.DTOs.Organization
-@using DZDDashboard.Common.DTOs.Users
 @using DZDDashboard.Client.Components.Pages.Admin.Dialogs
 @using DZDDashboard.Client.Services
 @attribute [Authorize(Roles = "Admin,HR")]
 
+@inject IDialogService DialogServiceRef
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
 @inject OrganizationService OrgService
 @inject UserService UserService
-@inject IDialogService DialogServiceRef
 
 <div class="settings-detail-page">
     <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6 mb-4">
-        <!-- Header with Back Button -->
-        <MudStack Spacing="0" Class="settings-detail-header mb-6">
-            <MudButton StartIcon="@Icons.Material.Filled.ArrowBack" 
-                      Color="Color.Primary" 
-                      Variant="Variant.Text"
-                          @onclick="GoBack"
-                      Class="mb-3">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-6">
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.h4">Teams</MudText>
+                <MudText Typo="Typo.body1" Style="color: var(--dzd-text-tertiary)">Manage all teams and their members</MudText>
+            </MudStack>
+            <MudButton StartIcon="@Icons.Material.Filled.ArrowBack"
+                       Color="Color.Primary"
+                       Variant="Variant.Text"
+                       @onclick="NavigateToSettings">
                 Back to Settings
             </MudButton>
-            <MudText Typo="Typo.h4" Class="settings-detail-title">Teams</MudText>
-            <MudText Typo="Typo.body1" Color="Color.Secondary">Manage all teams and their members</MudText>
         </MudStack>
 
         @if (_loading)
@@ -37,8 +35,8 @@
         {
             <MudPaper Elevation="2" Class="pa-6 text-center">
                 <MudIcon Icon="@Icons.Material.Filled.Groups" Style="font-size: 3rem; color: var(--dzd-text-secondary);" />
-                <MudText Typo="Typo.h6" Color="Color.Secondary" Class="mt-3">No Teams Yet</MudText>
-                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">Create a department first, then add teams to it.</MudText>
+                <MudText Typo="Typo.h6" Style="color: var(--dzd-text-tertiary)" Class="mt-3">No Teams Yet</MudText>
+                <MudText Typo="Typo.body2" Style="color: var(--dzd-text-tertiary)" Class="mt-2">Create a department first, then add teams to it.</MudText>
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" @onclick="GoToDepartments" Class="mt-4">
                     <MudIcon Icon="@Icons.Material.Filled.Apartment" Class="mr-2" />
                     Go to Departments
@@ -48,7 +46,6 @@
         else
         {
             <MudStack Spacing="3">
-                <!-- Filter by Department -->
                 <MudAutocomplete T="DepartmentDto"
                                 @bind-Value="_selectedDepartment"
                                 SearchFunc="SearchDepartment"
@@ -58,7 +55,6 @@
                                 ToStringFunc="@(d => d == null ? "" : d.Name)">
                 </MudAutocomplete>
 
-                <!-- Add Button -->
                 @if (_selectedDepartment != null)
                 {
                     <MudButton Variant="Variant.Filled" 
@@ -69,14 +65,12 @@
                     </MudButton>
                 }
 
-                <!-- Teams List -->
                 @foreach (var team in FilteredTeams)
                 {
                     var dept = _departments.FirstOrDefault(d => d.Id == team.DepartmentId);
                     var teamUsers = _allUsers.Where(u => u.TeamId == team.Id).ToList();
                     
                     <MudPaper Elevation="2" Class="team-card pa-4">
-                        <!-- Team Header -->
                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
                             <MudStack Spacing="1">
                                 <MudText Typo="Typo.h6" Class="team-name">
@@ -85,7 +79,7 @@
                                 </MudText>
                                 @if (dept != null)
                                 {
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    <MudText Typo="Typo.caption" Style="color: var(--dzd-text-tertiary)">
                                         Part of: <strong>@dept.Name</strong>
                                     </MudText>
                                 }
@@ -102,7 +96,6 @@
                             </MudStack>
                         </MudStack>
 
-                        <!-- Team Members Section -->
                         <MudDivider Class="my-3" />
                         
                         <MudStack Spacing="2">
@@ -113,7 +106,7 @@
 
                             @if (!teamUsers.Any())
                             {
-                                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="pa-2">
+                                <MudText Typo="Typo.body2" Style="color: var(--dzd-text-tertiary)" Class="pa-2">
                                     No members assigned to this team yet.
                                 </MudText>
                             }
@@ -127,7 +120,7 @@
                                                 <MudAvatar Size="Size.Small">@GetUserInitials(user)</MudAvatar>
                                                 <MudStack Spacing="0">
                                                     <MudText Typo="Typo.body2">@GetDisplayName(user)</MudText>
-                                                    <MudText Typo="Typo.caption" Color="Color.Secondary">@user.Email</MudText>
+                                                    <MudText Typo="Typo.caption" Style="color: var(--dzd-text-tertiary)">@user.Email</MudText>
                                                 </MudStack>
                                             </MudStack>
                                         </MudListItem>
@@ -148,6 +141,8 @@
     private List<TeamDto> _teams = new();
     private List<UserDto> _allUsers = new();
     private DepartmentDto? _selectedDepartment;
+
+    private void NavigateToSettings() => Nav.NavigateTo("/settings");
 
     private List<TeamDto> FilteredTeams => 
         _selectedDepartment == null ? _teams : _teams.Where(t => t.DepartmentId == _selectedDepartment.Id).ToList();
@@ -240,3 +235,4 @@
         return initials;
     }
 }
+

@@ -14,3 +14,4 @@ namespace DZDDashboard.Common.DTOs
         public bool IsActive { get; init; }
     }
 }
+

@@ -1,4 +1,5 @@
-﻿namespace DZDDashboard.Common.DTOs.Users
+
+namespace DZDDashboard.Common.DTOs
 {
     public class UserProfileReportsToDto
     {
@@ -9,3 +10,4 @@
         public UserAvatarDto? Avatar { get; set; }
     }
 }
+

@@ -1,7 +1,6 @@
-using DZDDashboard.Common.DTOs.Organization;
-using DZDDashboard.Common.DTOs.Users;
+using DZDDashboard.Common.DTOs;
 
-namespace DZDDashboard.Client.OrgChart;
+namespace DZDDashboard.Client.Components.OrgChart;
 
 public class OrgChartNodeItem
 {

@@ -1,30 +1,28 @@
 @page "/settings/usergroups"
 @using Microsoft.AspNetCore.Authorization
-@using DZDDashboard.Common.DTOs
-@using DZDDashboard.Common.DTOs.Users
 @using DZDDashboard.Client.Components.Pages.Admin.Dialogs
 @using DZDDashboard.Client.Services
 @attribute [Authorize(Roles = "Admin,HR")]
 
+@inject IDialogService DialogServiceRef
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
 @inject OrganizationService OrgService
 @inject UserService UserService
-@inject IDialogService DialogServiceRef
 
 <div class="settings-detail-page">
     <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6 mb-4">
-        <!-- Header with Back Button -->
-        <MudStack Spacing="0" Class="settings-detail-header mb-6">
-            <MudButton StartIcon="@Icons.Material.Filled.ArrowBack" 
-                      Color="Color.Primary" 
-                      Variant="Variant.Text"
-                          @onclick="GoBack"
-                      Class="mb-3">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-6">
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.h4">User Groups</MudText>
+                <MudText Typo="Typo.body1" Style="color: var(--dzd-text-tertiary)">Manage custom user groups and their members</MudText>
+            </MudStack>
+            <MudButton StartIcon="@Icons.Material.Filled.ArrowBack"
+                       Color="Color.Primary"
+                       Variant="Variant.Text"
+                       @onclick="NavigateToSettings">
                 Back to Settings
             </MudButton>
-            <MudText Typo="Typo.h4" Class="settings-detail-title">User Groups</MudText>
-            <MudText Typo="Typo.body1" Color="Color.Secondary">Manage custom user groups and their members</MudText>
         </MudStack>
 
         @if (_loading)
@@ -37,8 +35,8 @@
         {
             <MudPaper Elevation="2" Class="pa-6 text-center">
                 <MudIcon Icon="@Icons.Material.Filled.PeopleOutline" Style="font-size: 3rem; color: var(--dzd-text-secondary);" />
-                <MudText Typo="Typo.h6" Color="Color.Secondary" Class="mt-3">No User Groups Yet</MudText>
-                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">Create user groups to organize employees for special projects or functions across organizational boundaries.</MudText>
+                <MudText Typo="Typo.h6" Style="color: var(--dzd-text-tertiary)" Class="mt-3">No User Groups Yet</MudText>
+                <MudText Typo="Typo.body2" Style="color: var(--dzd-text-tertiary)" Class="mt-2">Create user groups to organize employees for special projects or functions across organizational boundaries.</MudText>
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" OnClick="() => OpenUserGroupDialog()" Class="mt-4">
                     <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-2" />
                     Create User Group
@@ -48,7 +46,6 @@
         else
         {
             <MudStack Spacing="3">
-                <!-- Add Button -->
                 <MudButton Variant="Variant.Filled" 
                           Color="Color.Primary" 
                           StartIcon="@Icons.Material.Filled.Add"
@@ -56,7 +53,6 @@
                     Add New User Group
                 </MudButton>
 
-                <!-- Search Bar -->
                 <MudTextField @bind-Value="_searchTerm"
                             Placeholder="Search user groups..."
                             Adornment="Adornment.Start"
@@ -64,20 +60,18 @@
                             Variant="Variant.Outlined"
                             Immediate="true" />
 
-                <!-- User Groups List -->
                 @foreach (var group in FilteredUserGroups)
                 {
                     var groupUsers = _allUsers.Where(u => u.UserGroupId == group.Id).ToList();
                     
                     <MudPaper Elevation="2" Class="usergroup-card pa-4">
-                        <!-- Group Header -->
                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
                             <MudStack Spacing="1">
                                 <MudText Typo="Typo.h6" Class="group-name">
                                     <MudIcon Icon="@Icons.Material.Filled.PeopleAlt" Size="Size.Small" Class="mr-2" />
                                     @group.GroupName
                                 </MudText>
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">@groupUsers.Count member@(groupUsers.Count != 1 ? "s" : "")</MudText>
+                                <MudText Typo="Typo.caption" Style="color: var(--dzd-text-tertiary)">@groupUsers.Count member@(groupUsers.Count != 1 ? "s" : "")</MudText>
                             </MudStack>
                             <MudStack Row="true" Spacing="1">
                                 <MudIconButton Icon="@Icons.Material.Filled.Edit" 
@@ -91,7 +85,6 @@
                             </MudStack>
                         </MudStack>
 
-                        <!-- Group Members Section -->
                         <MudDivider Class="my-3" />
                         
                         <MudStack Spacing="2">
@@ -102,7 +95,7 @@
 
                             @if (!groupUsers.Any())
                             {
-                                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="pa-2">
+                                <MudText Typo="Typo.body2" Style="color: var(--dzd-text-tertiary)" Class="pa-2">
                                     No members in this group yet.
                                 </MudText>
                             }
@@ -118,7 +111,7 @@
                                                 </MudAvatar>
                                                 <MudStack Spacing="0">
                                                     <MudText Typo="Typo.body2">@GetDisplayName(user)</MudText>
-                                                    <MudText Typo="Typo.caption" Color="Color.Secondary">@user.Email</MudText>
+                                                    <MudText Typo="Typo.caption" Style="color: var(--dzd-text-tertiary)">@user.Email</MudText>
                                                 </MudStack>
                                             </MudStack>
                                         </MudListItem>
@@ -127,7 +120,7 @@
                                 
                                 @if (groupUsers.Count > 5)
                                 {
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="pa-2">
+                                    <MudText Typo="Typo.caption" Style="color: var(--dzd-text-tertiary)" Class="pa-2">
                                         ... and @(groupUsers.Count - 5) more member@(groupUsers.Count - 5 != 1 ? "s" : "")
                                     </MudText>
                                 }
@@ -146,6 +139,8 @@
     private List<UserDto> _allUsers = new();
     private string _searchTerm = "";
 
+    private void NavigateToSettings() => Nav.NavigateTo("/settings");
+
     private List<UserGroupDto> FilteredUserGroups
     {
         get
@@ -158,8 +153,6 @@
                 .ToList();
         }
     }
-
-    private void GoBack() => Nav.NavigateTo("/settings");
 
     private string GetDisplayName(UserDto user)
     {
@@ -233,3 +226,4 @@
         return initials;
     }
 }
+

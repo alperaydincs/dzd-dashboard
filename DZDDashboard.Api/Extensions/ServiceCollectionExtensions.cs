@@ -43,11 +43,9 @@ public static class ServiceCollectionExtensions
             options.FallbackPolicy = options.DefaultPolicy;
         });
 
-        services.AddScoped<UserService>();
-        services.AddScoped<IOrganizationService, OrganizationService>();
-        services.AddScoped<OrganizationPositionService>();
+        services.AddApplicationServices();
         services.AddHttpContextAccessor();
-        services.AddAutoMapper(typeof(MappingProfile).Assembly);
+        services.AddAutoMapper(typeof(OrganizationMappingProfile).Assembly);
 
         services.AddCors(options =>
         {
@@ -57,6 +55,14 @@ public static class ServiceCollectionExtensions
                       .AllowAnyMethod());
         });
 
+        return services;
+    }
+
+    private static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    {
+        services.AddScoped<UserService>();
+        services.AddScoped<IOrganizationService, OrganizationService>();
+        
         return services;
     }
 }

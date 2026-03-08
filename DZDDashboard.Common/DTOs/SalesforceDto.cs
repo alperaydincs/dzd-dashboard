@@ -1,3 +1,4 @@
+
 namespace DZDDashboard.Common.DTOs
 {
     public record SalesforceDto
@@ -11,3 +12,4 @@ namespace DZDDashboard.Common.DTOs
         public PayrollLocationDto? PayrollLocation { get; init; }
     }
 }
+

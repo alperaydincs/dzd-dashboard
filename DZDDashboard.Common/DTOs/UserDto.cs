@@ -1,6 +1,5 @@
-using DZDDashboard.Common.DTOs.Organization;
 
-namespace DZDDashboard.Common.DTOs.Users;
+namespace DZDDashboard.Common.DTOs;
 
 public record UserDto
 {
@@ -26,3 +25,4 @@ public record UserDto
     public int? ReportsToId { get; init; }
     public string? ReportsToName { get; init; }
 }
+

@@ -1,4 +1,4 @@
-﻿namespace DZDDashboard.Common.DTOs
+namespace DZDDashboard.Common.DTOs
 {
     public record PayrollLocationDto
     {
@@ -6,3 +6,4 @@
         public string? Name { get; init; }
     }
 }
+

@@ -1,4 +1,4 @@
-namespace DZDDashboard.Common.DTOs.Users;
+namespace DZDDashboard.Common.DTOs;
 
 public class UpdateContactInfoDto
 {
@@ -6,3 +6,4 @@ public class UpdateContactInfoDto
     public string? PersonalEmail { get; set; }
     public string? PersonalPhoneNumber { get; set; }
 }
+

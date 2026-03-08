@@ -1,3 +1,4 @@
+
 namespace DZDDashboard.Common.DTOs
 {
     public record ProjectInvoiceDto
@@ -29,3 +30,4 @@ namespace DZDDashboard.Common.DTOs
         public PayrollLocationDto? PayrollLocation { get; init; }
     }
 }
+
