@@ -1,0 +1,230 @@
+/* Settings Dashboard Page */
+::deep .settings-page {
+    max-width: 100%;
+}
+
+::deep .settings-header {
+    padding: 6px 0 2px;
+}
+
+::deep .settings-title {
+    font-size: 2rem;
+    font-weight: 500;
+    color: var(--dzd-text-primary);
+    line-height: 1.2;
+}
+
+::deep .settings-subtitle {
+    color: var(--dzd-text-secondary);
+    margin-top: 2px;
+}
+
+/* Stat Cards */
+::deep .settings-stats-grid {
+    margin-top: 0;
+}
+
+::deep .settings-stats-grid .mud-grid-item {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+}
+
+::deep .stat-card {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid rgba(17, 24, 39, 0.06);
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+    transition: all 0.3s ease;
+}
+
+::deep .stat-card-clickable {
+    cursor: pointer;
+}
+
+::deep .stat-card-clickable:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.15);
+    border-color: rgba(17, 24, 39, 0.12);
+}
+
+::deep .stat-label {
+    color: #8b8d9a;
+    font-weight: 500;
+    font-size: 0.75rem;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+::deep .stat-value {
+    color: var(--dzd-text-primary);
+    font-weight: 600;
+    margin-top: 4px;
+    font-size: 2rem;
+}
+
+::deep .stat-avatar {
+    width: 48px;
+    height: 48px;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-size: 2rem;
+}
+
+::deep .stat-avatar-blue {
+    color: #2563eb;
+}
+
+::deep .stat-avatar-green {
+    color: #16a34a;
+}
+
+::deep .stat-avatar-orange {
+    color: #ea580c;
+}
+
+::deep .stat-avatar-red {
+    color: #dc2626;
+}
+
+/* Info Cards */
+::deep .info-card {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-radius: 14px;
+    border: 1px solid rgba(0, 113, 188, 0.1);
+}
+
+::deep .summary-card {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid rgba(17, 24, 39, 0.06);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+/* Settings Detail Pages */
+::deep .settings-detail-page {
+    margin-top: 0;
+}
+
+::deep .settings-detail-header {
+    padding: 0 0 10px;
+    border-bottom: 1px solid rgba(17, 24, 39, 0.06);
+    margin-bottom: 24px !important;
+}
+
+::deep .settings-detail-title {
+    font-size: 1.875rem;
+    font-weight: 500;
+    color: var(--dzd-text-primary);
+}
+
+/* Card Styles */
+::deep .company-card,
+::deep .department-card,
+::deep .team-card,
+::deep .usergroup-card {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid rgba(17, 24, 39, 0.06);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    transition: all 0.2s ease;
+}
+
+::deep .company-card:hover,
+::deep .department-card:hover,
+::deep .team-card:hover,
+::deep .usergroup-card:hover {
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08);
+    border-color: rgba(17, 24, 39, 0.1);
+}
+
+::deep .company-name,
+::deep .department-name,
+::deep .team-name,
+::deep .group-name {
+    color: var(--dzd-text-primary);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* List Item Styles */
+::deep .department-item,
+::deep .team-item,
+::deep .user-item {
+    background-color: rgba(33, 150, 243, 0.02) !important;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    padding: 12px 16px !important;
+    border: 1px solid rgba(33, 150, 243, 0.1) !important;
+}
+
+::deep .department-item:hover,
+::deep .team-item:hover,
+::deep .user-item:hover {
+    background-color: rgba(33, 150, 243, 0.05) !important;
+    border-color: rgba(33, 150, 243, 0.2) !important;
+}
+
+/* Empty State Styling */
+::deep .text-center {
+    text-align: center;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 960px) {
+    ::deep .stat-value {
+        font-size: 1.75rem;
+    }
+    
+    ::deep .stat-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 600px) {
+    ::deep .settings-title {
+        font-size: 1.5rem;
+    }
+    
+    ::deep .settings-detail-title {
+        font-size: 1.5rem;
+    }
+    
+    ::deep .stat-value {
+        font-size: 1.5rem;
+    }
+}
+
+/* Accessibility */
+::deep .stat-card-clickable:focus {
+    outline: 2px solid var(--dzd-primary);
+    outline-offset: 2px;
+}
+
+::deep .stat-card-clickable:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Avatar Styling */
+::deep .mud-avatar {
+    background-color: var(--dzd-primary);
+    color: white;
+    font-weight: 600;
+}
+
+/* Button Styling */
+::deep .mud-button {
+    text-transform: none;
+    font-weight: 500;
+}
+
+::deep .mud-button-filled {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+::deep .mud-button-filled:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}

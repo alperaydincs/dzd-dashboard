@@ -136,4 +136,27 @@ public class OrganizationController : ControllerBase
         await _service.DeleteGradeAsync(id);
         return NoContent();
     }
+
+    [HttpGet("usergroups")]
+    public async Task<ActionResult<List<UserGroupDto>>> GetUserGroups() => await _service.GetUserGroupsAsync();
+
+    [HttpPost("usergroups")]
+    public async Task<ActionResult<UserGroupDto>> CreateUserGroup(UserGroupDto dto) => await _service.CreateUserGroupAsync(dto);
+
+    [HttpPut("usergroups")]
+    public async Task<IActionResult> UpdateUserGroup(UserGroupDto dto)
+    {
+        await _service.UpdateUserGroupAsync(dto);
+        return NoContent();
+    }
+
+    [HttpDelete("usergroups/{id}")]
+    public async Task<IActionResult> DeleteUserGroup(int id)
+    {
+        await _service.DeleteUserGroupAsync(id);
+        return NoContent();
+    }
+
+    [HttpGet("usergroups/{id}/members")]
+    public async Task<ActionResult<UserGroupDto>> GetUserGroupWithMembers(int id) => await _service.GetUserGroupWithMembersAsync(id);
 }

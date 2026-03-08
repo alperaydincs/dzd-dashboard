@@ -4,65 +4,54 @@
 @inject NavigationManager Nav
 
 <li>
-    <MudStack Spacing="2" AlignItems="AlignItems.Center" Class="node-container">
-        @if (Node.User != null)
-        {
-            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0">
-                <MudPaper Class="@GetNodeCardClass()" Elevation="2" @onclick="@(() => HandleNodeClick(Node.User, isUser: true))" Style="flex: 1;">
-                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
-                        <MudAvatar Color="GetAvatarColor(Node.User)" Size="Size.Large">
+    <MudStack Spacing="0" AlignItems="AlignItems.Center" Class="node-container">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0" Class="node-row">
+            <MudPaper Class="@GetNodeCardClass()" Elevation="0" @onclick="@(() => HandleNodeClick(Node.User, isUser: Node.User is not null))">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="node-card-content">
+                    @if (Node.User != null)
+                    {
+                        <MudAvatar Color="GetAvatarColor(Node.User)" Size="Size.Large" Class="node-avatar">
                             @if (Node.User.Avatar != null && !string.IsNullOrEmpty(Node.User.Avatar.ContentBase64))
                             {
                                 <MudImage Src="@($"data:{Node.User.Avatar.ContentType};base64,{Node.User.Avatar.ContentBase64}")" />
                             }
                             else
                             {
-                                @(Node.User.FirstName?.FirstOrDefault())@(Node.User.LastName?.FirstOrDefault())
+                                @GetUserInitials(Node.User)
                             }
                         </MudAvatar>
-                        <MudStack Spacing="0" AlignItems="AlignItems.Start">
-                            <MudText Typo="Typo.body2" Class="fw-bold">@Node.User.FirstName @Node.User.LastName</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">@GetPositionName()</MudText>
-                        </MudStack>
-                    </MudStack>
-                </MudPaper>
-                @if (IsEditMode)
-                {
-                    <MudStack Spacing="1" Class="ms-2">
-                            <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Small" Color="Color.Success" 
-                                           OnClick="@(() => OnAddChild.InvokeAsync(Node))" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" 
-                                           OnClick="@(() => OnDeleteNode.InvokeAsync(Node))" />
-                    </MudStack>
-                }
-            </MudStack>
-        }
-        else
-        {
-            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0">
-                <MudPaper Class="@GetNodeCardClass()" Elevation="1" Style="opacity: 0.7; flex: 1;" @onclick="@(() => HandleNodeClick(null, isUser: false))">
-                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
-                        <MudAvatar Color="Color.Default" Size="Size.Large">
+                    }
+                    else
+                    {
+                        <MudAvatar Color="Color.Default" Size="Size.Large" Class="node-avatar node-avatar-empty">
                             <MudIcon Icon="@Icons.Material.Filled.PersonOutline" />
                         </MudAvatar>
-                        <MudStack Spacing="0" AlignItems="AlignItems.Start">
-                            <MudText Typo="Typo.body2" Class="fw-bold" Color="Color.Warning">Empty</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">@GetPositionName()</MudText>
-                        </MudStack>
+                    }
+
+                    <MudStack Spacing="0" AlignItems="AlignItems.Start" Class="node-texts">
+                        <MudText Typo="Typo.subtitle2" Class="@GetPrimaryLabelClass()">@GetPrimaryLabel()</MudText>
+                        <MudText Typo="Typo.caption" Class="node-position">@GetPositionName()</MudText>
+
+                        @if (TryGetMetaChipText(out var metaText))
+                        {
+                            <MudChip T="string" Variant="Variant.Outlined" Size="Size.Small" Class="node-meta-chip">
+                                @metaText
+                            </MudChip>
+                        }
                     </MudStack>
-                </MudPaper>
-                @if (IsEditMode)
-                {
-                    <MudStack Spacing="1" Class="ms-2">
-                        <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Small" Color="Color.Success" 
-                                OnClick="@(() => OnAddChild.InvokeAsync(Node))" />
-        
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" 
-                                OnClick="@(() => OnDeleteNode.InvokeAsync(Node))" />
-                    </MudStack>
-                }
-            </MudStack>
-        }
+                </MudStack>
+            </MudPaper>
+
+            @if (IsEditMode)
+            {
+                <MudStack Spacing="1" Class="ms-2 node-actions">
+                    <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Small" Color="Color.Success"
+                                   OnClick="@(() => OnAddChild.InvokeAsync(Node))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                   OnClick="@(() => OnDeleteNode.InvokeAsync(Node))" />
+                </MudStack>
+            }
+        </MudStack>
 
         @if (Node.Children.Any())
         {
@@ -131,11 +120,76 @@
 
     private string GetNodeCardClass()
     {
-        var baseClass = "node-card pa-2";
+        var baseClass = "node-card pa-3";
+
+        if (Node.User is null)
+        {
+            baseClass += " node-card-empty";
+        }
+
         if (IsSelectionMode) return baseClass + " cursor-pointer"; 
         if (IsEditMode) return baseClass + " cursor-pointer";
         if (Node.User != null) return baseClass + " cursor-pointer";
         return baseClass;
+    }
+
+    private string GetPrimaryLabel()
+    {
+        if (Node.User is null)
+        {
+            return "Empty";
+        }
+
+        var firstName = Node.User.FirstName?.Trim();
+        var lastName = Node.User.LastName?.Trim();
+        var fullName = string.Join(" ", new[] { firstName, lastName }.Where(v => !string.IsNullOrWhiteSpace(v)));
+
+        if (!string.IsNullOrWhiteSpace(fullName))
+        {
+            return fullName;
+        }
+
+        return Node.User.Username ?? Node.User.Email ?? $"User {Node.User.Id}";
+    }
+
+    private string GetPrimaryLabelClass()
+    {
+        return Node.User is null ? "node-primary node-primary-empty" : "node-primary";
+    }
+
+    private static string GetUserInitials(UserDto user)
+    {
+        var first = string.IsNullOrWhiteSpace(user.FirstName) ? string.Empty : user.FirstName.Trim()[0].ToString();
+        var last = string.IsNullOrWhiteSpace(user.LastName) ? string.Empty : user.LastName.Trim()[0].ToString();
+        var initials = (first + last).ToUpperInvariant();
+
+        return string.IsNullOrWhiteSpace(initials) ? "?" : initials;
+    }
+
+    private bool TryGetMetaChipText(out string chipText)
+    {
+        chipText = string.Empty;
+
+        if (Node.User is null)
+        {
+            return false;
+        }
+
+        var jobName = Node.User.Job?.Name?.Trim();
+        var departmentName = Node.User.Department?.Name?.Trim();
+
+        if (string.IsNullOrWhiteSpace(jobName) && string.IsNullOrWhiteSpace(departmentName))
+        {
+            return false;
+        }
+
+        chipText = string.IsNullOrWhiteSpace(jobName)
+            ? departmentName!
+            : string.IsNullOrWhiteSpace(departmentName)
+                ? jobName
+                : $"{jobName} - {departmentName}";
+
+        return true;
     }
 
     private static Color GetAvatarColor(UserDto u)

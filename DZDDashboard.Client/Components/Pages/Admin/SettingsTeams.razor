@@ -1,0 +1,242 @@
+@page "/settings/teams"
+@using Microsoft.AspNetCore.Authorization
+@using DZDDashboard.Common.DTOs.Organization
+@using DZDDashboard.Common.DTOs.Users
+@using DZDDashboard.Client.Components.Pages.Admin.Dialogs
+@using DZDDashboard.Client.Services
+@attribute [Authorize(Roles = "Admin,HR")]
+
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@inject OrganizationService OrgService
+@inject UserService UserService
+@inject IDialogService DialogServiceRef
+
+<div class="settings-detail-page">
+    <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6 mb-4">
+        <!-- Header with Back Button -->
+        <MudStack Spacing="0" Class="settings-detail-header mb-6">
+            <MudButton StartIcon="@Icons.Material.Filled.ArrowBack" 
+                      Color="Color.Primary" 
+                      Variant="Variant.Text"
+                          @onclick="GoBack"
+                      Class="mb-3">
+                Back to Settings
+            </MudButton>
+            <MudText Typo="Typo.h4" Class="settings-detail-title">Teams</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary">Manage all teams and their members</MudText>
+        </MudStack>
+
+        @if (_loading)
+        {
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="py-8">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            </MudStack>
+        }
+        else if (!_teams.Any())
+        {
+            <MudPaper Elevation="2" Class="pa-6 text-center">
+                <MudIcon Icon="@Icons.Material.Filled.Groups" Style="font-size: 3rem; color: var(--dzd-text-secondary);" />
+                <MudText Typo="Typo.h6" Color="Color.Secondary" Class="mt-3">No Teams Yet</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">Create a department first, then add teams to it.</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" @onclick="GoToDepartments" Class="mt-4">
+                    <MudIcon Icon="@Icons.Material.Filled.Apartment" Class="mr-2" />
+                    Go to Departments
+                </MudButton>
+            </MudPaper>
+        }
+        else
+        {
+            <MudStack Spacing="3">
+                <!-- Filter by Department -->
+                <MudAutocomplete T="DepartmentDto"
+                                @bind-Value="_selectedDepartment"
+                                SearchFunc="SearchDepartment"
+                                Label="Filter by Department"
+                                Dense="true"
+                                ShowProgressIndicator="_loading"
+                                ToStringFunc="@(d => d == null ? "" : d.Name)">
+                </MudAutocomplete>
+
+                <!-- Add Button -->
+                @if (_selectedDepartment != null)
+                {
+                    <MudButton Variant="Variant.Filled" 
+                              Color="Color.Primary" 
+                              StartIcon="@Icons.Material.Filled.Add"
+                              OnClick="() => OpenTeamDialog(new TeamDto { DepartmentId = _selectedDepartment.Id })">
+                        Add New Team
+                    </MudButton>
+                }
+
+                <!-- Teams List -->
+                @foreach (var team in FilteredTeams)
+                {
+                    var dept = _departments.FirstOrDefault(d => d.Id == team.DepartmentId);
+                    var teamUsers = _allUsers.Where(u => u.TeamId == team.Id).ToList();
+                    
+                    <MudPaper Elevation="2" Class="team-card pa-4">
+                        <!-- Team Header -->
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.h6" Class="team-name">
+                                    <MudIcon Icon="@Icons.Material.Filled.Groups" Size="Size.Small" Class="mr-2" />
+                                    @team.Name
+                                </MudText>
+                                @if (dept != null)
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        Part of: <strong>@dept.Name</strong>
+                                    </MudText>
+                                }
+                            </MudStack>
+                            <MudStack Row="true" Spacing="1">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                             Size="Size.Small"
+                                             Color="Color.Primary"
+                                             OnClick="() => OpenTeamDialog(team)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                             Size="Size.Small"
+                                             Color="Color.Error"
+                                             OnClick="() => DeleteTeam(team.Id)" />
+                            </MudStack>
+                        </MudStack>
+
+                        <!-- Team Members Section -->
+                        <MudDivider Class="my-3" />
+                        
+                        <MudStack Spacing="2">
+                            <MudText Typo="Typo.subtitle2" Style="font-weight: 600;">
+                                <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" Class="mr-2" />
+                                Team Members (@teamUsers.Count)
+                            </MudText>
+
+                            @if (!teamUsers.Any())
+                            {
+                                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="pa-2">
+                                    No members assigned to this team yet.
+                                </MudText>
+                            }
+                            else
+                            {
+                                <MudList T="UserDto" Style="background: transparent;">
+                                    @foreach (var user in teamUsers)
+                                    {
+                                        <MudListItem T="UserDto" Class="user-item">
+                                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="width: 100%;">
+                                                <MudAvatar Size="Size.Small">@GetUserInitials(user)</MudAvatar>
+                                                <MudStack Spacing="0">
+                                                    <MudText Typo="Typo.body2">@GetDisplayName(user)</MudText>
+                                                    <MudText Typo="Typo.caption" Color="Color.Secondary">@user.Email</MudText>
+                                                </MudStack>
+                                            </MudStack>
+                                        </MudListItem>
+                                    }
+                                </MudList>
+                            }
+                        </MudStack>
+                    </MudPaper>
+                }
+            </MudStack>
+        }
+    </MudContainer>
+</div>
+
+@code {
+    private bool _loading = true;
+    private List<DepartmentDto> _departments = new();
+    private List<TeamDto> _teams = new();
+    private List<UserDto> _allUsers = new();
+    private DepartmentDto? _selectedDepartment;
+
+    private List<TeamDto> FilteredTeams => 
+        _selectedDepartment == null ? _teams : _teams.Where(t => t.DepartmentId == _selectedDepartment.Id).ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _loading = true;
+        try
+        {
+            _departments = await OrgService.GetDepartmentsAsync();
+            _teams = await OrgService.GetTeamsAsync();
+            _allUsers = await UserService.GetAllUsersAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading data: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task<IEnumerable<DepartmentDto>> SearchDepartment(string value, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+                return await Task.FromResult(_departments);
+
+            return await Task.FromResult(_departments.Where(d => d.Name?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false).ToList());
+    }
+
+    private void GoBack() => Nav.NavigateTo("/settings");
+    private void GoToDepartments() => Nav.NavigateTo("/settings/departments");
+
+    private string GetDisplayName(UserDto user)
+    {
+        return string.IsNullOrWhiteSpace(user.LastName) 
+            ? user.FirstName ?? "Unknown"
+            : $"{user.FirstName} {user.LastName}".Trim();
+    }
+
+    private async Task OpenTeamDialog(TeamDto? team = null)
+    {
+        var parameters = new DialogParameters 
+        { 
+            ["Team"] = team ?? new TeamDto(),
+            ["Departments"] = _departments
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogServiceRef.ShowAsync<TeamDialog>("Add Team", parameters, options);
+        var result = await dialog.Result;
+        if (result != null && !result.Canceled)
+        {
+            await LoadData();
+        }
+    }
+
+    private async Task DeleteTeam(int id)
+    {
+        var result = await DialogServiceRef.ShowMessageBox("Delete Team", 
+            "Are you sure you want to delete this team?", 
+            yesText: "Delete", cancelText: "Cancel");
+        if (result == true)
+        {
+            try
+            {
+                await OrgService.DeleteTeamAsync(id);
+                await LoadData();
+                Snackbar.Add("Team deleted successfully", Severity.Success);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private string GetUserInitials(UserDto user)
+    {
+        var initials = "";
+        if (!string.IsNullOrWhiteSpace(user.FirstName))
+            initials += user.FirstName[0];
+        if (!string.IsNullOrWhiteSpace(user.LastName))
+            initials += user.LastName[0];
+        return initials;
+    }
+}

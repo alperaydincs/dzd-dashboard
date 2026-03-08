@@ -1,14 +1,380 @@
 @page "/settings"
 @using Microsoft.AspNetCore.Authorization
+@using DZDDashboard.Client.OrgChart
+@using DZDDashboard.Common.DTOs
+@using DZDDashboard.Common.DTOs.Organization
+@using DZDDashboard.Common.DTOs.Users
+@using DZDDashboard.Client.Components.Pages.Admin.Dialogs
+@using DZDDashboard.Client.Components.Pages.Employees
+@using DZDDashboard.Client.Services
 @attribute [Authorize(Roles = "Admin,HR")]
 
-<MudContainer MaxWidth="MaxWidth.False" Class="mt-6">
-    <MudText Typo="Typo.h5" Class="mb-4">Settings</MudText>
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@inject OrganizationService OrgService
+@inject IDialogService DialogServiceRef
 
-    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
-        <MudTabPanel Text="Organization Management">
-            <OrganizationSettings />
-        </MudTabPanel>
-        
-    </MudTabs>
+<div class="settings-scope">
+<MudContainer MaxWidth="MaxWidth.False" Class="settings-page mt-4">
+    <MudStack Spacing="5">
+        @if (_loading)
+        {
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="py-8">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            </MudStack>
+        }
+        else
+        {
+            <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-5">
+                <MudTabPanel Text="Organization" Icon="@Icons.Material.Filled.AccountTree">
+                    <MudStack Spacing="4">
+                        <MudPaper Elevation="1" Class="pa-4">
+                            <MudText Typo="Typo.h6">
+                                <MudIcon Icon="@Icons.Material.Filled.Link" Size="Size.Small" Class="mr-2" />
+                                Company Structure
+                            </MudText>
+
+                            <MudGrid Class="settings-stats-grid">
+                                <MudItem xs="12" sm="6" md="4">
+                                    <MudPaper Elevation="3" Class="stat-card stat-card-clickable pa-4" @onclick="GoToCompanies">
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                            <MudStack Spacing="0">
+                                                <MudText Typo="Typo.caption" Class="stat-label">Companies</MudText>
+                                                <MudText Typo="Typo.h4" Class="stat-value">@_companies.Count</MudText>
+                                            </MudStack>
+                                            <MudAvatar Size="Size.Large" Class="stat-avatar stat-avatar-blue" Variant="Variant.Text">
+                                                <MudIcon Icon="@Icons.Material.Filled.Domain" />
+                                            </MudAvatar>
+                                        </MudStack>
+                                    </MudPaper>
+                                </MudItem>
+
+                                <MudItem xs="12" sm="6" md="4">
+                                    <MudPaper Elevation="3" Class="stat-card stat-card-clickable pa-4" @onclick="GoToDepartments">
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                            <MudStack Spacing="0">
+                                                <MudText Typo="Typo.caption" Class="stat-label">Departments</MudText>
+                                                <MudText Typo="Typo.h4" Class="stat-value">@_departments.Count</MudText>
+                                            </MudStack>
+                                            <MudAvatar Size="Size.Large" Class="stat-avatar stat-avatar-green" Variant="Variant.Text">
+                                                <MudIcon Icon="@Icons.Material.Filled.Apartment" />
+                                            </MudAvatar>
+                                        </MudStack>
+                                    </MudPaper>
+                                </MudItem>
+
+                                <MudItem xs="12" sm="6" md="4">
+                                    <MudPaper Elevation="3" Class="stat-card stat-card-clickable pa-4" @onclick="GoToTeams">
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                            <MudStack Spacing="0">
+                                                <MudText Typo="Typo.caption" Class="stat-label">Teams</MudText>
+                                                <MudText Typo="Typo.h4" Class="stat-value">@_teams.Count</MudText>
+                                            </MudStack>
+                                            <MudAvatar Size="Size.Large" Class="stat-avatar stat-avatar-orange" Variant="Variant.Text">
+                                                <MudIcon Icon="@Icons.Material.Filled.Groups" />
+                                            </MudAvatar>
+                                        </MudStack>
+                                    </MudPaper>
+                                </MudItem>
+                            </MudGrid>
+                        </MudPaper>
+
+                        <MudPaper Elevation="1" Class="pa-4">
+                            <MudText Typo="Typo.h6" >
+                                <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Small" Class="mr-2" />
+                                Other User Settings
+                            </MudText>
+
+                            <MudGrid Class="settings-stats-grid">
+                                <MudItem xs="12" sm="6" md="4">
+                                    <MudPaper Elevation="3" Class="stat-card stat-card-clickable pa-4" @onclick="GoToUserGroups">
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                            <MudStack Spacing="0">
+                                                <MudText Typo="Typo.caption" Class="stat-label">User Groups</MudText>
+                                                <MudText Typo="Typo.h4" Class="stat-value">@_userGroups.Count</MudText>
+                                            </MudStack>
+                                            <MudAvatar Size="Size.Large" Class="stat-avatar stat-avatar-red" Variant="Variant.Text">
+                                                <MudIcon Icon="@Icons.Material.Filled.PeopleAlt" />
+                                            </MudAvatar>
+                                        </MudStack>
+                                    </MudPaper>
+                                </MudItem>
+                            </MudGrid>
+                        </MudPaper>
+
+                        <MudPaper Elevation="1" Class="pa-4">
+                            <MudText Typo="Typo.h6">
+                                <MudIcon Icon="@Icons.Material.Filled.Schema" Size="Size.Small" Class="mr-2" />
+                                Organization Tree Management
+                            </MudText>
+
+                            @if (!_orgNodes.Any())
+                            {
+                                <MudStack Class="pa-4" AlignItems="AlignItems.Center" Spacing="2">
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">No organization positions defined yet.</MudText>
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => OpenPositionAddDialog())">Add Root Position</MudButton>
+                                </MudStack>
+                            }
+                            else
+                            {
+                                <div style="overflow-x: auto; padding-bottom: 20px;">
+                                    <OrgChartTree Nodes="_orgNodes"
+                                                  IsEditMode="true"
+                                                  OnAddChild="AddChildNode"
+                                                  OnEditNode="EditNode"
+                                                  OnDeleteNode="DeleteNode" />
+                                </div>
+                            }
+                        </MudPaper>
+                    </MudStack>
+                </MudTabPanel>
+
+                <MudTabPanel Text="More Settings" Icon="@Icons.Material.Filled.Tune">
+                    <MudAlert Severity="Severity.Info">Additional settings tabs will be added here.</MudAlert>
+                </MudTabPanel>
+            </MudTabs>
+        }
+    </MudStack>
 </MudContainer>
+</div>
+
+@code {
+    private bool _loading = true;
+
+    private List<OrgChartNodeItem> _orgNodes = new();
+    private List<OrganizationPositionDto> _organizationPositions = new();
+
+    private List<CompanyDto> _companies = new();
+    private List<DepartmentDto> _departments = new();
+    private List<TeamDto> _teams = new();
+    private List<UserGroupDto> _userGroups = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _loading = true;
+        try
+        {
+            _organizationPositions = await OrgService.GetOrganizationPositionsAsync();
+            BuildOrgChart(_organizationPositions);
+
+            _companies = await OrgService.GetCompaniesAsync();
+            _departments = await OrgService.GetDepartmentsAsync();
+            _teams = await OrgService.GetTeamsAsync();
+            _userGroups = await OrgService.GetUserGroupsAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Settings data could not be loaded: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void BuildOrgChart(List<OrganizationPositionDto> positions)
+    {
+        _orgNodes = new List<OrgChartNodeItem>();
+
+        var childPositionsMap = positions
+            .Where(p => p.ParentId.HasValue)
+            .GroupBy(p => p.ParentId!.Value)
+            .ToDictionary(g => g.Key, g => g.OrderBy(p => p.Name).ToList());
+
+        var rootPositions = positions.Where(p => p.ParentId == null).OrderBy(p => p.Name).ToList();
+
+        foreach (var rootPos in rootPositions)
+        {
+            _orgNodes.Add(CreateNode(rootPos, childPositionsMap));
+        }
+    }
+
+    private OrgChartNodeItem CreateNode(OrganizationPositionDto pos, Dictionary<int, List<OrganizationPositionDto>> childMap)
+    {
+        var node = new OrgChartNodeItem
+        {
+            Position = pos,
+            User = pos.User,
+            Children = new List<OrgChartNodeItem>(),
+            IsExpanded = true
+        };
+
+        if (childMap.TryGetValue(pos.Id, out var children))
+        {
+            foreach (var child in children)
+            {
+                node.Children.Add(CreateNode(child, childMap));
+            }
+        }
+
+        return node;
+    }
+
+    private void GoToCompanies() => Nav.NavigateTo("/settings/companies");
+    private void GoToDepartments() => Nav.NavigateTo("/settings/departments");
+    private void GoToTeams() => Nav.NavigateTo("/settings/teams");
+    private void GoToUserGroups() => Nav.NavigateTo("/settings/usergroups");
+
+    private async Task AddChildNode(OrgChartNodeItem node)
+    {
+        await OpenPositionAddDialog(parentId: node.Position.Id);
+    }
+
+    private async Task OpenPositionAddDialog(int? parentId = null)
+    {
+        var parameters = new DialogParameters
+        {
+            ["Name"] = string.Empty,
+            ["ParentId"] = parentId
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogServiceRef.ShowAsync<OrganizationPositionDialog>("Add Position", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            try
+            {
+                if (result.Data == null)
+                {
+                    Snackbar.Add("Invalid dialog result.", Severity.Error);
+                    return;
+                }
+
+                var data = (dynamic)result.Data;
+                var createDto = new CreateOrganizationPositionDto
+                {
+                    Name = data.Name,
+                    ParentId = data.ParentId
+                };
+
+                var response = await OrgService.CreateOrganizationPositionAsync(createDto);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Position created successfully.", Severity.Success);
+                    await LoadData();
+                    StateHasChanged();
+                }
+                else
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    Snackbar.Add($"Error creating position: {error}", Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error processing dialog: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private async Task EditNode(OrgChartNodeItem node)
+    {
+        var parameters = new DialogParameters
+        {
+            ["PositionName"] = node.Position.Name,
+            ["CurrentUserId"] = node.User?.Id,
+            ["HasCurrentUser"] = node.User != null
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogServiceRef.ShowAsync<PositionUserDialog>("Edit Position & User", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            try
+            {
+                if (result.Data == null)
+                {
+                    Snackbar.Add("Invalid dialog result.", Severity.Error);
+                    return;
+                }
+
+                (string positionName, UserDto? selectedUser) = ((string, UserDto?))result.Data;
+
+                var position = _organizationPositions.FirstOrDefault(p => p.Id == node.Position.Id);
+                if (position == null)
+                {
+                    Snackbar.Add("Position not found.", Severity.Error);
+                    return;
+                }
+
+                bool nameChanged = position.Name != (positionName ?? position.Name);
+                bool userChanged = (node.User?.Id ?? 0) != (selectedUser?.Id ?? 0);
+
+                if (!nameChanged && !userChanged)
+                {
+                    Snackbar.Add("No changes detected.", Severity.Info);
+                    return;
+                }
+
+                var updateDto = new UpdateOrganizationPositionDto
+                {
+                    Id = position.Id,
+                    Name = positionName ?? position.Name,
+                    ParentId = position.ParentId,
+                    UserId = selectedUser?.Id
+                };
+
+                var response = await OrgService.UpdateOrganizationPositionAsync(node.Position.Id, updateDto);
+                if (response.IsSuccessStatusCode)
+                {
+                    await LoadData();
+                    Snackbar.Add("Position updated successfully", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add("Failed to update position", Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private async Task DeleteNode(OrgChartNodeItem node)
+    {
+        if (node.User != null)
+        {
+            Snackbar.Add($"Cannot delete position with assigned user ({node.User.FirstName} {node.User.LastName}). Please remove the user first.", Severity.Warning);
+            return;
+        }
+
+        if (node.Children != null && node.Children.Any())
+        {
+            Snackbar.Add("Cannot delete position with subordinate positions. Please delete child positions first.", Severity.Warning);
+            return;
+        }
+
+        var result = await DialogServiceRef.ShowMessageBox("Delete Position", "Are you sure?", yesText: "Delete", cancelText: "Cancel");
+        if (result == true)
+        {
+            try
+            {
+                var response = await OrgService.DeleteOrganizationPositionAsync(node.Position.Id);
+                if (response.IsSuccessStatusCode)
+                {
+                    await LoadData();
+                    Snackbar.Add("Position deleted successfully", Severity.Success);
+                }
+                else
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    Snackbar.Add($"Failed to delete position: {error}", Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+}

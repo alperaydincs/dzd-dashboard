@@ -1,0 +1,25 @@
+::deep .settings-detail-header {
+    padding: 0 0 10px;
+    border-bottom: 1px solid rgba(17, 24, 39, 0.06);
+    margin-bottom: 24px !important;
+}
+
+::deep .settings-detail-title {
+    font-size: 1.875rem;
+    font-weight: 500;
+    color: var(--dzd-text-primary);
+}
+
+::deep .team-card {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid rgba(17, 24, 39, 0.06);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+::deep .user-item {
+    background-color: rgba(33, 150, 243, 0.03) !important;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    border: 1px solid rgba(33, 150, 243, 0.1) !important;
+}

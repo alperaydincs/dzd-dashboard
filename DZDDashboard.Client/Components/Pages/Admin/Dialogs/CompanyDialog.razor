@@ -5,8 +5,8 @@
 
 <MudDialog>
     <DialogContent>
-        <MudTextField @bind-Value="Company.Name" Label="Name" Required="true" />
-        <MudTextField @bind-Value="Company.Description" Label="Description" Lines="3" />
+        <MudTextField @bind-Value="Company.Name" Label="Name" Required="true" Variant="Variant.Outlined" />
+        <MudTextField @bind-Value="Company.Description" Label="Description" Lines="3" Class="mt-3" Variant="Variant.Outlined" />
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
@@ -27,7 +27,6 @@
             Snackbar.Add("Name is required", Severity.Warning);
             return;
         }
-
         try
         {
             var client = HttpClientFactory.CreateClient("Api");

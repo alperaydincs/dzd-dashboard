@@ -11,31 +11,31 @@ public interface IOrganizationService
     Task<CompanyDto> CreateCompanyAsync(CompanyDto dto);
     Task UpdateCompanyAsync(CompanyDto dto);
     Task DeleteCompanyAsync(int id);
-
     Task<List<DepartmentDto>> GetDepartmentsAsync();
     Task<DepartmentDto> CreateDepartmentAsync(DepartmentDto dto);
     Task UpdateDepartmentAsync(DepartmentDto dto);
     Task DeleteDepartmentAsync(int id);
-
     Task<List<TeamDto>> GetTeamsAsync();
     Task<TeamDto> CreateTeamAsync(TeamDto dto);
     Task UpdateTeamAsync(TeamDto dto);
     Task DeleteTeamAsync(int id);
-
     Task<List<WorkTypeDto>> GetWorkTypesAsync();
     Task<WorkTypeDto> CreateWorkTypeAsync(WorkTypeDto dto);
     Task UpdateWorkTypeAsync(WorkTypeDto dto);
     Task DeleteWorkTypeAsync(int id);
-
     Task<List<JobDto>> GetJobsAsync();
     Task<JobDto> CreateJobAsync(JobDto dto);
     Task UpdateJobAsync(JobDto dto);
     Task DeleteJobAsync(int id);
-
     Task<List<GradeDto>> GetGradesAsync();
     Task<GradeDto> CreateGradeAsync(GradeDto dto);
     Task UpdateGradeAsync(GradeDto dto);
     Task DeleteGradeAsync(int id);
+    Task<List<UserGroupDto>> GetUserGroupsAsync();
+    Task<UserGroupDto> CreateUserGroupAsync(UserGroupDto dto);
+    Task UpdateUserGroupAsync(UserGroupDto dto);
+    Task DeleteUserGroupAsync(int id);
+    Task<UserGroupDto> GetUserGroupWithMembersAsync(int id);
 }
 
 public class OrganizationService : IOrganizationService
@@ -77,11 +77,33 @@ public class OrganizationService : IOrganizationService
     public async Task DeleteCompanyAsync(int id)
     {
         var entity = await _context.Companies.FindAsync(id);
-        if (entity != null)
+        if (entity == null)
         {
-            _context.Companies.Remove(entity);
-            await _context.SaveChangesAsync();
+            return;
         }
+
+        var departments = await _context.Departments
+            .Where(d => d.CompanyId == id)
+            .ToListAsync();
+
+        if (departments.Count > 0)
+        {
+            var departmentIds = departments.Select(d => d.Id).ToList();
+
+            var teams = await _context.Set<Team>()
+                .Where(t => t.DepartmentId.HasValue && departmentIds.Contains(t.DepartmentId.Value))
+                .ToListAsync();
+
+            if (teams.Count > 0)
+            {
+                _context.Set<Team>().RemoveRange(teams);
+            }
+
+            _context.Departments.RemoveRange(departments);
+        }
+
+        _context.Companies.Remove(entity);
+        await _context.SaveChangesAsync();
     }
 
     public async Task<List<DepartmentDto>> GetDepartmentsAsync()
@@ -301,5 +323,57 @@ public class OrganizationService : IOrganizationService
             _context.Grades.Remove(entity);
             await _context.SaveChangesAsync();
         }
+    }
+
+    public async Task<List<UserGroupDto>> GetUserGroupsAsync()
+    {
+        return await _context.UserGroups
+            .Select(ug => new UserGroupDto { Id = ug.Id, GroupName = ug.GroupName })
+            .ToListAsync();
+    }
+
+    public async Task<UserGroupDto> CreateUserGroupAsync(UserGroupDto dto)
+    {
+        var entity = new UserGroup { GroupName = dto.GroupName };
+        _context.UserGroups.Add(entity);
+        await _context.SaveChangesAsync();
+        dto.Id = entity.Id;
+        return dto;
+    }
+
+    public async Task UpdateUserGroupAsync(UserGroupDto dto)
+    {
+        var entity = await _context.UserGroups.FindAsync(dto.Id);
+        if (entity != null)
+        {
+            entity.GroupName = dto.GroupName;
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task DeleteUserGroupAsync(int id)
+    {
+        var entity = await _context.UserGroups.FindAsync(id);
+        if (entity != null)
+        {
+            _context.UserGroups.Remove(entity);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task<UserGroupDto> GetUserGroupWithMembersAsync(int id)
+    {
+        var entity = await _context.UserGroups
+            .Include(ug => ug.User)
+            .FirstOrDefaultAsync(ug => ug.Id == id);
+
+        if (entity == null)
+            return new UserGroupDto();
+
+        return new UserGroupDto 
+        { 
+            Id = entity.Id, 
+            GroupName = entity.GroupName
+        };
     }
 }

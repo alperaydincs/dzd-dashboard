@@ -16,6 +16,9 @@ public record UserDto
     public DateTime? UserStartDate { get; init; }
     public UserAvatarDto? Avatar { get; init; }
     public IReadOnlyCollection<RoleDto> Roles { get; init; } = Array.Empty<RoleDto>();
+    public int? DepartmentId { get; init; }
+    public int? TeamId { get; init; }
+    public int? UserGroupId { get; init; }
     public DepartmentDto? Department { get; init; }
     public JobDto? Job { get; init; }
     public TeamDto? Team { get; init; }

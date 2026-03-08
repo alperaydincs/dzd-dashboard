@@ -1,0 +1,248 @@
+@page "/settings/departments"
+@using Microsoft.AspNetCore.Authorization
+@using DZDDashboard.Common.DTOs.Organization
+@using DZDDashboard.Client.Components.Pages.Admin.Dialogs
+@using DZDDashboard.Client.Services
+@attribute [Authorize(Roles = "Admin,HR")]
+
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@inject OrganizationService OrgService
+@inject IDialogService DialogServiceRef
+
+<div class="settings-detail-page">
+    <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6 mb-4">
+        <MudStack Row="true" AlignItems="AlignItems.Start" Justify="Justify.SpaceBetween" Class="settings-detail-header">
+            <MudText Typo="Typo.h4" Class="settings-detail-title">Departments</MudText>
+            <MudButton StartIcon="@Icons.Material.Filled.ArrowBack"
+                       Color="Color.Primary"
+                       Variant="Variant.Outlined"
+                       @onclick="GoBack">
+                Back to Settings
+            </MudButton>
+        </MudStack>
+
+        @if (_loading)
+        {
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="py-8">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            </MudStack>
+        }
+        else if (!_departments.Any())
+        {
+            <MudPaper Elevation="2" Class="pa-6 text-center">
+                <MudIcon Icon="@Icons.Material.Filled.Apartment" Style="font-size: 3rem; color: var(--dzd-text-secondary);" />
+                <MudText Typo="Typo.h6" Style="color: var(--dzd-text-tertiary);" Class="mt-3">No Departments Yet</MudText>
+                @if (_companies.Any())
+                {
+                    <MudText Typo="Typo.body2" Style="color: var(--dzd-text-tertiary);" Class="mt-2">Create your first department to get started.</MudText>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" OnClick="() => OpenDepartmentDialog()" Class="mt-4">
+                        <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-2" />
+                        Add New Department
+                    </MudButton>
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2" Style="color: var(--dzd-text-tertiary);" Class="mt-2">Create a company first, then add departments to it.</MudText>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" @onclick="GoToCompanies" Class="mt-4">
+                        <MudIcon Icon="@Icons.Material.Filled.Domain" Class="mr-2" />
+                        Go to Companies
+                    </MudButton>
+                }
+            </MudPaper>
+        }
+        else
+        {
+            <MudStack Spacing="3">
+                <MudAutocomplete T="CompanyDto"
+                                @bind-Value="_selectedCompany"
+                                SearchFunc="SearchCompany"
+                                Label="Filter by Company"
+                                Dense="true"
+                                ShowProgressIndicator="_loading"
+                                ToStringFunc="@(c => c == null ? "" : c.Name)"
+                                Clearable="true">
+                </MudAutocomplete>
+                @foreach (var company in VisibleCompanies)
+                {
+                    var companyDepartments = FilteredDepartments
+                        .Where(d => d.CompanyId == company.Id)
+                        .OrderBy(d => d.Name)
+                        .ToList();
+
+                    if (!companyDepartments.Any())
+                    {
+                        continue;
+                    }
+
+                    <MudPaper Elevation="2" Class="department-card pa-4">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
+                            <MudText Typo="Typo.h6" Class="department-name">
+                                <MudIcon Icon="@Icons.Material.Filled.Domain" Size="Size.Small" Class="mr-2" />
+                                @company.Name
+                            </MudText>
+                            <MudText Typo="Typo.caption" Style="color: var(--dzd-text-tertiary);">Departments: @companyDepartments.Count</MudText>
+                        </MudStack>
+
+                        <MudExpansionPanels MultiExpansion="true" Elevation="0">
+                            @foreach (var dept in companyDepartments)
+                            {
+                                var teams = _teams.Where(t => t.DepartmentId == dept.Id).OrderBy(t => t.Name).ToList();
+
+                                <MudExpansionPanel Class="mb-2">
+                                    <TitleContent>
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Style="width: 100%;">
+                                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                                <MudIcon Icon="@Icons.Material.Filled.Apartment" Size="Size.Small" />
+                                                <MudText Typo="Typo.subtitle1">@dept.Name</MudText>
+                                            </MudStack>
+                                            <MudStack Row="true" Spacing="1" Class="mr-2">
+                                                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                               Size="Size.Small"
+                                                               Color="Color.Primary"
+                                                               OnClick="() => OpenDepartmentDialog(dept)" />
+                                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                               Size="Size.Small"
+                                                               Color="Color.Error"
+                                                               OnClick="() => DeleteDepartment(dept.Id)" />
+                                            </MudStack>
+                                        </MudStack>
+                                    </TitleContent>
+
+                                    <ChildContent>
+                                        <MudStack Spacing="2" Class="pt-1">
+                                            <MudText Typo="Typo.body2" Style="color: var(--dzd-text-tertiary);">
+                                                Teams: @teams.Count
+                                            </MudText>
+
+                                            @if (teams.Any())
+                                            {
+                                                <MudList T="TeamDto" ReadOnly="true" Style="background: transparent;">
+                                                    @foreach (var team in teams)
+                                                    {
+                                                        <MudListItem T="TeamDto" Class="team-item">
+                                                            <MudText Typo="Typo.body2">@team.Name</MudText>
+                                                        </MudListItem>
+                                                    }
+                                                </MudList>
+                                            }
+                                        </MudStack>
+                                    </ChildContent>
+                                </MudExpansionPanel>
+                            }
+                        </MudExpansionPanels>
+                    </MudPaper>
+                }
+
+                @if (_companies.Any())
+                {
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Add"
+                               OnClick="OpenDepartmentDialogFromSelection"
+                               Style="width: auto; align-self: flex-end; margin-top: 12px;">
+                        Add New Department
+                    </MudButton>
+                }
+            </MudStack>
+        }
+    </MudContainer>
+</div>
+
+@code {
+    private bool _loading = true;
+    private List<CompanyDto> _companies = new();
+    private List<DepartmentDto> _departments = new();
+    private List<TeamDto> _teams = new();
+    private CompanyDto? _selectedCompany;
+
+    private List<DepartmentDto> FilteredDepartments =>
+        _selectedCompany == null ? _departments : _departments.Where(d => d.CompanyId == _selectedCompany.Id).ToList();
+
+    private List<CompanyDto> VisibleCompanies =>
+        _selectedCompany == null
+            ? _companies.OrderBy(c => c.Name).ToList()
+            : _companies.Where(c => c.Id == _selectedCompany.Id).ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _loading = true;
+        try
+        {
+            _companies = await OrgService.GetCompaniesAsync();
+            _departments = await OrgService.GetDepartmentsAsync();
+            _teams = await OrgService.GetTeamsAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading data: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task<IEnumerable<CompanyDto>> SearchCompany(string value, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return await Task.FromResult(_companies);
+
+        return await Task.FromResult(_companies.Where(c => c.Name?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false).ToList());
+    }
+
+     private void GoBack() => Nav.NavigateTo("/settings");
+     private void GoToCompanies() => Nav.NavigateTo("/settings/companies");
+
+    private async Task OpenDepartmentDialog(DepartmentDto? department = null)
+    {
+        var parameters = new DialogParameters 
+        { 
+            ["Department"] = department ?? new DepartmentDto(),
+            ["Companies"] = _companies
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialogTitle = department is null || department.Id == 0 ? "Add Department" : "Edit Department";
+        var dialog = await DialogServiceRef.ShowAsync<DepartmentDialog>(dialogTitle, parameters, options);
+        var result = await dialog.Result;
+        if (result != null && !result.Canceled)
+        {
+            await LoadData();
+        }
+    }
+
+    private Task OpenDepartmentDialogFromSelection()
+    {
+        DepartmentDto? model = _selectedCompany is null
+            ? null
+            : new DepartmentDto { CompanyId = _selectedCompany.Id };
+
+        return OpenDepartmentDialog(model);
+    }
+
+    private async Task DeleteDepartment(int id)
+    {
+        var result = await DialogServiceRef.ShowMessageBox("Delete Department", 
+            "Are you sure you want to delete this department? Associated teams will also be deleted.", 
+            yesText: "Delete", cancelText: "Cancel");
+        if (result == true)
+        {
+            try
+            {
+                await OrgService.DeleteDepartmentAsync(id);
+                await LoadData();
+                Snackbar.Add("Department deleted successfully", Severity.Success);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+}

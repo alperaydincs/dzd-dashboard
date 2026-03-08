@@ -54,4 +54,19 @@ public class OrganizationService : ApiServiceBase
 
     public async Task<HttpResponseMessage> DeleteGradeAsync(int gradeId)
         => await DeleteAsync($"api/organization/grades/{gradeId}");
+
+    public async Task<List<UserGroupDto>> GetUserGroupsAsync()
+        => await GetAsync<List<UserGroupDto>>("api/organization/usergroups") ?? new();
+
+    public async Task<HttpResponseMessage> CreateUserGroupAsync(UserGroupDto dto)
+        => await PostAsync("api/organization/usergroups", dto);
+
+    public async Task<HttpResponseMessage> UpdateUserGroupAsync(UserGroupDto dto)
+        => await PutAsync("api/organization/usergroups", dto);
+
+    public async Task<HttpResponseMessage> DeleteUserGroupAsync(int userGroupId)
+        => await DeleteAsync($"api/organization/usergroups/{userGroupId}");
+
+    public async Task<UserGroupDto?> GetUserGroupWithMembersAsync(int userGroupId)
+        => await GetAsync<UserGroupDto>($"api/organization/usergroups/{userGroupId}/members");
 }

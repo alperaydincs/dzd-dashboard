@@ -5,13 +5,7 @@
 
 <MudDialog>
     <DialogContent>
-        <MudTextField @bind-Value="Department.Name" Label="Name" Required="true" Variant="Variant.Outlined"/>
-        <MudSelect T="int?" Label="Company" @bind-Value="Department.CompanyId" Class="mt-3" Variant="Variant.Outlined">
-            @foreach (var company in Companies)
-            {
-                <MudSelectItem Value="@((int?)company.Id)">@company.Name</MudSelectItem>
-            }
-        </MudSelect>
+        <MudTextField @bind-Value="UserGroup.GroupName" Label="Group Name" Required="true" FullWidth="true" />
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
@@ -21,29 +15,28 @@
 
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
-    [Parameter] public DepartmentDto Department { get; set; } = new();
-    [Parameter] public List<CompanyDto> Companies { get; set; } = new();
+    [Parameter] public UserGroupDto UserGroup { get; set; } = new();
 
     private void Cancel() => MudDialog.Cancel();
 
     private async Task Submit()
     {
-        if (string.IsNullOrWhiteSpace(Department.Name))
+        if (string.IsNullOrWhiteSpace(UserGroup.GroupName))
         {
-            Snackbar.Add("Name is required", Severity.Warning);
+            Snackbar.Add("Group name is required", Severity.Warning);
             return;
         }
 
         try
         {
             var client = HttpClientFactory.CreateClient("Api");
-            if (Department.Id == 0)
+            if (UserGroup.Id == 0)
             {
-                await client.PostAsJsonAsync("api/organization/departments", Department);
+                await client.PostAsJsonAsync("api/organization/usergroups", UserGroup);
             }
             else
             {
-                await client.PutAsJsonAsync("api/organization/departments", Department);
+                await client.PutAsJsonAsync("api/organization/usergroups", UserGroup);
             }
             MudDialog.Close(DialogResult.Ok(true));
         }
