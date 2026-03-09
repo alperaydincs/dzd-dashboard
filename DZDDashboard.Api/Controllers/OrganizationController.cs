@@ -101,6 +101,9 @@ public class OrganizationController : ControllerBase
     public Task<IActionResult> DeleteGrade(int id)
         => ExecuteNoContent(() => _service.DeleteGradeAsync(id));
 
+    [HttpGet("payrolllocations")]
+    public async Task<ActionResult<List<PayrollLocationDto>>> GetPayrollLocations() => await _service.GetPayrollLocationsAsync();
+
     [HttpGet("usergroups")]
     public async Task<ActionResult<List<UserGroupDto>>> GetUserGroups() => await _service.GetUserGroupsAsync();
 

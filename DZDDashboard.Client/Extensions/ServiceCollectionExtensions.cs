@@ -72,6 +72,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<UserService>();
         services.AddScoped<OrganizationService>();
         services.AddScoped<NotificationCenterService>();
+        services.AddScoped<EmployeeNavigationState>();
         services.AddAutoMapper(typeof(OrganizationMappingProfile).Assembly);
 
         return services;

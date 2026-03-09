@@ -32,6 +32,7 @@ public interface IOrganizationService
     Task<GradeDto> CreateGradeAsync(GradeDto dto);
     Task UpdateGradeAsync(GradeDto dto);
     Task DeleteGradeAsync(int id);
+    Task<List<PayrollLocationDto>> GetPayrollLocationsAsync();
     Task<List<UserGroupDto>> GetUserGroupsAsync();
     Task<UserGroupDto> CreateUserGroupAsync(UserGroupDto dto);
     Task UpdateUserGroupAsync(UserGroupDto dto);
@@ -252,6 +253,9 @@ public class OrganizationService : IOrganizationService
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task<List<PayrollLocationDto>> GetPayrollLocationsAsync()
+        => _mapper.Map<List<PayrollLocationDto>>(await _context.PayrollLocations.ToListAsync());
 
     public async Task<List<UserGroupDto>> GetUserGroupsAsync()
         => _mapper.Map<List<UserGroupDto>>(await _context.UserGroups.ToListAsync());

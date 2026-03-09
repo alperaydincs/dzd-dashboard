@@ -56,15 +56,10 @@ public class EntraUserSyncMiddleware
             }
             
             var email = context.User.FindFirst(ClaimTypes.Email)?.Value
-                       ?? context.User.FindFirst("preferred_username")?.Value
-                       ?? context.User.FindFirst("email")?.Value
-                       ?? context.User.FindFirst(ClaimTypes.Upn)?.Value
-                       ?? context.User.FindFirst("upn")?.Value
-                       ?? context.User.FindFirst("unique_name")?.Value;
+                       ?? context.User.FindFirst("email")?.Value;
             
             var name = context.User.FindFirst(ClaimTypes.Name)?.Value
                       ?? context.User.FindFirst("name")?.Value;
-
             try
             {
                 var user = await db.Users

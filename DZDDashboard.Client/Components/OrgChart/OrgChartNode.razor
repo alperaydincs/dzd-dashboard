@@ -1,5 +1,7 @@
 @using DZDDashboard.Client.Components.OrgChart
+@using DZDDashboard.Client.Services
 @inject NavigationManager Nav
+@inject EmployeeNavigationState EmployeeNavigationState
 
 <li>
     <MudStack Spacing="0" AlignItems="AlignItems.Center" Class="node-container">
@@ -106,7 +108,8 @@
         }
         else if (isUser && user != null)
         {
-            Nav.NavigateTo($"/employee/card/{user.Id}");
+            EmployeeNavigationState.SelectedEmployeeId = user.Id;
+            Nav.NavigateTo("/employee/card");
         }
     }
 

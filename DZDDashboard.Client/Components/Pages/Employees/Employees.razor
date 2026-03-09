@@ -6,6 +6,7 @@
 @inject NavigationManager Nav
 @inject OrganizationService OrgService
 @inject UserService UserService
+@inject EmployeeNavigationState EmployeeNavigationState
 
 <div class="employees-scope">
 <MudContainer MaxWidth="MaxWidth.False" Class="employees-page mt-4">
@@ -484,7 +485,16 @@
         _activeViewIndex = index;
     }
 
-    private void Edit(int id) => Nav.NavigateTo($"/employee/card/{id}");
-    private void View(int id) => Nav.NavigateTo($"/employee/card/{id}");
+    private void Edit(int id)
+    {
+        EmployeeNavigationState.SelectedEmployeeId = id;
+        Nav.NavigateTo("/employee/card");
+    }
+
+    private void View(int id)
+    {
+        EmployeeNavigationState.SelectedEmployeeId = id;
+        Nav.NavigateTo("/employee/card");
+    }
 }
 

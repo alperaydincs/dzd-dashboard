@@ -27,6 +27,9 @@ public class OrganizationService : ApiServiceBase
     public async Task<List<GradeDto>> GetGradesAsync()
         => await GetAsync<List<GradeDto>>("api/organization/grades") ?? new();
 
+    public async Task<List<PayrollLocationDto>> GetPayrollLocationsAsync()
+        => await GetAsync<List<PayrollLocationDto>>("api/organization/payrolllocations") ?? new();
+
     public async Task<HttpResponseMessage> CreateOrganizationPositionAsync(CreateOrganizationPositionDto dto)
         => await PostAsync("api/organization/positions", dto);
 
