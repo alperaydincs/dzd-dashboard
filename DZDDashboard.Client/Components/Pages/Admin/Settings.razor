@@ -23,8 +23,20 @@
         }
         else
         {
-            <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-5">
-                <MudTabPanel Text="Organization" Icon="@Icons.Material.Filled.AccountTree">
+            <MudStack Spacing="4">
+                <div class="@($"settings-tabs-shell active-{_activeSettingsTabIndex}")" role="tablist" aria-label="Settings tabs">
+                    <button type="button" class="settings-tab-segment" role="tab" aria-selected="@(_activeSettingsTabIndex == 0 ? "true" : "false")" @onclick="() => SetSettingsTab(0)">
+                        <MudIcon Icon="@Icons.Material.Filled.AccountTree" Size="Size.Small" Class="settings-tab-icon" />
+                        Organization
+                    </button>
+                    <button type="button" class="settings-tab-segment" role="tab" aria-selected="@(_activeSettingsTabIndex == 1 ? "true" : "false")" @onclick="() => SetSettingsTab(1)">
+                        <MudIcon Icon="@Icons.Material.Filled.Tune" Size="Size.Small" Class="settings-tab-icon" />
+                        More Settings
+                    </button>
+                </div>
+
+                @if (_activeSettingsTabIndex == 0)
+                {
                     <MudStack Spacing="4">
                         <MudPaper Elevation="1" Class="pa-4">
                             <MudText Typo="Typo.h6">
@@ -125,12 +137,12 @@
                             }
                         </MudPaper>
                     </MudStack>
-                </MudTabPanel>
-
-                <MudTabPanel Text="More Settings" Icon="@Icons.Material.Filled.Tune">
+                }
+                else
+                {
                     <MudAlert Severity="Severity.Info">Additional settings tabs will be added here.</MudAlert>
-                </MudTabPanel>
-            </MudTabs>
+                }
+            </MudStack>
         }
     </MudStack>
 </MudContainer>
@@ -138,6 +150,7 @@
 
 @code {
     private bool _loading = true;
+    private int _activeSettingsTabIndex = 0;
 
     private List<OrgChartNodeItem> _orgNodes = new();
     private List<OrganizationPositionDto> _organizationPositions = new();
@@ -217,6 +230,7 @@
     private void GoToDepartments() => Nav.NavigateTo("/settings/departments");
     private void GoToTeams() => Nav.NavigateTo("/settings/teams");
     private void GoToUserGroups() => Nav.NavigateTo("/settings/usergroups");
+    private void SetSettingsTab(int index) => _activeSettingsTabIndex = index;
 
     private async Task AddChildNode(OrgChartNodeItem node)
     {

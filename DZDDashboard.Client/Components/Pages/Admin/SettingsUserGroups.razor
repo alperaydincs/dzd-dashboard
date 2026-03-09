@@ -13,10 +13,7 @@
 <div class="settings-detail-page">
     <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6 mb-4">
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-6">
-            <MudStack Spacing="0">
-                <MudText Typo="Typo.h4">User Groups</MudText>
-                <MudText Typo="Typo.body1" Style="color: var(--dzd-text-tertiary)">Manage custom user groups and their members</MudText>
-            </MudStack>
+            <MudText Typo="Typo.h4">User Groups</MudText>
             <MudButton StartIcon="@Icons.Material.Filled.ArrowBack"
                        Color="Color.Primary"
                        Variant="Variant.Text"
@@ -46,13 +43,6 @@
         else
         {
             <MudStack Spacing="3">
-                <MudButton Variant="Variant.Filled" 
-                          Color="Color.Primary" 
-                          StartIcon="@Icons.Material.Filled.Add"
-                          OnClick="() => OpenUserGroupDialog()">
-                    Add New User Group
-                </MudButton>
-
                 <MudTextField @bind-Value="_searchTerm"
                             Placeholder="Search user groups..."
                             Adornment="Adornment.Start"
@@ -60,74 +50,72 @@
                             Variant="Variant.Outlined"
                             Immediate="true" />
 
-                @foreach (var group in FilteredUserGroups)
-                {
-                    var groupUsers = _allUsers.Where(u => u.UserGroupId == group.Id).ToList();
-                    
-                    <MudPaper Elevation="2" Class="usergroup-card pa-4">
-                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
-                            <MudStack Spacing="1">
-                                <MudText Typo="Typo.h6" Class="group-name">
-                                    <MudIcon Icon="@Icons.Material.Filled.PeopleAlt" Size="Size.Small" Class="mr-2" />
-                                    @group.GroupName
-                                </MudText>
-                                <MudText Typo="Typo.caption" Style="color: var(--dzd-text-tertiary)">@groupUsers.Count member@(groupUsers.Count != 1 ? "s" : "")</MudText>
-                            </MudStack>
-                            <MudStack Row="true" Spacing="1">
-                                <MudIconButton Icon="@Icons.Material.Filled.Edit" 
-                                             Size="Size.Small"
-                                             Color="Color.Primary"
-                                             OnClick="() => OpenUserGroupDialog(group)" />
-                                <MudIconButton Icon="@Icons.Material.Filled.Delete" 
-                                             Size="Size.Small"
-                                             Color="Color.Error"
-                                             OnClick="() => DeleteUserGroup(group.Id)" />
-                            </MudStack>
-                        </MudStack>
-
-                        <MudDivider Class="my-3" />
+                <MudExpansionPanels MultiExpansion="true" Elevation="0">
+                        @foreach (var group in FilteredUserGroups)
+                    {
+                        var groupUsers = _allUsers.Where(u => u.UserGroupId == group.Id).OrderBy(u => u.FirstName).ToList();
                         
-                        <MudStack Spacing="2">
-                            <MudText Typo="Typo.subtitle2" Style="font-weight: 600;">
-                                <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" Class="mr-2" />
-                                Members (@groupUsers.Count)
-                            </MudText>
+                        <MudExpansionPanel Class="usergroup-card mb-3">
+                            <TitleContent>
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Style="width: 100%;">
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                        <MudIcon Icon="@Icons.Material.Filled.PeopleAlt" Size="Size.Small" />
+                                        <MudText Typo="Typo.subtitle1">@group.GroupName</MudText>
+                                        <MudText Typo="Typo.caption" Style="color: var(--dzd-text-tertiary)">(@groupUsers.Count member@(groupUsers.Count != 1 ? "s" : ""))</MudText>
+                                    </MudStack>
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mr-2">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                       Size="Size.Small"
+                                                       Color="Color.Primary"
+                                                       OnClick="() => OpenUserGroupDialog(group)" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                       Size="Size.Small"
+                                                       Color="Color.Error"
+                                                       OnClick="() => DeleteUserGroup(group.Id)" />
+                                    </MudStack>
+                                </MudStack>
+                            </TitleContent>
 
-                            @if (!groupUsers.Any())
-                            {
-                                <MudText Typo="Typo.body2" Style="color: var(--dzd-text-tertiary)" Class="pa-2">
-                                    No members in this group yet.
-                                </MudText>
-                            }
-                            else
-                            {
-                                <MudList T="UserDto" Style="background: transparent;">
-                                    @foreach (var user in groupUsers.Take(5))
+                            <ChildContent>
+                                <MudStack Spacing="2">
+                                    @if (!groupUsers.Any())
                                     {
-                                        <MudListItem T="UserDto" Class="user-item">
-                                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="width: 100%;">
-                                                <MudAvatar Size="Size.Small" Style="background-color: var(--dzd-primary); color: white;">
-                                                    @GetUserInitials(user)
-                                                </MudAvatar>
-                                                <MudStack Spacing="0">
-                                                    <MudText Typo="Typo.body2">@GetDisplayName(user)</MudText>
-                                                    <MudText Typo="Typo.caption" Style="color: var(--dzd-text-tertiary)">@user.Email</MudText>
-                                                </MudStack>
-                                            </MudStack>
-                                        </MudListItem>
+                                        <MudText Typo="Typo.body2" Style="color: var(--dzd-text-tertiary)" Class="pa-2">
+                                            No members in this group yet.
+                                        </MudText>
                                     }
-                                </MudList>
-                                
-                                @if (groupUsers.Count > 5)
-                                {
-                                    <MudText Typo="Typo.caption" Style="color: var(--dzd-text-tertiary)" Class="pa-2">
-                                        ... and @(groupUsers.Count - 5) more member@(groupUsers.Count - 5 != 1 ? "s" : "")
-                                    </MudText>
-                                }
-                            }
-                        </MudStack>
-                    </MudPaper>
-                }
+                                    else
+                                    {
+                                        <MudList T="UserDto" ReadOnly="true" Style="background: transparent;">
+                                            @foreach (var user in groupUsers)
+                                            {
+                                                <MudListItem T="UserDto" Class="user-item">
+                                                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="width: 100%;">
+                                                        <MudAvatar Size="Size.Small" Style="background-color: var(--dzd-primary); color: white;">
+                                                            @GetUserInitials(user)
+                                                        </MudAvatar>
+                                                        <MudStack Spacing="0">
+                                                            <MudText Typo="Typo.body2">@GetDisplayName(user)</MudText>
+                                                            <MudText Typo="Typo.caption" Style="color: var(--dzd-text-tertiary)">@user.Email</MudText>
+                                                        </MudStack>
+                                                    </MudStack>
+                                                </MudListItem>
+                                            }
+                                        </MudList>
+                                    }
+                                </MudStack>
+                            </ChildContent>
+                        </MudExpansionPanel>
+                    }
+                </MudExpansionPanels>
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="() => OpenUserGroupDialog()"
+                           Style="width: auto; align-self: flex-end; margin-top: 12px;">
+                    Add New User Group
+                </MudButton>
             </MudStack>
         }
     </MudContainer>
@@ -188,7 +176,8 @@
     {
         var parameters = new DialogParameters { ["UserGroup"] = userGroup ?? new UserGroupDto() };
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogServiceRef.ShowAsync<UserGroupDialog>("Add User Group", parameters, options);
+        var dialogTitle = userGroup is null || userGroup.Id == 0 ? "Add User Group" : "Edit User Group";
+        var dialog = await DialogServiceRef.ShowAsync<UserGroupDialog>(dialogTitle, parameters, options);
         var result = await dialog.Result;
         if (result != null && !result.Canceled)
         {

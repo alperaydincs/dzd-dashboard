@@ -147,7 +147,7 @@
             return fullName;
         }
 
-        return Node.User.Username ?? Node.User.Email ?? $"User {Node.User.Id}";
+        return Node.User.Email ?? $"User {Node.User.Id}";
     }
 
     private string GetPrimaryLabelClass()

@@ -47,8 +47,6 @@ public class EntraUserClaimsTransformer : IClaimsTransformation
                 EntraObjectId = objectId,
                 Email = email,
                 NormalizedEmail = email.ToUpper(),
-                Username = email.Split('@')[0],
-                NormalizedUsername = email.Split('@')[0].ToUpper(),
                 FirstName = nameParts.Length > 0 ? nameParts[0] : null,
                 LastName = nameParts.Length > 1 ? string.Join(" ", nameParts.Skip(1)) : null,
                 IsActive = true

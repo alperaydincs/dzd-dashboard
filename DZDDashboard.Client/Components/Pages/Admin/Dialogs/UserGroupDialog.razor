@@ -5,17 +5,23 @@
 
 <MudDialog>
     <DialogContent>
-        <MudTextField @bind-Value="UserGroup.GroupName" Label="Group Name" Required="true" FullWidth="true" />
+        <MudTextField @bind-Value="UserGroup.GroupName" 
+                      Label="Group Name" 
+                      Variant="Variant.Outlined"
+                      Required="true" 
+                      FullWidth="true" />
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit">Save</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid)">Save</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
     [Parameter] public UserGroupDto UserGroup { get; set; } = new();
+
+    private bool IsFormValid => !string.IsNullOrWhiteSpace(UserGroup.GroupName);
 
     private void Cancel() => MudDialog.Cancel();
 

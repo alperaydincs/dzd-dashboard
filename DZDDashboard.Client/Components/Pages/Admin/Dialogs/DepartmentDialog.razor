@@ -15,7 +15,7 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit">Save</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid)">Save</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -23,6 +23,11 @@
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
     [Parameter] public DepartmentDto Department { get; set; } = new();
     [Parameter] public List<CompanyDto> Companies { get; set; } = new();
+
+    private bool IsFormValid =>
+        !string.IsNullOrWhiteSpace(Department.Name) &&
+        Department.CompanyId != null &&
+        Department.CompanyId > 0;
 
     private void Cancel() => MudDialog.Cancel();
 

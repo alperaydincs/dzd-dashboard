@@ -22,7 +22,7 @@ namespace DZDDashboard.Services
         {
             return await _context.Users
                 .AsNoTracking()
-                .OrderBy(u => u.Username)
+                .OrderBy(u => u.Email)
                 .ProjectTo<UserDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
         }
@@ -123,7 +123,7 @@ namespace DZDDashboard.Services
             return true;
         }
 
-        public async Task UpdateOrganizationPositionAsync(int userId, int? organizationPositionId, int? reportsToId)
+        public async Task UpdateOrganizationPositionAsync(int userId, int? organizationPositionId, int? _)
         {
             var user = await _context.Users.FindAsync(userId);
             if (user == null) throw new KeyNotFoundException("User not found");
@@ -134,56 +134,82 @@ namespace DZDDashboard.Services
                 if (position == null) throw new KeyNotFoundException("Organization Position not found");
             }
 
-            if (reportsToId.HasValue)
+            user.OrganizationPositionId = organizationPositionId;
+            user.ReportsToId = null;
+
+            await RecalculateReportsToAsync();
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task RecalculateReportsToAsync()
+        {
+            var positions = await _context.OrganizationPositions
+                .AsNoTracking()
+                .Select(p => new { p.Id, p.ParentId })
+                .ToListAsync();
+
+            var parentByPositionId = positions.ToDictionary(x => x.Id, x => x.ParentId);
+
+            var allUsers = await _context.Users.ToListAsync();
+
+            var positionedUsers = allUsers
+                .Where(u => u.OrganizationPositionId.HasValue)
+                .ToList();
+
+            var usersByPosition = positionedUsers
+                .GroupBy(u => u.OrganizationPositionId!.Value)
+                .ToDictionary(g => g.Key, g => g.OrderBy(u => u.Id).ToList());
+
+            foreach (var currentUser in positionedUsers)
             {
-                var manager = await _context.Users.FindAsync(reportsToId.Value);
-                if (manager == null) throw new KeyNotFoundException("Manager (ReportsTo) not found");
+                var managerId = FindNearestAncestorManagerId(
+                    currentUser.OrganizationPositionId!.Value,
+                    currentUser.Id,
+                    parentByPositionId,
+                    usersByPosition);
+
+                currentUser.ReportsToId = managerId;
             }
 
-            var oldOrganizationPositionId = user.OrganizationPositionId;
-            var oldReportsToId = user.ReportsToId;
-            
-            user.OrganizationPositionId = organizationPositionId;
-            user.ReportsToId = reportsToId;
-            
-            await _context.SaveChangesAsync();
+            var usersOutsideTree = allUsers
+                .Where(u => !u.OrganizationPositionId.HasValue && u.ReportsToId != null)
+                .ToList();
 
-            if (oldOrganizationPositionId.HasValue && oldOrganizationPositionId != organizationPositionId)
+            foreach (var userOutsideTree in usersOutsideTree)
             {
-                await ReassignSkipLevelReportsAsync(oldOrganizationPositionId.Value, reportsToId);
+                userOutsideTree.ReportsToId = null;
             }
         }
 
-        private async Task ReassignSkipLevelReportsAsync(int oldPositionId, int? newManagerId)
+        private static int? FindNearestAncestorManagerId(
+            int positionId,
+            int currentUserId,
+            IReadOnlyDictionary<int, int?> parentByPositionId,
+            IReadOnlyDictionary<int, List<User>> usersByPosition)
         {
-            
-            var childPositions = await _context.OrganizationPositions
-                .Where(p => p.ParentId == oldPositionId)
-                .ToListAsync();
-
-            foreach (var childPos in childPositions)
+            if (!parentByPositionId.TryGetValue(positionId, out var parentId))
             {
-                
-                var usersInChildPos = await _context.Users
-                    .Where(u => u.OrganizationPositionId == childPos.Id)
-                    .ToListAsync();
+                return null;
+            }
 
-                if (usersInChildPos.Any() && newManagerId.HasValue)
+            while (parentId.HasValue)
+            {
+                if (usersByPosition.TryGetValue(parentId.Value, out var managers))
                 {
-                    foreach (var childUser in usersInChildPos)
+                    var manager = managers.FirstOrDefault(u => u.Id != currentUserId);
+                    if (manager != null)
                     {
-                        
-                        childUser.ReportsToId = newManagerId;
+                        return manager.Id;
                     }
                 }
-                else if (!usersInChildPos.Any())
+
+                if (!parentByPositionId.TryGetValue(parentId.Value, out parentId))
                 {
-                    
-                    await ReassignSkipLevelReportsAsync(childPos.Id, newManagerId);
+                    break;
                 }
             }
-            
-            await _context.SaveChangesAsync();
+
+            return null;
         }
 
         public async Task<bool> UpdateContactInfoAsync(int userId, UpdateContactInfoDto dto)

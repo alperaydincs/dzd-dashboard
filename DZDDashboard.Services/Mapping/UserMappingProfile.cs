@@ -32,7 +32,6 @@ public class UserMappingProfile : Profile
                     : null));
 
         CreateMap<PersonalInfoDto, User>()
-            .ForMember(dest => dest.Username, opt => opt.Ignore())
             .ForMember(dest => dest.Children, opt => opt.Ignore())
             .ForMember(dest => dest.ModifiedAt, opt => opt.Ignore())
             .ForMember(dest => dest.ModifiedBy, opt => opt.Ignore())

@@ -60,7 +60,8 @@
                                 Dense="true"
                                 ShowProgressIndicator="_loading"
                                 ToStringFunc="@(c => c == null ? "" : c.Name)"
-                                Clearable="true">
+                                Clearable="true"
+                                Variant="Variant.Outlined">
                 </MudAutocomplete>
                 @foreach (var company in VisibleCompanies)
                 {

@@ -117,9 +117,9 @@
             </MudPaper>
 
             <div class="@($"view-tabs-shell active-{_activeViewIndex}")" role="tablist" aria-label="Employees views">
-                <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 0)" @onclick="() => SetView(0)">Table View</button>
-                <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 1)" @onclick="() => SetView(1)">Card View</button>
-                <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 2)" @onclick="() => SetView(2)">Org Chart View</button>
+                <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 0 ? "true" : "false")" @onclick="() => SetView(0)">Table View</button>
+                <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 1 ? "true" : "false")" @onclick="() => SetView(1)">Card View</button>
+                <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 2 ? "true" : "false")" @onclick="() => SetView(2)">Org Chart View</button>
             </div>
 
             @if (_activeViewIndex == 0)
@@ -391,7 +391,6 @@
         term = term.Trim();
         return (u.FirstName?.Contains(term, StringComparison.OrdinalIgnoreCase) == true)
             || (u.LastName?.Contains(term, StringComparison.OrdinalIgnoreCase) == true)
-            || (u.Username?.Contains(term, StringComparison.OrdinalIgnoreCase) == true)
             || (u.Email?.Contains(term, StringComparison.OrdinalIgnoreCase) == true);
     }
 
@@ -410,7 +409,7 @@
         var displayName = string.Join(' ', new[] { u.FirstName, u.LastName }.Where(s => !string.IsNullOrWhiteSpace(s))).Trim();
         return !string.IsNullOrWhiteSpace(displayName)
             ? displayName
-            : (u.Username ?? $"User #{u.Id}");
+            : (u.Email ?? $"User #{u.Id}");
     }
 
     private static string GetInitials(UserDto u)
@@ -423,7 +422,7 @@
             return $"{(first == default ? "" : first.ToString())}{(last == default ? "" : last.ToString())}".ToUpperInvariant();
         }
 
-        var fromUser = (u.Username ?? u.Email ?? $"U{u.Id}").Take(2);
+        var fromUser = (u.Email ?? $"U{u.Id}").Take(2);
         return string.Concat(fromUser).ToUpperInvariant();
     }
 

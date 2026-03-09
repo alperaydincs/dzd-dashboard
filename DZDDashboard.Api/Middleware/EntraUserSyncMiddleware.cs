@@ -74,16 +74,12 @@ public class EntraUserSyncMiddleware
                 if (user == null)
                 {
                     var (firstName, lastName) = ParseName(name);
-                    var baseUsername = BuildBaseUsername(email, objectId);
-                    var username = await EnsureUniqueUsernameAsync(db, baseUsername, objectId);
 
                     var newUser = new User
                     {
                         EntraObjectId = objectId,
                         Email = email,
                         NormalizedEmail = string.IsNullOrWhiteSpace(email) ? null : email.ToUpperInvariant(),
-                        Username = username,
-                        NormalizedUsername = username.ToUpperInvariant(),
                         FirstName = firstName,
                         LastName = lastName,
                         IsActive = true
@@ -108,41 +104,6 @@ public class EntraUserSyncMiddleware
         }
 
         await _next(context);
-    }
-
-    private static string BuildBaseUsername(string? emailOrLogin, string objectId)
-    {
-        var source = string.IsNullOrWhiteSpace(emailOrLogin) ? objectId : emailOrLogin;
-
-        if (!string.IsNullOrWhiteSpace(emailOrLogin) && emailOrLogin.Contains('@'))
-        {
-            source = emailOrLogin.Split('@')[0];
-        }
-
-        var cleaned = Regex.Replace(source, "[^a-zA-Z0-9._-]", "_");
-        return string.IsNullOrWhiteSpace(cleaned) ? $"user_{objectId[..Math.Min(8, objectId.Length)]}" : cleaned;
-    }
-
-    private static async Task<string> EnsureUniqueUsernameAsync(AppDbContext db, string baseUsername, string objectId)
-    {
-        var normalized = baseUsername.ToUpperInvariant();
-        var exists = await db.Users.AnyAsync(u => u.NormalizedUsername == normalized);
-        if (!exists)
-        {
-            return baseUsername;
-        }
-
-        var suffix = objectId.Length >= 6 ? objectId[^6..] : objectId;
-        var candidate = $"{baseUsername}_{suffix}";
-        var counter = 1;
-
-        while (await db.Users.AnyAsync(u => u.NormalizedUsername == candidate.ToUpperInvariant()))
-        {
-            candidate = $"{baseUsername}_{suffix}_{counter}";
-            counter++;
-        }
-
-        return candidate;
     }
 
     private static (string? FirstName, string? LastName) ParseName(string? rawName)

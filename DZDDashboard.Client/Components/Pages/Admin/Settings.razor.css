@@ -19,6 +19,78 @@
     margin-top: 2px;
 }
 
+::deep .settings-tabs-shell {
+    background: #e9ebf0;
+    border: 1px solid #dfe3ea;
+    border-radius: 22px;
+    box-shadow: none;
+    padding: 3px;
+    width: min(100%, 720px);
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: center;
+}
+
+::deep .settings-tabs-shell::before {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: calc((100% - 6px) / 2);
+    height: calc(100% - 6px);
+    background: #ffffff;
+    border-radius: 999px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+    transform: translateX(0%);
+    transition: transform 240ms cubic-bezier(0.22, 0.8, 0.32, 1);
+    z-index: 0;
+}
+
+::deep .settings-tab-segment {
+    min-width: 0;
+    margin: 0;
+    border-radius: 999px;
+    color: #6f7384;
+    font-weight: 600;
+    border: 0;
+    padding-inline: 16px;
+    height: 36px;
+    cursor: pointer;
+    transition: color 220ms ease;
+    background: transparent;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+::deep .settings-tab-icon {
+    font-size: 18px;
+}
+
+::deep .settings-tabs-shell .settings-tab-segment[aria-selected="true"],
+::deep .settings-tabs-shell .settings-tab-segment[aria-selected="true"]:hover,
+::deep .settings-tabs-shell .settings-tab-segment[aria-selected="true"]:focus,
+::deep .settings-tabs-shell .settings-tab-segment[aria-selected="true"]:focus-visible,
+::deep .settings-tabs-shell .settings-tab-segment[aria-selected="true"]:active {
+    color: #111827 !important;
+}
+
+::deep .settings-tab-segment:hover:not([aria-selected="true"]) {
+    color: #4b5563;
+}
+
+::deep .settings-tabs-shell.active-0::before {
+    transform: translateX(0%);
+}
+
+::deep .settings-tabs-shell.active-1::before {
+    transform: translateX(100%);
+}
+
 /* Stat Cards */
 ::deep .settings-stats-grid {
     margin-top: 0;

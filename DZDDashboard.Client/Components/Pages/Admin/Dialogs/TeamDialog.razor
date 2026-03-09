@@ -5,24 +5,74 @@
 
 <MudDialog>
     <DialogContent>
-        <MudTextField @bind-Value="Team.Name" Label="Name" Required="true" />
-        <MudSelect T="int?" Label="Department" @bind-Value="Team.DepartmentId">
-            @foreach (var dept in Departments)
+        <MudStack Spacing="4">
+            <MudTextField @bind-Value="Team.Name" 
+                          Label="Name" 
+                          Variant="Variant.Outlined"
+                          Required="true" />
+
+            <MudSelect T="int?" 
+                       Label="Company" 
+                       @bind-Value="_selectedCompanyId"
+                       Variant="Variant.Outlined"
+                       Required="true">
+                @foreach (var company in Companies)
+                {
+                    <MudSelectItem Value="@((int?)company.Id)">@company.Name</MudSelectItem>
+                }
+            </MudSelect>
+
+            @if (_selectedCompanyId != null)
             {
-                <MudSelectItem Value="@((int?)dept.Id)">@dept.Name</MudSelectItem>
+                <MudSelect T="int?" 
+                           Label="Department" 
+                           @bind-Value="Team.DepartmentId"
+                           Variant="Variant.Outlined"
+                           Required="true">
+                    @foreach (var dept in FilteredDepartments)
+                    {
+                        <MudSelectItem Value="@((int?)dept.Id)">@dept.Name</MudSelectItem>
+                    }
+                </MudSelect>
             }
-        </MudSelect>
+        </MudStack>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit">Save</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid)">Save</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
     [Parameter] public TeamDto Team { get; set; } = new();
+    [Parameter] public List<CompanyDto> Companies { get; set; } = new();
     [Parameter] public List<DepartmentDto> Departments { get; set; } = new();
+
+    private int? _selectedCompanyId;
+
+    private List<DepartmentDto> FilteredDepartments =>
+        _selectedCompanyId == null
+            ? new List<DepartmentDto>()
+            : Departments.Where(d => d.CompanyId == _selectedCompanyId).ToList();
+
+    private bool IsFormValid =>
+        !string.IsNullOrWhiteSpace(Team.Name) &&
+        _selectedCompanyId != null &&
+        Team.DepartmentId != null &&
+        Team.DepartmentId > 0;
+
+    protected override void OnInitialized()
+    {
+        if (Team.DepartmentId > 0)
+        {
+            var existingDepartment = Departments.FirstOrDefault(d => d.Id == Team.DepartmentId);
+            if (existingDepartment != null)
+            {
+                _selectedCompanyId = existingDepartment.CompanyId;
+            }
+        }
+    }
 
     private void Cancel() => MudDialog.Cancel();
 

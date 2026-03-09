@@ -396,6 +396,7 @@ public class OrganizationService : IOrganizationService
 
         if (!userId.HasValue)
         {
+            await RecalculateReportsToAsync();
             return;
         }
 
@@ -406,6 +407,78 @@ public class OrganizationService : IOrganizationService
         }
 
         userToAssign.OrganizationPositionId = positionId;
+        await RecalculateReportsToAsync();
+    }
+
+    private async Task RecalculateReportsToAsync()
+    {
+        var positions = await _context.OrganizationPositions
+            .AsNoTracking()
+            .Select(p => new { p.Id, p.ParentId })
+            .ToListAsync();
+
+        var parentByPositionId = positions.ToDictionary(x => x.Id, x => x.ParentId);
+
+        var allUsers = await _context.Users.ToListAsync();
+
+        var positionedUsers = allUsers
+            .Where(u => u.OrganizationPositionId.HasValue)
+            .ToList();
+
+        var usersByPosition = positionedUsers
+            .GroupBy(u => u.OrganizationPositionId!.Value)
+            .ToDictionary(g => g.Key, g => g.OrderBy(u => u.Id).ToList());
+
+        foreach (var currentUser in positionedUsers)
+        {
+            var managerId = FindNearestAncestorManagerId(
+                currentUser.OrganizationPositionId!.Value,
+                currentUser.Id,
+                parentByPositionId,
+                usersByPosition);
+
+            currentUser.ReportsToId = managerId;
+        }
+
+        var usersOutsideTree = allUsers
+            .Where(u => !u.OrganizationPositionId.HasValue && u.ReportsToId != null)
+            .ToList();
+
+        foreach (var userOutsideTree in usersOutsideTree)
+        {
+            userOutsideTree.ReportsToId = null;
+        }
+    }
+
+    private static int? FindNearestAncestorManagerId(
+        int positionId,
+        int currentUserId,
+        IReadOnlyDictionary<int, int?> parentByPositionId,
+        IReadOnlyDictionary<int, List<User>> usersByPosition)
+    {
+        if (!parentByPositionId.TryGetValue(positionId, out var parentId))
+        {
+            return null;
+        }
+
+        while (parentId.HasValue)
+        {
+            if (usersByPosition.TryGetValue(parentId.Value, out var managers))
+            {
+                var manager = managers.FirstOrDefault(u => u.Id != currentUserId);
+                if (manager != null)
+                {
+                    return manager.Id;
+                }
+            }
+
+            if (!parentByPositionId.TryGetValue(parentId.Value, out parentId))
+            {
+                break;
+            }
+        }
+
+        return null;
     }
 
     private async Task<OrganizationPositionDto> GetPositionByIdAsync(int id)

@@ -45,7 +45,11 @@
                 <MudExpansionPanels MultiExpansion="true" Elevation="0">
                     @foreach (var company in _companies)
                     {
-                        var departments = _departments.Where(d => d.CompanyId == company.Id).ToList();
+                        var departments = _departments
+                            .Where(d => d.CompanyId == company.Id)
+                            .OrderBy(d => d.Name)
+                            .ToList();
+                        var teamCount = _teams.Count(t => departments.Any(d => d.Id == t.DepartmentId));
 
                         <MudExpansionPanel Class="company-card mb-3">
                             <TitleContent>
@@ -64,17 +68,60 @@
                                             <MudDivider Class="my-1" />
                                         }
                                         <MudText Typo="Typo.caption" Style="color: var(--dzd-text-tertiary);">Departments: @departments.Count</MudText>
+                                        <MudText Typo="Typo.caption" Style="color: var(--dzd-text-tertiary);">Teams: @teamCount</MudText>
                                     </MudStack>
                                     @if (departments.Any())
                                     {
-                                        <MudList T="DepartmentDto" ReadOnly="true" Style="background: transparent;">
+                                        <MudExpansionPanels MultiExpansion="true" Elevation="0" Class="company-nested-panels">
                                             @foreach (var dept in departments)
                                             {
-                                                <MudListItem T="DepartmentDto" Class="department-item">
-                                                    <MudText Typo="Typo.body2">@dept.Name</MudText>
-                                                </MudListItem>
+                                                var teams = _teams
+                                                    .Where(t => t.DepartmentId == dept.Id)
+                                                    .OrderBy(t => t.Name)
+                                                    .ToList();
+
+                                                <MudExpansionPanel Class="department-panel mb-2">
+                                                    <TitleContent>
+                                                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Style="width: 100%;">
+                                                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                                                <MudIcon Icon="@Icons.Material.Filled.Apartment" Size="Size.Small" />
+                                                                <MudText Typo="Typo.body1">@dept.Name</MudText>
+                                                            </MudStack>
+                                                            <MudText Typo="Typo.caption" Style="color: var(--dzd-text-tertiary);" Class="mr-2">Teams: @teams.Count</MudText>
+                                                        </MudStack>
+                                                    </TitleContent>
+
+                                                    <ChildContent>
+                                                        @if (teams.Any())
+                                                        {
+                                                            <MudList T="TeamDto" ReadOnly="true" Style="background: transparent;">
+                                                                @foreach (var team in teams)
+                                                                {
+                                                                    <MudListItem T="TeamDto" Class="team-item">
+                                                                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                                                            <MudIcon Icon="@Icons.Material.Filled.Groups" Size="Size.Small" />
+                                                                            <MudText Typo="Typo.body2">@team.Name</MudText>
+                                                                        </MudStack>
+                                                                    </MudListItem>
+                                                                }
+                                                            </MudList>
+                                                        }
+                                                        else
+                                                        {
+                                                            <MudText Typo="Typo.body2" Style="color: var(--dzd-text-tertiary);" Class="pa-2">
+                                                                No teams in this department.
+                                                            </MudText>
+                                                        }
+                                                    </ChildContent>
+                                                </MudExpansionPanel>
                                             }
-                                        </MudList>
+                                        </MudExpansionPanels>
+                                    }
+                                    else
+                                    {
+                                        <MudText Typo="Typo.body2" Style="color: var(--dzd-text-tertiary);" Class="pa-2">
+                                            No departments in this company.
+                                        </MudText>
                                     }
 
                                     <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="1" Class="mt-2">
@@ -113,6 +160,7 @@
     private bool _loading = true;
     private List<CompanyDto> _companies = new();
     private List<DepartmentDto> _departments = new();
+    private List<TeamDto> _teams = new();
 
     private void NavigateToSettings() => Nav.NavigateTo("/settings");
 
@@ -127,6 +175,7 @@
         {
             _companies = await OrgService.GetCompaniesAsync();
             _departments = await OrgService.GetDepartmentsAsync();
+            _teams = await OrgService.GetTeamsAsync();
         }
         catch (Exception ex)
         {
