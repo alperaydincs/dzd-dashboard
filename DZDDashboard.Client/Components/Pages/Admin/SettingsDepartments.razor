@@ -1,4 +1,4 @@
-@page "/settings/departments"
+﻿@page "/settings/departments"
 @using Microsoft.AspNetCore.Authorization
 @using DZDDashboard.Client.Components.Pages.Admin.Dialogs
 @using DZDDashboard.Client.Services
@@ -13,7 +13,7 @@
     <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6 mb-4">
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-6">
             <MudText Typo="Typo.h4">Departments</MudText>
-            <MudButton StartIcon="@Icons.Material.Filled.ArrowBack"
+            <MudButton StartIcon="@DzdIcons.ArrowLeft"
                        Color="Color.Primary"
                        Variant="Variant.Text"
                        @onclick="NavigateToSettings">
@@ -30,13 +30,13 @@
         else if (!_departments.Any())
         {
             <MudPaper Elevation="2" Class="pa-6 text-center">
-                <MudIcon Icon="@Icons.Material.Filled.Apartment" Style="font-size: 3rem; color: var(--dzd-text-secondary);" />
+                <MudIcon Icon="@DzdIcons.Building" Style="font-size: 3rem; color: var(--dzd-text-secondary);" />
                 <MudText Typo="Typo.h6" Style="color: var(--dzd-text-tertiary);" Class="mt-3">No Departments Yet</MudText>
                 @if (_companies.Any())
                 {
                     <MudText Typo="Typo.body2" Style="color: var(--dzd-text-tertiary);" Class="mt-2">Create your first department to get started.</MudText>
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" OnClick="() => OpenDepartmentDialog()" Class="mt-4">
-                        <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-2" />
+                        <MudIcon Icon="@DzdIcons.Plus" Class="mr-2" />
                         Add New Department
                     </MudButton>
                 }
@@ -44,7 +44,7 @@
                 {
                     <MudText Typo="Typo.body2" Style="color: var(--dzd-text-tertiary);" Class="mt-2">Create a company first, then add departments to it.</MudText>
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" @onclick="GoToCompanies" Class="mt-4">
-                        <MudIcon Icon="@Icons.Material.Filled.Domain" Class="mr-2" />
+                        <MudIcon Icon="@DzdIcons.Building2" Class="mr-2" />
                         Go to Companies
                     </MudButton>
                 }
@@ -78,7 +78,7 @@
                     <MudPaper Elevation="2" Class="department-card pa-4">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
                             <MudText Typo="Typo.h6" Class="department-name">
-                                <MudIcon Icon="@Icons.Material.Filled.Domain" Size="Size.Small" Class="mr-2" />
+                                <MudIcon Icon="@DzdIcons.Building2" Size="Size.Small" Class="mr-2" />
                                 @company.Name
                             </MudText>
                             <MudText Typo="Typo.caption" Style="color: var(--dzd-text-tertiary);">Departments: @companyDepartments.Count</MudText>
@@ -93,15 +93,15 @@
                                     <TitleContent>
                                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Style="width: 100%;">
                                             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
-                                                <MudIcon Icon="@Icons.Material.Filled.Apartment" Size="Size.Small" />
+                                                <MudIcon Icon="@DzdIcons.Building" Size="Size.Small" />
                                                 <MudText Typo="Typo.subtitle1">@dept.Name</MudText>
                                             </MudStack>
                                             <MudStack Row="true" Spacing="1" Class="mr-2">
-                                                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                <MudIconButton Icon="@DzdIcons.Pencil"
                                                                Size="Size.Small"
                                                                Color="Color.Primary"
                                                                OnClick="() => OpenDepartmentDialog(dept)" />
-                                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                <MudIconButton Icon="@DzdIcons.Trash2"
                                                                Size="Size.Small"
                                                                Color="Color.Error"
                                                                OnClick="() => DeleteDepartment(dept.Id)" />
@@ -138,7 +138,7 @@
                 {
                     <MudButton Variant="Variant.Filled"
                                Color="Color.Primary"
-                               StartIcon="@Icons.Material.Filled.Add"
+                               StartIcon="@DzdIcons.Plus"
                                OnClick="OpenDepartmentDialogFromSelection"
                                Style="width: auto; align-self: flex-end; margin-top: 12px;">
                         Add New Department
@@ -248,4 +248,6 @@
     }
 
 }
+
+
 

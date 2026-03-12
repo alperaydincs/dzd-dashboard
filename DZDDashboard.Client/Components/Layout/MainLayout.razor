@@ -5,11 +5,15 @@
 @using DZDDashboard.Client.Theme
 @using System.Security.Claims
 @using DZDDashboard.Client.Services
+@using DZDDashboard.Common.Utils
+@using Microsoft.Identity.Web
 
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Nav
 @inject UserService UserService
 @inject NotificationCenterService NotificationCenter
+@inject SignInRedirectService SignInRedirectService
+@inject IJSRuntime JS
 
 @implements IDisposable
 
@@ -18,11 +22,18 @@
 <MudDialogProvider />
 <MudPopoverProvider />
 <MudSnackbarProvider />
+@if (_showRedirectOverlay)
+{
+    <div style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--mud-palette-background,#fff);z-index:9999;gap:16px;">
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+        <MudText Typo="Typo.body1" Style="color:var(--mud-palette-text-secondary);">You are being redirected...</MudText>
+    </div>
+}
 <MudLayout>
-    <MudAppBar Elevation="1">
+    <MudAppBar Elevation="1" >
         <AuthorizeView>
             <Authorized>
-                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@DrawerToggle" />
+                <MudIconButton Icon="@DzdIcons.Menu" Color="Color.Inherit" OnClick="@DrawerToggle" />
             </Authorized>
         </AuthorizeView>
 
@@ -39,12 +50,12 @@
                             @if (_unreadNotifications > 0)
                             {
                                 <MudBadge Content="@_unreadNotifications" Color="Color.Error" Overlap="true">
-                                    <MudIconButton Icon="@Icons.Material.Filled.NotificationsNone" Color="Color.Inherit" Size="Size.Small" Class="notifications-trigger" />
+                                    <MudIconButton Icon="@DzdIcons.Bell" Color="Color.Inherit" Size="Size.Small" Class="notifications-trigger" />
                                 </MudBadge>
                             }
                             else
                             {
-                                <MudIconButton Icon="@Icons.Material.Filled.NotificationsNone" Color="Color.Inherit" Size="Size.Small" Class="notifications-trigger" />
+                                <MudIconButton Icon="@DzdIcons.Bell" Color="Color.Inherit" Size="Size.Small" Class="notifications-trigger" />
                             }
                         </ActivatorContent>
                         <ChildContent>
@@ -99,13 +110,13 @@
                             </MudAvatar>
                         </ActivatorContent>
                         <ChildContent>
-                            <MudMenuItem Href="/my-profile" Icon="@Icons.Material.Filled.Person">My Profile</MudMenuItem>
+                            <MudMenuItem Href="/my-profile" Icon="@DzdIcons.User">My Profile</MudMenuItem>
                             <AuthorizeView Roles="Admin,HR" Context="authContext">
                                 <Authorized>
-                                    <MudMenuItem Href="/settings" Icon="@Icons.Material.Filled.Settings">Settings</MudMenuItem>
+                                    <MudMenuItem Href="/settings" Icon="@DzdIcons.Settings">Settings</MudMenuItem>
                                 </Authorized>
                             </AuthorizeView>
-                            <MudMenuItem OnClick="Logout" Icon="@Icons.Material.Filled.Logout">Logout</MudMenuItem>
+                            <MudMenuItem OnClick="Logout" Icon="@DzdIcons.LogOut">Logout</MudMenuItem>
                         </ChildContent>
                     </MudMenu>
                 </MudStack>
@@ -125,14 +136,14 @@
                 </div>
                 <nav class="sidebar-nav">
                     <a href="/" class="nav-item @(_isDashboardSelected ? "nav-item-active" : "")">
-                        <MudIcon Icon="@Icons.Material.Filled.Dashboard" Class="nav-icon" />
+                        <MudIcon Icon="@DzdIcons.LayoutDashboard" Class="nav-icon" />
                         <span class="nav-label">Dashboard</span>
                     </a>
 
                     <div class="nav-item @(_isEmployeesMenuActive ? "nav-item-active" : "")" @onclick="ToggleEmployeesMenu">
-                        <MudIcon Icon="@Icons.Material.Filled.People" Class="nav-icon" />
+                        <MudIcon Icon="@DzdIcons.Users" Class="nav-icon" />
                         <span class="nav-label">Employees</span>
-                        <MudIcon Icon="@(_employeesMenuExpanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" Class="nav-expand-icon" />
+                        <MudIcon Icon="@(_employeesMenuExpanded ? DzdIcons.ChevronUp : DzdIcons.ChevronDown)" Class="nav-expand-icon" />
                     </div>
                     
                     @if (_employeesMenuExpanded)
@@ -154,32 +165,32 @@
                     }
 
                     <a href="/attendance" class="nav-item @(_isAttendanceSelected ? "nav-item-active" : "")">
-                        <MudIcon Icon="@Icons.Material.Filled.Schedule" Class="nav-icon" />
+                        <MudIcon Icon="@DzdIcons.Clock3" Class="nav-icon" />
                         <span class="nav-label">Attendance</span>
                     </a>
 
                     <a href="/leave-management" class="nav-item @(_isLeaveManagementSelected ? "nav-item-active" : "")">
-                        <MudIcon Icon="@Icons.Material.Filled.EventAvailable" Class="nav-icon" />
+                        <MudIcon Icon="@DzdIcons.CalendarCheck" Class="nav-icon" />
                         <span class="nav-label">Leave Management</span>
                     </a>
 
                     <a href="/training" class="nav-item @(_isTrainingSelected ? "nav-item-active" : "")">
-                        <MudIcon Icon="@Icons.Material.Filled.School" Class="nav-icon" />
+                        <MudIcon Icon="@DzdIcons.GraduationCap" Class="nav-icon" />
                         <span class="nav-label">Training</span>
                     </a>
 
                     <a href="/performance" class="nav-item @(_isPerformanceSelected ? "nav-item-active" : "")">
-                        <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Class="nav-icon" />
+                        <MudIcon Icon="@DzdIcons.TrendingUp" Class="nav-icon" />
                         <span class="nav-label">Performance</span>
                     </a>
 
                     <a href="/company" class="nav-item @(_isCompanySelected ? "nav-item-active" : "")">
-                        <MudIcon Icon="@Icons.Material.Filled.Business" Class="nav-icon" />
+                        <MudIcon Icon="@DzdIcons.BriefcaseBusiness" Class="nav-icon" />
                         <span class="nav-label">Company</span>
                     </a>
 
                     <a href="/settings" class="nav-item @(_isSettingsSelected ? "nav-item-active" : "")">
-                        <MudIcon Icon="@Icons.Material.Filled.Settings" Class="nav-icon" />
+                        <MudIcon Icon="@DzdIcons.Settings" Class="nav-icon" />
                         <span class="nav-label">Settings</span>
                     </a>
                 </nav>
@@ -214,6 +225,7 @@
     private string _userInitials = "?";
     private List<AppNotification> _notifications = new();
     private int _unreadNotifications;
+    private bool _showRedirectOverlay;
 
     private void DrawerToggle()
     {
@@ -225,14 +237,22 @@
         _employeesMenuExpanded = !_employeesMenuExpanded;
     }
 
+
     protected override async Task OnInitializedAsync()
     {
         UpdatePageTitle(Nav.Uri);
         AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
         Nav.LocationChanged += OnLocationChanged;
         NotificationCenter.Changed += OnNotificationsChanged;
+        SignInRedirectService.Changed += OnRedirectStateChanged;
         LoadNotifications();
         await LoadAvatarAsync();
+    }
+
+    private void OnRedirectStateChanged()
+    {
+        _showRedirectOverlay = SignInRedirectService.IsRedirecting;
+        InvokeAsync(StateHasChanged);
     }
 
     private async Task LoadAvatarAsync()
@@ -242,7 +262,7 @@
 
         if (user.Identity?.IsAuthenticated ?? false)
         {
-            _userInitials = GetInitials(user.Identity.Name);
+            _userInitials = AppFormatter.GetInitials(user.Identity.Name);
 
             try
             {
@@ -257,10 +277,14 @@
                     _avatarDataUrl = string.Empty;
                 }
             }
+            catch (MicrosoftIdentityWebChallengeUserException)
+            {
+                return;
+            }
             catch (Exception ex)
             {
                 _avatarDataUrl = string.Empty;
-                Console.WriteLine($"MainLayout: Avatar yüklenemedi: {ex.Message}");
+                Console.WriteLine($"MainLayout: Avatar yÃ¼klenemedi: {ex.Message}");
             }
         }
         else
@@ -270,20 +294,6 @@
         }
 
         await InvokeAsync(StateHasChanged);
-    }
-
-    private string GetInitials(string? name)
-    {
-        if (string.IsNullOrWhiteSpace(name)) return "?";
-
-        var parts = name.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-        if (parts.Length > 1)
-        {
-            return $"{parts[0][0]}{parts[^1][0]}".ToUpper();
-        }
-
-        return name.Length > 0 ? $"{name[0]}".ToUpper() : "?";
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
@@ -309,6 +319,7 @@
         AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
         Nav.LocationChanged -= OnLocationChanged;
         NotificationCenter.Changed -= OnNotificationsChanged;
+        SignInRedirectService.Changed -= OnRedirectStateChanged;
     }
 
     private void OnNotificationsChanged()
@@ -435,3 +446,5 @@
         }
     }
 }
+
+

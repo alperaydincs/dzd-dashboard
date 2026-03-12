@@ -1,6 +1,7 @@
 @page "/employees"
 @using DZDDashboard.Client.Components.OrgChart
 @using DZDDashboard.Client.Services
+@using DZDDashboard.Common.Utils
 @inject AuthenticationStateProvider AuthStateProvider
 @inject ISnackbar Snackbar
 @inject NavigationManager Nav
@@ -23,11 +24,6 @@
     else
     {
         <MudStack Spacing="5">
-            <MudStack Spacing="0" Class="employees-header">
-                <MudText Typo="Typo.h4" Class="employees-title">Employee Management</MudText>
-                <MudText Typo="Typo.body1" Class="employees-subtitle">Manage your team members and their information</MudText>
-            </MudStack>
-
             <MudGrid Class="employees-stats-grid">
                 <MudItem xs="12" sm="6" md="3">
                     <MudPaper Elevation="3" Class="stat-card pa-4">
@@ -37,7 +33,7 @@
                                 <MudText Typo="Typo.h4" Class="stat-value">@_users.Count</MudText>
                             </MudStack>
                             <MudAvatar Size="Size.Large" Class="stat-avatar stat-avatar-blue" Variant="Variant.Text">
-                                <MudIcon Icon="@Icons.Material.Filled.Groups" />
+                                <MudIcon Icon="@DzdIcons.Users" Size="Size.Large" />
                             </MudAvatar>
                         </MudStack>
                     </MudPaper>
@@ -51,7 +47,7 @@
                                 <MudText Typo="Typo.h4" Class="stat-value">@_activeEmployees</MudText>
                             </MudStack>
                             <MudAvatar Size="Size.Large" Class="stat-avatar stat-avatar-green" Variant="Variant.Text">
-                                <MudIcon Icon="@Icons.Material.Filled.PersonAddAlt1" />
+                                <MudIcon Icon="@DzdIcons.User" Size="Size.Large" />
                             </MudAvatar>
                         </MudStack>
                     </MudPaper>
@@ -65,7 +61,7 @@
                                 <MudText Typo="Typo.h4" Class="stat-value">@_onLeaveEmployees</MudText>
                             </MudStack>
                             <MudAvatar Size="Size.Large" Class="stat-avatar stat-avatar-orange" Variant="Variant.Text">
-                                <MudIcon Icon="@Icons.Material.Filled.PersonOff" />
+                                <MudIcon Icon="@DzdIcons.UserX" Size="Size.Large" />
                             </MudAvatar>
                         </MudStack>
                     </MudPaper>
@@ -79,7 +75,7 @@
                                 <MudText Typo="Typo.h4" Class="stat-value">@_totalDepartments</MudText>
                             </MudStack>
                             <MudAvatar Size="Size.Large" Class="stat-avatar stat-avatar-red" Variant="Variant.Text">
-                                <MudIcon Icon="@Icons.Material.Filled.Domain" />
+                                <MudIcon Icon="@DzdIcons.Building" Size="Size.Large" />
                             </MudAvatar>
                         </MudStack>
                     </MudPaper>
@@ -92,11 +88,11 @@
                         <MudTextField @bind-Value="_search"
                                       Variant="Variant.Outlined"
                                       Placeholder="Search employees..."
-                                      Adornment="Adornment.Start"
-                                      AdornmentIcon="@Icons.Material.Filled.Search"
                                       Immediate="true"
                                       Clearable="true"
-                                      Class="filter-field" />
+                                      Class="filter-field"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@DzdIcons.Search" />
                     </MudItem>
                     <MudItem xs="6" md="2">
                         <MudSelect T="string" @bind-Value="_statusFilter" Variant="Variant.Outlined" Class="filter-field">
@@ -149,11 +145,11 @@
                                             }
                                             else
                                             {
-                                                @GetInitials(context)
+                                                @AppFormatter.GetInitials(AppFormatter.BuildFullName(context.FirstName, context.LastName))
                                             }
                                         </MudAvatar>
                                         <MudStack Spacing="0">
-                                            <MudText Typo="Typo.subtitle2" Class="employee-name">@GetDisplayName(context)</MudText>
+                                            <MudText Typo="Typo.subtitle2" Class="employee-name">@AppFormatter.BuildFullName(context.FirstName, context.LastName)</MudText>
                                             <MudText Typo="Typo.caption" Class="employee-email">@context.Email</MudText>
                                         </MudStack>
                                     </MudStack>
@@ -168,7 +164,7 @@
                                     </MudChip>
                                 </MudTd>
 
-                                <MudTd DataLabel="Join Date">@(context.UserStartDate?.ToString("dd.MM.yyyy") ?? "-")</MudTd>
+                                <MudTd DataLabel="Join Date">@AppFormatter.FormatDate(context.UserStartDate, "dd.MM.yyyy")</MudTd>
                             </RowTemplate>
                         </MudTable>
                     </MudPaper>
@@ -187,16 +183,16 @@
                                             @if (user.Avatar != null && !string.IsNullOrEmpty(user.Avatar.ContentBase64))
                                             {
                                                 <MudImage Src="@($"data:{user.Avatar.ContentType};base64,{user.Avatar.ContentBase64}")"
-                                                          Alt="@($"{GetDisplayName(user)} avatar")"
+                                                          Alt="@($"{AppFormatter.BuildFullName(user.FirstName, user.LastName)} avatar")"
                                                           Class="employee-card-avatar-image" />
                                             }
                                             else
                                             {
-                                                @GetInitials(user)
+                                                @AppFormatter.GetInitials(AppFormatter.BuildFullName(user.FirstName, user.LastName))
                                             }
                                         </MudAvatar>
                                         <div class="employee-card-titles">
-                                            <MudText Typo="Typo.subtitle1" Class="employee-card-name">@GetDisplayName(user)</MudText>
+                                            <MudText Typo="Typo.subtitle1" Class="employee-card-name">@AppFormatter.BuildFullName(user.FirstName, user.LastName)</MudText>
                                             <MudText Typo="Typo.body2" Class="employee-card-role">@(user.Department?.Name ?? "-")</MudText>
                                         </div>
                                     </div>
@@ -207,15 +203,15 @@
 
                                 <div class="employee-card-meta">
                                     <div class="employee-card-meta-row">
-                                        <MudIcon Icon="@Icons.Material.Outlined.Badge" Class="employee-card-meta-icon" />
+                                        <MudIcon Icon="@DzdIcons.FileText" Class="employee-card-meta-icon" Size="Size.Small" />
                                         <span>@(user.Job?.Name ?? "Employee")</span>
                                     </div>
                                     <div class="employee-card-meta-row">
-                                        <MudIcon Icon="@Icons.Material.Outlined.Call" Class="employee-card-meta-icon" />
+                                        <MudIcon Icon="@DzdIcons.Phone" Class="employee-card-meta-icon" Size="Size.Small" />
                                         <span>@GetCardContact(user)</span>
                                     </div>
                                     <div class="employee-card-meta-row">
-                                        <MudIcon Icon="@Icons.Material.Outlined.LocationOn" Class="employee-card-meta-icon" />
+                                        <MudIcon Icon="@DzdIcons.MapPin" Class="employee-card-meta-icon" Size="Size.Small" />
                                         <span>@GetCardLocation(user)</span>
                                     </div>
                                 </div>
@@ -405,28 +401,6 @@
         return string.Equals(u.Department?.Name, filter, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static string GetDisplayName(UserDto u)
-    {
-        var displayName = string.Join(' ', new[] { u.FirstName, u.LastName }.Where(s => !string.IsNullOrWhiteSpace(s))).Trim();
-        return !string.IsNullOrWhiteSpace(displayName)
-            ? displayName
-            : (u.Email ?? $"User #{u.Id}");
-    }
-
-    private static string GetInitials(UserDto u)
-    {
-        var first = u.FirstName?.FirstOrDefault() ?? default;
-        var last = u.LastName?.FirstOrDefault() ?? default;
-
-        if (first != default || last != default)
-        {
-            return $"{(first == default ? "" : first.ToString())}{(last == default ? "" : last.ToString())}".ToUpperInvariant();
-        }
-
-        var fromUser = (u.Email ?? $"U{u.Id}").Take(2);
-        return string.Concat(fromUser).ToUpperInvariant();
-    }
-
     private static Color GetAvatarColor(UserDto u)
     {
         return (u.Id % 6) switch
@@ -497,4 +471,5 @@
         Nav.NavigateTo("/employee/card");
     }
 }
+
 

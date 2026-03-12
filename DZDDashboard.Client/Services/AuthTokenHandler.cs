@@ -1,49 +1,71 @@
-using Microsoft.AspNetCore.Authentication;
+
 using Microsoft.Identity.Web;
+using System.Net;
 
 namespace DZDDashboard.Client.Services;
 
 public class AuthTokenHandler : DelegatingHandler
 {
     private readonly ITokenAcquisition _tokenAcquisition;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly SignInRedirectService _signInRedirectService;
+
     private readonly string[] _scopes;
-    private readonly ILogger<AuthTokenHandler> _logger;
+
 
     public AuthTokenHandler(
         ITokenAcquisition tokenAcquisition,
+        IHttpContextAccessor httpContextAccessor,
         IConfiguration configuration,
-        ILogger<AuthTokenHandler> logger)
+        SignInRedirectService signInRedirectService)
     {
         _tokenAcquisition = tokenAcquisition;
-        _logger = logger;
+        _httpContextAccessor = httpContextAccessor;
+        _signInRedirectService = signInRedirectService;
+
         _scopes = (configuration["DownstreamApi:Scopes"] ?? string.Empty)
             .Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
         if (_scopes.Length == 0)
         {
-            _logger.LogError("DownstreamApi:Scopes configuration is required for API token acquisition.");
             throw new InvalidOperationException("DownstreamApi:Scopes configuration is required for API token acquisition.");
         }
     }
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
+
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext is null)
+        {
+            return await base.SendAsync(request, cancellationToken);
+        }
+
+        var user = httpContext.User;
+
+        if (user?.Identity?.IsAuthenticated != true)
+        {
+            return await base.SendAsync(request, cancellationToken);
+        }
+
         try
         {
-            var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(_scopes);
-            
+            var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(_scopes, user: user);
+
             if (!string.IsNullOrEmpty(accessToken))
             {
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
             }
-            else
-            {
-                _logger.LogWarning("Token acquisition returned empty token");
-            }
         }
-        catch (Exception ex)
+        catch (MicrosoftIdentityWebChallengeUserException)
         {
-            _logger.LogError(ex, "Failed to acquire token");
+            await _signInRedirectService.RedirectToSignInAsync();
+
+            return new HttpResponseMessage(HttpStatusCode.Unauthorized)
+            {
+                RequestMessage = request,
+                ReasonPhrase = "Authentication challenge required"
+            };
         }
 
         return await base.SendAsync(request, cancellationToken);

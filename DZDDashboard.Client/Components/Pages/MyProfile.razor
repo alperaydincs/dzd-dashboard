@@ -7,6 +7,7 @@
 @using DZDDashboard.Client.Components.Pages.Employees
 @using DZDDashboard.Client.Models
 @using DZDDashboard.Client.Services
+@using DZDDashboard.Common.Utils
 
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IDialogService DialogService
@@ -25,7 +26,7 @@
             else
             {
                 <MudTabs Elevation="1" Rounded="true" Style="margin-top: 1rem;">
-                    <MudTabPanel Text="My Profile" Icon="@Icons.Material.Filled.Person">
+                    <MudTabPanel Text="My Profile" Icon="@DzdIcons.User">
                         <MudGrid Style="margin-top: 1rem;" Spacing="4">
                             <MudItem xs="12" md="8">
                                 <MudCard Elevation="2">
@@ -46,7 +47,7 @@
                                                 }
                                                 else
                                                 {
-                                                    @GetInitials(CurrentUser.FirstName, CurrentUser.LastName)
+                                                    @AppFormatter.GetInitials(AppFormatter.BuildFullName(CurrentUser.FirstName, CurrentUser.LastName))
                                                 }
                                             </MudAvatar>
                                         </MudTooltip>
@@ -56,14 +57,14 @@
                                 <MudDivider Class="my-4" />
 
                                 <MudGrid Spacing="3">
-                                    @RenderProfileDetailItem("Start Date", CurrentUser.UserStartDate?.ToString("d MMMM yyyy", enCulture))
+                                    @RenderProfileDetailItem("Start Date", AppFormatter.FormatDate(CurrentUser.UserStartDate, "d MMMM yyyy"))
                                     @RenderProfileDetailItem("Contract Type", CurrentUser.ContractType)
-                                    @RenderProfileDetailItem("Work Duration", WorkDuration)
-                                    @RenderProfileDetailItem("Contract End Date", CurrentUser.ContractEndDate?.ToString("d MMMM yyyy", enCulture))
+                                    @RenderProfileDetailItem("Work Duration", AppFormatter.FormatDurationFrom(CurrentUser.UserStartDate))
+                                    @RenderProfileDetailItem("Contract End Date", AppFormatter.FormatDate(CurrentUser.ContractEndDate, "d MMMM yyyy"))
 
                                     <MudItem xs="12" Class="my-2"></MudItem>
 
-                                    @RenderProfileDetailItem("Position Start Date", CurrentUser.PositionStartDate?.ToString("d MMMM yyyy", enCulture))
+                                    @RenderProfileDetailItem("Position Start Date", AppFormatter.FormatDate(CurrentUser.PositionStartDate, "d MMMM yyyy"))
                                     @RenderProfileDetailItem("Work Model", CurrentUser.WorkModel)
                                     @RenderProfileDetailItem("Company", CurrentUser.CompanyName)
                                     @RenderProfileDetailItem("Department", CurrentUser.Department?.Name)
@@ -93,11 +94,11 @@
                                                     }
                                                     else
                                                     {
-                                                        @GetInitials(CurrentUser.ReportsTo.FirstName, CurrentUser.ReportsTo.LastName)
+                                                        @AppFormatter.GetInitials(AppFormatter.BuildFullName(CurrentUser.ReportsTo.FirstName, CurrentUser.ReportsTo.LastName))
                                                     }
                                                 </MudAvatar>
                                                 <div>
-                                                    <MudText Typo="Typo.body1" GutterBottom="false" Style="font-weight: 500;">@CurrentUser.ReportsTo.FirstName @CurrentUser.ReportsTo.LastName</MudText>
+                                                    <MudText Typo="Typo.body1" GutterBottom="false" Style="font-weight: 500;">@AppFormatter.BuildFullName(CurrentUser.ReportsTo.FirstName, CurrentUser.ReportsTo.LastName)</MudText>
                                                     <MudText Typo="Typo.body2" Style="color: #6c757d;">@CurrentUser.ReportsTo.Job?.Name</MudText>
                                                 </div>
                                             </div>
@@ -113,15 +114,15 @@
                                 <MudCardHeader>
                                     <CardHeaderContent><MudText Typo="Typo.h6">Contact</MudText></CardHeaderContent>
                                     <CardHeaderActions>
-                                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="OpenContactInfoDialog" />
+                                        <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" OnClick="OpenContactInfoDialog" />
                                     </CardHeaderActions>
                                 </MudCardHeader>
                                 <MudCardContent>
                                     <MudList T="string" Dense="true">
-                                        @RenderContactItem(Icons.Material.Outlined.Email, "Email (Work)", CurrentUser.Email)
-                                        @RenderContactItem(Icons.Material.Outlined.Phone, "Phone (Work)", CurrentUser.PhoneNumber)
-                                        @RenderContactItem(Icons.Material.Outlined.AlternateEmail, "Email (Personal)", CurrentUser.PersonalEmail)
-                                        @RenderContactItem(Icons.Material.Outlined.PhoneAndroid, "Phone (Personal)", CurrentUser.PersonalPhoneNumber)
+                                        @RenderContactItem(DzdIcons.Mail, "Email (Work)", CurrentUser.Email)
+                                        @RenderContactItem(DzdIcons.Phone, "Phone (Work)", CurrentUser.PhoneNumber)
+                                        @RenderContactItem(DzdIcons.AtSign, "Email (Personal)", CurrentUser.PersonalEmail)
+                                        @RenderContactItem(DzdIcons.Smartphone, "Phone (Personal)", CurrentUser.PersonalPhoneNumber)
                                     </MudList>
                                 </MudCardContent>
                             </MudCard>
@@ -140,10 +141,8 @@
 @code {
 
     private UserProfileDto? CurrentUser;
-    private string WorkDuration = "Calculating...";
     private string AvatarDataUrl = string.Empty;
     private string ManagerAvatarUrl = string.Empty;
-    private readonly CultureInfo enCulture = new CultureInfo("en-US");
 
 
     protected override async Task OnInitializedAsync()
@@ -167,7 +166,6 @@
 
             if (CurrentUser != null)
             {
-                CalculateWorkDuration();
                 SetAvatarDataUrl(CurrentUser.Avatar, (url) => AvatarDataUrl = url);
                 SetAvatarDataUrl(CurrentUser.ReportsTo?.Avatar, (url) => ManagerAvatarUrl = url);
                 StateHasChanged(); 
@@ -198,7 +196,7 @@
         var parameters = new DialogParameters
         {
             ["CurrentAvatarUrl"] = AvatarDataUrl,
-            ["UserInitials"] = GetInitials(CurrentUser?.FirstName, CurrentUser?.LastName)
+            ["UserInitials"] = AppFormatter.GetInitials(AppFormatter.BuildFullName(CurrentUser?.FirstName, CurrentUser?.LastName))
         };
 
         var dialog = await DialogService.ShowAsync<AvatarUploadDialog>("Update Profile Photo", parameters);
@@ -311,7 +309,7 @@
                 </div>
                 @if (!string.IsNullOrEmpty(value))
                 {
-                    <MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Size="Size.Small" OnClick="@(async () => await CopyToClipboard(value))" />
+                    <MudIconButton Icon="@DzdIcons.Copy" Size="Size.Small" OnClick="@(async () => await CopyToClipboard(value))" />
                 }
             </div>
         </MudListItem>
@@ -323,31 +321,7 @@
         await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
         Snackbar.Add($"'{text}' copied to clipboard.", Severity.Info);
     }
-    private string GetInitials(string? firstName, string? lastName)
-    {
-        return $"{firstName?.FirstOrDefault()}{lastName?.FirstOrDefault()}".ToUpper();
-    }
-
-    private void CalculateWorkDuration()
-    {
-        if (CurrentUser?.UserStartDate.HasValue ?? false)
-        {
-            var startDate = CurrentUser.UserStartDate.Value;
-            var endDate = DateTime.Today;
-            
-            int years = endDate.Year - startDate.Year;
-            int months = endDate.Month - startDate.Month;
-            int days = endDate.Day - startDate.Day;
-
-            if (days < 0) { months--; days += DateTime.DaysInMonth(endDate.Year, endDate.AddMonths(-1).Month); }
-            if (months < 0) { years--; months += 12; }
-
-            WorkDuration = $"{years} year{(years > 1 ? "s" : "")} {months} month{(months > 1 ? "s" : "")} {days} day{(days > 1 ? "s" : "")}";
-        }
-        else
-        {
-            WorkDuration = "No Start Date";
-        }
-    }
 }
+
+
 

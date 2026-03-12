@@ -15,6 +15,7 @@ public static class ServiceCollectionExtensions
             .AddInteractiveServerComponents();
 
         services.AddMudServices();
+        services.RegisterIntlTelInput();
         services.AddAntiforgery();
         services.AddHttpContextAccessor();
 
@@ -69,6 +70,7 @@ public static class ServiceCollectionExtensions
     private static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         services.AddScoped<AuthTokenHandler>();
+        services.AddScoped<SignInRedirectService>();
         services.AddScoped<UserService>();
         services.AddScoped<OrganizationService>();
         services.AddScoped<NotificationCenterService>();

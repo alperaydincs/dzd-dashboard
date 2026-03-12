@@ -1,4 +1,4 @@
-@page "/settings/companies"
+﻿@page "/settings/companies"
 @using Microsoft.AspNetCore.Authorization
 @using DZDDashboard.Client.Components.Pages.Admin.Dialogs
 @using DZDDashboard.Client.Services
@@ -13,7 +13,7 @@
     <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6 mb-4">
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-6">
             <MudText Typo="Typo.h4">Companies</MudText>
-            <MudButton StartIcon="@Icons.Material.Filled.ArrowBack"
+            <MudButton StartIcon="@DzdIcons.ArrowLeft"
                        Color="Color.Primary"
                        Variant="Variant.Text"
                        @onclick="NavigateToSettings">
@@ -30,11 +30,11 @@
         else if (!_companies.Any())
         {
             <MudPaper Elevation="2" Class="pa-6 text-center">
-                <MudIcon Icon="@Icons.Material.Filled.BusinessCenter" Style="font-size: 3rem; color: var(--dzd-text-secondary);" />
+                <MudIcon Icon="@DzdIcons.Briefcase" Style="font-size: 3rem; color: var(--dzd-text-secondary);" />
                 <MudText Typo="Typo.h6" Class="mt-3" Style="color: var(--dzd-text-tertiary);">No Companies Yet</MudText>
                 <MudText Typo="Typo.body2" Class="mt-2" Style="color: var(--dzd-text-tertiary);">Create your first company to get started building your organizational structure.</MudText>
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" OnClick="() => OpenCompanyDialog()" Class="mt-4">
-                    <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-2" />
+                    <MudIcon Icon="@DzdIcons.Plus" Class="mr-2" />
                     Create Company
                 </MudButton>
             </MudPaper>
@@ -54,7 +54,7 @@
                         <MudExpansionPanel Class="company-card mb-3">
                             <TitleContent>
                                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                    <MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Small" />
+                                    <MudIcon Icon="@DzdIcons.BriefcaseBusiness" Size="Size.Small" />
                                     <MudText Typo="Typo.subtitle1">@company.Name</MudText>
                                 </MudStack>
                             </TitleContent>
@@ -84,7 +84,7 @@
                                                     <TitleContent>
                                                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Style="width: 100%;">
                                                             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
-                                                                <MudIcon Icon="@Icons.Material.Filled.Apartment" Size="Size.Small" />
+                                                                <MudIcon Icon="@DzdIcons.Building" Size="Size.Small" />
                                                                 <MudText Typo="Typo.body1">@dept.Name</MudText>
                                                             </MudStack>
                                                             <MudText Typo="Typo.caption" Style="color: var(--dzd-text-tertiary);" Class="mr-2">Teams: @teams.Count</MudText>
@@ -99,7 +99,7 @@
                                                                 {
                                                                     <MudListItem T="TeamDto" Class="team-item">
                                                                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
-                                                                            <MudIcon Icon="@Icons.Material.Filled.Groups" Size="Size.Small" />
+                                                                            <MudIcon Icon="@DzdIcons.Users" Size="Size.Small" />
                                                                             <MudText Typo="Typo.body2">@team.Name</MudText>
                                                                         </MudStack>
                                                                     </MudListItem>
@@ -127,13 +127,13 @@
                                     <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="1" Class="mt-2">
                                         <MudButton Variant="Variant.Outlined"
                                                    Color="Color.Primary"
-                                                   StartIcon="@Icons.Material.Filled.Edit"
+                                                   StartIcon="@DzdIcons.Pencil"
                                                    OnClick="() => OpenCompanyDialog(company)">
                                             Edit 
                                         </MudButton>
                                         <MudButton Variant="Variant.Outlined"
                                                    Color="Color.Error"
-                                                   StartIcon="@Icons.Material.Filled.Delete"
+                                                   StartIcon="@DzdIcons.Trash2"
                                                    OnClick="() => DeleteCompany(company.Id)">
                                             Delete
                                         </MudButton>
@@ -146,7 +146,7 @@
 
                 <MudButton Variant="Variant.Filled"
                            Color="Color.Primary"
-                           StartIcon="@Icons.Material.Filled.Add"
+                           StartIcon="@DzdIcons.Plus"
                            OnClick="() => OpenCompanyDialog()"
                            Style="width: auto; align-self: flex-end; margin-top: 12px;">
                     Add New Company
@@ -221,4 +221,6 @@
     }
 
 }
+
+
 

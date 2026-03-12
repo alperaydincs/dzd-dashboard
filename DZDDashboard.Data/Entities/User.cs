@@ -1,4 +1,4 @@
-﻿namespace DZDDashboard.Data.Entities;
+namespace DZDDashboard.Data.Entities;
 
 public class User : IAuditableEntity
 {
@@ -62,6 +62,7 @@ public class User : IAuditableEntity
     public string? MaritalStatus { get; set; } 
     public string? SpouseFullName { get; set; } 
     public List<ChildInfo>? Children { get; set; } 
+    public List<EmergencyContact>? EmergencyContacts { get; set; }
     public string? LegalAddress { get; set; } 
     public string? CurrentAddress { get; set; } 
     public string? City { get; set; } 

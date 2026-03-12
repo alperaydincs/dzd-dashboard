@@ -1,4 +1,4 @@
-@using DZDDashboard.Client.Components.OrgChart
+﻿@using DZDDashboard.Client.Components.OrgChart
 @using DZDDashboard.Client.Services
 @inject NavigationManager Nav
 @inject EmployeeNavigationState EmployeeNavigationState
@@ -24,7 +24,7 @@
                     else
                     {
                         <MudAvatar Color="Color.Default" Size="Size.Large" Class="node-avatar node-avatar-empty dzd-avatar dzd-avatar-lg">
-                            <MudIcon Icon="@Icons.Material.Filled.PersonOutline" />
+                            <MudIcon Icon="@DzdIcons.UserRound" />
                         </MudAvatar>
                     }
 
@@ -45,9 +45,9 @@
             @if (IsEditMode)
             {
                 <MudStack Spacing="1" Class="ms-2 node-actions">
-                    <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Small" Color="Color.Success"
+                    <MudIconButton Icon="@DzdIcons.Plus" Size="Size.Small" Color="Color.Success"
                                    OnClick="@(() => OnAddChild.InvokeAsync(Node))" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                    <MudIconButton Icon="@DzdIcons.Trash2" Size="Size.Small" Color="Color.Error"
                                    OnClick="@(() => OnDeleteNode.InvokeAsync(Node))" />
                 </MudStack>
             }
@@ -55,7 +55,7 @@
 
         @if (Node.Children.Any())
         {
-            <MudIconButton Icon="@(Node.IsExpanded ? Icons.Material.Filled.KeyboardArrowUp : Icons.Material.Filled.KeyboardArrowDown)"
+            <MudIconButton Icon="@(Node.IsExpanded ? DzdIcons.ChevronUp : DzdIcons.ChevronDown)"
                            Size="Size.Small"
                            Color="Color.Primary"
                            OnClick="ToggleExpand"
@@ -206,4 +206,6 @@
         };
     }
 }
+
+
 

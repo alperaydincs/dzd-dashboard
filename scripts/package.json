@@ -1,0 +1,9 @@
+{
+  "name": "dzd-icon-generator",
+  "version": "1.0.0",
+  "description": "Generate DzdIcons from Lucide",
+  "type": "module",
+  "dependencies": {
+    "lucide-static": "^0.454.0"
+  }
+}

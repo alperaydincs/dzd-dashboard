@@ -1,4 +1,4 @@
-﻿using DZDDashboard.Data.Entities;
+using DZDDashboard.Data.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
@@ -50,6 +50,7 @@ public class AppDbContext : DbContext
     public DbSet<UserDocument> UserDocuments { get; set; }
     public DbSet<UserAvatar> UserAvatars { get; set; }
     public DbSet<ChildInfo> ChildInfos { get; set; }
+    public DbSet<EmergencyContact> EmergencyContacts { get; set; }
     public DbSet<Grade> Grades { get; set; }
     public DbSet<OrganizationPosition> OrganizationPositions { get; set; }
 

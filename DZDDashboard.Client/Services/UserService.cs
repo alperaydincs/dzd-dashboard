@@ -1,10 +1,12 @@
+
 using DZDDashboard.Common.DTOs;
 
 namespace DZDDashboard.Client.Services;
 
 public class UserService : ApiServiceBase
 {
-    public UserService(IHttpClientFactory httpClientFactory) : base(httpClientFactory) { }
+    public UserService(IHttpClientFactory httpClientFactory, SignInRedirectService signInRedirectService)
+        : base(httpClientFactory, signInRedirectService) { }
 
     public async Task<UserProfileDto?> GetMyProfileAsync()
         => await GetAsync<UserProfileDto>("api/users/my-profile");
@@ -35,4 +37,30 @@ public class UserService : ApiServiceBase
 
     public async Task<HttpResponseMessage> UpdateOrganizationPositionAsync(int userId, UpdateUserOrganizationPositionDto dto)
         => await PutAsync($"api/users/{userId}/organization-position", dto);
+
+    public async Task<HttpResponseMessage> UpdateEmergencyContactsAsync(int userId, UpdateEmergencyContactsDto dto)
+        => await PutAsync($"api/users/{userId}/emergency-contacts", dto);
+
+    public async Task<HttpResponseMessage> UpdateFamilyInfoAsync(int userId, UpdateFamilyInfoDto dto)
+        => await PutAsync($"api/users/{userId}/family-info", dto);
+
+    public async Task<HttpResponseMessage> UpdateBasicInfoAsync(int userId, UpdateBasicInfoDto dto)
+    {
+        return await PutAsync($"users/{userId}/basic-info", dto);
+    }
+
+    public async Task<HttpResponseMessage> UpdateContactsAsync(int userId, UpdateContactsDto dto)
+    {
+        return await PutAsync($"users/{userId}/contacts", dto);
+    }
+
+    public async Task<HttpResponseMessage> UpdateCitizenshipInfoAsync(int userId, UpdateCitizenshipInfoDto dto)
+    {
+        return await PutAsync($"users/{userId}/citizenship-info", dto);
+    }
+
+    public async Task<HttpResponseMessage> UpdateAddressInfoAsync(int userId, UpdateAddressInfoDto dto)
+    {
+        return await PutAsync($"users/{userId}/address-info", dto);
+    }
 }

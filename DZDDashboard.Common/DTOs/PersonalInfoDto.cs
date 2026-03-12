@@ -33,21 +33,15 @@ public class PersonalInfoDto
     public string? DisabilityDegree { get; set; }
     public string? Nationality { get; set; }
     public string? CitizenshipNumber { get; set; }
-
-    public string? EmergencyContactFullName { get; set; }
-    public string? EmergencyContactRelationship { get; set; }
-    public string? EmergencyContactPhoneNumber { get; set; }
-
+    public List<EmergencyContactDto> EmergencyContacts { get; set; } = new();
     public string? MaritalStatus { get; set; }
     public string? SpouseFullName { get; set; }
-    public int? ChildrenCount { get; set; }
-    public string? ChildrenBirthDatesCsv { get; set; }
 
+    public List<ChildInfoDto> Children { get; set; } = new();
     public string? LegalAddress { get; set; }
     public string? CurrentAddress { get; set; }
     public string? City { get; set; }
     public string? Country { get; set; }
-
     public string? EducationStatus { get; set; }
     public string? HighestEducationLevel { get; set; }
     public string? HighSchoolName { get; set; }

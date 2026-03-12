@@ -1,4 +1,5 @@
 @using DZDDashboard.Client.Services
+@using DZDDashboard.Common.Utils
 
 
 @inject UserService UserService
@@ -42,11 +43,11 @@
                                     }
                                     else
                                     {
-                                        @GetInitials(_currentUser.FirstName, _currentUser.LastName)
+                                        @AppFormatter.GetInitials(AppFormatter.BuildFullName(_currentUser.FirstName, _currentUser.LastName))
                                     }
                                 </MudAvatar>
                                 <MudStack Spacing="0">
-                                    <MudText Typo="Typo.body2" Style="font-weight:500;">@_currentUser.FirstName @_currentUser.LastName</MudText>
+                                    <MudText Typo="Typo.body2" Style="font-weight:500;">@AppFormatter.BuildFullName(_currentUser.FirstName, _currentUser.LastName)</MudText>
                                     <MudText Typo="Typo.caption">@_currentUser.Email</MudText>
                                 </MudStack>
                             </MudStack>
@@ -81,11 +82,11 @@
                                         }
                                         else
                                         {
-                                            @GetInitials(user.FirstName, user.LastName)
+                                            @AppFormatter.GetInitials(AppFormatter.BuildFullName(user.FirstName, user.LastName))
                                         }
                                     </MudAvatar>
                                     <MudStack Spacing="0">
-                                        <MudText Typo="Typo.body2" Style="font-weight:500;">@user.FirstName @user.LastName</MudText>
+                                        <MudText Typo="Typo.body2" Style="font-weight:500;">@AppFormatter.BuildFullName(user.FirstName, user.LastName)</MudText>
                                         <MudText Typo="Typo.caption">@user.Email</MudText>
                                     </MudStack>
                                 </MudStack>
@@ -168,11 +169,6 @@
     private void Cancel()
     {
         MudDialog.Cancel();
-    }
-
-    private string GetInitials(string? firstName, string? lastName)
-    {
-        return $"{firstName?.FirstOrDefault()}{lastName?.FirstOrDefault()}".ToUpper();
     }
 
     private static Color GetAvatarColor(UserDto? user)

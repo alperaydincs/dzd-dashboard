@@ -1,4 +1,4 @@
-@page "/settings"
+﻿@page "/settings"
 @using Microsoft.AspNetCore.Authorization
 @using DZDDashboard.Client.Components.OrgChart
 @using DZDDashboard.Client.Components.Pages.Admin.Dialogs
@@ -26,11 +26,11 @@
             <MudStack Spacing="4">
                 <div class="@($"settings-tabs-shell active-{_activeSettingsTabIndex}")" role="tablist" aria-label="Settings tabs">
                     <button type="button" class="settings-tab-segment" role="tab" aria-selected="@(_activeSettingsTabIndex == 0 ? "true" : "false")" @onclick="() => SetSettingsTab(0)">
-                        <MudIcon Icon="@Icons.Material.Filled.AccountTree" Size="Size.Small" Class="settings-tab-icon" />
+                        <MudIcon Icon="@DzdIcons.Workflow" Size="Size.Small" Class="settings-tab-icon" />
                         Organization
                     </button>
                     <button type="button" class="settings-tab-segment" role="tab" aria-selected="@(_activeSettingsTabIndex == 1 ? "true" : "false")" @onclick="() => SetSettingsTab(1)">
-                        <MudIcon Icon="@Icons.Material.Filled.Tune" Size="Size.Small" Class="settings-tab-icon" />
+                        <MudIcon Icon="@DzdIcons.SlidersHorizontal" Size="Size.Small" Class="settings-tab-icon" />
                         More Settings
                     </button>
                 </div>
@@ -40,7 +40,7 @@
                     <MudStack Spacing="4">
                         <MudPaper Elevation="1" Class="pa-4">
                             <MudText Typo="Typo.h6">
-                                <MudIcon Icon="@Icons.Material.Filled.Link" Size="Size.Small" Class="mr-2" />
+                                <MudIcon Icon="@DzdIcons.Link" Size="Size.Small" Class="mr-2" />
                                 Company Structure
                             </MudText>
 
@@ -53,7 +53,7 @@
                                                 <MudText Typo="Typo.h4" Class="stat-value">@_companies.Count</MudText>
                                             </MudStack>
                                             <MudAvatar Size="Size.Large" Class="stat-avatar stat-avatar-blue" Variant="Variant.Text">
-                                                <MudIcon Icon="@Icons.Material.Filled.Domain" />
+                                                <MudIcon Icon="@DzdIcons.Building2" />
                                             </MudAvatar>
                                         </MudStack>
                                     </MudPaper>
@@ -67,7 +67,7 @@
                                                 <MudText Typo="Typo.h4" Class="stat-value">@_departments.Count</MudText>
                                             </MudStack>
                                             <MudAvatar Size="Size.Large" Class="stat-avatar stat-avatar-green" Variant="Variant.Text">
-                                                <MudIcon Icon="@Icons.Material.Filled.Apartment" />
+                                                <MudIcon Icon="@DzdIcons.Building" />
                                             </MudAvatar>
                                         </MudStack>
                                     </MudPaper>
@@ -81,7 +81,7 @@
                                                 <MudText Typo="Typo.h4" Class="stat-value">@_teams.Count</MudText>
                                             </MudStack>
                                             <MudAvatar Size="Size.Large" Class="stat-avatar stat-avatar-orange" Variant="Variant.Text">
-                                                <MudIcon Icon="@Icons.Material.Filled.Groups" />
+                                                <MudIcon Icon="@DzdIcons.Users" />
                                             </MudAvatar>
                                         </MudStack>
                                     </MudPaper>
@@ -91,7 +91,7 @@
 
                         <MudPaper Elevation="1" Class="pa-4">
                             <MudText Typo="Typo.h6" >
-                                <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Small" Class="mr-2" />
+                                <MudIcon Icon="@DzdIcons.Users" Size="Size.Small" Class="mr-2" />
                                 Other User Settings
                             </MudText>
 
@@ -104,7 +104,7 @@
                                                 <MudText Typo="Typo.h4" Class="stat-value">@_userGroups.Count</MudText>
                                             </MudStack>
                                             <MudAvatar Size="Size.Large" Class="stat-avatar stat-avatar-red" Variant="Variant.Text">
-                                                <MudIcon Icon="@Icons.Material.Filled.PeopleAlt" />
+                                                <MudIcon Icon="@DzdIcons.UsersRound" />
                                             </MudAvatar>
                                         </MudStack>
                                     </MudPaper>
@@ -114,7 +114,7 @@
 
                         <MudPaper Elevation="1" Class="pa-4">
                             <MudText Typo="Typo.h6">
-                                <MudIcon Icon="@Icons.Material.Filled.Schema" Size="Size.Small" Class="mr-2" />
+                                <MudIcon Icon="@DzdIcons.Network" Size="Size.Small" Class="mr-2" />
                                 Organization Tree Management
                             </MudText>
 
@@ -390,4 +390,6 @@
         }
     }
 }
+
+
 

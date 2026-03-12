@@ -1,0 +1,28 @@
+::deep .dzd-avatar {
+    --dzd-avatar-size: 48px;
+    width: var(--dzd-avatar-size) !important;
+    height: var(--dzd-avatar-size) !important;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+::deep .dzd-avatar .mud-avatar-text {
+    font-size: calc(var(--dzd-avatar-size) * 0.38);
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+::deep .dzd-avatar .mud-image,
+::deep .dzd-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+::deep .dzd-avatar-lg {
+    --dzd-avatar-size: 64px;
+}

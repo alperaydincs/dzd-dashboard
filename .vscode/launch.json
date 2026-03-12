@@ -7,6 +7,12 @@
       "request": "launch",
       "program": "${workspaceFolder}/DZDDashboard.Api/bin/Debug/net9.0/DZDDashboard.Api.dll",
       "cwd": "${workspaceFolder}/DZDDashboard.Api",
+      "launchSettingsFilePath": "${workspaceFolder}/DZDDashboard.Api/Properties/launchSettings.json",
+      "launchSettingsProfile": "https",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "https://localhost:7178"
+      },
       "preLaunchTask": "build-solution"
     },
     {
@@ -15,6 +21,12 @@
       "request": "launch",
       "program": "${workspaceFolder}/DZDDashboard.Client/bin/Debug/net9.0/DZDDashboard.Client.dll",
       "cwd": "${workspaceFolder}/DZDDashboard.Client",
+      "launchSettingsFilePath": "${workspaceFolder}/DZDDashboard.Client/Properties/launchSettings.json",
+      "launchSettingsProfile": "https",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "https://localhost:7111"
+      },
       "preLaunchTask": "build-solution"
     }
   ],

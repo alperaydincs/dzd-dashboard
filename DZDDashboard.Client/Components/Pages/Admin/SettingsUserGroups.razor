@@ -1,4 +1,4 @@
-@page "/settings/usergroups"
+﻿@page "/settings/usergroups"
 @using Microsoft.AspNetCore.Authorization
 @using DZDDashboard.Client.Components.Pages.Admin.Dialogs
 @using DZDDashboard.Client.Services
@@ -14,7 +14,7 @@
     <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6 mb-4">
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-6">
             <MudText Typo="Typo.h4">User Groups</MudText>
-            <MudButton StartIcon="@Icons.Material.Filled.ArrowBack"
+            <MudButton StartIcon="@DzdIcons.ArrowLeft"
                        Color="Color.Primary"
                        Variant="Variant.Text"
                        @onclick="NavigateToSettings">
@@ -31,11 +31,11 @@
         else if (!_userGroups.Any())
         {
             <MudPaper Elevation="2" Class="pa-6 text-center">
-                <MudIcon Icon="@Icons.Material.Filled.PeopleOutline" Style="font-size: 3rem; color: var(--dzd-text-secondary);" />
+                <MudIcon Icon="@DzdIcons.Users" Style="font-size: 3rem; color: var(--dzd-text-secondary);" />
                 <MudText Typo="Typo.h6" Style="color: var(--dzd-text-tertiary)" Class="mt-3">No User Groups Yet</MudText>
                 <MudText Typo="Typo.body2" Style="color: var(--dzd-text-tertiary)" Class="mt-2">Create user groups to organize employees for special projects or functions across organizational boundaries.</MudText>
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" OnClick="() => OpenUserGroupDialog()" Class="mt-4">
-                    <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-2" />
+                    <MudIcon Icon="@DzdIcons.Plus" Class="mr-2" />
                     Create User Group
                 </MudButton>
             </MudPaper>
@@ -46,7 +46,7 @@
                 <MudTextField @bind-Value="_searchTerm"
                             Placeholder="Search user groups..."
                             Adornment="Adornment.Start"
-                            AdornmentIcon="@Icons.Material.Filled.Search"
+                            AdornmentIcon="@DzdIcons.Search"
                             Variant="Variant.Outlined"
                             Immediate="true" />
 
@@ -59,16 +59,16 @@
                             <TitleContent>
                                 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Style="width: 100%;">
                                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                        <MudIcon Icon="@Icons.Material.Filled.PeopleAlt" Size="Size.Small" />
+                                        <MudIcon Icon="@DzdIcons.UsersRound" Size="Size.Small" />
                                         <MudText Typo="Typo.subtitle1">@group.GroupName</MudText>
                                         <MudText Typo="Typo.caption" Style="color: var(--dzd-text-tertiary)">(@groupUsers.Count member@(groupUsers.Count != 1 ? "s" : ""))</MudText>
                                     </MudStack>
                                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mr-2">
-                                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                        <MudIconButton Icon="@DzdIcons.Pencil"
                                                        Size="Size.Small"
                                                        Color="Color.Primary"
                                                        OnClick="() => OpenUserGroupDialog(group)" />
-                                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                        <MudIconButton Icon="@DzdIcons.Trash2"
                                                        Size="Size.Small"
                                                        Color="Color.Error"
                                                        OnClick="() => DeleteUserGroup(group.Id)" />
@@ -111,7 +111,7 @@
 
                 <MudButton Variant="Variant.Filled"
                            Color="Color.Primary"
-                           StartIcon="@Icons.Material.Filled.Add"
+                           StartIcon="@DzdIcons.Plus"
                            OnClick="() => OpenUserGroupDialog()"
                            Style="width: auto; align-self: flex-end; margin-top: 12px;">
                     Add New User Group
@@ -215,4 +215,6 @@
         return initials;
     }
 }
+
+
 

@@ -1,4 +1,4 @@
-@using Microsoft.AspNetCore.Components.Forms
+﻿@using Microsoft.AspNetCore.Components.Forms
 @using DZDDashboard.Client.Models
 @inject ISnackbar Snackbar
 
@@ -33,7 +33,7 @@
                         <MudButton HtmlTag="label"
                                    Variant="Variant.Filled"
                                    Color="Color.Primary"
-                                   StartIcon="@Icons.Material.Filled.CloudUpload"
+                                   StartIcon="@DzdIcons.CloudUpload"
                                    Class="mt-4">
                             Select Photo (.png, .jpg)
                         </MudButton>
@@ -86,7 +86,7 @@
             long maxFileSize = 5 * 1024 * 1024; 
             if (file.Size > maxFileSize)
             {
-                Snackbar.Add("Dosya boyutu 5MB'dan b�y�k olamaz.", Severity.Warning);
+                Snackbar.Add("Dosya boyutu 5MB'dan büyük olamaz.", Severity.Warning);
                 selectedFile = null;
                 previewImageDataUrl = null;
                 _fileBytes = null;
@@ -107,8 +107,8 @@
         catch (Exception ex)
         {
             
-            Console.WriteLine($"Dosya okuma hatas�: {ex.Message}");
-            Snackbar.Add("Dosya i�lenirken bir hata olu�tu.", Severity.Error);
+            Console.WriteLine($"Dosya okuma hatası: {ex.Message}");
+            Snackbar.Add("Dosya işlenirken bir hata oluştu.", Severity.Error);
 
             selectedFile = null;
             previewImageDataUrl = null;
@@ -132,4 +132,6 @@
 
     void Cancel() => MudDialog.Cancel();
 }
+
+
 

@@ -3,19 +3,49 @@ using DZDDashboard.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 
 namespace DZDDashboard.Api.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-public class UsersController : BaseController
-{
-    private readonly UserService _userService;
-
-    public UsersController(UserService userService, ILogger<UsersController> logger) : base(logger)
+    [ApiController]
+    [Route("api/[controller]")]
+    public class UsersController : BaseController
     {
-        _userService = userService;
-    }
+        private readonly UserService _userService;
+
+        public UsersController(UserService userService)
+        {
+            _userService = userService;
+        }
+
+        [HttpPut("{id}/basic-info")]
+        public async Task<IActionResult> UpdateBasicInfo(int id, [FromBody] UpdateBasicInfoDto dto)
+        {
+            var result = await _userService.UpdateBasicInfoAsync(id, dto);
+            return result ? Ok() : BadRequest();
+        }
+
+        [HttpPut("{id}/contacts")]
+        public async Task<IActionResult> UpdateContacts(int id, [FromBody] UpdateContactsDto dto)
+        {
+            var result = await _userService.UpdateContactsAsync(id, dto);
+            return result ? Ok() : BadRequest();
+        }
+
+        [HttpPut("{id}/citizenship-info")]
+        public async Task<IActionResult> UpdateCitizenshipInfo(int id, [FromBody] UpdateCitizenshipInfoDto dto)
+        {
+            var result = await _userService.UpdateCitizenshipInfoAsync(id, dto);
+            return result ? Ok() : BadRequest();
+        }
+
+        [HttpPut("{id}/address-info")]
+        public async Task<IActionResult> UpdateAddressInfo(int id, [FromBody] UpdateAddressInfoDto dto)
+        {
+            var result = await _userService.UpdateAddressInfoAsync(id, dto);
+            return result ? Ok() : BadRequest();
+        }
 
     [HttpGet]
     [Authorize(Roles = "Admin")]
@@ -67,6 +97,15 @@ public class UsersController : BaseController
         var userId = GetCurrentUserId();
         if (!userId.HasValue) return Unauthorized();
 
+        if (!string.IsNullOrWhiteSpace(dto.PersonalEmail) && !new EmailAddressAttribute().IsValid(dto.PersonalEmail))
+            return BadRequest("Invalid personal email.");
+
+        if (!string.IsNullOrWhiteSpace(dto.WorkPhoneNumber) && !Regex.IsMatch(dto.WorkPhoneNumber, "^\\+?[0-9]{6,20}$"))
+            return BadRequest("Invalid work phone number.");
+
+        if (!string.IsNullOrWhiteSpace(dto.PersonalPhoneNumber) && !Regex.IsMatch(dto.PersonalPhoneNumber, "^\\+?[0-9]{6,20}$"))
+            return BadRequest("Invalid personal phone number.");
+
         var result = await _userService.UpdateContactInfoAsync(userId.Value, dto);
         return result ? NoContent() : NotFound();
     }
@@ -103,7 +142,19 @@ public class UsersController : BaseController
     public async Task<IActionResult> PutPersonalInfo(int id, [FromBody] PersonalInfoDto dto)
     {
         if (dto?.Id != id) return BadRequest("Invalid payload or ID mismatch.");
-        
+        // Validate emails
+        if (!string.IsNullOrWhiteSpace(dto.Email) && !new EmailAddressAttribute().IsValid(dto.Email))
+            return BadRequest("Invalid work email.");
+
+        if (!string.IsNullOrWhiteSpace(dto.PersonalEmail) && !new EmailAddressAttribute().IsValid(dto.PersonalEmail))
+            return BadRequest("Invalid personal email.");
+
+        if (!string.IsNullOrWhiteSpace(dto.PhoneNumber) && !Regex.IsMatch(dto.PhoneNumber, "^\\+?[0-9]{6,20}$"))
+            return BadRequest("Invalid work phone number.");
+
+        if (!string.IsNullOrWhiteSpace(dto.PersonalPhoneNumber) && !Regex.IsMatch(dto.PersonalPhoneNumber, "^\\+?[0-9]{6,20}$"))
+            return BadRequest("Invalid personal phone number.");
+
         var ok = await _userService.UpdatePersonalInfoAsync(id, dto);
         return ok ? NoContent() : NotFound();
     }
@@ -147,5 +198,23 @@ public class UsersController : BaseController
         {
             return HandleException(ex, "Update organization position");
         }
+    }
+
+    [HttpPut("{id:int}/emergency-contacts")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateEmergencyContacts(int id, [FromBody] UpdateEmergencyContactsDto dto)
+    {
+        dto.UserId = id;
+        var ok = await _userService.UpdateEmergencyContactsAsync(dto);
+        return ok ? Ok() : BadRequest();
+    }
+
+    [HttpPut("{id:int}/family-info")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateFamilyInfo(int id, [FromBody] UpdateFamilyInfoDto dto)
+    {
+        dto.UserId = id;
+        var ok = await _userService.UpdateFamilyInfoAsync(dto);
+        return ok ? Ok() : BadRequest();
     }
 }

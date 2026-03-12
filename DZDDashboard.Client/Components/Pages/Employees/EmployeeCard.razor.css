@@ -1,6 +1,30 @@
+.employee-card-tabs-scope {
+    width: 100%;
+    max-width: 100%;
+    display: block;
+}
+
+.employee-card-tabs-scope > .mud-grid {
+    width: 100%;
+    max-width: 100%;
+}
+
+.employee-card-tabs-scope .dzd-personal-info-bg {
+    width: 100%;
+    max-width: 100%;
+    min-height: 100%;
+    border-radius: 0;
+    margin-top: 24px !important;
+}
+
+.employee-card-tabs-scope .dzd-card {
+    width: 100%;
+    box-sizing: border-box;
+}
+
 .employee-card-tabs-scope .view-tabs-shell {
-    background: #e9ebf0;
-    border: 1px solid #dfe3ea;
+    background: var(--dzd-bg-secondary);
+    border: 1px solid var(--dzd-bg-input);
     border-radius: 22px;
     box-shadow: none;
     padding: 3px;
@@ -19,7 +43,7 @@
     left: 3px;
     width: calc((100% - 6px) / 2);
     height: calc(100% - 6px);
-    background: #ffffff;
+    background: var(--dzd-surface-primary);
     border-radius: 999px;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
     transform: translateX(0%);
@@ -31,7 +55,7 @@
     min-width: 0;
     margin: 0;
     border-radius: 999px;
-    color: #6f7384;
+    color: var(--dzd-text-secondary);
     font-weight: 600;
     border: 0;
     padding-inline: 16px;
@@ -43,7 +67,7 @@
 }
 
 .employee-card-tabs-scope .tab-segment[aria-selected="true"] {
-    color: #111827;
+    color: var(--dzd-text-primary);
 }
 
 .employee-card-tabs-scope .view-tabs-shell .tab-segment[aria-selected="true"],
@@ -51,11 +75,11 @@
 .employee-card-tabs-scope .view-tabs-shell .tab-segment[aria-selected="true"]:focus,
 .employee-card-tabs-scope .view-tabs-shell .tab-segment[aria-selected="true"]:focus-visible,
 .employee-card-tabs-scope .view-tabs-shell .tab-segment[aria-selected="true"]:active {
-    color: #111827 !important;
+    color: var(--dzd-text-primary) !important;
 }
 
 .employee-card-tabs-scope .tab-segment:hover:not([aria-selected="true"]) {
-    color: #4b5563;
+    color: var(--dzd-text-primary);
 }
 
 .employee-card-tabs-scope .view-tabs-shell.active-0::before {
@@ -64,4 +88,140 @@
 
 .employee-card-tabs-scope .view-tabs-shell.active-1::before {
     transform: translateX(100%);
+}
+
+.dzd-section-title {
+    color: var(--dzd-blue-500);
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    margin-top: 24px;
+}
+
+.dzd-card {
+    background-color: var(--dzd-surface-primary);
+    border: 1px solid var(--dzd-bg-input);
+    border-radius: 12px;
+}
+
+.dzd-field-label {
+    font-size: 12px;
+    color: var(--dzd-text-secondary);
+    font-weight: 500;
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1;
+}
+
+::deep .dzd-field-label .mud-icon-root {
+    color: var(--dzd-brand-primary) !important;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+}
+
+::deep .dzd-input .mud-input-outlined-border {
+    border-color: #cfd6e6 !important;
+    border-width: 1.2px !important;
+}
+
+::deep .dzd-input:hover .mud-input-outlined-border {
+    border-color: #bcc6db !important;
+}
+
+::deep .dzd-input.mud-input-focused .mud-input-outlined-border,
+::deep .dzd-input .mud-input.mud-input-focused .mud-input-outlined-border {
+    border-color: var(--dzd-brand-primary) !important;
+}
+
+::deep .dzd-input input {
+    font-size: 14px;
+    color: var(--dzd-text-primary);
+    font-weight: 500;
+}
+
+::deep .dzd-input .mud-input-control-input-container {
+    background-color: transparent;
+    border-radius: 8px;
+}
+
+.dzd-contact-display {
+    min-height: 40px;
+    padding: 6px 0;
+}
+
+.dzd-header-container {
+    background:
+        radial-gradient(circle at 90% 40%, rgba(112, 163, 127, 0.1) 0%, transparent 60%),
+        radial-gradient(circle at 40% 20%, rgba(112, 163, 127, 0.1) 0%, transparent 60%),
+        radial-gradient(circle at 80% 80%, rgba(112, 163, 127, 0.15) 0%, transparent 60%),
+        radial-gradient(circle at 20% 50%, rgba(112, 163, 127, 0.15) 0%, transparent 60%),
+        var(--dzd-gradient-green);
+    border-radius: 12px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+}
+
+.dzd-header-card {
+    background-color: var(--dzd-surface-primary);
+    border-radius: 16px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Scoped intl phone styling for this page only */
+.dzd-intl-phone {
+    width: 100%;
+}
+
+::deep .dzd-intl-phone .iti {
+    width: 100%;
+}
+
+/* Remove underline artifacts so only outlined border remains visible */
+::deep .dzd-intl-phone .mud-input-root:before,
+::deep .dzd-intl-phone .mud-input-root:after,
+::deep .dzd-intl-phone .mud-input-root:hover:not(.mud-disabled):before,
+::deep .dzd-intl-phone .mud-input-underline:before,
+::deep .dzd-intl-phone .mud-input-underline:after,
+::deep .dzd-intl-phone .mud-input-underline:hover:not(.mud-disabled):before {
+    display: none !important;
+    border-bottom: 0 !important;
+    height: 0 !important;
+}
+
+::deep .dzd-intl-phone .mud-input,
+::deep .dzd-intl-phone .mud-input-control,
+::deep .dzd-intl-phone .mud-input-slot {
+    margin-bottom: 0 !important;
+}
+
+::deep .dzd-intl-phone .iti__flag-container {
+    border-right: 1px solid #d7dbea;
+}
+
+::deep .dzd-intl-phone .iti__selected-country {
+    padding-inline: 10px 8px;
+}
+
+/* Avoid double-layer look: keep Mud outlined border, remove raw input border */
+::deep .dzd-intl-phone input[type="tel"],
+::deep .dzd-intl-phone input {
+    width: 100%;
+    min-height: 40px;
+    border: 0 !important;
+    outline: none;
+    box-shadow: none !important;
+    background-color: transparent;
+    color: var(--dzd-text-primary);
+    padding: 10px 12px 10px 58px;
+    font-size: 0.95rem;
 }

@@ -12,13 +12,11 @@ public class EntraUserSyncMiddleware
     private static readonly TimeSpan UserIdCacheDuration = TimeSpan.FromMinutes(15);
 
     private readonly RequestDelegate _next;
-    private readonly ILogger<EntraUserSyncMiddleware> _logger;
     private readonly IMemoryCache _memoryCache;
 
-    public EntraUserSyncMiddleware(RequestDelegate next, ILogger<EntraUserSyncMiddleware> logger, IMemoryCache memoryCache)
+    public EntraUserSyncMiddleware(RequestDelegate next, IMemoryCache memoryCache)
     {
         _next = next;
-        _logger = logger;
         _memoryCache = memoryCache;
     }
 
@@ -92,9 +90,8 @@ public class EntraUserSyncMiddleware
                     identity.AddClaim(new Claim("database_user_id", user.Id.ToString()));
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogError(ex, "Error while syncing Entra user");
             }
         }
 

@@ -16,6 +16,7 @@ public class UserMappingProfile : Profile
         CreateMap<UserAvatar, UserAvatarDto>();
         CreateMap<User, UserProfileReportsToDto>();
         CreateMap<User, UserProfileDto>();
+        CreateMap<EmergencyContact, EmergencyContactDto>().ReverseMap();
 
         CreateMap<User, EmployeeDetailDto>()
             .ForMember(dest => dest.OrganizationPositionName,
@@ -24,14 +25,11 @@ public class UserMappingProfile : Profile
         CreateMap<User, PersonalInfoDto>()
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src =>
                 string.Join(" ", new[] { src.FirstName, src.LastName }.Where(s => !string.IsNullOrWhiteSpace(s)))))
-            .ForMember(dest => dest.ChildrenCount, opt => opt.MapFrom(src =>
-                src.Children != null ? src.Children.Count : 0))
-            .ForMember(dest => dest.ChildrenBirthDatesCsv, opt => opt.MapFrom(src =>
-                src.Children != null
-                    ? string.Join(", ", src.Children.Select(c => c.DateOfBirth.ToString()))
-                    : null));
+                        .ForMember(dest => dest.Children, opt => opt.MapFrom(src =>
+                src.Children ?? new List<ChildInfo>()));
 
         CreateMap<PersonalInfoDto, User>()
+            // children handled manually in service sync logic
             .ForMember(dest => dest.Children, opt => opt.Ignore())
             .ForMember(dest => dest.ModifiedAt, opt => opt.Ignore())
             .ForMember(dest => dest.ModifiedBy, opt => opt.Ignore())

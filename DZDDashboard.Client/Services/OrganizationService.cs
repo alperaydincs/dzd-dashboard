@@ -4,7 +4,8 @@ namespace DZDDashboard.Client.Services;
 
 public class OrganizationService : ApiServiceBase
 {
-    public OrganizationService(IHttpClientFactory httpClientFactory) : base(httpClientFactory) { }
+    public OrganizationService(IHttpClientFactory httpClientFactory, SignInRedirectService signInRedirectService)
+        : base(httpClientFactory, signInRedirectService) { }
 
     public async Task<List<OrganizationPositionDto>> GetOrganizationPositionsAsync()
         => await GetAsync<List<OrganizationPositionDto>>("api/organization/positions") ?? new();

@@ -22,13 +22,13 @@
 /* Sidebar Styles */
 ::deep .custom-sidebar {
     width: 240px !important;
-    background: #ffffff;
-    border-right: 1px solid #e5e7eb;
+    background: var(--dzd-surface-muted);
+    border-right: 1px solid var(--dzd-bg-input);
     box-shadow: none !important;
 }
 
 ::deep .custom-sidebar .mud-drawer-content {
-    background: #ffffff;
+    background: var(--dzd-surface-muted);
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -39,7 +39,7 @@
     justify-content: center;
     align-items: center;
     padding: 24px 16px;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--dzd-bg-input);
 }
 
 .sidebar-logo-image {
@@ -74,8 +74,8 @@
 }
 
 .nav-item:hover {
-    background: #f9fafb;
-    color: #111827;
+    background: var(--dzd-surface-muted);
+    color: var(--dzd-text-primary);
 }
 
 .nav-item-active {
@@ -110,7 +110,7 @@
     margin-top: 2px;
     margin-bottom: 4px;
     padding-left: 16px;
-    border-left: 2px solid #e5e7eb;
+    border-left: 2px solid var(--dzd-bg-input);
 }
 
 .submenu-item {
@@ -129,12 +129,12 @@
 }
 
 .submenu-item:hover {
-    background: #f9fafb;
+    background: var(--dzd-surface-muted);
     color: #374151;
 }
 
 .submenu-item-active {
-    background: #f3f4f6;
+    background: var(--dzd-bg-input);
     color: #4338ca !important;
 }
 
