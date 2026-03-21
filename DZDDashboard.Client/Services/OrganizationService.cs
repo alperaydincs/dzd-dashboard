@@ -1,11 +1,12 @@
+using Microsoft.AspNetCore.Components;
 using DZDDashboard.Common.DTOs;
 
 namespace DZDDashboard.Client.Services;
 
 public class OrganizationService : ApiServiceBase
 {
-    public OrganizationService(IHttpClientFactory httpClientFactory, SignInRedirectService signInRedirectService)
-        : base(httpClientFactory, signInRedirectService) { }
+    public OrganizationService(IHttpClientFactory httpClientFactory, NavigationManager navigationManager)
+        : base(httpClientFactory, navigationManager) { }
 
     public async Task<List<OrganizationPositionDto>> GetOrganizationPositionsAsync()
         => await GetAsync<List<OrganizationPositionDto>>("api/organization/positions") ?? new();

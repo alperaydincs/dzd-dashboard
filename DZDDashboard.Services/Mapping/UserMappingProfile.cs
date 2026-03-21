@@ -29,7 +29,6 @@ public class UserMappingProfile : Profile
                 src.Children ?? new List<ChildInfo>()));
 
         CreateMap<PersonalInfoDto, User>()
-            // children handled manually in service sync logic
             .ForMember(dest => dest.Children, opt => opt.Ignore())
             .ForMember(dest => dest.ModifiedAt, opt => opt.Ignore())
             .ForMember(dest => dest.ModifiedBy, opt => opt.Ignore())

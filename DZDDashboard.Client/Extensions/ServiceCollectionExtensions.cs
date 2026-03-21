@@ -53,7 +53,11 @@ public static class ServiceCollectionExtensions
             options.SlidingExpiration = true;
         });
 
-        services.AddAuthorization();
+        services.AddCascadingAuthenticationState();
+        services.AddAuthorizationCore(options =>
+        {
+            options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+        });
         services.AddControllersWithViews().AddMicrosoftIdentityUI();
 
         services.AddHttpClient("Api", client =>
@@ -70,7 +74,7 @@ public static class ServiceCollectionExtensions
     private static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         services.AddScoped<AuthTokenHandler>();
-        services.AddScoped<SignInRedirectService>();
+
         services.AddScoped<UserService>();
         services.AddScoped<OrganizationService>();
         services.AddScoped<NotificationCenterService>();

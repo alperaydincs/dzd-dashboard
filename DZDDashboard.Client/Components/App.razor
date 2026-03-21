@@ -16,12 +16,13 @@
 </head>
 
 <body>
-    <Routes @rendermode="new InteractiveServerRenderMode(prerender: false)" />
+    <CascadingAuthenticationState>
+        <Routes @rendermode="new InteractiveServerRenderMode(prerender: false)" />
+    </CascadingAuthenticationState>
     <script src="@Assets["_content/MudBlazor/MudBlazor.min.js"]"></script>
     <script src="@Assets["_content/IntlTelInputBlazor/js/intlTelInput.js"]"></script>
     <script src="_framework/blazor.web.js"></script>
 </body>
 
 </html>
-
 

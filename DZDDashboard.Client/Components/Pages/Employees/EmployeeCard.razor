@@ -661,20 +661,36 @@
                                         </MudItem>
                                         <MudItem xs="12" md="4">
                                             <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Phone" Size="Size.Small" /> Phone Number</div>
-                                            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-                                                @if (_editingEmergencyInfo)
-                                                {
-                                                    <MudTextField @bind-Value="contact.PhoneNumber" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
-                                                    <MudIconButton Icon="@DzdIcons.Trash" Color="Color.Error" Size="Size.Small" OnClick="@(() => RemoveEmergencyContact(contact))" />
-                                                }
-                                                else
-                                                {
+                                            
+                                            @if (_editingEmergencyInfo)
+                                            {
+                                                <div class="d-flex align-center gap-2">
+                                                    @* flex-grow-1 ile inputun boşluğu kaplamasını sağlıyoruz *@
+                                                    <div class="dzd-intl-phone dzd-input flex-grow-1">
+                                                        <MudIntlTelInput T="IntlTel" 
+                                                                        Variant="Variant.Outlined" 
+                                                                        Margin="Margin.Dense" 
+                                                                        Value="GetEmergencyPhone(contact)" 
+                                                                        ValueChanged="@(val => OnEmergencyPhoneChanged(contact, val))"
+                                                                        Style="margin-top: 0;" /> @* Üstten gelen varsayılan boşlukları sıfırlıyoruz *@
+                                                    </div>
+                                                    @* Butonun dikeyde kaymasını engellemek için self-center kullanıyoruz *@
+                                                    <MudIconButton Icon="@DzdIcons.Trash" 
+                                                                Color="Color.Error" 
+                                                                Size="Size.Small" 
+                                                                OnClick="@(() => RemoveEmergencyContact(contact))" 
+                                                                Class="mt-n1" /> @* mt-n1 (negative margin) gerekirse ufak ayar için *@
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="dzd-contact-display">
                                                     <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@contact.PhoneNumber</MudText>
                                                     <MudIconButton Icon="@DzdIcons.Copy" Size="Size.Small" Color="Color.Dark" OnClick="@(async () => await CopyToClipboard(contact.PhoneNumber))" />
-                                                }
-                                            </MudStack>
+                                                </MudStack>
+                                            }
                                         </MudItem>
-                                    }
+                                     }
                                 }
                                 else if (!_editingEmergencyInfo)
                                 {
@@ -931,6 +947,7 @@
     private bool _editingAddressInfo;
     private IntlTel _workPhoneIntl = new();
     private IntlTel _personalPhoneIntl = new();
+    private Dictionary<EmergencyContactDto, IntlTel> _emergencyContactPhones = new();
     private int _activeViewIndex;
     private int? _employeeId;
     private List<PayrollLocationDto> _payrollLocations = new();
@@ -1119,12 +1136,22 @@
                     PhoneNumber = c.PhoneNumber
                 }).ToList() ?? new List<EmergencyContactDto>()
             };
+
+            _emergencyContactPhones = _personalInfo.EmergencyContacts?
+                .ToDictionary(c => c, c => new IntlTel { Number = c.PhoneNumber })
+                ?? new Dictionary<EmergencyContactDto, IntlTel>();
+
             _editingEmergencyInfo = true;
             await InvokeAsync(StateHasChanged);
         }
         finally { _isEditingActionInProgress = false; }
     }
 
+    private void OnEmergencyPhoneChanged(EmergencyContactDto contact, IntlTel newValue)
+    {
+        _emergencyContactPhones[contact] = newValue;
+        contact.PhoneNumber = newValue.Number;
+    }
     private async Task StartAddressInfoEdit()
     {
         if (_isEditingActionInProgress || _personalInfo is null) return;
@@ -1208,13 +1235,17 @@
         }
         _editingEmergencyInfo = false;
         _emergencyInfoBackup = null;
+        _emergencyContactPhones.Clear();
     }
 
     private void AddEmergencyContact()
     {
         if (_personalInfo == null) return;
         _personalInfo.EmergencyContacts ??= new List<EmergencyContactDto>();
-        _personalInfo.EmergencyContacts.Add(new EmergencyContactDto { UserId = _employeeId ?? 0 });
+
+        var newContact = new EmergencyContactDto { UserId = _employeeId ?? 0 };
+        _personalInfo.EmergencyContacts.Add(newContact);
+        _emergencyContactPhones[newContact] = new IntlTel();
     }
 
     private async Task StartFamilyInfoEdit()
@@ -1301,8 +1332,10 @@
 
     private void RemoveEmergencyContact(EmergencyContactDto contact)
     {
-        if (_personalInfo?.EmergencyContacts == null) return;
+        if (_personalInfo?.EmergencyContacts == null || contact is null) return;
+
         _personalInfo.EmergencyContacts.Remove(contact);
+        _emergencyContactPhones.Remove(contact);
     }
 
     private void CancelAddressInfoEdit()
@@ -1405,6 +1438,19 @@
     private async Task SaveEmergencyInfoAsync()
     {
         if (_personalInfo is null || _employeeId is null) return;
+
+        // Sync IntlTel values back into the DTO model.
+        if (_personalInfo.EmergencyContacts != null)
+        {
+            foreach (var contact in _personalInfo.EmergencyContacts)
+            {
+                if (_emergencyContactPhones.TryGetValue(contact, out var intl))
+                {
+                    contact.PhoneNumber = intl.Number;
+                }
+            }
+        }
+
         try
         {
             var dto = new UpdateEmergencyContactsDto
@@ -1425,6 +1471,7 @@
                 Snackbar.Add("Emergency contact updated successfully.", Severity.Success);
                 _editingEmergencyInfo = false;
                 _emergencyInfoBackup = null;
+                _emergencyContactPhones.Clear();
             }
             else Snackbar.Add("Failed to update emergency contact.", Severity.Error);
         }
@@ -1472,6 +1519,17 @@
         _workPhoneIntl = new IntlTel { Number = _personalInfo?.PhoneNumber };
         _personalPhoneIntl = new IntlTel { Number = _personalInfo?.PersonalPhoneNumber };
     }
+
+    private IntlTel GetEmergencyPhone(EmergencyContactDto contact)
+    {
+        if (!_emergencyContactPhones.TryGetValue(contact, out var intl))
+        {
+            intl = new IntlTel { Number = contact.PhoneNumber };
+            _emergencyContactPhones[contact] = intl;
+        }
+        return intl;
+    }
+
     private void SetView(int index) => _activeViewIndex = index;
     private void Back() => Nav.NavigateTo("/employees");
     private string GetManagerDisplayName() => AppFormatter.BuildFullName(_profile?.ReportsTo?.FirstName, _profile?.ReportsTo?.LastName) ?? "-";

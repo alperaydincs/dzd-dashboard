@@ -69,6 +69,7 @@ namespace DZDDashboard.Services
             public async Task<List<UserDto>> GetAllWithRolesAsync()
             {
                 var users = await _context.Users
+                    .Include(u => u.Avatar)
                     .ToListAsync();
                 return _mapper.Map<List<UserDto>>(users);
             }
@@ -76,6 +77,7 @@ namespace DZDDashboard.Services
             public async Task<UserDto?> GetByIdWithRolesAsync(int id)
             {
                 var user = await _context.Users
+                    .Include(u => u.Avatar)
                     .FirstOrDefaultAsync(u => u.Id == id);
                 return user == null ? null : _mapper.Map<UserDto>(user);
             }

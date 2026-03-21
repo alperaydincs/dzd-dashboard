@@ -1,0 +1,35 @@
+@page "/auth/redirect"
+@using Microsoft.AspNetCore.Components
+@using Microsoft.JSInterop
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    private bool _redirected;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _redirected)
+            return;
+
+        _redirected = true;
+
+        var returnUrl = string.IsNullOrWhiteSpace(ReturnUrl) ? Navigation.Uri : ReturnUrl;
+        var signInUrl = $"/MicrosoftIdentity/Account/SignIn?returnUrl={Uri.EscapeDataString(returnUrl)}";
+        await JS.InvokeVoidAsync("location.replace", signInUrl);
+    }
+}
+
+<div style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--mud-palette-background,#fff);z-index:9999;">
+    <div style="text-align:center;max-width:360px;padding:24px;">
+        <h2>Yönlendiriliyorsunuz...</h2>
+        <p>Oturumunuz yenileniyor. Lütfen bekleyin.</p>
+        <div style="margin-top:24px;">
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+        </div>
+    </div>
+</div>

@@ -199,6 +199,12 @@ namespace DZDDashboard.Api.Controllers;
             return HandleException(ex, "Update organization position");
         }
     }
+    [HttpGet("{id:int}/avatar")]
+    public async Task<ActionResult<UserAvatarDto>> GetUserAvatar(int id)
+    {
+        var avatarDto = await _userService.GetAvatarByUserIdAsync(id);
+        return Ok(avatarDto ?? new UserAvatarDto());
+    }
 
     [HttpPut("{id:int}/emergency-contacts")]
     [Authorize(Roles = "Admin")]

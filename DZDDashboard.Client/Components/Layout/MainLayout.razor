@@ -12,25 +12,17 @@
 @inject NavigationManager Nav
 @inject UserService UserService
 @inject NotificationCenterService NotificationCenter
-@inject SignInRedirectService SignInRedirectService
 @inject IJSRuntime JS
 
 @implements IDisposable
-
 
 <MudThemeProvider Theme="_myTheme" />
 <MudDialogProvider />
 <MudPopoverProvider />
 <MudSnackbarProvider />
-@if (_showRedirectOverlay)
-{
-    <div style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--mud-palette-background,#fff);z-index:9999;gap:16px;">
-        <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
-        <MudText Typo="Typo.body1" Style="color:var(--mud-palette-text-secondary);">You are being redirected...</MudText>
-    </div>
-}
+
 <MudLayout>
-    <MudAppBar Elevation="1" >
+    <MudAppBar Elevation="1">
         <AuthorizeView>
             <Authorized>
                 <MudIconButton Icon="@DzdIcons.Menu" Color="Color.Inherit" OnClick="@DrawerToggle" />
@@ -43,60 +35,56 @@
             <Authorized>
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="appbar-user-actions" Style="gap:10px;">
                     <div style="margin-right:8px;">
-                    <MudMenu AnchorOrigin="Origin.BottomRight"
-                             TransformOrigin="Origin.TopRight"
-                             Class="notifications-menu">
-                        <ActivatorContent>
-                            @if (_unreadNotifications > 0)
-                            {
-                                <MudBadge Content="@_unreadNotifications" Color="Color.Error" Overlap="true">
-                                    <MudIconButton Icon="@DzdIcons.Bell" Color="Color.Inherit" Size="Size.Small" Class="notifications-trigger" />
-                                </MudBadge>
-                            }
-                            else
-                            {
-                                <MudIconButton Icon="@DzdIcons.Bell" Color="Color.Inherit" Size="Size.Small" Class="notifications-trigger" />
-                            }
-                        </ActivatorContent>
-                        <ChildContent>
-                            <MudStack Class="notifications-panel">
-                                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="notifications-header">
-                                    <MudText Typo="Typo.subtitle2">Notifications</MudText>
-                                    <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="MarkAllNotificationsAsRead">Mark all read</MudButton>
-                                </MudStack>
-                                <MudDivider />
-
-                                @if (_notifications.Count == 0)
+                        <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Class="notifications-menu">
+                            <ActivatorContent>
+                                @if (_unreadNotifications > 0)
                                 {
-                                    <MudText Typo="Typo.caption" Class="pa-3">No notifications yet.</MudText>
+                                    <MudBadge Content="@_unreadNotifications" Color="Color.Error" Overlap="true">
+                                        <MudIconButton Icon="@DzdIcons.Bell" Color="Color.Inherit" Size="Size.Small" Class="notifications-trigger" />
+                                    </MudBadge>
                                 }
                                 else
                                 {
-                                    @foreach (var notification in _notifications)
-                                    {
-                                        <MudListItem T="string" Class="notification-item" OnClick="@(() => MarkNotificationAsRead(notification.Id))">
-                                            <MudStack Spacing="0" Class="notification-item-content">
-                                                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-                                                    <MudText Typo="Typo.subtitle2">@notification.Title</MudText>
-                                                    @if (!notification.IsRead)
-                                                    {
-                                                        <MudChip T="string" Color="Color.Primary" Size="Size.Small" Variant="Variant.Text">New</MudChip>
-                                                    }
-                                                </MudStack>
-                                                <MudText Typo="Typo.caption">@notification.Message</MudText>
-                                                <MudText Typo="Typo.caption" Class="notification-time">@FormatNotificationTime(notification.CreatedAtUtc)</MudText>
-                                            </MudStack>
-                                        </MudListItem>
-                                    }
+                                    <MudIconButton Icon="@DzdIcons.Bell" Color="Color.Inherit" Size="Size.Small" Class="notifications-trigger" />
                                 }
-                            </MudStack>
-                        </ChildContent>
-                    </MudMenu>
+                            </ActivatorContent>
+                            <ChildContent>
+                                <MudStack Class="notifications-panel">
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="notifications-header">
+                                        <MudText Typo="Typo.subtitle2">Notifications</MudText>
+                                        <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="MarkAllNotificationsAsRead">Mark all read</MudButton>
+                                    </MudStack>
+                                    <MudDivider />
+
+                                    @if (_notifications.Count == 0)
+                                    {
+                                        <MudText Typo="Typo.caption" Class="pa-3">No notifications yet.</MudText>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var notification in _notifications)
+                                        {
+                                            <MudListItem T="string" Class="notification-item" OnClick="@(() => MarkNotificationAsRead(notification.Id))">
+                                                <MudStack Spacing="0" Class="notification-item-content">
+                                                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                                        <MudText Typo="Typo.subtitle2">@notification.Title</MudText>
+                                                        @if (!notification.IsRead)
+                                                        {
+                                                            <MudChip T="string" Color="Color.Primary" Size="Size.Small" Variant="Variant.Text">New</MudChip>
+                                                        }
+                                                    </MudStack>
+                                                    <MudText Typo="Typo.caption">@notification.Message</MudText>
+                                                    <MudText Typo="Typo.caption" Class="notification-time">@FormatNotificationTime(notification.CreatedAtUtc)</MudText>
+                                                </MudStack>
+                                            </MudListItem>
+                                        }
+                                    }
+                                </MudStack>
+                            </ChildContent>
+                        </MudMenu>
                     </div>
 
-                    <MudMenu AnchorOrigin="Origin.BottomRight"
-                             TransformOrigin="Origin.TopRight"
-                             Class="profile-menu">
+                    <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Class="profile-menu">
                         <ActivatorContent>
                             <MudAvatar Color="Color.Primary" Style="cursor:pointer;">
                                 @if (!string.IsNullOrEmpty(_avatarDataUrl))
@@ -120,7 +108,6 @@
                         </ChildContent>
                     </MudMenu>
                 </MudStack>
-
             </Authorized>
             <NotAuthorized>
                 <MudButton Href="/MicrosoftIdentity/Account/SignIn" Color="Color.Inherit">Login</MudButton>
@@ -202,9 +189,7 @@
     </MudMainContent>
 </MudLayout>
 
-
 @code {
-
     private string _pageTitle = "DZD Dashboard";
     private readonly MudTheme _myTheme = AppTheme.Default;
     private bool _drawerOpen = true;
@@ -225,7 +210,6 @@
     private string _userInitials = "?";
     private List<AppNotification> _notifications = new();
     private int _unreadNotifications;
-    private bool _showRedirectOverlay;
 
     private void DrawerToggle()
     {
@@ -237,22 +221,14 @@
         _employeesMenuExpanded = !_employeesMenuExpanded;
     }
 
-
     protected override async Task OnInitializedAsync()
     {
         UpdatePageTitle(Nav.Uri);
         AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
         Nav.LocationChanged += OnLocationChanged;
         NotificationCenter.Changed += OnNotificationsChanged;
-        SignInRedirectService.Changed += OnRedirectStateChanged;
         LoadNotifications();
         await LoadAvatarAsync();
-    }
-
-    private void OnRedirectStateChanged()
-    {
-        _showRedirectOverlay = SignInRedirectService.IsRedirecting;
-        InvokeAsync(StateHasChanged);
     }
 
     private async Task LoadAvatarAsync()
@@ -276,10 +252,6 @@
                 {
                     _avatarDataUrl = string.Empty;
                 }
-            }
-            catch (MicrosoftIdentityWebChallengeUserException)
-            {
-                return;
             }
             catch (Exception ex)
             {
@@ -319,7 +291,6 @@
         AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
         Nav.LocationChanged -= OnLocationChanged;
         NotificationCenter.Changed -= OnNotificationsChanged;
-        SignInRedirectService.Changed -= OnRedirectStateChanged;
     }
 
     private void OnNotificationsChanged()
@@ -369,7 +340,6 @@
     {
         var relativePath = Nav.ToBaseRelativePath(location);
         
-        // Reset all selections
         _isEmployeesSelected = false;
         _isDepartmentsSelected = false;
         _isPositionsSelected = false;
@@ -381,7 +351,6 @@
         _isCompanySelected = false;
         _isSettingsSelected = false;
 
-        // Set current selection
         if (string.IsNullOrEmpty(relativePath))
         {
             _isDashboardSelected = true;
@@ -446,5 +415,3 @@
         }
     }
 }
-
-

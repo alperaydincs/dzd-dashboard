@@ -1,12 +1,14 @@
 
+using Microsoft.AspNetCore.Components;
+
 using DZDDashboard.Common.DTOs;
 
 namespace DZDDashboard.Client.Services;
 
 public class UserService : ApiServiceBase
 {
-    public UserService(IHttpClientFactory httpClientFactory, SignInRedirectService signInRedirectService)
-        : base(httpClientFactory, signInRedirectService) { }
+    public UserService(IHttpClientFactory httpClientFactory, NavigationManager navigationManager)
+        : base(httpClientFactory, navigationManager) { }
 
     public async Task<UserProfileDto?> GetMyProfileAsync()
         => await GetAsync<UserProfileDto>("api/users/my-profile");
@@ -46,21 +48,21 @@ public class UserService : ApiServiceBase
 
     public async Task<HttpResponseMessage> UpdateBasicInfoAsync(int userId, UpdateBasicInfoDto dto)
     {
-        return await PutAsync($"users/{userId}/basic-info", dto);
+        return await PutAsync($"api/users/{userId}/basic-info", dto);
     }
 
     public async Task<HttpResponseMessage> UpdateContactsAsync(int userId, UpdateContactsDto dto)
     {
-        return await PutAsync($"users/{userId}/contacts", dto);
+        return await PutAsync($"api/users/{userId}/contacts", dto);
     }
 
     public async Task<HttpResponseMessage> UpdateCitizenshipInfoAsync(int userId, UpdateCitizenshipInfoDto dto)
     {
-        return await PutAsync($"users/{userId}/citizenship-info", dto);
+        return await PutAsync($"api/users/{userId}/citizenship-info", dto);
     }
 
     public async Task<HttpResponseMessage> UpdateAddressInfoAsync(int userId, UpdateAddressInfoDto dto)
     {
-        return await PutAsync($"users/{userId}/address-info", dto);
+        return await PutAsync($"api/users/{userId}/address-info", dto);
     }
 }

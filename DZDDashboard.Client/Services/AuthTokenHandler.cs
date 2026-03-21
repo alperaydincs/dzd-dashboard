@@ -1,5 +1,7 @@
 
 using Microsoft.Identity.Web;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using System.Net;
 
 namespace DZDDashboard.Client.Services;
@@ -8,7 +10,6 @@ public class AuthTokenHandler : DelegatingHandler
 {
     private readonly ITokenAcquisition _tokenAcquisition;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly SignInRedirectService _signInRedirectService;
 
     private readonly string[] _scopes;
 
@@ -16,12 +17,10 @@ public class AuthTokenHandler : DelegatingHandler
     public AuthTokenHandler(
         ITokenAcquisition tokenAcquisition,
         IHttpContextAccessor httpContextAccessor,
-        IConfiguration configuration,
-        SignInRedirectService signInRedirectService)
+        IConfiguration configuration)
     {
         _tokenAcquisition = tokenAcquisition;
         _httpContextAccessor = httpContextAccessor;
-        _signInRedirectService = signInRedirectService;
 
         _scopes = (configuration["DownstreamApi:Scopes"] ?? string.Empty)
             .Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -47,7 +46,6 @@ public class AuthTokenHandler : DelegatingHandler
         {
             return await base.SendAsync(request, cancellationToken);
         }
-
         try
         {
             var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(_scopes, user: user);
@@ -59,8 +57,6 @@ public class AuthTokenHandler : DelegatingHandler
         }
         catch (MicrosoftIdentityWebChallengeUserException)
         {
-            await _signInRedirectService.RedirectToSignInAsync();
-
             return new HttpResponseMessage(HttpStatusCode.Unauthorized)
             {
                 RequestMessage = request,
