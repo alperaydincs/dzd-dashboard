@@ -63,25 +63,37 @@
                             <MudGrid Spacing="2" Class="mt-2">
                                 <MudItem xs="6" sm="4" md="3">
                                     <MudStack Spacing="1">
-                                        <MudText Typo="Typo.caption" Style="color: #6c757d; font-weight: 500;">Job Title</MudText>
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                            <MudIcon Icon="@DzdIcons.Briefcase" Size="Size.Small" Style="color: #6c757d; font-size: 16px;" />
+                                            <MudText Typo="Typo.caption" Style="color: #6c757d; font-weight: 500;">Job Title</MudText>
+                                        </MudStack>
                                         <MudText Typo="Typo.body2" Style="color: var(--dzd-text-primary); font-weight: 500;">@(_profile.Job?.Name ?? "-")</MudText>
                                     </MudStack>
                                 </MudItem>
                                 <MudItem xs="6" sm="4" md="3">
                                     <MudStack Spacing="1">
-                                        <MudText Typo="Typo.caption" Style="color: #6c757d; font-weight: 500;">Department</MudText>
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                            <MudIcon Icon="@DzdIcons.Building" Size="Size.Small" Style="color: #6c757d; font-size: 16px;" />
+                                            <MudText Typo="Typo.caption" Style="color: #6c757d; font-weight: 500;">Department</MudText>
+                                        </MudStack>
                                         <MudText Typo="Typo.body2" Style="color: var(--dzd-text-primary); font-weight: 500;">@(_profile.Department?.Name ?? "-")</MudText>
                                     </MudStack>
                                 </MudItem>
                                 <MudItem xs="6" sm="4" md="3">
                                     <MudStack Spacing="1">
-                                        <MudText Typo="Typo.caption" Style="color: #6c757d; font-weight: 500;">Reporting To</MudText>
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                            <MudIcon Icon="@DzdIcons.User" Size="Size.Small" Style="color: #6c757d; font-size: 16px;" />
+                                            <MudText Typo="Typo.caption" Style="color: #6c757d; font-weight: 500;">Reporting To</MudText>
+                                        </MudStack>
                                         <MudText Typo="Typo.body2" Style="color: var(--dzd-text-primary); font-weight: 500;">@((_profile.ReportsTo?.FirstName != null) ? (_profile.ReportsTo.FirstName + " " + _profile.ReportsTo.LastName) : "-")</MudText>
                                     </MudStack>
                                 </MudItem>
                                 <MudItem xs="6" sm="4" md="3">
                                     <MudStack Spacing="1">
-                                        <MudText Typo="Typo.caption" Style="color: #6c757d; font-weight: 500;">Work Type</MudText>
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                            <MudIcon Icon="@DzdIcons.History" Size="Size.Small" Style="color: #6c757d; font-size: 16px;" />
+                                            <MudText Typo="Typo.caption" Style="color: #6c757d; font-weight: 500;">Work Type</MudText>
+                                        </MudStack>
                                         <MudText Typo="Typo.body2" Style="color: var(--dzd-text-primary); font-weight: 500;">@(_profile.WorkModel ?? "-")</MudText>
                                     </MudStack>
                                 </MudItem>
@@ -90,13 +102,19 @@
                             <MudGrid Spacing="2">
                                 <MudItem xs="6" sm="4" md="3">
                                     <MudStack Spacing="1">
-                                        <MudText Typo="Typo.caption" Style="color: #6c757d; font-weight: 500;">Grade</MudText>
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                            <MudIcon Icon="@DzdIcons.BadgeCheck" Size="Size.Small" Style="color: #6c757d; font-size: 16px;" />
+                                            <MudText Typo="Typo.caption" Style="color: #6c757d; font-weight: 500;">Grade</MudText>
+                                        </MudStack>
                                         <MudText Typo="Typo.body2" Style="color: var(--dzd-text-primary); font-weight: 500;">@(_profile.Grade is null ? "-" : $"{_profile.Grade}")</MudText>
                                     </MudStack>
                                 </MudItem>
                                 <MudItem xs="6" sm="4" md="3">
                                     <MudStack Spacing="1">
-                                        <MudText Typo="Typo.caption" Style="color: #6c757d; font-weight: 500;">Location</MudText>
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                            <MudIcon Icon="@DzdIcons.MapPin" Size="Size.Small" Style="color: #6c757d; font-size: 16px;" />
+                                            <MudText Typo="Typo.caption" Style="color: #6c757d; font-weight: 500;">Location</MudText>
+                                        </MudStack>
                                         <MudText Typo="Typo.body2" Style="color: var(--dzd-text-primary); font-weight: 500;">@(_profile.PayrollLocation?.Name ?? "-")</MudText>
                                     </MudStack>
                                 </MudItem>
@@ -188,7 +206,7 @@
                                             </div>
                                             <MudStack Spacing="0" Style="flex-grow: 1;">
                                                 <MudText Typo="Typo.caption" Style="color: var(--dzd-text-secondary); font-weight: 500;">Phone</MudText>
-                                                <MudText Typo="Typo.body2" Style="color: var(--dzd-text-primary); font-weight: 500;">@(_profile.PhoneNumber ?? "-")</MudText>
+                                                <MudText Typo="Typo.body2" Style="color: var(--dzd-text-primary); font-weight: 500;">@(GetWorkPhoneDisplay())</MudText>
                                             </MudStack>
                                         </MudStack>
                                     </MudPaper>
@@ -262,11 +280,7 @@
             }
             else
             {
-                @if (_personalInfoLoading)
-                {
-                    <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="ml-4 mt-6" />
-                }
-                else if (_personalInfo is null)
+                @if (_personalInfo is null)
                 {
                     <MudAlert Severity="Severity.Warning" Class="mt-4">No personal information available.</MudAlert>
                 }
@@ -275,7 +289,7 @@
                     <div class="dzd-personal-info-bg pa-0">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
                             <div class="dzd-section-title" style="margin:0;">
-                                <span class="dzd-section-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:2px;vertical-align:middle;" aria-hidden="true"></span> Employee Details
+                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:2px;vertical-align:middle;" aria-hidden="true"></span> Employee Details
                             </div>
                             @if (!_editingBasicInfo)
                             {
@@ -284,17 +298,17 @@
                         </MudStack>
 
                         <MudPaper Elevation="1" Class="dzd-card pa-6">
-                            <MudGrid Spacing="6">
+                            <MudGrid Spacing="4">
                                 <MudItem xs="12" md="6">
                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.User" Size="Size.Small" /> Full Name</div>
                                     @if (_editingBasicInfo)
                                     {
                                         <MudGrid Spacing="2">
                                             <MudItem xs="12" sm="6">
-                                                <MudTextField @bind-Value="_personalInfo!.FirstName" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" Placeholder="First name" />
+                                                <MudTextField @bind-Value="_personalInfo!.FirstName" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  Placeholder="First name" />
                                             </MudItem>
                                             <MudItem xs="12" sm="6">
-                                                <MudTextField @bind-Value="_personalInfo!.LastName" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" Placeholder="Last name" />
+                                                <MudTextField @bind-Value="_personalInfo!.LastName" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  Placeholder="Last name" />
                                             </MudItem>
                                         </MudGrid>
                                     }
@@ -308,7 +322,7 @@
                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.IdCard" Size="Size.Small" /> Registry Number (Sicil No)</div>
                                     @if (_editingBasicInfo)
                                     {
-                                        <MudTextField @bind-Value="_personalInfo!.RegistrationNumber" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
+                                        <MudTextField @bind-Value="_personalInfo!.RegistrationNumber" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  />
                                     }
                                     else
                                     {
@@ -320,7 +334,7 @@
                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.CalendarDays" Size="Size.Small" /> Job Start Date</div>
                                     @if (_editingBasicInfo)
                                     {
-                                        <MudDatePicker AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" Date="@_personalInfo.UserStartDate" DateChanged="@(d => _personalInfo.UserStartDate = d)" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
+                                        <MudDatePicker AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" Date="@_personalInfo.UserStartDate" DateChanged="@(d => _personalInfo.UserStartDate = d)" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  />
                                     }
                                     else
                                     {
@@ -332,7 +346,7 @@
                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Calendar" Size="Size.Small" /> Position Start Date</div>
                                     @if (_editingBasicInfo)
                                     {
-                                        <MudDatePicker AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" Date="@_personalInfo.PositionStartDate" DateChanged="@(d => _personalInfo.PositionStartDate = d)" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
+                                        <MudDatePicker AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" Date="@_personalInfo.PositionStartDate" DateChanged="@(d => _personalInfo.PositionStartDate = d)" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  />
                                     }
                                     else
                                     {
@@ -349,7 +363,7 @@
                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.FileText" Size="Size.Small" /> Contract Type</div>
                                     @if (_editingBasicInfo)
                                     {
-                                        <MudSelect T="string" @bind-Value="_personalInfo!.ContractType" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" AnchorOrigin="Origin.BottomLeft">
+                                        <MudSelect T="string" @bind-Value="_personalInfo!.ContractType" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  AnchorOrigin="Origin.BottomLeft">
                                             <MudSelectItem Value="@("Full-time")">Full-time</MudSelectItem>
                                             <MudSelectItem Value="@("Part-time")">Part-time</MudSelectItem>
                                             <MudSelectItem Value="@("Contract")">Contract</MudSelectItem>
@@ -366,7 +380,7 @@
                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Calendar" Size="Size.Small" /> Contract End Date</div>
                                     @if (_editingBasicInfo)
                                     {
-                                        <MudDatePicker AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" Date="@_personalInfo.ContractEndDate" DateChanged="@(d => _personalInfo.ContractEndDate = d)" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
+                                        <MudDatePicker AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" Date="@_personalInfo.ContractEndDate" DateChanged="@(d => _personalInfo.ContractEndDate = d)" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  />
                                     }
                                     else
                                     {
@@ -378,7 +392,7 @@
                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.History" Size="Size.Small" /> Work Type</div>
                                     @if (_editingBasicInfo)
                                     {
-                                        <MudSelect T="string" @bind-Value="_personalInfo!.WorkModel" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" AnchorOrigin="Origin.BottomLeft">
+                                        <MudSelect T="string" @bind-Value="_personalInfo!.WorkModel" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  AnchorOrigin="Origin.BottomLeft">
                                             <MudSelectItem Value="@("Remote")">Remote</MudSelectItem>
                                             <MudSelectItem Value="@("Hybrid")">Hybrid</MudSelectItem>
                                             <MudSelectItem Value="@("On-site")">On-site</MudSelectItem>
@@ -395,8 +409,9 @@
                                     @if (_editingBasicInfo)
                                     {
                                         <MudSelect T="int?" @bind-Value="_personalInfo!.PayrollLocationId" 
-                                                   Variant="Variant.Outlined" Margin="Margin.Dense"
-                                                   AnchorOrigin="Origin.BottomLeft" Class="dzd-input">
+                                                   Variant="Variant.Outlined" 
+                                                   AnchorOrigin="Origin.BottomLeft" Class="dzd-input"
+                                                   Margin="Margin.Dense">
                                             @foreach (var location in _payrollLocations)
                                             {
                                                 <MudSelectItem T="int?" Value="@location.Id">@location.Name</MudSelectItem>
@@ -421,10 +436,10 @@
                         <MudDivider Class="my-4" />
                         
                         <div class="dzd-section-title">
-                            <span class="dzd-section-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Manager Information
+                            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Manager Information
                         </div>
                         <MudPaper Elevation="1" Class="dzd-card pa-6">
-                            <MudGrid Spacing="2">
+                            <MudGrid Spacing="4">
                                 <MudItem xs="12" md="6">
                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.User" Size="Size.Small" /> Manager</div>
                                     <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary); padding:2px 2px;">@GetManagerDisplayName()</MudText>
@@ -440,14 +455,14 @@
 
                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
                             <div class="dzd-section-title" style="margin:0;">
-                                <span class="dzd-section-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Contact Information
+                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Contact Information
                             </div>
                             @if (!_editingContacts)
                             {
                                 <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" OnClick="StartContactsEdit" />
                             }
                         </MudStack>
-                        <MudGrid Spacing="2">
+                        <MudGrid Spacing="4">
                             <MudItem xs="12" md="6">
                                 <MudPaper Elevation="1" Class="dzd-card h-100 pa-6">
                                     <MudText Typo="Typo.subtitle2" Class="mb-4">Work Contact</MudText>
@@ -456,7 +471,7 @@
                                             <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Mail" Size="Size.Small" /> Work Email</div>
                                             @if (_editingContacts)
                                             {
-                                                <MudTextField @bind-Value="_personalInfo!.Email" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" Immediate="true" />
+                                                <MudTextField @bind-Value="_personalInfo!.Email" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  Immediate="true" />
                                             }
                                             else
                                             {
@@ -477,8 +492,8 @@
                                             else
                                             {
                                                 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="dzd-contact-display">
-                                                    <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(((_personalInfo?.PhoneNumber) ?? _profile.PhoneNumber) ?? "-")</MudText>
-                                                    <MudIconButton Icon="@DzdIcons.Copy" Size="Size.Small" Color="Color.Dark" OnClick="@(async () => await CopyToClipboard(((_personalInfo?.PhoneNumber) ?? _profile.PhoneNumber)))" />
+                                                    <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(GetWorkPhoneDisplay())</MudText>
+                                                    <MudIconButton Icon="@DzdIcons.Copy" Size="Size.Small" Color="Color.Dark" OnClick="@(async () => await CopyToClipboard(GetWorkPhoneValue()))" />
                                                 </MudStack>
                                             }
                                         </div>
@@ -493,7 +508,7 @@
                                             <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Mail" Size="Size.Small" /> Personal Email</div>
                                             @if (_editingContacts)
                                             {
-                                                <MudTextField @bind-Value="_personalInfo!.PersonalEmail" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" Immediate="true" />
+                                                <MudTextField @bind-Value="_personalInfo!.PersonalEmail" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  Immediate="true" />
                                             }
                                             else
                                             {
@@ -514,8 +529,8 @@
                                             else
                                             {
                                                 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="dzd-contact-display">
-                                                    <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_personalInfo?.PersonalPhoneNumber ?? "-")</MudText>
-                                                    <MudIconButton Icon="@DzdIcons.Copy" Size="Size.Small" Color="Color.Dark" OnClick="@(async () => await CopyToClipboard(_personalInfo?.PersonalPhoneNumber))" />
+                                                    <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(GetPersonalPhoneDisplay())</MudText>
+                                                    <MudIconButton Icon="@DzdIcons.Copy" Size="Size.Small" Color="Color.Dark" OnClick="@(async () => await CopyToClipboard(GetPersonalPhoneValue()))" />
                                                 </MudStack>
                                             }
                                         </div>
@@ -536,7 +551,7 @@
 
                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
                             <div class="dzd-section-title" style="margin:0;">
-                                <span class="dzd-section-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Citizenship Information
+                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Citizenship Information
                             </div>
                             @if (!_editingCitizenshipInfo)
                             {
@@ -544,12 +559,12 @@
                             }
                         </MudStack>
                         <MudPaper Elevation="1" Class="dzd-card pa-6">
-                             <MudGrid Spacing="2">
+                             <MudGrid Spacing="4">
                                 <MudItem xs="12" md="6">
                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.CalendarDays" Size="Size.Small" /> Date of Birth</div>
                                     @if (_editingCitizenshipInfo)
                                     {
-                                        <MudDatePicker AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" Date="@_personalInfo.DateOfBirth" DateChanged="@(d => _personalInfo.DateOfBirth = d)" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
+                                        <MudDatePicker AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" Date="@_personalInfo.DateOfBirth" DateChanged="@(d => _personalInfo.DateOfBirth = d)" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  />
                                     }
                                     else
                                     {
@@ -560,7 +575,7 @@
                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.User" Size="Size.Small" /> Gender</div>
                                     @if (_editingCitizenshipInfo)
                                     {
-                                        <MudSelect T="string" @bind-Value="_personalInfo!.Gender" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" AnchorOrigin="Origin.BottomLeft">
+                                        <MudSelect T="string" @bind-Value="_personalInfo!.Gender" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  AnchorOrigin="Origin.BottomLeft">
                                             <MudSelectItem Value="@("Male")">Male</MudSelectItem>
                                             <MudSelectItem Value="@("Female")">Female</MudSelectItem>
                                         </MudSelect>
@@ -574,7 +589,7 @@
                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Accessibility" Size="Size.Small" /> Disability Status</div>
                                     @if (_editingCitizenshipInfo)
                                     {
-                                        <MudSelect T="bool" @bind-Value="_personalInfo!.DisabilityStatus" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" AnchorOrigin="Origin.BottomLeft">
+                                        <MudSelect T="bool" @bind-Value="_personalInfo!.DisabilityStatus" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  AnchorOrigin="Origin.BottomLeft">
                                             <MudSelectItem Value="false">No</MudSelectItem>
                                             <MudSelectItem Value="true">Yes</MudSelectItem>
                                         </MudSelect>
@@ -588,7 +603,7 @@
                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Flag" Size="Size.Small" /> Nationality</div>
                                     @if (_editingCitizenshipInfo)
                                     {
-                                        <MudTextField @bind-Value="_personalInfo!.Nationality" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
+                                        <MudTextField @bind-Value="_personalInfo!.Nationality" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  />
                                     }
                                     else
                                     {
@@ -599,7 +614,7 @@
                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.IdCard" Size="Size.Small" /> National ID Number </div>
                                     @if (_editingCitizenshipInfo)
                                     {
-                                        <MudTextField @bind-Value="_personalInfo!.CitizenshipNumber" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
+                                        <MudTextField @bind-Value="_personalInfo!.CitizenshipNumber" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  />
                                     }
                                     else
                                     {
@@ -624,7 +639,7 @@
 
                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
                             <div class="dzd-section-title" style="margin:0;">
-                                <span class="dzd-section-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Emergency Contacts
+                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Emergency Contacts
                             </div>
                             @if (!_editingEmergencyInfo)
                             {
@@ -632,7 +647,7 @@
                             }
                         </MudStack>
                         <MudPaper Elevation="1" Class="dzd-card pa-6">
-                            <MudGrid Spacing="2">
+                            <MudGrid Spacing="4">
                                 @if (_personalInfo?.EmergencyContacts != null && _personalInfo.EmergencyContacts.Any())
                                 {
                                     @foreach (var contact in _personalInfo.EmergencyContacts)
@@ -641,7 +656,7 @@
                                             <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.User" Size="Size.Small" /> Full Name</div>
                                             @if (_editingEmergencyInfo)
                                             {
-                                                <MudTextField @bind-Value="contact.FullName" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
+                                                <MudTextField @bind-Value="contact.FullName" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  />
                                             }
                                             else
                                             {
@@ -652,7 +667,7 @@
                                             <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Heart" Size="Size.Small" /> Relationship</div>
                                             @if (_editingEmergencyInfo)
                                             {
-                                                <MudTextField @bind-Value="contact.Relationship" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
+                                                <MudTextField @bind-Value="contact.Relationship" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  />
                                             }
                                             else
                                             {
@@ -664,22 +679,19 @@
                                             
                                             @if (_editingEmergencyInfo)
                                             {
-                                                <div class="d-flex align-center gap-2">
-                                                    @* flex-grow-1 ile inputun boşluğu kaplamasını sağlıyoruz *@
-                                                    <div class="dzd-intl-phone dzd-input flex-grow-1">
+                                                <div class="dzd-inline-edit-row">
+                                                    <div class="dzd-intl-phone dzd-input dzd-inline-edit-control flex-grow-1">
                                                         <MudIntlTelInput T="IntlTel" 
                                                                         Variant="Variant.Outlined" 
-                                                                        Margin="Margin.Dense" 
+                                                                         
                                                                         Value="GetEmergencyPhone(contact)" 
-                                                                        ValueChanged="@(val => OnEmergencyPhoneChanged(contact, val))"
-                                                                        Style="margin-top: 0;" /> @* Üstten gelen varsayılan boşlukları sıfırlıyoruz *@
+                                                                        ValueChanged="@(val => OnEmergencyPhoneChanged(contact, val))" />
                                                     </div>
-                                                    @* Butonun dikeyde kaymasını engellemek için self-center kullanıyoruz *@
                                                     <MudIconButton Icon="@DzdIcons.Trash" 
                                                                 Color="Color.Error" 
                                                                 Size="Size.Small" 
-                                                                OnClick="@(() => RemoveEmergencyContact(contact))" 
-                                                                Class="mt-n1" /> @* mt-n1 (negative margin) gerekirse ufak ayar için *@
+                                                                OnClick="@(() => RemoveEmergencyContact(contact))"
+                                                                Class="dzd-inline-edit-action" />
                                                 </div>
                                             }
                                             else
@@ -701,7 +713,7 @@
                                 @if (_editingEmergencyInfo)
                                 {
                                     <MudItem xs="12">
-                                        <MudButton Variant="Variant.Outlined" StartIcon="@DzdIcons.Plus" Size="Size.Small" OnClick="AddEmergencyContact" Style="border-style:dashed; width:fit-content;">Add Contact</MudButton>
+                                        <MudButton Variant="Variant.Outlined" StartIcon="@DzdIcons.Plus" Size="Size.Small" OnClick="AddEmergencyContact">Add Contact</MudButton>
                                     </MudItem>
                                 }
                             </MudGrid>
@@ -718,7 +730,7 @@
                          
                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2 mt-4">
                             <div class="dzd-section-title" style="margin:0;">
-                                <span class="dzd-section-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Family Information
+                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Family Information
                             </div>
                             @if (!_editingFamilyInfo)
                             {
@@ -726,12 +738,12 @@
                             }
                         </MudStack>
                         <MudPaper Elevation="1" Class="dzd-card pa-6">
-                             <MudGrid Spacing="2">
-                                <MudItem xs="12" md="6">
+                             <MudGrid Spacing="4">
+                                 <MudItem xs="12" md="6" Class="dzd-family-align-item">
                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.House" Size="Size.Small" /> Marital Status</div>
                                     @if (_editingFamilyInfo)
                                     {
-                                        <MudSelect T="string" @bind-Value="_personalInfo!.MaritalStatus" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" AnchorOrigin="Origin.BottomLeft">
+                                        <MudSelect T="string" @bind-Value="_personalInfo!.MaritalStatus" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input" AnchorOrigin="Origin.BottomLeft">
                                             <MudSelectItem Value=@("Single")>Single</MudSelectItem>
                                             <MudSelectItem Value=@("Married")>Married</MudSelectItem>
                                             <MudSelectItem Value=@("Divorced")>Divorced</MudSelectItem>
@@ -743,11 +755,11 @@
                                         <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_personalInfo.MaritalStatus ?? "-")</MudText>
                                     }
                                 </MudItem>
-                                 <MudItem xs="12" md="6">
+                                   <MudItem xs="12" md="6" Class="dzd-family-align-item">
                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.User" Size="Size.Small" /> Spouse Name</div>
                                     @if (_editingFamilyInfo)
                                     {
-                                        <MudTextField @bind-Value="_personalInfo!.SpouseFullName" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
+                                        <MudTextField @bind-Value="_personalInfo!.SpouseFullName" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  />
                                     }
                                     else
                                     {
@@ -763,7 +775,7 @@
                                                 <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.User" Size="Size.Small" /> Child Full Name</div>
                                                 @if (_editingFamilyInfo)
                                                 {
-                                                    <MudTextField @bind-Value="child.FullName" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
+                                                    <MudTextField @bind-Value="child.FullName" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  />
                                                 }
                                                 else
                                                 {
@@ -772,11 +784,11 @@
                                             </MudItem>
                                             <MudItem xs="12" md="6">
                                                 <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Cake" Size="Size.Small" /> Child Birth Date</div>
-                                                <div style="display:flex; align-items:center;">
+                                                <div class="dzd-inline-edit-row">
                                                     @if (_editingFamilyInfo)
                                                     {
-                                                        <MudDatePicker @bind-Date="child.DateOfBirth" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
-                                                        <MudIconButton Icon="@DzdIcons.Trash" Color="Color.Error" Size="Size.Small" OnClick="@(() => RemoveChild(child))" Style="margin-left:8px; align-self:center;" />
+                                                        <MudDatePicker AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" @bind-Date="child.DateOfBirth" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input dzd-inline-edit-control"  />
+                                                        <MudIconButton Icon="@DzdIcons.Trash" Color="Color.Error" Size="Size.Small" OnClick="@(() => RemoveChild(child))" Class="dzd-inline-edit-action" />
                                                     }
                                                     else
                                                     {
@@ -806,20 +818,17 @@
 
                         @if (_editingFamilyInfo)
                         {
-                            <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-2 mb-4">
+                            <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-4 mb-4">
                                 <MudButton Variant="Variant.Outlined" OnClick="CancelFamilyInfoEdit">Cancel</MudButton>
                                 <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveFamilyInfoAsync">Save</MudButton>
                             </MudStack>
                         }
                         
+                        <MudDivider Class="my-4" />
 
-
-
-
-                        
                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2 mt-4">
                             <div class="dzd-section-title" style="margin:0;">
-                                <span class="dzd-section-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Address Information
+                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Address Information
                             </div>
                             @if (!_editingAddressInfo)
                             {
@@ -827,28 +836,52 @@
                             }
                         </MudStack>
                         <MudPaper Elevation="1" Class="dzd-card pa-6">
-                             <MudGrid Spacing="2">
+                                                         <MudGrid Spacing="4">
                                   <MudItem xs="12" md="12">
                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.House" Size="Size.Small" /> Registered Address</div>
-                                     <MudTextField @bind-Value="_personalInfo!.LegalAddress" ReadOnly="@(!_editingAddressInfo)" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
+                                    @if (_editingAddressInfo)
+                                    {
+                                        <MudTextField @bind-Value="_personalInfo!.LegalAddress" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  />
+                                    }
+                                    else
+                                    {
+                                        <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_personalInfo.LegalAddress ?? "-")</MudText>
+                                    }
                                   </MudItem>
                                   <MudItem xs="12" md="12">
-                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.MapPin" Size="Size.Small" /> Current Address <span style="color:#F97316; font-size:10px; margin-left:4px;">(Editable - HR notified on change)</span></div>
-                                     <MudTextField @bind-Value="_personalInfo.CurrentAddress" ReadOnly="@(!_editingAddressInfo)" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" Style="@(_editingAddressInfo ? "background-color:#EBF5FF;" : "")" />
+                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.MapPin" Size="Size.Small" /> Current Address</div>
+                                    @if (_editingAddressInfo)
+                                    {
+                                        <MudTextField @bind-Value="_personalInfo.CurrentAddress" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  />
+                                    }
+                                    else
+                                    {
+                                        <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_personalInfo.CurrentAddress ?? "-")</MudText>
+                                    }
                                   </MudItem>
                                   <MudItem xs="12" md="12">
-                                      <MudGrid Spacing="2">
-                                          <MudItem xs="12" md="4">
+                                      <MudGrid Spacing="4">
+                                                          <MudItem xs="12" md="6">
                                               <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Building" Size="Size.Small" /> City</div>
-                                              <MudTextField @bind-Value="_personalInfo.City" ReadOnly="@(!_editingAddressInfo)" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" Adornment="Adornment.End" AdornmentIcon="@DzdIcons.ChevronDown" Style="@(_editingAddressInfo ? "background-color:#EBF5FF;" : "")" />
+                                              @if (_editingAddressInfo)
+                                              {
+                                                  <MudTextField @bind-Value="_personalInfo.City" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input" />
+                                              }
+                                              else
+                                              {
+                                                  <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_personalInfo.City ?? "-")</MudText>
+                                              }
                                           </MudItem>
-                                          <MudItem xs="12" md="4">
+                                            <MudItem xs="12" md="6">
                                               <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Globe" Size="Size.Small" /> Country</div>
-                                              <MudTextField @bind-Value="_personalInfo.Country" ReadOnly="@(!_editingAddressInfo)" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" Style="@(_editingAddressInfo ? "background-color:#EBF5FF;" : "")" />
-                                          </MudItem>
-                                          <MudItem xs="12" md="4">
-                                              <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Timer" Size="Size.Small" /> Work Period for Current Address</div>
-                                              <MudTextField Value="@("3 years 6 months")" ReadOnly="true" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" />
+                                              @if (_editingAddressInfo)
+                                              {
+                                                  <MudTextField @bind-Value="_personalInfo.Country" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  />
+                                              }
+                                              else
+                                              {
+                                                  <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_personalInfo.Country ?? "-")</MudText>
+                                              }
                                           </MudItem>
                                       </MudGrid>
                                   </MudItem>
@@ -862,58 +895,90 @@
                             </MudStack>
                         }
 
-                        
-                        <div class="dzd-section-title">
-                            <span class="dzd-section-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Education Information
-                        </div>
+                        <MudDivider Class="my-4" />
+
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2 mt-4">
+                            <div class="dzd-section-title" style="margin:0;">
+                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Education Information
+                            </div>
+                            @if (!_editingEducationInfo)
+                            {
+                                <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" OnClick="StartEducationInfoEdit" />
+                            }
+                        </MudStack>
                         <MudPaper Elevation="1" Class="dzd-card pa-6">
-                             <MudGrid Spacing="2" Class="mb-4">
-                                <MudItem xs="12" md="6">
-                                    <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.GraduationCap" Size="Size.Small" /> Current Education Status</div>
-                                    <MudTextField Value="@("Currently Studying")" ReadOnly="true" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" Adornment="Adornment.End" AdornmentIcon="@DzdIcons.ChevronDown" />
-                                </MudItem>
-                                <MudItem xs="12" md="6">
-                                    <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Trophy" Size="Size.Small" /> Highest Completed Level</div>
-                                    <MudTextField Value="@("Master's Degree")" ReadOnly="true" Variant="Variant.Outlined" Class="dzd-input" Margin="Margin.Dense" Adornment="Adornment.End" AdornmentIcon="@DzdIcons.ChevronDown" />
-                                </MudItem>
-                             </MudGrid>
-                             
-                             <MudText Typo="Typo.subtitle2" Class="mb-3">Education History</MudText>
-                             <MudStack Spacing="3">
-                                 
-                                 <MudPaper Class="pa-3 d-flex align-center gap-4" Elevation="0" Outlined="true" Style="border-radius:8px;">
-                                     <MudAvatar Color="Color.Success" Variant="Variant.Outlined" Size="Size.Medium"><MudIcon Icon="@DzdIcons.GraduationCap" /></MudAvatar>
-                                     <div style="flex-grow:1;">
-                                         <MudText Typo="Typo.subtitle2">High School <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Text">Graduated</MudChip></MudText>
-                                         <MudText Typo="Typo.body2">@_personalInfo.HighSchoolName</MudText>
-                                         <MudText Typo="Typo.caption" Color="Color.Default">2005 - 2009</MudText>
-                                     </div>
-                                     <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" />
-                                 </MudPaper>
-                                  
-                                 <MudPaper Class="pa-3 d-flex align-center gap-4" Elevation="0" Outlined="true" Style="border-radius:8px;">
-                                     <MudAvatar Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Medium"><MudIcon Icon="@DzdIcons.GraduationCap" /></MudAvatar>
-                                     <div style="flex-grow:1;">
-                                         <MudText Typo="Typo.subtitle2">Bachelor's Degree <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text">Graduated</MudChip></MudText>
-                                         <MudText Typo="Typo.body2">@_personalInfo.BachelorsUniversityName - @_personalInfo.BachelorsProgramName</MudText>
-                                         <MudText Typo="Typo.caption" Color="Color.Default">2009 - 2013 � GPA: 3.85</MudText>
-                                     </div>
-                                     <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" />
-                                 </MudPaper>
-                                 
-                                  <MudPaper Class="pa-3 d-flex align-center gap-4" Elevation="0" Outlined="true" Style="border-radius:8px;">
-                                     <MudAvatar Color="Color.Secondary" Variant="Variant.Outlined" Size="Size.Medium"><MudIcon Icon="@DzdIcons.GraduationCap" /></MudAvatar>
-                                     <div style="flex-grow:1;">
-                                         <MudText Typo="Typo.subtitle2">Master's Degree <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Text">Graduated</MudChip></MudText>
-                                         <MudText Typo="Typo.body2">@_personalInfo.MastersUniversityName - @_personalInfo.MastersProgramName</MudText>
-                                         <MudText Typo="Typo.caption" Color="Color.Default">2013 - 2015 � GPA: 3.92</MudText>
-                                     </div>
-                                     <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" />
-                                 </MudPaper>
-                                 
-                                 <MudButton Variant="Variant.Outlined" StartIcon="@DzdIcons.Plus" FullWidth="true" Class="mt-2" style="border-style:dashed;">Add Education Record</MudButton>
-                             </MudStack>
+                            @if (!_editingEducationInfo)
+                            {
+                                @if (_educationHistoryRecords.Count == 0)
+                                {
+                                    <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">No education history added yet.</MudText>
+                                }
+                                else
+                                {
+                                    <MudStack Spacing="3">
+                                        @foreach (var record in _educationHistoryRecords)
+                                        {
+                                            <MudPaper Class="pa-3 d-flex align-center gap-4" Elevation="0" Outlined="true" Style="border-radius:8px;">
+                                                <MudAvatar Color="@GetEducationLevelColor(record.Level)" Variant="Variant.Outlined" Size="Size.Medium"><MudIcon Icon="@DzdIcons.GraduationCap" /></MudAvatar>
+                                                <div style="flex-grow:1;">
+                                                    <MudText Typo="Typo.subtitle2">@record.Level <MudChip T="string" Size="Size.Small" Color="@GetEducationStatusColor(record.Status)" Variant="Variant.Text">@(record.Status ?? "-" )</MudChip></MudText>
+                                                    <MudText Typo="Typo.body2">@record.Institution@(string.IsNullOrWhiteSpace(record.Program) ? string.Empty : $" - {record.Program}")</MudText>
+                                                    <MudText Typo="Typo.caption" Color="Color.Default">@AppFormatter.FormatDate(record.GraduationDate)</MudText>
+                                                </div>
+                                                @if (_editingEducationInfo)
+                                                {
+                                                    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                                                        <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" OnClick="@(async () => await EditEducationHistoryRecordAsync(record))" />
+                                                        <MudIconButton Icon="@DzdIcons.Trash" Size="Size.Small" Color="Color.Error" OnClick="@(async () => await RemoveEducationHistoryRecordAsync(record))" />
+                                                    </MudStack>
+                                                }
+                                            </MudPaper>
+                                        }
+                                    </MudStack>
+                                }
+                            }
+                            else
+                            {
+                                @if (_educationHistoryRecords.Count == 0)
+                                {
+                                    <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">No education history added yet.</MudText>
+                                }
+                                else
+                                {
+                                    <MudStack Spacing="3">
+                                        @foreach (var record in _educationHistoryRecords)
+                                        {
+                                            <MudPaper Class="pa-3 d-flex align-center gap-4" Elevation="0" Outlined="true" Style="border-radius:8px;">
+                                                <MudAvatar Color="@GetEducationLevelColor(record.Level)" Variant="Variant.Outlined" Size="Size.Medium"><MudIcon Icon="@DzdIcons.GraduationCap" /></MudAvatar>
+                                                <div style="flex-grow:1;">
+                                                    <MudText Typo="Typo.subtitle2">@record.Level <MudChip T="string" Size="Size.Small" Color="@GetEducationStatusColor(record.Status)" Variant="Variant.Text">@(record.Status ?? "-")</MudChip></MudText>
+                                                    <MudText Typo="Typo.body2">@record.Institution@(string.IsNullOrWhiteSpace(record.Program) ? string.Empty : $" - {record.Program}")</MudText>
+                                                    <MudText Typo="Typo.caption" Color="Color.Default">@AppFormatter.FormatDate(record.GraduationDate)</MudText>
+                                                </div>
+                                                @if (_editingEducationInfo)
+                                                {
+                                                    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                                                        <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" OnClick="@(async () => await EditEducationHistoryRecordAsync(record))" />
+                                                        <MudIconButton Icon="@DzdIcons.Trash" Size="Size.Small" Color="Color.Error" OnClick="@(async () => await RemoveEducationHistoryRecordAsync(record))" />
+                                                    </MudStack>
+                                                }
+                                            </MudPaper>
+                                        }
+                                    </MudStack>
+                                }
+
+                                <MudStack Row="true" Justify="Justify.FlexStart" Class="mt-3">
+                                    <MudButton Variant="Variant.Outlined" StartIcon="@DzdIcons.Plus" OnClick="OpenAddEducationHistoryDialogAsync">Add Education Record</MudButton>
+                                </MudStack>
+                            }
                         </MudPaper>
+                        @if (_editingEducationInfo)
+                        {
+                            <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-4 mb-4">
+                                <MudButton Variant="Variant.Outlined" OnClick="CancelEducationInfoEdit">Cancel</MudButton>
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveEducationInfoAsync">Save</MudButton>
+                            </MudStack>
+                        }
                     </div>
                 }
             }
@@ -925,15 +990,14 @@
     private bool _isAdmin;
     private bool _authorizedChecked;
     private bool _loading;
-    private bool _personalInfoLoading;
     private string? _error;
-    private EmployeeDetailDto? _profile;
-    private PersonalInfoDto? _personalInfo;
-    private PersonalInfoDto? _basicInfoBackup;
-    private PersonalInfoDto? _contactsBackup;
-    private PersonalInfoDto? _citizenshipInfoBackup;
-    private PersonalInfoDto? _emergencyInfoBackup;
-    private PersonalInfoDto? _addressInfoBackup;
+    private EmployeeCardDto? _profile;
+    private EmployeeCardDto? _personalInfo;
+    private EmployeeCardDto? _basicInfoBackup;
+    private EmployeeCardDto? _contactsBackup;
+    private EmployeeCardDto? _citizenshipInfoBackup;
+    private EmployeeCardDto? _emergencyInfoBackup;
+    private EmployeeCardDto? _addressInfoBackup;
     private string _avatarDataUrl = string.Empty;
     private string _fullName = string.Empty;
     private string _initials = "?";
@@ -943,8 +1007,12 @@
     private bool _editingCitizenshipInfo;
     private bool _editingEmergencyInfo;
     private bool _editingFamilyInfo;
-    private PersonalInfoDto? _familyInfoBackup;
+    private EmployeeCardDto? _familyInfoBackup;
     private bool _editingAddressInfo;
+    private bool _editingEducationInfo;
+    private readonly List<string> _educationLevelOptions = new() { "High School", "Associate", "Bachelor's Degree", "Master's Degree", "PhD", "Other" };
+    private List<EducationHistoryRecord> _educationHistoryRecords = new();
+    private List<EducationHistoryRecord> _educationHistoryBackup = new();
     private IntlTel _workPhoneIntl = new();
     private IntlTel _personalPhoneIntl = new();
     private Dictionary<EmergencyContactDto, IntlTel> _emergencyContactPhones = new();
@@ -980,12 +1048,13 @@
         try
         {
             var selectedId = _employeeId!.Value;
-            var profileTask = UserService.GetEmployeeDetailsAsync(selectedId);
+            var profileTask = UserService.GetEmployeeCardAsync(selectedId);
             var avatarTask = UserService.GetUserAvatarAsync(selectedId);
 
             try { _payrollLocations = await OrgService.GetPayrollLocationsAsync(); } catch {}
 
             _profile = await profileTask;
+            _personalInfo = _profile;
 
 
             if (_profile is null)
@@ -1013,7 +1082,18 @@
             }
             catch { }
 
-            await LoadPersonalInfo();
+            SyncIntlPhoneInputsFromPersonalInfo();
+            _educationHistoryRecords = (_personalInfo?.EducationHistories ?? new List<EducationHistoryDto>())
+                .Select(x => new EducationHistoryRecord
+                {
+                    Id = x.Id,
+                    Level = x.Level ?? string.Empty,
+                    Institution = x.Institution ?? string.Empty,
+                    Program = x.Program,
+                    GraduationDate = x.GraduationDate,
+                    Status = x.Status
+                })
+                .ToList();
         }
         catch (HttpRequestException ex)
         {
@@ -1026,30 +1106,39 @@
             Snackbar.Add($"{_error} {ex.Message}", Severity.Error);
         }
         finally
-        {
+        {   
             _loading = false;
         }
     }
 
-    private async Task LoadPersonalInfo()
+    private async Task RefreshProfileAsync()
     {
         if (_employeeId is null)
             return;
 
-        _personalInfoLoading = true;
-        try
-        {
-            _personalInfo = await UserService.GetPersonalInfoAsync(_employeeId.Value);
-            SyncIntlPhoneInputsFromPersonalInfo();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Personal info fetch failed: {ex.Message}");
-        }
-        finally
-        {
-            _personalInfoLoading = false;
-        }
+        var latestProfile = await UserService.GetEmployeeCardAsync(_employeeId.Value);
+        if (latestProfile is null)
+            return;
+
+        _profile = latestProfile;
+        _personalInfo = _profile;
+
+        _fullName = AppFormatter.BuildFullName(_profile.FirstName, _profile.LastName);
+        _initials = AppFormatter.GetInitials(_fullName);
+        _employmentDuration = AppFormatter.FormatDurationFrom(_profile.UserStartDate ?? _profile.PositionStartDate);
+
+        SyncIntlPhoneInputsFromPersonalInfo();
+        _educationHistoryRecords = (_personalInfo?.EducationHistories ?? new List<EducationHistoryDto>())
+            .Select(x => new EducationHistoryRecord
+            {
+                Id = x.Id,
+                Level = x.Level ?? string.Empty,
+                Institution = x.Institution ?? string.Empty,
+                Program = x.Program,
+                GraduationDate = x.GraduationDate,
+                Status = x.Status
+            })
+            .ToList();
     }
 
     private bool _isEditingActionInProgress;
@@ -1060,7 +1149,7 @@
         _isEditingActionInProgress = true;
         try
         {
-            _basicInfoBackup = new PersonalInfoDto
+            _basicInfoBackup = new EmployeeCardDto
             {
                 FirstName = _personalInfo.FirstName,
                 LastName = _personalInfo.LastName,
@@ -1084,7 +1173,7 @@
         _isEditingActionInProgress = true;
         try
         {
-            _contactsBackup = new PersonalInfoDto
+            _contactsBackup = new EmployeeCardDto
             {
                 Email = _personalInfo.Email,
                 PhoneNumber = _personalInfo.PhoneNumber,
@@ -1104,7 +1193,7 @@
         _isEditingActionInProgress = true;
         try
         {
-            _citizenshipInfoBackup = new PersonalInfoDto
+            _citizenshipInfoBackup = new EmployeeCardDto
             {
                 DateOfBirth = _personalInfo.DateOfBirth,
                 Gender = _personalInfo.Gender,
@@ -1125,7 +1214,7 @@
         _isEditingActionInProgress = true;
         try
         {
-            _emergencyInfoBackup = new PersonalInfoDto
+            _emergencyInfoBackup = new EmployeeCardDto
             {
                 EmergencyContacts = _personalInfo.EmergencyContacts?.Select(c => new EmergencyContactDto
                 {
@@ -1158,7 +1247,7 @@
         _isEditingActionInProgress = true;
         try
         {
-            _addressInfoBackup = new PersonalInfoDto
+            _addressInfoBackup = new EmployeeCardDto
             {
                 LegalAddress = _personalInfo.LegalAddress,
                 CurrentAddress = _personalInfo.CurrentAddress,
@@ -1166,6 +1255,19 @@
                 Country = _personalInfo.Country
             };
             _editingAddressInfo = true;
+            await InvokeAsync(StateHasChanged);
+        }
+        finally { _isEditingActionInProgress = false; }
+    }
+
+    private async Task StartEducationInfoEdit()
+    {
+        if (_isEditingActionInProgress || _personalInfo is null) return;
+        _isEditingActionInProgress = true;
+        try
+        {
+            _educationHistoryBackup = _educationHistoryRecords.Select(CloneEducationHistoryRecord).ToList();
+            _editingEducationInfo = true;
             await InvokeAsync(StateHasChanged);
         }
         finally { _isEditingActionInProgress = false; }
@@ -1254,7 +1356,7 @@
         _isEditingActionInProgress = true;
         try
         {
-            _familyInfoBackup = new PersonalInfoDto
+            _familyInfoBackup = new EmployeeCardDto
             {
                 MaritalStatus = _personalInfo.MaritalStatus,
                 SpouseFullName = _personalInfo.SpouseFullName,
@@ -1304,30 +1406,29 @@
     private async Task SaveFamilyInfoAsync()
     {
         if (_personalInfo is null || _employeeId is null) return;
-        try
+        var dto = new UpdateFamilyInfoDto
         {
-            var dto = new UpdateFamilyInfoDto
+            UserId = _employeeId.Value,
+            MaritalStatus = _personalInfo.MaritalStatus,
+            SpouseFullName = _personalInfo.SpouseFullName,
+            Children = _personalInfo.Children?.Select(c => new ChildInfoDto
             {
-                UserId = _employeeId.Value,
-                MaritalStatus = _personalInfo.MaritalStatus,
-                SpouseFullName = _personalInfo.SpouseFullName,
-                Children = _personalInfo.Children?.Select(c => new ChildInfoDto
-                {
-                    Id = c.Id,
-                    FullName = c.FullName,
-                    DateOfBirth = c.DateOfBirth
-                }).ToList() ?? new List<ChildInfoDto>()
-            };
-            var response = await UserService.UpdateFamilyInfoAsync(_employeeId.Value, dto);
-            if (response.IsSuccessStatusCode)
+                Id = c.Id,
+                FullName = c.FullName,
+                DateOfBirth = c.DateOfBirth
+            }).ToList() ?? new List<ChildInfoDto>()
+        };
+
+        await ExecuteSaveRequestAsync(
+            () => UserService.UpdateFamilyInfoAsync(_employeeId.Value, dto),
+            successMessage: "Family information updated successfully.",
+            failureMessage: "Failed to update family information.",
+            refreshProfileOnSuccess: true,
+            onSuccess: () =>
             {
-                Snackbar.Add("Family information updated successfully.", Severity.Success);
                 _editingFamilyInfo = false;
                 _familyInfoBackup = null;
-            }
-            else Snackbar.Add("Failed to update family information.", Severity.Error);
-        }
-        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+            });
     }
 
     private void RemoveEmergencyContact(EmergencyContactDto contact)
@@ -1351,88 +1452,105 @@
         _addressInfoBackup = null;
     }
 
+    private void CancelEducationInfoEdit()
+    {
+        _editingEducationInfo = false;
+        _educationHistoryRecords = _educationHistoryBackup.Select(CloneEducationHistoryRecord).ToList();
+        _educationHistoryBackup = new List<EducationHistoryRecord>();
+    }
+
     private async Task SaveBasicInfoAsync()
     {
         if (_personalInfo is null || _employeeId is null) return;
-        try
+        var dto = new UpdateBasicInfoDto
         {
-            var dto = new UpdateBasicInfoDto
+            UserId = _employeeId.Value,
+            FirstName = _personalInfo.FirstName,
+            LastName = _personalInfo.LastName,
+            RegistrationNumber = _personalInfo.RegistrationNumber,
+            UserStartDate = _personalInfo.UserStartDate,
+            PositionStartDate = _personalInfo.PositionStartDate,
+            ContractType = _personalInfo.ContractType,
+            ContractEndDate = _personalInfo.ContractEndDate,
+            WorkModel = _personalInfo.WorkModel,
+            PayrollLocationId = _personalInfo.PayrollLocationId
+        };
+
+        await ExecuteSaveRequestAsync(
+            () => UserService.UpdateBasicInfoAsync(_employeeId.Value, dto),
+            successMessage: "Basic information updated successfully.",
+            failureMessage: "Failed to update basic information.",
+            refreshProfileOnSuccess: true,
+            onSuccess: () =>
             {
-                UserId = _employeeId.Value,
-                FirstName = _personalInfo.FirstName,
-                LastName = _personalInfo.LastName,
-                RegistrationNumber = _personalInfo.RegistrationNumber,
-                UserStartDate = _personalInfo.UserStartDate,
-                PositionStartDate = _personalInfo.PositionStartDate,
-                ContractType = _personalInfo.ContractType,
-                ContractEndDate = _personalInfo.ContractEndDate,
-                WorkModel = _personalInfo.WorkModel,
-                PayrollLocationId = _personalInfo.PayrollLocationId
-            };
-            var response = await UserService.UpdateBasicInfoAsync(_employeeId.Value, dto);
-            if (response.IsSuccessStatusCode)
-            {
-                Snackbar.Add("Basic information updated successfully.", Severity.Success);
                 _editingBasicInfo = false;
                 _basicInfoBackup = null;
-                _fullName = AppFormatter.BuildFullName(_personalInfo.FirstName, _personalInfo.LastName);
-            }
-            else Snackbar.Add("Failed to update basic information.", Severity.Error);
-        }
-        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+            });
     }
 
     private async Task SaveContactsAsync()
     {
         if (_personalInfo is null || _employeeId is null) return;
+        var workPhone = _workPhoneIntl?.Number;
+        var personalPhone = _personalPhoneIntl?.Number;
+
         var dto = new UpdateContactsDto
         {
             UserId = _employeeId.Value,
             Email = _personalInfo.Email,
-            PhoneNumber = _workPhoneIntl?.Number,
+            PhoneNumber = workPhone,
             PersonalEmail = _personalInfo.PersonalEmail,
-            PersonalPhoneNumber = _personalPhoneIntl?.Number
+            PersonalPhoneNumber = personalPhone
         };
-        if (!AppFormatter.IsValidEmail(dto.Email)) { Snackbar.Add("Work email is invalid.", Severity.Error); return; }
-        try
+
+        if (!IsEmailValidOrEmpty(dto.Email))
         {
-            var response = await UserService.UpdateContactsAsync(_employeeId.Value, dto);
-            if (response.IsSuccessStatusCode)
+            Snackbar.Add("Please enter a valid work email address.", Severity.Error);
+            return;
+        }
+
+        if (!IsEmailValidOrEmpty(dto.PersonalEmail))
+        {
+            Snackbar.Add("Please enter a valid personal email address.", Severity.Error);
+            return;
+        }
+
+        await ExecuteSaveRequestAsync(
+            () => UserService.UpdateContactsAsync(_employeeId.Value, dto),
+            successMessage: "Contact information updated successfully.",
+            failureMessage: "Failed to update contact information.",
+            refreshProfileOnSuccess: true,
+            onSuccess: () =>
             {
-                Snackbar.Add("Contact information updated successfully.", Severity.Success);
                 _editingContacts = false;
                 _contactsBackup = null;
-            }
-            else Snackbar.Add("Failed to update contact information.", Severity.Error);
-        }
-        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+            });
     }
 
     private async Task SaveCitizenshipInfoAsync()
     {
         if (_personalInfo is null || _employeeId is null) return;
-        try
+        var dto = new UpdateCitizenshipInfoDto
         {
-            var dto = new UpdateCitizenshipInfoDto
+            UserId = _employeeId.Value,
+            DateOfBirth = _personalInfo.DateOfBirth,
+            Gender = _personalInfo.Gender,
+            Nationality = _personalInfo.Nationality,
+            CitizenshipNumber = _personalInfo.CitizenshipNumber,
+            DisabilityStatus = _personalInfo.DisabilityStatus,
+            DisabilityDegree = _personalInfo.DisabilityDegree
+        };
+
+        await ExecuteSaveRequestAsync(
+            () => UserService.UpdateCitizenshipInfoAsync(_employeeId.Value, dto),
+            successMessage: "Citizenship information updated successfully.",
+            failureMessage: "Failed to update citizenship information.",
+            refreshProfileOnSuccess: true,
+            onSuccess: () =>
             {
-                UserId = _employeeId.Value,
-                DateOfBirth = _personalInfo.DateOfBirth,
-                Gender = _personalInfo.Gender,
-                Nationality = _personalInfo.Nationality,
-                CitizenshipNumber = _personalInfo.CitizenshipNumber,
-                DisabilityStatus = _personalInfo.DisabilityStatus,
-                DisabilityDegree = _personalInfo.DisabilityDegree
-            };
-            var response = await UserService.UpdateCitizenshipInfoAsync(_employeeId.Value, dto);
-            if (response.IsSuccessStatusCode)
-            {
-                Snackbar.Add("Citizenship information updated successfully.", Severity.Success);
                 _editingCitizenshipInfo = false;
                 _citizenshipInfoBackup = null;
-            }
-            else Snackbar.Add("Failed to update citizenship information.", Severity.Error);
-        }
-        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+            });
     }
 
     private async Task SaveEmergencyInfoAsync()
@@ -1451,56 +1569,283 @@
             }
         }
 
-        try
+        var dto = new UpdateEmergencyContactsDto
         {
-            var dto = new UpdateEmergencyContactsDto
+            UserId = _employeeId.Value,
+            EmergencyContacts = _personalInfo.EmergencyContacts?.Select(c => new EmergencyContactDto
             {
-                UserId = _employeeId.Value,
-                EmergencyContacts = _personalInfo.EmergencyContacts?.Select(c => new EmergencyContactDto
-                {
-                    Id = c.Id,
-                    UserId = c.UserId,
-                    FullName = c.FullName,
-                    Relationship = c.Relationship,
-                    PhoneNumber = c.PhoneNumber
-                }).ToList() ?? new List<EmergencyContactDto>()
-            };
-            var response = await UserService.UpdateEmergencyContactsAsync(_employeeId.Value, dto);
-            if (response.IsSuccessStatusCode)
+                Id = c.Id,
+                UserId = c.UserId,
+                FullName = c.FullName,
+                Relationship = c.Relationship,
+                PhoneNumber = c.PhoneNumber
+            }).ToList() ?? new List<EmergencyContactDto>()
+        };
+
+        await ExecuteSaveRequestAsync(
+            () => UserService.UpdateEmergencyContactsAsync(_employeeId.Value, dto),
+            successMessage: "Emergency contact updated successfully.",
+            failureMessage: "Failed to update emergency contact.",
+            refreshProfileOnSuccess: true,
+            onSuccess: () =>
             {
-                Snackbar.Add("Emergency contact updated successfully.", Severity.Success);
                 _editingEmergencyInfo = false;
                 _emergencyInfoBackup = null;
                 _emergencyContactPhones.Clear();
-            }
-            else Snackbar.Add("Failed to update emergency contact.", Severity.Error);
-        }
-        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+            });
     }
 
     private async Task SaveAddressInfoAsync()
     {
         if (_personalInfo is null || _employeeId is null) return;
-        try
+        var dto = new UpdateAddressInfoDto
         {
-            var dto = new UpdateAddressInfoDto
+            UserId = _employeeId.Value,
+            LegalAddress = _personalInfo.LegalAddress,
+            CurrentAddress = _personalInfo.CurrentAddress,
+            City = _personalInfo.City,
+            Country = _personalInfo.Country
+        };
+
+        await ExecuteSaveRequestAsync(
+            () => UserService.UpdateAddressInfoAsync(_employeeId.Value, dto),
+            successMessage: "Address information updated successfully.",
+            failureMessage: "Failed to update address information.",
+            refreshProfileOnSuccess: true,
+            onSuccess: () =>
             {
-                UserId = _employeeId.Value,
-                LegalAddress = _personalInfo.LegalAddress,
-                CurrentAddress = _personalInfo.CurrentAddress,
-                City = _personalInfo.City,
-                Country = _personalInfo.Country
-            };
-            var response = await UserService.UpdateAddressInfoAsync(_employeeId.Value, dto);
-            if (response.IsSuccessStatusCode)
-            {
-                Snackbar.Add("Address information updated successfully.", Severity.Success);
                 _editingAddressInfo = false;
                 _addressInfoBackup = null;
-            }
-            else Snackbar.Add("Failed to update address information.", Severity.Error);
+            });
+    }
+
+    private async Task SaveEducationInfoAsync()
+    {
+        if (_personalInfo is null || _employeeId is null) return;
+
+        var dto = new UpdateEducationInfoDto
+        {
+            UserId = _employeeId.Value,
+            EducationHistories = _educationHistoryRecords.Select(r => new EducationHistoryDto
+            {
+                Id = r.Id,
+                Level = r.Level,
+                Institution = r.Institution,
+                Program = r.Program,
+                GraduationDate = r.GraduationDate,
+                Status = r.Status
+            }).ToList()
+        };
+
+        await ExecuteSaveRequestAsync(
+            () => UserService.UpdateEducationInfoAsync(_employeeId.Value, dto),
+            successMessage: "Education information updated successfully.",
+            failureMessage: "Failed to update education information.",
+            refreshProfileOnSuccess: true,
+            onSuccess: () =>
+            {
+                _editingEducationInfo = false;
+                _educationHistoryBackup = new List<EducationHistoryRecord>();
+            });
+    }
+
+    private async Task OpenAddEducationHistoryDialogAsync()
+    {
+        var parameters = new DialogParameters
+        {
+            [nameof(AddEducationHistoryDialog.EducationLevelOptions)] = _educationLevelOptions
+        };
+
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<AddEducationHistoryDialog>("Add Education History", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is null || result.Canceled || result.Data is not AddEducationHistoryDialog.AddEducationHistoryDialogResult data)
+        {
+            return;
         }
-        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+
+        _educationHistoryRecords.Add(new EducationHistoryRecord
+        {
+            Level = data.Level,
+            Institution = data.Institution,
+            Program = data.Program,
+            GraduationDate = data.GraduationDate,
+            Status = data.Status
+        });
+    }
+
+    private async Task EditEducationHistoryRecordAsync(EducationHistoryRecord record)
+    {
+        if (record is null)
+        {
+            return;
+        }
+
+        if (!_editingEducationInfo)
+        {
+            await StartEducationInfoEdit();
+        }
+
+        var parameters = new DialogParameters
+        {
+            [nameof(AddEducationHistoryDialog.EducationLevelOptions)] = _educationLevelOptions,
+            [nameof(AddEducationHistoryDialog.InitialModel)] = new AddEducationHistoryDialog.AddEducationHistoryDialogResult
+            {
+                Level = record.Level,
+                Institution = record.Institution,
+                Program = record.Program,
+                GraduationDate = record.GraduationDate,
+                Status = record.Status ?? "Completed"
+            },
+            [nameof(AddEducationHistoryDialog.ConfirmButtonText)] = "Update"
+        };
+
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<AddEducationHistoryDialog>("Edit Education History", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is null || result.Canceled || result.Data is not AddEducationHistoryDialog.AddEducationHistoryDialogResult data)
+        {
+            return;
+        }
+
+        record.Level = data.Level;
+        record.Institution = data.Institution;
+        record.Program = data.Program;
+        record.GraduationDate = data.GraduationDate;
+        record.Status = data.Status;
+    }
+
+    private async Task RemoveEducationHistoryRecordAsync(EducationHistoryRecord record)
+    {
+        if (record is null)
+        {
+            return;
+        }
+
+        if (!_editingEducationInfo)
+        {
+            await StartEducationInfoEdit();
+        }
+
+        _educationHistoryRecords.Remove(record);
+    }
+
+    private static EducationHistoryRecord CloneEducationHistoryRecord(EducationHistoryRecord source)
+    {
+        return new EducationHistoryRecord
+        {
+            Id = source.Id,
+            Level = source.Level,
+            Institution = source.Institution,
+            Program = source.Program,
+            GraduationDate = source.GraduationDate,
+            Status = source.Status
+        };
+    }
+
+    private static Color GetEducationStatusColor(string? status)
+    {
+        if (string.Equals(status, "Completed", StringComparison.OrdinalIgnoreCase)) return Color.Success;
+        if (string.Equals(status, "In Progress", StringComparison.OrdinalIgnoreCase)) return Color.Warning;
+        if (string.Equals(status, "Planned", StringComparison.OrdinalIgnoreCase)) return Color.Info;
+        return Color.Default;
+    }
+
+    private static Color GetEducationLevelColor(string? level)
+    {
+        if (string.Equals(level, "High School", StringComparison.OrdinalIgnoreCase)) return Color.Success;
+        if (string.Equals(level, "Associate", StringComparison.OrdinalIgnoreCase)) return Color.Info;
+        if (string.Equals(level, "Bachelor's Degree", StringComparison.OrdinalIgnoreCase)) return Color.Primary;
+        if (string.Equals(level, "Master's Degree", StringComparison.OrdinalIgnoreCase)) return Color.Secondary;
+        if (string.Equals(level, "PhD", StringComparison.OrdinalIgnoreCase) || string.Equals(level, "Doctorate", StringComparison.OrdinalIgnoreCase)) return Color.Error;
+        return Color.Default;
+    }
+
+    private sealed class EducationHistoryRecord
+    {
+        public int? Id { get; set; }
+        public string Level { get; set; } = string.Empty;
+        public string Institution { get; set; } = string.Empty;
+        public string? Program { get; set; }
+        public DateTime? GraduationDate { get; set; }
+        public string? Status { get; set; }
+    }
+
+    private async Task ExecuteSaveRequestAsync(
+        Func<Task<HttpResponseMessage>> request,
+        string successMessage,
+        string failureMessage,
+        bool refreshProfileOnSuccess = false,
+        Action? onSuccess = null)
+    {
+        try
+        {
+            var response = await request();
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorMessage = await TryReadErrorMessageAsync(response);
+                Snackbar.Add(errorMessage ?? failureMessage, Severity.Error);
+                return;
+            }
+
+            onSuccess?.Invoke();
+            if (refreshProfileOnSuccess)
+            {
+                await RefreshProfileAsync();
+            }
+
+            await InvokeAsync(StateHasChanged);
+            Snackbar.Add(successMessage, Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private static bool IsEmailValidOrEmpty(string? email)
+    {
+        return string.IsNullOrWhiteSpace(email) || AppFormatter.IsValidEmail(email);
+    }
+
+    private static async Task<string?> TryReadErrorMessageAsync(HttpResponseMessage response)
+    {
+        try
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return null;
+            }
+
+            using var json = System.Text.Json.JsonDocument.Parse(content);
+            if (json.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object
+                && json.RootElement.TryGetProperty("message", out var messageElement))
+            {
+                var message = messageElement.GetString();
+                return string.IsNullOrWhiteSpace(message) ? null : message;
+            }
+
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private async Task CopyToClipboard(string? text)
@@ -1520,6 +1865,32 @@
         _personalPhoneIntl = new IntlTel { Number = _personalInfo?.PersonalPhoneNumber };
     }
 
+    private string? GetWorkPhoneValue()
+    {
+        return FirstNonEmpty(_personalInfo?.PhoneNumber, _profile?.PhoneNumber);
+    }
+
+    private string? GetPersonalPhoneValue()
+    {
+        return FirstNonEmpty(_personalInfo?.PersonalPhoneNumber, _profile?.PersonalPhoneNumber);
+    }
+
+    private string GetWorkPhoneDisplay() => GetWorkPhoneValue() ?? "-";
+    private string GetPersonalPhoneDisplay() => GetPersonalPhoneValue() ?? "-";
+
+    private static string? FirstNonEmpty(params string?[] values)
+    {
+        foreach (var value in values)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                return value;
+            }
+        }
+
+        return null;
+    }
+
     private IntlTel GetEmergencyPhone(EmergencyContactDto contact)
     {
         if (!_emergencyContactPhones.TryGetValue(contact, out var intl))
@@ -1535,3 +1906,4 @@
     private string GetManagerDisplayName() => AppFormatter.BuildFullName(_profile?.ReportsTo?.FirstName, _profile?.ReportsTo?.LastName) ?? "-";
     private string GetManagerDepartmentName() => _profile?.ReportsTo?.Department?.Name ?? "-";
 }
+

@@ -1,7 +1,8 @@
-﻿@page "/settings/usergroups"
+@page "/settings/payrolllocations"
 @using Microsoft.AspNetCore.Authorization
 @using DZDDashboard.Client.Components.Pages.Admin.Dialogs
 @using DZDDashboard.Client.Services
+@using DZDDashboard.Common.DTOs
 @attribute [Authorize(Roles = "Admin,HR")]
 
 @inject IDialogService DialogServiceRef
@@ -12,7 +13,7 @@
 <div class="settings-detail-page">
     <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6 mb-4">
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-6">
-            <MudText Typo="Typo.h4">User Groups</MudText>
+            <MudText Typo="Typo.h4">Payroll Locations</MudText>
             <MudButton StartIcon="@DzdIcons.ArrowLeft"
                        Color="Color.Primary"
                        Variant="Variant.Text"
@@ -27,15 +28,15 @@
                 <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
             </MudStack>
         }
-        else if (!_userGroups.Any())
+        else if (!_payrollLocations.Any())
         {
             <MudPaper Elevation="2" Class="pa-6 text-center">
-                <MudIcon Icon="@DzdIcons.Users" Style="font-size: 3rem; color: var(--dzd-text-secondary);" />
-                <MudText Typo="Typo.h6" Style="color: var(--dzd-text-tertiary)" Class="mt-3">No User Groups Yet</MudText>
-                <MudText Typo="Typo.body2" Style="color: var(--dzd-text-tertiary)" Class="mt-2">Create user groups to organize employees for special projects or functions across organizational boundaries.</MudText>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" OnClick="() => OpenUserGroupDialog()" Class="mt-4">
+                <MudIcon Icon="@DzdIcons.MapPin" Style="font-size: 3rem; color: var(--dzd-text-secondary);" />
+                <MudText Typo="Typo.h6" Style="color: var(--dzd-text-tertiary)" Class="mt-3">No Payroll Locations Yet</MudText>
+                <MudText Typo="Typo.body2" Style="color: var(--dzd-text-tertiary)" Class="mt-2">Create payroll locations to standardize where employees are registered for payroll processing.</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" OnClick="() => OpenPayrollLocationDialog()" Class="mt-4">
                     <MudIcon Icon="@DzdIcons.Plus" Class="mr-2" />
-                    Create User Group
+                    Create Payroll Location
                 </MudButton>
             </MudPaper>
         }
@@ -43,30 +44,30 @@
         {
             <MudStack Spacing="3">
                 <MudTextField @bind-Value="_searchTerm"
-                            Placeholder="Search user groups..."
-                            Adornment="Adornment.Start"
-                            AdornmentIcon="@DzdIcons.Search"
-                            Variant="Variant.Outlined"
-                            Immediate="true" />
+                              Placeholder="Search payroll locations..."
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@DzdIcons.Search"
+                              Variant="Variant.Outlined"
+                              Immediate="true" />
 
                 <MudStack Spacing="2">
-                    @foreach (var group in FilteredUserGroups)
+                    @foreach (var location in FilteredPayrollLocations)
                     {
-                        <MudPaper Elevation="0" Class="usergroup-card mb-1 pa-4">
-                            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Style="width: 100%;">
+                        <MudPaper Elevation="0" Class="payrolllocation-card pa-4">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                    <MudIcon Icon="@DzdIcons.UsersRound" Size="Size.Small" />
-                                    <MudText Typo="Typo.subtitle1">@group.GroupName</MudText>
+                                    <MudIcon Icon="@DzdIcons.MapPin" Size="Size.Small" />
+                                    <MudText Typo="Typo.subtitle1" Class="location-name">@location.Name</MudText>
                                 </MudStack>
-                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mr-2">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
                                     <MudIconButton Icon="@DzdIcons.Pencil"
                                                    Size="Size.Small"
                                                    Color="Color.Primary"
-                                                   OnClick="() => OpenUserGroupDialog(group)" />
+                                                   OnClick="() => OpenPayrollLocationDialog(location)" />
                                     <MudIconButton Icon="@DzdIcons.Trash2"
                                                    Size="Size.Small"
                                                    Color="Color.Error"
-                                                   OnClick="() => DeleteUserGroup(group.Id)" />
+                                                   OnClick="() => DeletePayrollLocation(location.Id)" />
                                 </MudStack>
                             </MudStack>
                         </MudPaper>
@@ -76,9 +77,9 @@
                 <MudButton Variant="Variant.Filled"
                            Color="Color.Primary"
                            StartIcon="@DzdIcons.Plus"
-                           OnClick="() => OpenUserGroupDialog()"
+                           OnClick="() => OpenPayrollLocationDialog()"
                            Style="width: auto; align-self: flex-end; margin-top: 12px;">
-                    Add New User Group
+                    Add New Payroll Location
                 </MudButton>
             </MudStack>
         }
@@ -87,20 +88,20 @@
 
 @code {
     private bool _loading = true;
-    private List<UserGroupDto> _userGroups = new();
-    private string _searchTerm = "";
+    private List<PayrollLocationDto> _payrollLocations = new();
+    private string _searchTerm = string.Empty;
 
     private void NavigateToSettings() => Nav.NavigateTo("/settings");
 
-    private List<UserGroupDto> FilteredUserGroups
+    private List<PayrollLocationDto> FilteredPayrollLocations
     {
         get
         {
             if (string.IsNullOrWhiteSpace(_searchTerm))
-                return _userGroups;
-            
-            return _userGroups
-                .Where(g => g.GroupName?.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+                return _payrollLocations;
+
+            return _payrollLocations
+                .Where(p => p.Name?.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
                 .ToList();
         }
     }
@@ -115,7 +116,7 @@
         _loading = true;
         try
         {
-            _userGroups = await OrgService.GetUserGroupsAsync();
+            _payrollLocations = await OrgService.GetPayrollLocationsAsync();
         }
         catch (Exception ex)
         {
@@ -127,31 +128,37 @@
         }
     }
 
-    private async Task OpenUserGroupDialog(UserGroupDto? userGroup = null)
+    private async Task OpenPayrollLocationDialog(PayrollLocationDto? payrollLocation = null)
     {
-        var parameters = new DialogParameters { ["UserGroup"] = userGroup ?? new UserGroupDto() };
+        var parameters = new DialogParameters
+        {
+            ["PayrollLocation"] = payrollLocation ?? new PayrollLocationDto()
+        };
+
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialogTitle = userGroup is null || userGroup.Id == 0 ? "Add User Group" : "Edit User Group";
-        var dialog = await DialogServiceRef.ShowAsync<UserGroupDialog>(dialogTitle, parameters, options);
+        var dialogTitle = payrollLocation is null || payrollLocation.Id == 0 ? "Add Payroll Location" : "Edit Payroll Location";
+        var dialog = await DialogServiceRef.ShowAsync<PayrollLocationDialog>(dialogTitle, parameters, options);
         var result = await dialog.Result;
+
         if (result != null && !result.Canceled)
         {
             await LoadData();
         }
     }
 
-    private async Task DeleteUserGroup(int id)
+    private async Task DeletePayrollLocation(int id)
     {
-        var result = await DialogServiceRef.ShowMessageBox("Delete User Group", 
-            "Are you sure you want to delete this user group?", 
+        var result = await DialogServiceRef.ShowMessageBox("Delete Payroll Location",
+            "Are you sure you want to delete this payroll location?",
             yesText: "Delete", cancelText: "Cancel");
+
         if (result == true)
         {
             try
             {
-                await OrgService.DeleteUserGroupAsync(id);
+                await OrgService.DeletePayrollLocationAsync(id);
                 await LoadData();
-                Snackbar.Add("User group deleted successfully", Severity.Success);
+                Snackbar.Add("Payroll location deleted successfully", Severity.Success);
             }
             catch (Exception ex)
             {
@@ -161,6 +168,3 @@
     }
 
 }
-
-
-

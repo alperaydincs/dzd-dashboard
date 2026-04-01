@@ -5,6 +5,7 @@ using DZDDashboard.Common.DTOs;
 using DZDDashboard.Data;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace DZDDashboard.Services
 {
@@ -21,6 +22,9 @@ namespace DZDDashboard.Services
 
             public async Task<bool> UpdateContactsAsync(int userId, UpdateContactsDto dto)
             {
+                EnsureValidEmail(dto.Email, "Work email");
+                EnsureValidEmail(dto.PersonalEmail, "Personal email");
+
                 var user = await _context.Users.FindAsync(userId);
                 if (user == null) return false;
                 user.Email = dto.Email;
@@ -57,6 +61,36 @@ namespace DZDDashboard.Services
                 return true;
             }
 
+            public async Task<bool> UpdateEducationInfoAsync(int userId, UpdateEducationInfoDto dto)
+            {
+                var user = await _context.Users
+                    .Include(u => u.EducationHistories)
+                    .FirstOrDefaultAsync(u => u.Id == userId);
+                if (user == null) return false;
+
+                var existingEducation = user.EducationHistories ?? new List<EducationHistory>();
+                if (existingEducation.Count > 0)
+                {
+                    _context.EducationHistories.RemoveRange(existingEducation);
+                }
+
+                user.EducationHistories = (dto.EducationHistories ?? new List<EducationHistoryDto>())
+                    .Where(x => !string.IsNullOrWhiteSpace(x.Level) && !string.IsNullOrWhiteSpace(x.Institution))
+                    .Select(x => new EducationHistory
+                    {
+                        UserId = userId,
+                        Level = x.Level,
+                        Institution = x.Institution,
+                        Program = x.Program,
+                        GraduationDate = x.GraduationDate,
+                        Status = x.Status
+                    })
+                    .ToList();
+
+                await _context.SaveChangesAsync();
+                return true;
+            }
+
         public async Task<UserProfileDto?> GetProfileByIdAsync(int id)
         {
             return await _context.Users
@@ -74,21 +108,30 @@ namespace DZDDashboard.Services
                 return _mapper.Map<List<UserDto>>(users);
             }
 
-            public async Task<UserDto?> GetByIdWithRolesAsync(int id)
+            public async Task<EmployeeCardDto?> GetEmployeeCardAsync(int id)
             {
                 var user = await _context.Users
+                    .AsNoTracking()
                     .Include(u => u.Avatar)
-                    .FirstOrDefaultAsync(u => u.Id == id);
-                return user == null ? null : _mapper.Map<UserDto>(user);
-            }
-
-            public async Task<EmployeeDetailDto?> GetEmployeeDetailsAsync(int id)
-            {
-                var user = await _context.Users
+                    .Include(u => u.Department)
+                    .Include(u => u.Team)
+                    .Include(u => u.Job)
+                    .Include(u => u.PayrollLocation)
+                    .Include(u => u.OrganizationPosition)
+                    .Include(u => u.ReportsTo)
+                        .ThenInclude(r => r!.Department)
+                    .Include(u => u.ReportsTo)
+                        .ThenInclude(r => r!.Job)
+                    .Include(u => u.ReportsTo)
+                        .ThenInclude(r => r!.Avatar)
                     .Include(u => u.Children)
                     .Include(u => u.EmergencyContacts)
+                    .Include(u => u.EducationHistories)
+                    .Include(u => u.TargetEfforts)
+                    .Include(u => u.UserTrainings)
                     .FirstOrDefaultAsync(u => u.Id == id);
-                return user == null ? null : _mapper.Map<EmployeeDetailDto>(user);
+
+                return user == null ? null : _mapper.Map<EmployeeCardDto>(user);
             }
 
         public async Task<bool> UpdateBasicInfoAsync(int userId, UpdateBasicInfoDto dto)
@@ -128,97 +171,6 @@ namespace DZDDashboard.Services
             return true;
         }
 
-        public async Task<PersonalInfoDto?> GetPersonalInfoAsync(int id)
-        {
-            var user = await _context.Users
-                .AsNoTracking()
-                .Include(u => u.Children)
-                .Include(u => u.EmergencyContacts)
-                .Where(u => u.Id == id)
-                .FirstOrDefaultAsync();
-            return user == null ? null : _mapper.Map<PersonalInfoDto>(user);
-        }
-
-        public async Task<bool> UpdatePersonalInfoAsync(int id, PersonalInfoDto dto)
-        {
-            var user = await _context.Users
-                .Include(u => u.Children)
-                .Include(u => u.EmergencyContacts)
-                .FirstOrDefaultAsync(u => u.Id == id);
-            if (user is null) return false;
-
-            if (dto.EmergencyContacts != null)
-            {
-                user.EmergencyContacts ??= new List<EmergencyContact>();
-                var validContacts = dto.EmergencyContacts
-                    .Where(c => !string.IsNullOrWhiteSpace(c.FullName) && !string.IsNullOrWhiteSpace(c.PhoneNumber) && !string.IsNullOrWhiteSpace(c.Relationship))
-                    .ToList();
-                var contactIdsToKeep = validContacts.Select(c => c.Id).Where(id => id > 0).ToList();
-                var contactsToRemove = user.EmergencyContacts.Where(c => !contactIdsToKeep.Contains(c.Id) && c.Id > 0).ToList();
-                foreach (var contact in contactsToRemove)
-                {
-                    if (contact.Id > 0)
-                        _context.EmergencyContacts.Remove(contact);
-                }
-                foreach (var contactDto in validContacts)
-                {
-                    if (contactDto.Id > 0)
-                    {
-                        var existingContact = user.EmergencyContacts.FirstOrDefault(c => c.Id == contactDto.Id);
-                        if (existingContact != null)
-                        {
-                            _mapper.Map(contactDto, existingContact);
-                        }
-                    }
-                    else
-                    {
-                        var newContact = _mapper.Map<EmergencyContact>(contactDto);
-                        newContact.UserId = user.Id;
-                        user.EmergencyContacts.Add(newContact);
-                    }
-                }
-            }
-
-            if (dto.Children != null)
-            {
-                user.Children ??= new List<ChildInfo>();
-                var validChildren = dto.Children
-                    .Where(c => !string.IsNullOrWhiteSpace(c.FullName) && c.DateOfBirth != null)
-                    .ToList();
-                var childIdsToKeep = validChildren.Select(c => c.Id).Where(id => id > 0).ToList();
-                var childrenToRemove = user.Children.Where(c => !childIdsToKeep.Contains(c.Id) && c.Id > 0).ToList();
-                foreach (var child in childrenToRemove)
-                {
-                    if (child.Id > 0)
-                        _context.ChildInfos.Remove(child);
-                }
-                foreach (var childDto in validChildren)
-                {
-                    if (childDto.Id > 0)
-                    {
-                        var existingChild = user.Children.FirstOrDefault(c => c.Id == childDto.Id);
-                        if (existingChild != null)
-                        {
-                            _mapper.Map(childDto, existingChild);
-                        }
-                    }
-                    else
-                    {
-                        var newChild = _mapper.Map<ChildInfo>(childDto);
-                        newChild.UserId = user.Id;
-                        user.Children.Add(newChild);
-                    }
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(dto.MaritalStatus)) user.MaritalStatus = dto.MaritalStatus;
-            if (!string.IsNullOrWhiteSpace(dto.SpouseFullName)) user.SpouseFullName = dto.SpouseFullName;
-
-            user.ModifiedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
         public async Task<bool> UpdateAvatarAsync(int userId, string contentType, string base64Content)
         {
             var user = await _context.Users.Include(u => u.Avatar).FirstOrDefaultAsync(u => u.Id == userId);
@@ -241,7 +193,17 @@ namespace DZDDashboard.Services
                 user.Avatar.ContentBase64 = base64Content;
                 user.Avatar.ModifiedAt = DateTime.UtcNow;
             }
+
+            user.AvatarId = user.Avatar.Id;
+
             await _context.SaveChangesAsync();
+
+            if (user.AvatarId != user.Avatar.Id)
+            {
+                user.AvatarId = user.Avatar.Id;
+                await _context.SaveChangesAsync();
+            }
+
             return true;
         }
 
@@ -336,12 +298,28 @@ namespace DZDDashboard.Services
 
         public async Task<bool> UpdateContactInfoAsync(int userId, UpdateContactInfoDto dto)
         {
+            EnsureValidEmail(dto.PersonalEmail, "Personal email");
+
             var user = await _context.Users.FindAsync(userId);
             if (user is null) return false;
 
             _mapper.Map(dto, user);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        private static void EnsureValidEmail(string? email, string fieldName)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return;
+            }
+
+            var validator = new EmailAddressAttribute();
+            if (!validator.IsValid(email))
+            {
+                throw new InvalidOperationException($"{fieldName} is invalid.");
+            }
         }
 
         public async Task<bool> UpdateEmergencyContactsAsync(UpdateEmergencyContactsDto dto)

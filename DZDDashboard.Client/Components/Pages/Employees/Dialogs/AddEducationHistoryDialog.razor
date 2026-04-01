@@ -1,0 +1,78 @@
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="2">
+            <MudSelect T="string" Label="Education Level" @bind-Value="_model.Level" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
+                @foreach (var option in EducationLevelOptions)
+                {
+                    <MudSelectItem Value="@option">@option</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudTextField T="string" Label="Institution" @bind-Value="_model.Institution" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+            <MudTextField T="string" Label="Program / Department" @bind-Value="_model.Program" Variant="Variant.Outlined" Margin="Margin.Dense" />
+
+            <MudDatePicker Label="Graduation Date" Date="@_model.GraduationDate" DateChanged="@(d => _model.GraduationDate = d)" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
+
+            <MudSelect T="string" Label="Status" @bind-Value="_model.Status" Variant="Variant.Outlined" Margin="Margin.Dense">
+                <MudSelectItem Value='@("Completed")'>Completed</MudSelectItem>
+                <MudSelectItem Value='@("In Progress")'>In Progress</MudSelectItem>
+                <MudSelectItem Value='@("Planned")'>Planned</MudSelectItem>
+            </MudSelect>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">@ConfirmButtonText</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public List<string> EducationLevelOptions { get; set; } = new();
+    [Parameter] public AddEducationHistoryDialogResult? InitialModel { get; set; }
+    [Parameter] public string ConfirmButtonText { get; set; } = "Add";
+
+    private AddEducationHistoryDialogResult _model = new()
+    {
+        Status = "Completed"
+    };
+
+    protected override void OnParametersSet()
+    {
+        if (InitialModel is null)
+        {
+            return;
+        }
+
+        _model = new AddEducationHistoryDialogResult
+        {
+            Level = InitialModel.Level,
+            Institution = InitialModel.Institution,
+            Program = InitialModel.Program,
+            GraduationDate = InitialModel.GraduationDate,
+            Status = InitialModel.Status
+        };
+    }
+
+    private void Save()
+    {
+        if (string.IsNullOrWhiteSpace(_model.Level) || string.IsNullOrWhiteSpace(_model.Institution))
+        {
+            return;
+        }
+
+        MudDialog.Close(DialogResult.Ok(_model));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    public sealed class AddEducationHistoryDialogResult
+    {
+        public string Level { get; set; } = string.Empty;
+        public string Institution { get; set; } = string.Empty;
+        public string? Program { get; set; }
+        public DateTime? GraduationDate { get; set; }
+        public string Status { get; set; } = "Completed";
+    }
+}

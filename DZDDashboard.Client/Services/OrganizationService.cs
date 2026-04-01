@@ -32,6 +32,15 @@ public class OrganizationService : ApiServiceBase
     public async Task<List<PayrollLocationDto>> GetPayrollLocationsAsync()
         => await GetAsync<List<PayrollLocationDto>>("api/organization/payrolllocations") ?? new();
 
+    public async Task<HttpResponseMessage> CreatePayrollLocationAsync(PayrollLocationDto dto)
+        => await PostAsync("api/organization/payrolllocations", dto);
+
+    public async Task<HttpResponseMessage> UpdatePayrollLocationAsync(PayrollLocationDto dto)
+        => await PutAsync("api/organization/payrolllocations", dto);
+
+    public async Task<HttpResponseMessage> DeletePayrollLocationAsync(int payrollLocationId)
+        => await DeleteAsync($"api/organization/payrolllocations/{payrollLocationId}");
+
     public async Task<HttpResponseMessage> CreateOrganizationPositionAsync(CreateOrganizationPositionDto dto)
         => await PostAsync("api/organization/positions", dto);
 

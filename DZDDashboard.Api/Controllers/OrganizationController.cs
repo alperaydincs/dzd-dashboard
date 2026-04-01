@@ -7,7 +7,7 @@ namespace DZDDashboard.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize(Roles = "Admin,HR")]
+[Authorize]
 public class OrganizationController : ControllerBase
 {
     private readonly IOrganizationService _service;
@@ -21,13 +21,16 @@ public class OrganizationController : ControllerBase
     public async Task<ActionResult<List<CompanyDto>>> GetCompanies() => await _service.GetCompaniesAsync();
 
     [HttpPost("companies")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<CompanyDto>> CreateCompany(CompanyDto dto) => await _service.CreateCompanyAsync(dto);
 
     [HttpPut("companies")]
+    [Authorize(Roles = "Admin")]
     public Task<IActionResult> UpdateCompany(CompanyDto dto)
         => ExecuteNoContent(() => _service.UpdateCompanyAsync(dto));
 
     [HttpDelete("companies/{id}")]
+    [Authorize(Roles = "Admin")]
     public Task<IActionResult> DeleteCompany(int id)
         => ExecuteNoContent(() => _service.DeleteCompanyAsync(id));
 
@@ -35,13 +38,16 @@ public class OrganizationController : ControllerBase
     public async Task<ActionResult<List<DepartmentDto>>> GetDepartments() => await _service.GetDepartmentsAsync();
 
     [HttpPost("departments")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<DepartmentDto>> CreateDepartment(DepartmentDto dto) => await _service.CreateDepartmentAsync(dto);
 
     [HttpPut("departments")]
+    [Authorize(Roles = "Admin")]
     public Task<IActionResult> UpdateDepartment(DepartmentDto dto)
         => ExecuteNoContent(() => _service.UpdateDepartmentAsync(dto));
 
     [HttpDelete("departments/{id}")]
+    [Authorize(Roles = "Admin")]
     public Task<IActionResult> DeleteDepartment(int id)
         => ExecuteNoContent(() => _service.DeleteDepartmentAsync(id));
 
@@ -49,13 +55,16 @@ public class OrganizationController : ControllerBase
     public async Task<ActionResult<List<TeamDto>>> GetTeams() => await _service.GetTeamsAsync();
 
     [HttpPost("teams")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<TeamDto>> CreateTeam(TeamDto dto) => await _service.CreateTeamAsync(dto);
 
     [HttpPut("teams")]
+    [Authorize(Roles = "Admin")]
     public Task<IActionResult> UpdateTeam(TeamDto dto)
         => ExecuteNoContent(() => _service.UpdateTeamAsync(dto));
 
     [HttpDelete("teams/{id}")]
+    [Authorize(Roles = "Admin")]
     public Task<IActionResult> DeleteTeam(int id)
         => ExecuteNoContent(() => _service.DeleteTeamAsync(id));
 
@@ -63,13 +72,16 @@ public class OrganizationController : ControllerBase
     public async Task<ActionResult<List<WorkTypeDto>>> GetWorkTypes() => await _service.GetWorkTypesAsync();
 
     [HttpPost("worktypes")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<WorkTypeDto>> CreateWorkType(WorkTypeDto dto) => await _service.CreateWorkTypeAsync(dto);
 
     [HttpPut("worktypes")]
+    [Authorize(Roles = "Admin")]
     public Task<IActionResult> UpdateWorkType(WorkTypeDto dto)
         => ExecuteNoContent(() => _service.UpdateWorkTypeAsync(dto));
 
     [HttpDelete("worktypes/{id}")]
+    [Authorize(Roles = "Admin")]
     public Task<IActionResult> DeleteWorkType(int id)
         => ExecuteNoContent(() => _service.DeleteWorkTypeAsync(id));
 
@@ -77,13 +89,16 @@ public class OrganizationController : ControllerBase
     public async Task<ActionResult<List<JobDto>>> GetJobs() => await _service.GetJobsAsync();
 
     [HttpPost("jobs")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<JobDto>> CreateJob(JobDto dto) => await _service.CreateJobAsync(dto);
 
     [HttpPut("jobs")]
+    [Authorize(Roles = "Admin")]
     public Task<IActionResult> UpdateJob(JobDto dto)
         => ExecuteNoContent(() => _service.UpdateJobAsync(dto));
 
     [HttpDelete("jobs/{id}")]
+    [Authorize(Roles = "Admin")]
     public Task<IActionResult> DeleteJob(int id)
         => ExecuteNoContent(() => _service.DeleteJobAsync(id));
 
@@ -91,30 +106,50 @@ public class OrganizationController : ControllerBase
     public async Task<ActionResult<List<GradeDto>>> GetGrades() => await _service.GetGradesAsync();
 
     [HttpPost("grades")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<GradeDto>> CreateGrade(GradeDto dto) => await _service.CreateGradeAsync(dto);
 
     [HttpPut("grades")]
+    [Authorize(Roles = "Admin")]
     public Task<IActionResult> UpdateGrade(GradeDto dto)
         => ExecuteNoContent(() => _service.UpdateGradeAsync(dto));
 
     [HttpDelete("grades/{id}")]
+    [Authorize(Roles = "Admin")]
     public Task<IActionResult> DeleteGrade(int id)
         => ExecuteNoContent(() => _service.DeleteGradeAsync(id));
 
     [HttpGet("payrolllocations")]
     public async Task<ActionResult<List<PayrollLocationDto>>> GetPayrollLocations() => await _service.GetPayrollLocationsAsync();
 
+    [HttpPost("payrolllocations")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<PayrollLocationDto>> CreatePayrollLocation(PayrollLocationDto dto) => await _service.CreatePayrollLocationAsync(dto);
+
+    [HttpPut("payrolllocations")]
+    [Authorize(Roles = "Admin")]
+    public Task<IActionResult> UpdatePayrollLocation(PayrollLocationDto dto)
+        => ExecuteNoContent(() => _service.UpdatePayrollLocationAsync(dto));
+
+    [HttpDelete("payrolllocations/{id}")]
+    [Authorize(Roles = "Admin")]
+    public Task<IActionResult> DeletePayrollLocation(int id)
+        => ExecuteNoContent(() => _service.DeletePayrollLocationAsync(id));
+
     [HttpGet("usergroups")]
     public async Task<ActionResult<List<UserGroupDto>>> GetUserGroups() => await _service.GetUserGroupsAsync();
 
     [HttpPost("usergroups")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<UserGroupDto>> CreateUserGroup(UserGroupDto dto) => await _service.CreateUserGroupAsync(dto);
 
     [HttpPut("usergroups")]
+    [Authorize(Roles = "Admin")]
     public Task<IActionResult> UpdateUserGroup(UserGroupDto dto)
         => ExecuteNoContent(() => _service.UpdateUserGroupAsync(dto));
 
     [HttpDelete("usergroups/{id}")]
+    [Authorize(Roles = "Admin")]
     public Task<IActionResult> DeleteUserGroup(int id)
         => ExecuteNoContent(() => _service.DeleteUserGroupAsync(id));
 
@@ -125,6 +160,7 @@ public class OrganizationController : ControllerBase
     public async Task<ActionResult<List<OrganizationPositionDto>>> GetPositions() => await _service.GetAllPositionsAsync();
 
     [HttpPost("positions")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreatePosition(CreateOrganizationPositionDto dto)
     {
         try
@@ -143,6 +179,7 @@ public class OrganizationController : ControllerBase
     }
 
     [HttpPut("positions/{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdatePosition(int id, UpdateOrganizationPositionDto dto)
     {
         if (id != dto.Id) return BadRequest("Id mismatch");
@@ -167,6 +204,7 @@ public class OrganizationController : ControllerBase
     }
 
     [HttpDelete("positions/{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeletePosition(int id)
     {
         try

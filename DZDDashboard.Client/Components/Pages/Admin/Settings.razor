@@ -86,6 +86,20 @@
                                         </MudStack>
                                     </MudPaper>
                                 </MudItem>
+
+                                <MudItem xs="12" sm="6" md="4">
+                                    <MudPaper Elevation="3" Class="stat-card stat-card-clickable pa-4" @onclick="GoToPayrollLocations">
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                            <MudStack Spacing="0">
+                                                <MudText Typo="Typo.caption" Class="stat-label">Payroll Locations</MudText>
+                                                <MudText Typo="Typo.h4" Class="stat-value">@_payrollLocations.Count</MudText>
+                                            </MudStack>
+                                            <MudAvatar Size="Size.Large" Class="stat-avatar stat-avatar-red" Variant="Variant.Text">
+                                                <MudIcon Icon="@DzdIcons.MapPin" />
+                                            </MudAvatar>
+                                        </MudStack>
+                                    </MudPaper>
+                                </MudItem>
                             </MudGrid>
                         </MudPaper>
 
@@ -158,6 +172,7 @@
     private List<CompanyDto> _companies = new();
     private List<DepartmentDto> _departments = new();
     private List<TeamDto> _teams = new();
+    private List<PayrollLocationDto> _payrollLocations = new();
     private List<UserGroupDto> _userGroups = new();
 
     protected override async Task OnInitializedAsync()
@@ -176,6 +191,7 @@
             _companies = await OrgService.GetCompaniesAsync();
             _departments = await OrgService.GetDepartmentsAsync();
             _teams = await OrgService.GetTeamsAsync();
+            _payrollLocations = await OrgService.GetPayrollLocationsAsync();
             _userGroups = await OrgService.GetUserGroupsAsync();
         }
         catch (Exception ex)
@@ -229,6 +245,7 @@
     private void GoToCompanies() => Nav.NavigateTo("/settings/companies");
     private void GoToDepartments() => Nav.NavigateTo("/settings/departments");
     private void GoToTeams() => Nav.NavigateTo("/settings/teams");
+    private void GoToPayrollLocations() => Nav.NavigateTo("/settings/payrolllocations");
     private void GoToUserGroups() => Nav.NavigateTo("/settings/usergroups");
     private void SetSettingsTab(int index) => _activeSettingsTabIndex = index;
 

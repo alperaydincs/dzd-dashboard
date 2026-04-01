@@ -33,6 +33,9 @@ public interface IOrganizationService
     Task UpdateGradeAsync(GradeDto dto);
     Task DeleteGradeAsync(int id);
     Task<List<PayrollLocationDto>> GetPayrollLocationsAsync();
+    Task<PayrollLocationDto> CreatePayrollLocationAsync(PayrollLocationDto dto);
+    Task UpdatePayrollLocationAsync(PayrollLocationDto dto);
+    Task DeletePayrollLocationAsync(int id);
     Task<List<UserGroupDto>> GetUserGroupsAsync();
     Task<UserGroupDto> CreateUserGroupAsync(UserGroupDto dto);
     Task UpdateUserGroupAsync(UserGroupDto dto);
@@ -256,6 +259,39 @@ public class OrganizationService : IOrganizationService
 
     public async Task<List<PayrollLocationDto>> GetPayrollLocationsAsync()
         => _mapper.Map<List<PayrollLocationDto>>(await _context.PayrollLocations.ToListAsync());
+
+    public async Task<PayrollLocationDto> CreatePayrollLocationAsync(PayrollLocationDto dto)
+    {
+        var entity = new PayrollLocation
+        {
+            Location = dto.Name?.Trim()
+        };
+
+        _context.PayrollLocations.Add(entity);
+        await _context.SaveChangesAsync();
+
+        return _mapper.Map<PayrollLocationDto>(entity);
+    }
+
+    public async Task UpdatePayrollLocationAsync(PayrollLocationDto dto)
+    {
+        var entity = await _context.PayrollLocations.FindAsync(dto.Id);
+        if (entity != null)
+        {
+            entity.Location = dto.Name?.Trim();
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task DeletePayrollLocationAsync(int id)
+    {
+        var entity = await _context.PayrollLocations.FindAsync(id);
+        if (entity != null)
+        {
+            _context.PayrollLocations.Remove(entity);
+            await _context.SaveChangesAsync();
+        }
+    }
 
     public async Task<List<UserGroupDto>> GetUserGroupsAsync()
         => _mapper.Map<List<UserGroupDto>>(await _context.UserGroups.ToListAsync());

@@ -17,6 +17,7 @@ public record UserDto
     public int? DepartmentId { get; init; }
     public int? TeamId { get; init; }
     public int? UserGroupId { get; init; }
+    public int? PayrollLocationId { get; init; }
     public DepartmentDto? Department { get; init; }
     public JobDto? Job { get; init; }
     public TeamDto? Team { get; init; }

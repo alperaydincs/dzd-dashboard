@@ -16,8 +16,8 @@ public class UserService : ApiServiceBase
     public async Task<List<UserDto>> GetAllUsersAsync()
         => await GetAsync<List<UserDto>>("api/users/") ?? new();
 
-    public async Task<EmployeeDetailDto?> GetEmployeeDetailsAsync(int userId)
-        => await GetAsync<EmployeeDetailDto>($"api/users/{userId}/details");
+    public async Task<EmployeeCardDto?> GetEmployeeCardAsync(int userId)
+        => await GetAsync<EmployeeCardDto>($"api/users/{userId}/card");
 
     public async Task<UserAvatarDto?> GetUserAvatarAsync(int userId)
         => await GetAsync<UserAvatarDto>($"api/users/{userId}/avatar");
@@ -25,17 +25,11 @@ public class UserService : ApiServiceBase
     public async Task<UserAvatarDto?> GetMyAvatarAsync()
         => await GetAsync<UserAvatarDto>("api/users/my-avatar");
 
-    public async Task<PersonalInfoDto?> GetPersonalInfoAsync(int userId)
-        => await GetAsync<PersonalInfoDto>($"api/users/{userId}/personal-info");
-
     public async Task<HttpResponseMessage> UpdateMyProfileAvatarAsync(MultipartFormDataContent content)
         => await PostMultipartAsync("api/users/my-profile/avatar", content);
 
     public async Task<HttpResponseMessage> UpdateContactInfoAsync(UpdateContactInfoDto dto)
         => await PutAsync("api/users/my-profile/contact-info", dto);
-
-    public async Task<HttpResponseMessage> UpdatePersonalInfoAsync(int userId, PersonalInfoDto dto)
-        => await PutAsync($"api/users/{userId}/personal-info", dto);
 
     public async Task<HttpResponseMessage> UpdateOrganizationPositionAsync(int userId, UpdateUserOrganizationPositionDto dto)
         => await PutAsync($"api/users/{userId}/organization-position", dto);
@@ -64,5 +58,10 @@ public class UserService : ApiServiceBase
     public async Task<HttpResponseMessage> UpdateAddressInfoAsync(int userId, UpdateAddressInfoDto dto)
     {
         return await PutAsync($"api/users/{userId}/address-info", dto);
+    }
+
+    public async Task<HttpResponseMessage> UpdateEducationInfoAsync(int userId, UpdateEducationInfoDto dto)
+    {
+        return await PutAsync($"api/users/{userId}/education-info", dto);
     }
 }

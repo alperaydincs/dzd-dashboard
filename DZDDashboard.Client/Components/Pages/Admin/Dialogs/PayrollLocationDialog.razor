@@ -1,0 +1,68 @@
+@using DZDDashboard.Common.DTOs
+@using MudBlazor
+@inject IHttpClientFactory HttpClientFactory
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Value="_locationName"
+                      Label="Location Name"
+                      Variant="Variant.Outlined"
+                      Required="true"
+                      FullWidth="true" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid)">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public PayrollLocationDto PayrollLocation { get; set; } = new();
+
+    private string _locationName = string.Empty;
+
+    private bool IsFormValid => !string.IsNullOrWhiteSpace(_locationName);
+
+    protected override void OnParametersSet()
+    {
+        _locationName = PayrollLocation.Name ?? string.Empty;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        if (string.IsNullOrWhiteSpace(_locationName))
+        {
+            Snackbar.Add("Location name is required", Severity.Warning);
+            return;
+        }
+
+        var dto = new PayrollLocationDto
+        {
+            Id = PayrollLocation.Id,
+            Name = _locationName.Trim()
+        };
+
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            if (dto.Id == 0)
+            {
+                await client.PostAsJsonAsync("api/organization/payrolllocations", dto);
+            }
+            else
+            {
+                await client.PutAsJsonAsync("api/organization/payrolllocations", dto);
+            }
+
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error saving: {ex.Message}", Severity.Error);
+        }
+    }
+}

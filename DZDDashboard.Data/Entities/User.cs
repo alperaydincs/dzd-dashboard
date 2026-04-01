@@ -42,20 +42,6 @@ public class User : IAuditableEntity
     public string? DisabilityDegree { get; set; } 
     public string? Nationality { get; set; } 
     public string? CitizenshipNumber { get; set; } 
-    public string? EducationStatus { get; set; } 
-    public string? HighestEducationLevel { get; set; } 
-    public string? HighSchoolName { get; set; } 
-    public string? AssociateDegreeUniversityName { get; set; } 
-    public string? AssociateDegreeProgramName { get; set; } 
-    public string? BachelorsUniversityName { get; set; } 
-    public string? BachelorsProgramName { get; set; } 
-    public DateTime? BachelorsGraduatedDate { get; set; }
-    public string? MastersUniversityName { get; set; } 
-    public string? MastersProgramName { get; set; }
-    public DateTime? MastersGraduatedDate { get; set; }
-    public string? DoctorateUniversityName { get; set; } 
-    public string? DoctorateProgramName { get; set; } 
-    public string? DoctoratePhdStatus { get; set; } 
     public string? EmergencyContactFullName { get; set; } 
     public string? EmergencyContactRelationship { get; set; } 
     public string? EmergencyContactPhoneNumber { get; set; } 
@@ -63,6 +49,7 @@ public class User : IAuditableEntity
     public string? SpouseFullName { get; set; } 
     public List<ChildInfo>? Children { get; set; } 
     public List<EmergencyContact>? EmergencyContacts { get; set; }
+    public List<EducationHistory>? EducationHistories { get; set; }
     public string? LegalAddress { get; set; } 
     public string? CurrentAddress { get; set; } 
     public string? City { get; set; } 

@@ -34,21 +34,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.DisabilityStatus).HasDefaultValue(false);
         builder.Property(u => u.DisabilityDegree).HasMaxLength(100);
         builder.Property(u => u.Nationality).HasMaxLength(100);
-        builder.Property(u => u.CitizenshipNumber).HasMaxLength(20); 
-
-        builder.Property(u => u.EducationStatus).HasMaxLength(50);
-        builder.Property(u => u.HighestEducationLevel).HasMaxLength(50);
-        builder.Property(u => u.HighSchoolName).HasMaxLength(200);
-        builder.Property(u => u.AssociateDegreeUniversityName).HasMaxLength(200);
-        builder.Property(u => u.AssociateDegreeProgramName).HasMaxLength(200);
-        builder.Property(u => u.BachelorsUniversityName).HasMaxLength(200);
-        builder.Property(u => u.BachelorsProgramName).HasMaxLength(200); 
-        builder.Property(u => u.MastersUniversityName).HasMaxLength(200); 
-        builder.Property(u => u.MastersProgramName).HasMaxLength(200); 
-        builder.Property(u => u.DoctorateUniversityName).HasMaxLength(200);
-        builder.Property(u => u.DoctorateProgramName).HasMaxLength(200);
-        builder.Property(u => u.DoctoratePhdStatus).HasMaxLength(100); 
-
+        builder.Property(u => u.CitizenshipNumber).HasMaxLength(20);
         builder.Property(u => u.EmergencyContactFullName).HasMaxLength(200);
         builder.Property(u => u.EmergencyContactRelationship).HasMaxLength(100);
         builder.Property(u => u.EmergencyContactPhoneNumber).HasMaxLength(20);
@@ -69,7 +55,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         
         builder.Property(u => u.CvFilePath).HasMaxLength(500);
         builder.Property(u => u.EmployeeGroup).HasMaxLength(100); 
-
         builder.Property(u => u.AutoEnrollmentPensionStatus).HasMaxLength(50);
         
         builder.Property(u => u.HasEmployerPension).HasDefaultValue(false);

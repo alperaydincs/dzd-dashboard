@@ -17,22 +17,17 @@ public class UserMappingProfile : Profile
         CreateMap<User, UserProfileReportsToDto>();
         CreateMap<User, UserProfileDto>();
         CreateMap<EmergencyContact, EmergencyContactDto>().ReverseMap();
+        CreateMap<EducationHistory, EducationHistoryDto>().ReverseMap();
 
-        CreateMap<User, EmployeeDetailDto>()
+        CreateMap<User, EmployeeCardDto>()
             .ForMember(dest => dest.OrganizationPositionName,
-                opt => opt.MapFrom(src => src.OrganizationPosition != null ? src.OrganizationPosition.Name : null));
-
-        CreateMap<User, PersonalInfoDto>()
+                opt => opt.MapFrom(src => src.OrganizationPosition != null ? src.OrganizationPosition.Name : null))
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src =>
                 string.Join(" ", new[] { src.FirstName, src.LastName }.Where(s => !string.IsNullOrWhiteSpace(s)))))
-                        .ForMember(dest => dest.Children, opt => opt.MapFrom(src =>
-                src.Children ?? new List<ChildInfo>()));
-
-        CreateMap<PersonalInfoDto, User>()
-            .ForMember(dest => dest.Children, opt => opt.Ignore())
-            .ForMember(dest => dest.ModifiedAt, opt => opt.Ignore())
-            .ForMember(dest => dest.ModifiedBy, opt => opt.Ignore())
-            .ForMember(dest => dest.ModifiedById, opt => opt.Ignore());
+            .ForMember(dest => dest.Children, opt => opt.MapFrom(src =>
+                src.Children ?? new List<ChildInfo>()))
+            .ForMember(dest => dest.EducationHistories, opt => opt.MapFrom(src =>
+                src.EducationHistories ?? new List<EducationHistory>()));
 
         CreateMap<UpdateContactInfoDto, User>()
             .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.WorkPhoneNumber))

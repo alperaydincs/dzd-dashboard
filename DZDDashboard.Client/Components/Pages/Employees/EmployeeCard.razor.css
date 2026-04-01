@@ -150,9 +150,39 @@
     border-radius: 8px;
 }
 
+::deep .dzd-family-align-item .mud-input-control.mud-input-control-margin-dense {
+    margin-top: 0 !important;
+}
+
+::deep .dzd-family-align-item .mud-input-slot {
+    margin-top: 0 !important;
+}
+
 .dzd-contact-display {
     min-height: 40px;
     padding: 6px 0;
+}
+
+.dzd-inline-edit-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dzd-inline-edit-action {
+    align-self: center;
+    margin-top: 0;
+}
+
+::deep .dzd-inline-edit-control .mud-input-control,
+::deep .dzd-inline-edit-control .mud-input-slot,
+::deep .dzd-inline-edit-control .mud-input-root {
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+}
+
+::deep .dzd-inline-edit-control .mud-input {
+    margin-bottom: 0 !important;
 }
 
 .dzd-header-container {
@@ -177,7 +207,6 @@
     z-index: 1;
 }
 
-/* Scoped intl phone styling for this page only */
 .dzd-intl-phone {
     width: 100%;
 }
@@ -186,7 +215,6 @@
     width: 100%;
 }
 
-/* Remove underline artifacts so only outlined border remains visible */
 ::deep .dzd-intl-phone .mud-input-root:before,
 ::deep .dzd-intl-phone .mud-input-root:after,
 ::deep .dzd-intl-phone .mud-input-root:hover:not(.mud-disabled):before,
@@ -212,7 +240,6 @@
     padding-inline: 10px 8px;
 }
 
-/* Avoid double-layer look: keep Mud outlined border, remove raw input border */
 ::deep .dzd-intl-phone input[type="tel"],
 ::deep .dzd-intl-phone input {
     width: 100%;

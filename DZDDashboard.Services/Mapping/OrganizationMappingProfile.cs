@@ -18,15 +18,19 @@ public class OrganizationMappingProfile : Profile
         CreateMap<Department, DepartmentDto>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.DepartmentName))
             .ReverseMap()
-            .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Name));
+            .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Name))
+            .ForMember(dest => dest.Company, opt => opt.Ignore());
 
         CreateMap<Team, TeamDto>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.TeamName))
             .ReverseMap()
-            .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Name));
+            .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Name))
+            .ForMember(dest => dest.Department, opt => opt.Ignore());
 
         CreateMap<WorkType, WorkTypeDto>().ReverseMap();
-        CreateMap<Grade, GradeDto>().ReverseMap();
+        CreateMap<Grade, GradeDto>()
+            .ReverseMap()
+            .ForMember(dest => dest.NextStep, opt => opt.Ignore());
         CreateMap<UserGroup, UserGroupDto>().ReverseMap();
 
         CreateMap<PayrollLocation, PayrollLocationDto>()

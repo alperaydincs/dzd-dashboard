@@ -51,6 +51,7 @@ public class AppDbContext : DbContext
     public DbSet<UserAvatar> UserAvatars { get; set; }
     public DbSet<ChildInfo> ChildInfos { get; set; }
     public DbSet<EmergencyContact> EmergencyContacts { get; set; }
+    public DbSet<EducationHistory> EducationHistories { get; set; }
     public DbSet<Grade> Grades { get; set; }
     public DbSet<OrganizationPosition> OrganizationPositions { get; set; }
 
@@ -78,17 +79,35 @@ public class AppDbContext : DbContext
         if (_httpContextAccessor?.HttpContext == null) return;
 
         var now = DateTime.UtcNow;
-        var userIdClaim = _httpContextAccessor.HttpContext.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        int? currentUserId = int.TryParse(userIdClaim, out var id) ? id : null;
+        var currentUserId = ResolveCurrentUserId(_httpContextAccessor.HttpContext.User);
 
         foreach (var entry in ChangeTracker.Entries<IAuditableEntity>())
         {
-            if (entry.State == EntityState.Modified)
+            if (entry.State == EntityState.Added || entry.State == EntityState.Modified)
             {
                 entry.Entity.ModifiedAt = now;
                 if (currentUserId.HasValue)
                     entry.Entity.ModifiedById = currentUserId.Value;
             }
         }
+    }
+
+    private static int? ResolveCurrentUserId(ClaimsPrincipal? user)
+    {
+        if (user == null) return null;
+
+        var databaseUserId = user.FindFirst("database_user_id")?.Value;
+        if (int.TryParse(databaseUserId, out var parsedDatabaseUserId))
+        {
+            return parsedDatabaseUserId;
+        }
+
+        var nameIdentifier = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(nameIdentifier, out var parsedNameIdentifier))
+        {
+            return parsedNameIdentifier;
+        }
+
+        return null;
     }
 }

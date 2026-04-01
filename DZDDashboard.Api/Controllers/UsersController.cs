@@ -2,14 +2,13 @@ using DZDDashboard.Common.DTOs;
 using DZDDashboard.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 
 namespace DZDDashboard.Api.Controllers;
 
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class UsersController : BaseController
     {
         private readonly UserService _userService;
@@ -20,6 +19,7 @@ namespace DZDDashboard.Api.Controllers;
         }
 
         [HttpPut("{id}/basic-info")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateBasicInfo(int id, [FromBody] UpdateBasicInfoDto dto)
         {
             var result = await _userService.UpdateBasicInfoAsync(id, dto);
@@ -27,13 +27,22 @@ namespace DZDDashboard.Api.Controllers;
         }
 
         [HttpPut("{id}/contacts")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateContacts(int id, [FromBody] UpdateContactsDto dto)
         {
-            var result = await _userService.UpdateContactsAsync(id, dto);
-            return result ? Ok() : BadRequest();
+            try
+            {
+                var result = await _userService.UpdateContactsAsync(id, dto);
+                return result ? Ok() : BadRequest();
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex, "Update contacts");
+            }
         }
 
         [HttpPut("{id}/citizenship-info")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateCitizenshipInfo(int id, [FromBody] UpdateCitizenshipInfoDto dto)
         {
             var result = await _userService.UpdateCitizenshipInfoAsync(id, dto);
@@ -41,9 +50,18 @@ namespace DZDDashboard.Api.Controllers;
         }
 
         [HttpPut("{id}/address-info")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateAddressInfo(int id, [FromBody] UpdateAddressInfoDto dto)
         {
             var result = await _userService.UpdateAddressInfoAsync(id, dto);
+            return result ? Ok() : BadRequest();
+        }
+
+        [HttpPut("{id}/education-info")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateEducationInfo(int id, [FromBody] UpdateEducationInfoDto dto)
+        {
+            var result = await _userService.UpdateEducationInfoAsync(id, dto);
             return result ? Ok() : BadRequest();
         }
 
@@ -53,14 +71,6 @@ namespace DZDDashboard.Api.Controllers;
     {
         var users = await _userService.GetAllWithRolesAsync();
         return Ok(users);
-    }
-
-    [HttpGet("{id:int}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<UserDto>> Get(int id)
-    {
-        var user = await _userService.GetByIdWithRolesAsync(id);
-        return user is null ? NotFound() : Ok(user);
     }
 
     [HttpDelete("{id:int}")]
@@ -80,7 +90,6 @@ namespace DZDDashboard.Api.Controllers;
     }
 
     [HttpGet("my-profile")]
-    [Authorize]
     public async Task<ActionResult<UserProfileDto>> GetMyProfile()
     {
         var userId = GetCurrentUserId();
@@ -91,14 +100,10 @@ namespace DZDDashboard.Api.Controllers;
     }
 
     [HttpPut("my-profile/contact-info")]
-    [Authorize]
     public async Task<IActionResult> UpdateMyContactInfo([FromBody] UpdateContactInfoDto dto)
     {
         var userId = GetCurrentUserId();
         if (!userId.HasValue) return Unauthorized();
-
-        if (!string.IsNullOrWhiteSpace(dto.PersonalEmail) && !new EmailAddressAttribute().IsValid(dto.PersonalEmail))
-            return BadRequest("Invalid personal email.");
 
         if (!string.IsNullOrWhiteSpace(dto.WorkPhoneNumber) && !Regex.IsMatch(dto.WorkPhoneNumber, "^\\+?[0-9]{6,20}$"))
             return BadRequest("Invalid work phone number.");
@@ -106,20 +111,26 @@ namespace DZDDashboard.Api.Controllers;
         if (!string.IsNullOrWhiteSpace(dto.PersonalPhoneNumber) && !Regex.IsMatch(dto.PersonalPhoneNumber, "^\\+?[0-9]{6,20}$"))
             return BadRequest("Invalid personal phone number.");
 
-        var result = await _userService.UpdateContactInfoAsync(userId.Value, dto);
-        return result ? NoContent() : NotFound();
+        try
+        {
+            var result = await _userService.UpdateContactInfoAsync(userId.Value, dto);
+            return result ? NoContent() : NotFound();
+        }
+        catch (Exception ex)
+        {
+            return HandleException(ex, "Update my contact info");
+        }
     }
 
-    [HttpGet("{id:int}/details")]
+    [HttpGet("{id:int}/card")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<EmployeeDetailDto>> GetEmployeeDetails(int id)
+    public async Task<ActionResult<EmployeeCardDto>> GetEmployeeCard(int id)
     {
-        var profile = await _userService.GetEmployeeDetailsAsync(id);
-        return profile is null ? NotFound() : Ok(profile);
+        var card = await _userService.GetEmployeeCardAsync(id);
+        return card is null ? NotFound() : Ok(card);
     }
 
     [HttpGet("my-avatar")]
-    [Authorize]
     public async Task<ActionResult<UserAvatarDto>> GetMyAvatar()
     {
         var userId = GetCurrentUserId();
@@ -129,38 +140,7 @@ namespace DZDDashboard.Api.Controllers;
         return Ok(avatarDto ?? new UserAvatarDto());
     }
 
-    [HttpGet("{id:int}/personal-info")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<PersonalInfoDto>> GetPersonalInfo(int id)
-    {
-        var dto = await _userService.GetPersonalInfoAsync(id);
-        return dto is null ? NotFound() : Ok(dto);
-    }
-
-    [HttpPut("{id:int}/personal-info")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> PutPersonalInfo(int id, [FromBody] PersonalInfoDto dto)
-    {
-        if (dto?.Id != id) return BadRequest("Invalid payload or ID mismatch.");
-        // Validate emails
-        if (!string.IsNullOrWhiteSpace(dto.Email) && !new EmailAddressAttribute().IsValid(dto.Email))
-            return BadRequest("Invalid work email.");
-
-        if (!string.IsNullOrWhiteSpace(dto.PersonalEmail) && !new EmailAddressAttribute().IsValid(dto.PersonalEmail))
-            return BadRequest("Invalid personal email.");
-
-        if (!string.IsNullOrWhiteSpace(dto.PhoneNumber) && !Regex.IsMatch(dto.PhoneNumber, "^\\+?[0-9]{6,20}$"))
-            return BadRequest("Invalid work phone number.");
-
-        if (!string.IsNullOrWhiteSpace(dto.PersonalPhoneNumber) && !Regex.IsMatch(dto.PersonalPhoneNumber, "^\\+?[0-9]{6,20}$"))
-            return BadRequest("Invalid personal phone number.");
-
-        var ok = await _userService.UpdatePersonalInfoAsync(id, dto);
-        return ok ? NoContent() : NotFound();
-    }
-
     [HttpPost("my-profile/avatar")]
-    [Authorize]
     public async Task<IActionResult> UploadMyAvatar([FromForm] IFormFile file)
     {
         if (file?.Length == 0) return BadRequest("No file uploaded.");
@@ -200,6 +180,7 @@ namespace DZDDashboard.Api.Controllers;
         }
     }
     [HttpGet("{id:int}/avatar")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<UserAvatarDto>> GetUserAvatar(int id)
     {
         var avatarDto = await _userService.GetAvatarByUserIdAsync(id);
