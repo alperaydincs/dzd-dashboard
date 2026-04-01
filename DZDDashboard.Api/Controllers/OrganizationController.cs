@@ -8,7 +8,7 @@ namespace DZDDashboard.Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
-public class OrganizationController : ControllerBase
+public class OrganizationController : BaseController
 {
     private readonly IOrganizationService _service;
 
@@ -27,12 +27,12 @@ public class OrganizationController : ControllerBase
     [HttpPut("companies")]
     [Authorize(Roles = "Admin")]
     public Task<IActionResult> UpdateCompany(CompanyDto dto)
-        => ExecuteNoContent(() => _service.UpdateCompanyAsync(dto));
+        => ExecuteNoContent(() => _service.UpdateCompanyAsync(dto), "Update company");
 
     [HttpDelete("companies/{id}")]
     [Authorize(Roles = "Admin")]
     public Task<IActionResult> DeleteCompany(int id)
-        => ExecuteNoContent(() => _service.DeleteCompanyAsync(id));
+        => ExecuteNoContent(() => _service.DeleteCompanyAsync(id), "Delete company");
 
     [HttpGet("departments")]
     public async Task<ActionResult<List<DepartmentDto>>> GetDepartments() => await _service.GetDepartmentsAsync();
@@ -44,12 +44,12 @@ public class OrganizationController : ControllerBase
     [HttpPut("departments")]
     [Authorize(Roles = "Admin")]
     public Task<IActionResult> UpdateDepartment(DepartmentDto dto)
-        => ExecuteNoContent(() => _service.UpdateDepartmentAsync(dto));
+        => ExecuteNoContent(() => _service.UpdateDepartmentAsync(dto), "Update department");
 
     [HttpDelete("departments/{id}")]
     [Authorize(Roles = "Admin")]
     public Task<IActionResult> DeleteDepartment(int id)
-        => ExecuteNoContent(() => _service.DeleteDepartmentAsync(id));
+        => ExecuteNoContent(() => _service.DeleteDepartmentAsync(id), "Delete department");
 
     [HttpGet("teams")]
     public async Task<ActionResult<List<TeamDto>>> GetTeams() => await _service.GetTeamsAsync();
@@ -61,12 +61,12 @@ public class OrganizationController : ControllerBase
     [HttpPut("teams")]
     [Authorize(Roles = "Admin")]
     public Task<IActionResult> UpdateTeam(TeamDto dto)
-        => ExecuteNoContent(() => _service.UpdateTeamAsync(dto));
+        => ExecuteNoContent(() => _service.UpdateTeamAsync(dto), "Update team");
 
     [HttpDelete("teams/{id}")]
     [Authorize(Roles = "Admin")]
     public Task<IActionResult> DeleteTeam(int id)
-        => ExecuteNoContent(() => _service.DeleteTeamAsync(id));
+        => ExecuteNoContent(() => _service.DeleteTeamAsync(id), "Delete team");
 
     [HttpGet("worktypes")]
     public async Task<ActionResult<List<WorkTypeDto>>> GetWorkTypes() => await _service.GetWorkTypesAsync();
@@ -78,12 +78,12 @@ public class OrganizationController : ControllerBase
     [HttpPut("worktypes")]
     [Authorize(Roles = "Admin")]
     public Task<IActionResult> UpdateWorkType(WorkTypeDto dto)
-        => ExecuteNoContent(() => _service.UpdateWorkTypeAsync(dto));
+        => ExecuteNoContent(() => _service.UpdateWorkTypeAsync(dto), "Update work type");
 
     [HttpDelete("worktypes/{id}")]
     [Authorize(Roles = "Admin")]
     public Task<IActionResult> DeleteWorkType(int id)
-        => ExecuteNoContent(() => _service.DeleteWorkTypeAsync(id));
+        => ExecuteNoContent(() => _service.DeleteWorkTypeAsync(id), "Delete work type");
 
     [HttpGet("jobs")]
     public async Task<ActionResult<List<JobDto>>> GetJobs() => await _service.GetJobsAsync();
@@ -95,12 +95,12 @@ public class OrganizationController : ControllerBase
     [HttpPut("jobs")]
     [Authorize(Roles = "Admin")]
     public Task<IActionResult> UpdateJob(JobDto dto)
-        => ExecuteNoContent(() => _service.UpdateJobAsync(dto));
+        => ExecuteNoContent(() => _service.UpdateJobAsync(dto), "Update job");
 
     [HttpDelete("jobs/{id}")]
     [Authorize(Roles = "Admin")]
     public Task<IActionResult> DeleteJob(int id)
-        => ExecuteNoContent(() => _service.DeleteJobAsync(id));
+        => ExecuteNoContent(() => _service.DeleteJobAsync(id), "Delete job");
 
     [HttpGet("grades")]
     public async Task<ActionResult<List<GradeDto>>> GetGrades() => await _service.GetGradesAsync();
@@ -112,12 +112,12 @@ public class OrganizationController : ControllerBase
     [HttpPut("grades")]
     [Authorize(Roles = "Admin")]
     public Task<IActionResult> UpdateGrade(GradeDto dto)
-        => ExecuteNoContent(() => _service.UpdateGradeAsync(dto));
+        => ExecuteNoContent(() => _service.UpdateGradeAsync(dto), "Update grade");
 
     [HttpDelete("grades/{id}")]
     [Authorize(Roles = "Admin")]
     public Task<IActionResult> DeleteGrade(int id)
-        => ExecuteNoContent(() => _service.DeleteGradeAsync(id));
+        => ExecuteNoContent(() => _service.DeleteGradeAsync(id), "Delete grade");
 
     [HttpGet("payrolllocations")]
     public async Task<ActionResult<List<PayrollLocationDto>>> GetPayrollLocations() => await _service.GetPayrollLocationsAsync();
@@ -129,12 +129,12 @@ public class OrganizationController : ControllerBase
     [HttpPut("payrolllocations")]
     [Authorize(Roles = "Admin")]
     public Task<IActionResult> UpdatePayrollLocation(PayrollLocationDto dto)
-        => ExecuteNoContent(() => _service.UpdatePayrollLocationAsync(dto));
+        => ExecuteNoContent(() => _service.UpdatePayrollLocationAsync(dto), "Update payroll location");
 
     [HttpDelete("payrolllocations/{id}")]
     [Authorize(Roles = "Admin")]
     public Task<IActionResult> DeletePayrollLocation(int id)
-        => ExecuteNoContent(() => _service.DeletePayrollLocationAsync(id));
+        => ExecuteNoContent(() => _service.DeletePayrollLocationAsync(id), "Delete payroll location");
 
     [HttpGet("usergroups")]
     public async Task<ActionResult<List<UserGroupDto>>> GetUserGroups() => await _service.GetUserGroupsAsync();
@@ -146,12 +146,12 @@ public class OrganizationController : ControllerBase
     [HttpPut("usergroups")]
     [Authorize(Roles = "Admin")]
     public Task<IActionResult> UpdateUserGroup(UserGroupDto dto)
-        => ExecuteNoContent(() => _service.UpdateUserGroupAsync(dto));
+        => ExecuteNoContent(() => _service.UpdateUserGroupAsync(dto), "Update user group");
 
     [HttpDelete("usergroups/{id}")]
     [Authorize(Roles = "Admin")]
     public Task<IActionResult> DeleteUserGroup(int id)
-        => ExecuteNoContent(() => _service.DeleteUserGroupAsync(id));
+        => ExecuteNoContent(() => _service.DeleteUserGroupAsync(id), "Delete user group");
 
     [HttpGet("usergroups/{id}/members")]
     public async Task<ActionResult<UserGroupDto>> GetUserGroupWithMembers(int id) => await _service.GetUserGroupWithMembersAsync(id);
@@ -168,13 +168,9 @@ public class OrganizationController : ControllerBase
             var result = await _service.CreatePositionAsync(dto);
             return CreatedAtAction(nameof(GetPositions), new { id = result.Id }, result);
         }
-        catch (InvalidOperationException ex)
+        catch (Exception ex)
         {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Unexpected server error." });
+            return HandleException(ex, "Create position");
         }
     }
 
@@ -189,17 +185,9 @@ public class OrganizationController : ControllerBase
             var result = await _service.UpdatePositionAsync(dto);
             return Ok(result);
         }
-        catch (KeyNotFoundException)
+        catch (Exception ex)
         {
-            return NotFound();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Unexpected server error." });
+            return HandleException(ex, "Update position");
         }
     }
 
@@ -212,23 +200,22 @@ public class OrganizationController : ControllerBase
             await _service.DeletePositionAsync(id);
             return NoContent();
         }
-        catch (KeyNotFoundException)
+        catch (Exception ex)
         {
-            return NotFound();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Unexpected server error." });
+            return HandleException(ex, "Delete position");
         }
     }
 
-    private async Task<IActionResult> ExecuteNoContent(Func<Task> action)
+    private async Task<IActionResult> ExecuteNoContent(Func<Task> action, string operationName)
     {
-        await action();
-        return NoContent();
+        try
+        {
+            await action();
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return HandleException(ex, operationName);
+        }
     }
 }

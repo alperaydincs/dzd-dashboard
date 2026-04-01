@@ -129,27 +129,21 @@ public abstract class ApiServiceBase
     private bool IsChallengeException(Exception ex)
     {
         if (ex == null) return false;
-        if (ex is System.Net.Http.HttpRequestException httpEx)
-        {
 
-            if (httpEx.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                return true;
+        if (ex is System.Net.Http.HttpRequestException httpEx &&
+            httpEx.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            return true;
 
-            if (!string.IsNullOrEmpty(httpEx.Message) && httpEx.Message.Contains("401"))
-                return true;
-        }
+        if (ex is MicrosoftIdentityWebChallengeUserException)
+            return true;
 
-        if (ex is MicrosoftIdentityWebChallengeUserException ||
-            (!string.IsNullOrEmpty(ex.Message) && (
+        if (!string.IsNullOrEmpty(ex.Message) && (
                 ex.Message.Contains("IDW10502") ||
                 ex.Message.Contains("MsalUiRequiredException") ||
                 ex.Message.Contains("interaction_required") ||
                 ex.Message.Contains("consent_required") ||
-                ex.Message.Contains("login_required")
-            )))
-        {
+                ex.Message.Contains("login_required")))
             return true;
-        }
 
         return ex.InnerException != null && IsChallengeException(ex.InnerException);
     }
