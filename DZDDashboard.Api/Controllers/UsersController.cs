@@ -6,64 +6,19 @@ using System.Text.RegularExpressions;
 
 namespace DZDDashboard.Api.Controllers;
 
-    [ApiController]
-    [Route("api/[controller]")]
-    [Authorize]
-    public class UsersController : BaseController
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class UsersController : BaseController
+{
+    private static readonly Regex PhoneRegex = new(@"^\+?[0-9]{6,20}$", RegexOptions.Compiled);
+
+    private readonly UserService _userService;
+
+    public UsersController(UserService userService)
     {
-        private readonly UserService _userService;
-
-        public UsersController(UserService userService)
-        {
-            _userService = userService;
-        }
-
-        [HttpPut("{id}/basic-info")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateBasicInfo(int id, [FromBody] UpdateBasicInfoDto dto)
-        {
-            var result = await _userService.UpdateBasicInfoAsync(id, dto);
-            return result ? Ok() : BadRequest();
-        }
-
-        [HttpPut("{id}/contacts")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateContacts(int id, [FromBody] UpdateContactsDto dto)
-        {
-            try
-            {
-                var result = await _userService.UpdateContactsAsync(id, dto);
-                return result ? Ok() : BadRequest();
-            }
-            catch (Exception ex)
-            {
-                return HandleException(ex, "Update contacts");
-            }
-        }
-
-        [HttpPut("{id}/citizenship-info")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateCitizenshipInfo(int id, [FromBody] UpdateCitizenshipInfoDto dto)
-        {
-            var result = await _userService.UpdateCitizenshipInfoAsync(id, dto);
-            return result ? Ok() : BadRequest();
-        }
-
-        [HttpPut("{id}/address-info")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateAddressInfo(int id, [FromBody] UpdateAddressInfoDto dto)
-        {
-            var result = await _userService.UpdateAddressInfoAsync(id, dto);
-            return result ? Ok() : BadRequest();
-        }
-
-        [HttpPut("{id}/education-info")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateEducationInfo(int id, [FromBody] UpdateEducationInfoDto dto)
-        {
-            var result = await _userService.UpdateEducationInfoAsync(id, dto);
-            return result ? Ok() : BadRequest();
-        }
+        _userService = userService;
+    }
 
     [HttpGet]
     [Authorize(Roles = "Admin")]
@@ -105,10 +60,10 @@ namespace DZDDashboard.Api.Controllers;
         var userId = GetCurrentUserId();
         if (!userId.HasValue) return Unauthorized();
 
-        if (!string.IsNullOrWhiteSpace(dto.WorkPhoneNumber) && !Regex.IsMatch(dto.WorkPhoneNumber, "^\\+?[0-9]{6,20}$"))
+        if (!string.IsNullOrWhiteSpace(dto.WorkPhoneNumber) && !PhoneRegex.IsMatch(dto.WorkPhoneNumber))
             return BadRequest("Invalid work phone number.");
 
-        if (!string.IsNullOrWhiteSpace(dto.PersonalPhoneNumber) && !Regex.IsMatch(dto.PersonalPhoneNumber, "^\\+?[0-9]{6,20}$"))
+        if (!string.IsNullOrWhiteSpace(dto.PersonalPhoneNumber) && !PhoneRegex.IsMatch(dto.PersonalPhoneNumber))
             return BadRequest("Invalid personal phone number.");
 
         try
@@ -143,8 +98,8 @@ namespace DZDDashboard.Api.Controllers;
     [HttpPost("my-profile/avatar")]
     public async Task<IActionResult> UploadMyAvatar([FromForm] IFormFile file)
     {
-        if (file?.Length == 0) return BadRequest("No file uploaded.");
-        if (file == null || file.Length > 100 * 1024 * 1024) return BadRequest("File size exceeds 100MB limit.");
+        if (file == null || file.Length == 0) return BadRequest("No file uploaded.");
+        if (file.Length > 100 * 1024 * 1024) return BadRequest("File size exceeds 100MB limit.");
 
         var userId = GetCurrentUserId();
         if (!userId.HasValue) return Unauthorized();
@@ -165,26 +120,74 @@ namespace DZDDashboard.Api.Controllers;
         }
     }
 
-    [HttpPut("{id}/organization-position")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateOrganizationPosition(int id, [FromBody] UpdateUserOrganizationPositionDto dto)
-    {
-        try
-        {
-            await _userService.UpdateOrganizationPositionAsync(id, dto.OrganizationPositionId, dto.ReportsToId);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, "Update organization position");
-        }
-    }
     [HttpGet("{id:int}/avatar")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<UserAvatarDto>> GetUserAvatar(int id)
     {
         var avatarDto = await _userService.GetAvatarByUserIdAsync(id);
         return Ok(avatarDto ?? new UserAvatarDto());
+    }
+
+    [HttpPut("{id}/basic-info")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateBasicInfo(int id, [FromBody] UpdateBasicInfoDto dto)
+    {
+        var result = await _userService.UpdateBasicInfoAsync(id, dto);
+        return result ? Ok() : BadRequest();
+    }
+
+    [HttpPut("{id}/contacts")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateContacts(int id, [FromBody] UpdateContactsDto dto)
+    {
+        try
+        {
+            var result = await _userService.UpdateContactsAsync(id, dto);
+            return result ? Ok() : BadRequest();
+        }
+        catch (Exception ex)
+        {
+            return HandleException(ex, "Update contacts");
+        }
+    }
+
+    [HttpPut("{id}/citizenship-info")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateCitizenshipInfo(int id, [FromBody] UpdateCitizenshipInfoDto dto)
+    {
+        var result = await _userService.UpdateCitizenshipInfoAsync(id, dto);
+        return result ? Ok() : BadRequest();
+    }
+
+    [HttpPut("{id}/address-info")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateAddressInfo(int id, [FromBody] UpdateAddressInfoDto dto)
+    {
+        var result = await _userService.UpdateAddressInfoAsync(id, dto);
+        return result ? Ok() : BadRequest();
+    }
+
+    [HttpPut("{id}/education-info")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateEducationInfo(int id, [FromBody] UpdateEducationInfoDto dto)
+    {
+        var result = await _userService.UpdateEducationInfoAsync(id, dto);
+        return result ? Ok() : BadRequest();
+    }
+
+    [HttpPut("{id}/organization-position")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateOrganizationPosition(int id, [FromBody] UpdateUserOrganizationPositionDto dto)
+    {
+        try
+        {
+            await _userService.UpdateOrganizationPositionAsync(id, dto.OrganizationPositionId);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return HandleException(ex, "Update organization position");
+        }
     }
 
     [HttpPut("{id:int}/emergency-contacts")]
