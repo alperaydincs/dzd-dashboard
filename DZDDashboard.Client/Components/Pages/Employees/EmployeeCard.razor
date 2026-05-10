@@ -713,7 +713,7 @@
                                 @if (_editingEmergencyInfo)
                                 {
                                     <MudItem xs="12">
-                                        <MudButton Variant="Variant.Outlined" StartIcon="@DzdIcons.Plus" Size="Size.Small" OnClick="AddEmergencyContact">Add Contact</MudButton>
+                                        <MudButton Variant="Variant.Outlined" StartIcon="@DzdIcons.Plus" Size="Size.Small" OnClick="AddEmergencyContact" Class="d-flex align-center gap-2">Add Contact</MudButton>
                                     </MudItem>
                                 }
                             </MudGrid>
@@ -808,7 +808,7 @@
                                 @if (_editingFamilyInfo)
                                 {
                                     <MudItem xs="12">
-                                        <MudButton Variant="Variant.Outlined" StartIcon="@DzdIcons.Plus" Size="Size.Small" OnClick="AddChild">Add Child</MudButton>
+                                        <MudButton Variant="Variant.Outlined" StartIcon="@DzdIcons.Plus" OnClick="AddChild" Class="d-flex align-center gap-2">Add Child</MudButton>
                                     </MudItem>
                                 }
 
@@ -826,7 +826,7 @@
                         
                         <MudDivider Class="my-4" />
 
-                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2 mt-4">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3 mt-4">
                             <div class="dzd-section-title" style="margin:0;">
                                 <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Address Information
                             </div>
@@ -835,58 +835,115 @@
                                 <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" OnClick="StartAddressInfoEdit" />
                             }
                         </MudStack>
-                        <MudPaper Elevation="1" Class="dzd-card pa-6">
-                                                         <MudGrid Spacing="4">
-                                  <MudItem xs="12" md="12">
-                                    <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.House" Size="Size.Small" /> Registered Address</div>
-                                    @if (_editingAddressInfo)
-                                    {
-                                        <MudTextField @bind-Value="_personalInfo!.LegalAddress" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  />
-                                    }
-                                    else
-                                    {
-                                        <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_personalInfo.LegalAddress ?? "-")</MudText>
-                                    }
-                                  </MudItem>
-                                  <MudItem xs="12" md="12">
-                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.MapPin" Size="Size.Small" /> Current Address</div>
-                                    @if (_editingAddressInfo)
-                                    {
-                                        <MudTextField @bind-Value="_personalInfo.CurrentAddress" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  />
-                                    }
-                                    else
-                                    {
-                                        <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_personalInfo.CurrentAddress ?? "-")</MudText>
-                                    }
-                                  </MudItem>
-                                  <MudItem xs="12" md="12">
-                                      <MudGrid Spacing="4">
-                                                          <MudItem xs="12" md="6">
-                                              <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Building" Size="Size.Small" /> City</div>
-                                              @if (_editingAddressInfo)
-                                              {
-                                                  <MudTextField @bind-Value="_personalInfo.City" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input" />
-                                              }
-                                              else
-                                              {
-                                                  <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_personalInfo.City ?? "-")</MudText>
-                                              }
-                                          </MudItem>
-                                            <MudItem xs="12" md="6">
-                                              <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Globe" Size="Size.Small" /> Country</div>
-                                              @if (_editingAddressInfo)
-                                              {
-                                                  <MudTextField @bind-Value="_personalInfo.Country" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  />
-                                              }
-                                              else
-                                              {
-                                                  <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_personalInfo.Country ?? "-")</MudText>
-                                              }
-                                          </MudItem>
-                                      </MudGrid>
-                                  </MudItem>
-                             </MudGrid>
-                        </MudPaper>
+                        <MudGrid Spacing="3">
+                            <MudItem xs="12" md="6">
+                                <MudPaper Elevation="1" Class="dzd-card pa-6 h-100">
+                                    <MudStack Spacing="4">
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                            <MudIcon Icon="@DzdIcons.House" Size="Size.Small" Style="color: var(--dzd-brand-primary); font-size: 18px;" />
+                                            <MudText Typo="Typo.subtitle2" Style="font-weight: 600; color: var(--dzd-text-secondary); margin: 0;">Registered Address</MudText>
+                                        </MudStack>
+                                        <MudDivider Class="my-0" />
+                                        
+                                        <MudStack Spacing="3">
+                                            <div>
+                                                <MudText Typo="Typo.caption" Style="color: var(--dzd-text-secondary); font-weight: 500; margin-bottom: 6px; display: block;">
+                                                    <MudIcon Icon="@DzdIcons.House" Size="Size.Small" Style="margin-right: 4px; vertical-align: middle;" /> Address
+                                                </MudText>
+                                                @if (_editingAddressInfo)
+                                                {
+                                                    <MudTextField @bind-Value="_personalInfo!.LegalAddress" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input" Placeholder="Enter registered address" />
+                                                }
+                                                else
+                                                {
+                                                    <MudText Typo="Typo.body2" Style="font-weight:500; color:var(--dzd-text-primary);">@(_personalInfo.LegalAddress ?? "-")</MudText>
+                                                }
+                                            </div>
+                                            <div>
+                                                <MudText Typo="Typo.caption" Style="color: var(--dzd-text-secondary); font-weight: 500; margin-bottom: 6px; display: block;">
+                                                    <MudIcon Icon="@DzdIcons.Building" Size="Size.Small" Style="margin-right: 4px; vertical-align: middle;" /> City
+                                                </MudText>
+                                                @if (_editingAddressInfo)
+                                                {
+                                                    <MudTextField @bind-Value="_personalInfo.City" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input" Placeholder="Enter city" />
+                                                }
+                                                else
+                                                {
+                                                    <MudText Typo="Typo.body2" Style="font-weight:500; color:var(--dzd-text-primary);">@(_personalInfo.City ?? "-")</MudText>
+                                                }
+                                            </div>
+                                            <div>
+                                                <MudText Typo="Typo.caption" Style="color: var(--dzd-text-secondary); font-weight: 500; margin-bottom: 6px; display: block;">
+                                                    <MudIcon Icon="@DzdIcons.Globe" Size="Size.Small" Style="margin-right: 4px; vertical-align: middle;" /> Country
+                                                </MudText>
+                                                @if (_editingAddressInfo)
+                                                {
+                                                    <MudTextField @bind-Value="_personalInfo.Country" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input" Placeholder="Enter country" />
+                                                }
+                                                else
+                                                {
+                                                    <MudText Typo="Typo.body2" Style="font-weight:500; color:var(--dzd-text-primary);">@(_personalInfo.Country ?? "-")</MudText>
+                                                }
+                                            </div>
+                                        </MudStack>
+                                    </MudStack>
+                                </MudPaper>
+                            </MudItem>
+
+                            <MudItem xs="12" md="6">
+                                <MudPaper Elevation="1" Class="dzd-card pa-6 h-100">
+                                    <MudStack Spacing="4">
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                            <MudIcon Icon="@DzdIcons.MapPin" Size="Size.Small" Style="color: var(--dzd-brand-primary); font-size: 18px;" />
+                                            <MudText Typo="Typo.subtitle2" Style="font-weight: 600; color: var(--dzd-text-secondary); margin: 0;">Current Address</MudText>
+                                        </MudStack>
+                                        <MudDivider Class="my-0" />
+                                        
+                                        <MudStack Spacing="3">
+                                            <div>
+                                                <MudText Typo="Typo.caption" Style="color: var(--dzd-text-secondary); font-weight: 500; margin-bottom: 6px; display: block;">
+                                                    <MudIcon Icon="@DzdIcons.MapPin" Size="Size.Small" Style="margin-right: 4px; vertical-align: middle;" /> Address
+                                                </MudText>
+                                                @if (_editingAddressInfo)
+                                                {
+                                                    <MudTextField @bind-Value="_personalInfo.CurrentAddress" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input" Placeholder="Enter current address" />
+                                                }
+                                                else
+                                                {
+                                                    <MudText Typo="Typo.body2" Style="font-weight:500; color:var(--dzd-text-primary);">@(_personalInfo.CurrentAddress ?? "-")</MudText>
+                                                }
+                                            </div>
+                                            <div>
+                                                <MudText Typo="Typo.caption" Style="color: var(--dzd-text-secondary); font-weight: 500; margin-bottom: 6px; display: block;">
+                                                    <MudIcon Icon="@DzdIcons.Building" Size="Size.Small" Style="margin-right: 4px; vertical-align: middle;" /> City
+                                                </MudText>
+                                                @if (_editingAddressInfo)
+                                                {
+                                                    <MudTextField @bind-Value="_personalInfo.City" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input" Placeholder="Enter city" />
+                                                }
+                                                else
+                                                {
+                                                    <MudText Typo="Typo.body2" Style="font-weight:500; color:var(--dzd-text-primary);">@(_personalInfo.City ?? "-")</MudText>
+                                                }
+                                            </div>
+                                            <div>
+                                                <MudText Typo="Typo.caption" Style="color: var(--dzd-text-secondary); font-weight: 500; margin-bottom: 6px; display: block;">
+                                                    <MudIcon Icon="@DzdIcons.Globe" Size="Size.Small" Style="margin-right: 4px; vertical-align: middle;" /> Country
+                                                </MudText>
+                                                @if (_editingAddressInfo)
+                                                {
+                                                    <MudTextField @bind-Value="_personalInfo.Country" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input" Placeholder="Enter country" />
+                                                }
+                                                else
+                                                {
+                                                    <MudText Typo="Typo.body2" Style="font-weight:500; color:var(--dzd-text-primary);">@(_personalInfo.Country ?? "-")</MudText>
+                                                }
+                                            </div>
+                                        </MudStack>
+                                    </MudStack>
+                                </MudPaper>
+                            </MudItem>
+                        </MudGrid>
                         @if (_editingAddressInfo)
                         {
                             <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-4">
@@ -968,7 +1025,7 @@
                                 }
 
                                 <MudStack Row="true" Justify="Justify.FlexStart" Class="mt-3">
-                                    <MudButton Variant="Variant.Outlined" StartIcon="@DzdIcons.Plus" OnClick="OpenAddEducationHistoryDialogAsync">Add Education Record</MudButton>
+                                    <MudButton Variant="Variant.Outlined" StartIcon="@DzdIcons.Plus" OnClick="OpenAddEducationHistoryDialogAsync" Class="d-flex align-center gap-2">Add Education Record</MudButton>
                                 </MudStack>
                             }
                         </MudPaper>

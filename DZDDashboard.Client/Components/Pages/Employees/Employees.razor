@@ -223,7 +223,9 @@
             else
             {
                 <MudPaper Elevation="3" Class="org-chart-shell pa-3">
-                    <OrgChartTree Nodes="_orgNodes" />
+                    <div style="overflow-x: auto; padding-bottom: 20px;">
+                        <OrgChartTree Nodes="_orgNodes" />
+                    </div>
                 </MudPaper>
             }
         </MudStack>

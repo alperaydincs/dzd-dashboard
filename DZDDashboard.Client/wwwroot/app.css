@@ -59,6 +59,10 @@ html, body {
     text-transform: none !important;
 }
 
+.mud-button {
+    text-transform: none !important;
+}
+
 h1:focus {
     outline: none;
 }

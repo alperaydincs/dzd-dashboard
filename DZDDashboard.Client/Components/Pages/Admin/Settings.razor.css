@@ -1,3 +1,303 @@
+/* ===== Accordion Sections (sacc-*) ===== */
+
+::deep .sacc-paper {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+::deep .sacc-section-hdr {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+}
+
+::deep .sacc-section-hdr:hover {
+    background: #f9fafb;
+}
+
+::deep .sacc-toggle-btn {
+    background: none;
+    border: none;
+    padding: 2px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    border-radius: 4px;
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+}
+
+::deep .sacc-toggle-btn:hover {
+    background: #f3f4f6;
+}
+
+::deep .sacc-toggle-placeholder {
+    width: 24px;
+    flex-shrink: 0;
+}
+
+::deep .sacc-icon-wrap {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+::deep .sacc-blue   { background: rgba(43, 56, 245, 0.1); color: #2B38F5; }
+::deep .sacc-green  { background: rgba(22, 163, 74, 0.1);  color: #16a34a; }
+::deep .sacc-orange { background: rgba(234, 88, 12, 0.1);  color: #ea580c; }
+::deep .sacc-purple { background: rgba(110, 17, 176, 0.1); color: #6E11B0; }
+::deep .sacc-red    { background: rgba(220, 38, 38, 0.1);  color: #dc2626; }
+::deep .sacc-teal   { background: rgba(13, 148, 136, 0.1); color: #0d9488; }
+::deep .sacc-amber  { background: rgba(254, 168, 47, 0.15); color: #b45309; }
+
+::deep .sacc-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+::deep .sacc-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #111827;
+    line-height: 1.3;
+}
+
+::deep .sacc-subtitle {
+    font-size: 0.73rem;
+    color: #6b7280;
+    line-height: 1.2;
+}
+
+::deep .sacc-body {
+    padding: 4px 16px 14px;
+    border-top: 1px solid #f3f4f6;
+}
+
+::deep .sacc-add-top-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    border: 1.5px dashed #d1d5db;
+    background: none;
+    border-radius: 8px;
+    padding: 9px;
+    font-size: 0.82rem;
+    color: #9ca3af;
+    cursor: pointer;
+    margin: 10px 0 6px;
+    transition: all 0.15s;
+}
+
+::deep .sacc-add-top-btn:hover {
+    border-color: #9ca3af;
+    color: #374151;
+    background: #f9fafb;
+}
+
+::deep .sacc-add-bottom-btn {
+    background: none;
+    border: 1px solid #d1d5db;
+    border-radius: 7px;
+    font-size: 0.8rem;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 5px 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 6px;
+    margin-left: auto;
+    transition: all 0.15s;
+    font-weight: 500;
+}
+
+::deep .sacc-add-bottom-btn:hover {
+    border-color: #9ca3af;
+    color: #374151;
+    background: #f9fafb;
+}
+
+::deep .sacc-add-top-btn .sacc-add-icon,
+::deep .sacc-add-bottom-btn .sacc-add-icon {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+::deep .sacc-item-block {
+    margin-bottom: 2px;
+}
+
+::deep .sacc-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 4px;
+    border-radius: 6px;
+    transition: background 0.12s;
+}
+
+::deep .sacc-row:hover {
+    background: #f9fafb;
+}
+
+::deep .sacc-flat-row {
+    padding: 6px 2px;
+}
+
+::deep .sacc-row-name {
+    flex: 1;
+    font-size: 0.875rem;
+    color: #111827;
+    font-weight: 500;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+::deep .sacc-row-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+::deep .sacc-row:hover .sacc-row-actions,
+::deep .sacc-flat-row .sacc-row-actions {
+    opacity: 1;
+}
+
+::deep .sacc-row-spacer {
+    width: 24px;
+    flex-shrink: 0;
+}
+
+::deep .sacc-pill-btn {
+    border: none;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.73rem;
+    cursor: pointer;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+}
+
+::deep .sacc-pill-btn:hover {
+    opacity: 0.75;
+}
+
+::deep .sacc-pill-blue  { background: rgba(43, 56, 245, 0.1);  color: #2B38F5; }
+::deep .sacc-pill-green { background: rgba(22, 163, 74, 0.1);  color: #16a34a; }
+
+::deep .sacc-icon-btn {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    transition: all 0.12s;
+}
+
+::deep .sacc-icon-btn:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+::deep .sacc-icon-btn-danger { color: #f87171 !important; }
+::deep .sacc-icon-btn-danger:hover { background: #fee2e2 !important; color: #dc2626 !important; }
+
+::deep .sacc-nested {
+    padding-left: 32px;
+}
+
+::deep .sacc-inline-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 4px;
+    border-radius: 6px;
+}
+
+::deep .sacc-inline-add-row {
+    margin: 8px 0 4px;
+}
+
+::deep .sacc-inline-input {
+    flex: 1;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 0.85rem;
+    outline: none;
+    background: #ffffff;
+    color: #111827;
+    min-width: 0;
+    font-family: inherit;
+}
+
+::deep .sacc-inline-input:focus {
+    border-color: #2B38F5;
+    box-shadow: 0 0 0 3px rgba(43, 56, 245, 0.08);
+}
+
+::deep .sacc-inline-confirm {
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.12s;
+}
+
+::deep .sacc-inline-confirm:hover { background: #dcfce7; }
+
+::deep .sacc-inline-cancel {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.12s;
+}
+
+::deep .sacc-inline-cancel:hover { background: #fee2e2; }
+
 /* Settings Dashboard Page */
 ::deep .settings-page {
     max-width: 100%;

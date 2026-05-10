@@ -50,8 +50,26 @@ public class OrganizationService : ApiServiceBase
     public async Task<HttpResponseMessage> DeleteOrganizationPositionAsync(int positionId)
         => await DeleteAsync($"api/organization/positions/{positionId}");
 
+    public async Task<HttpResponseMessage> CreateCompanyAsync(CompanyDto dto)
+        => await PostAsync("api/organization/companies", dto);
+
+    public async Task<HttpResponseMessage> UpdateCompanyAsync(CompanyDto dto)
+        => await PutAsync("api/organization/companies", dto);
+
     public async Task<HttpResponseMessage> DeleteCompanyAsync(int companyId)
         => await DeleteAsync($"api/organization/companies/{companyId}");
+
+    public async Task<HttpResponseMessage> CreateDepartmentAsync(DepartmentDto dto)
+        => await PostAsync("api/organization/departments", dto);
+
+    public async Task<HttpResponseMessage> UpdateDepartmentAsync(DepartmentDto dto)
+        => await PutAsync("api/organization/departments", dto);
+
+    public async Task<HttpResponseMessage> CreateTeamAsync(TeamDto dto)
+        => await PostAsync("api/organization/teams", dto);
+
+    public async Task<HttpResponseMessage> UpdateTeamAsync(TeamDto dto)
+        => await PutAsync("api/organization/teams", dto);
 
     public async Task<HttpResponseMessage> DeleteDepartmentAsync(int departmentId)
         => await DeleteAsync($"api/organization/departments/{departmentId}");
