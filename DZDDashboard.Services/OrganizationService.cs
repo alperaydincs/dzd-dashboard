@@ -45,6 +45,15 @@ public interface IOrganizationService
     Task<OrganizationPositionDto> CreatePositionAsync(CreateOrganizationPositionDto dto);
     Task<OrganizationPositionDto> UpdatePositionAsync(UpdateOrganizationPositionDto dto);
     Task DeletePositionAsync(int id);
+
+    Task<List<CareerPathDto>> GetCareerPathsAsync();
+    Task<CareerPathDto> CreateCareerPathAsync(CareerPathDto dto);
+    Task UpdateCareerPathAsync(CareerPathDto dto);
+    Task DeleteCareerPathAsync(int id);
+
+    Task<CareerMapRuleDto> CreateCareerMapRuleAsync(CareerMapRuleDto dto);
+    Task UpdateCareerMapRuleAsync(CareerMapRuleDto dto);
+    Task DeleteCareerMapRuleAsync(int id);
 }
 
 public class OrganizationService : IOrganizationService
@@ -427,5 +436,130 @@ public class OrganizationService : IOrganizationService
             ?? throw new KeyNotFoundException("Position not found");
 
         return _mapper.Map<OrganizationPositionDto>(position);
+    }
+
+    public async Task<List<CareerPathDto>> GetCareerPathsAsync()
+    {
+        var paths = await _context.CareerPaths
+            .AsNoTracking()
+            .Include(p => p.UserGroup)
+            .Include(p => p.Rules)
+                .ThenInclude(r => r.Positions)
+                    .ThenInclude(pos => pos.Job)
+            .OrderBy(p => p.Name)
+            .ToListAsync();
+        return _mapper.Map<List<CareerPathDto>>(paths);
+    }
+
+    public async Task<CareerPathDto> CreateCareerPathAsync(CareerPathDto dto)
+    {
+        var entity = new CareerPath { Name = dto.Name.Trim(), UserGroupId = dto.UserGroupId };
+        _context.CareerPaths.Add(entity);
+        await _context.SaveChangesAsync();
+        var created = await _context.CareerPaths
+            .Include(p => p.UserGroup)
+            .FirstAsync(p => p.Id == entity.Id);
+        return _mapper.Map<CareerPathDto>(created);
+    }
+
+    public async Task UpdateCareerPathAsync(CareerPathDto dto)
+    {
+        var entity = await _context.CareerPaths.FindAsync(dto.Id)
+            ?? throw new KeyNotFoundException($"CareerPath {dto.Id} not found.");
+        entity.Name = dto.Name.Trim();
+        entity.UserGroupId = dto.UserGroupId;
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteCareerPathAsync(int id)
+    {
+        var entity = await _context.CareerPaths.FindAsync(id);
+        if (entity == null) return;
+        _context.CareerPaths.Remove(entity);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<CareerMapRuleDto> CreateCareerMapRuleAsync(CareerMapRuleDto dto)
+    {
+        var entity = new CareerMapRule
+        {
+            CareerPathId                 = dto.CareerPathId,
+            Grade                        = dto.Grade,
+            MinRoleTimeMonth             = dto.MinRoleTimeMonth,
+            MinRoleTimeYear              = dto.MinRoleTimeYear,
+            MinExperienceMonth           = dto.MinExperienceMonth,
+            MinExperienceYear            = dto.MinExperienceYear,
+            ManagerPerformanceEvaluation = dto.ManagerPerformanceEvaluation,
+            AssessmentCenterApplication  = dto.AssessmentCenterApplication,
+            TechnicalInterview           = dto.TechnicalInterview,
+            CaseStudy                    = dto.CaseStudy,
+            EnglishProficiency           = dto.EnglishProficiency,
+            ProjectObjective             = dto.ProjectObjective,
+            CommitteeApproval            = dto.CommitteeApproval,
+        };
+
+        _context.CareerMapRules.Add(entity);
+        await _context.SaveChangesAsync();
+
+        if (dto.PositionJobIds.Count > 0)
+        {
+            foreach (var posJobId in dto.PositionJobIds)
+            {
+                _context.CareerMapRulePositions.Add(new CareerMapRulePosition
+                {
+                    CareerMapRuleId = entity.Id,
+                    JobId = posJobId
+                });
+            }
+            await _context.SaveChangesAsync();
+        }
+
+        return _mapper.Map<CareerMapRuleDto>(
+            await _context.CareerMapRules
+                .Include(r => r.Positions).ThenInclude(p => p.Job)
+                .FirstAsync(r => r.Id == entity.Id));
+    }
+
+    public async Task UpdateCareerMapRuleAsync(CareerMapRuleDto dto)
+    {
+        var entity = await _context.CareerMapRules
+            .Include(r => r.Positions)
+            .FirstOrDefaultAsync(r => r.Id == dto.Id)
+            ?? throw new KeyNotFoundException($"CareerMapRule {dto.Id} not found.");
+
+        entity.CareerPathId                 = dto.CareerPathId;
+        entity.Grade                        = dto.Grade;
+        entity.MinRoleTimeMonth             = dto.MinRoleTimeMonth;
+        entity.MinRoleTimeYear              = dto.MinRoleTimeYear;
+        entity.MinExperienceMonth           = dto.MinExperienceMonth;
+        entity.MinExperienceYear            = dto.MinExperienceYear;
+        entity.ManagerPerformanceEvaluation = dto.ManagerPerformanceEvaluation;
+        entity.AssessmentCenterApplication  = dto.AssessmentCenterApplication;
+        entity.TechnicalInterview           = dto.TechnicalInterview;
+        entity.CaseStudy                    = dto.CaseStudy;
+        entity.EnglishProficiency           = dto.EnglishProficiency;
+        entity.ProjectObjective             = dto.ProjectObjective;
+        entity.CommitteeApproval            = dto.CommitteeApproval;
+
+        // Sync positions
+        _context.CareerMapRulePositions.RemoveRange(entity.Positions);
+        foreach (var posJobId in dto.PositionJobIds)
+        {
+            _context.CareerMapRulePositions.Add(new CareerMapRulePosition
+            {
+                CareerMapRuleId = entity.Id,
+                JobId = posJobId
+            });
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteCareerMapRuleAsync(int id)
+    {
+        var entity = await _context.CareerMapRules.FindAsync(id);
+        if (entity == null) return;
+        _context.CareerMapRules.Remove(entity);
+        await _context.SaveChangesAsync();
     }
 }

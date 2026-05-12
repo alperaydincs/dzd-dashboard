@@ -90,6 +90,19 @@
     transform: translateX(100%);
 }
 
+.employee-card-tabs-scope .view-tabs-shell.view-tabs-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: min(100%, 720px);
+}
+
+.employee-card-tabs-scope .view-tabs-shell.view-tabs-3::before {
+    width: calc((100% - 6px) / 3);
+}
+
+.employee-card-tabs-scope .view-tabs-shell.view-tabs-3.active-2::before {
+    transform: translateX(200%);
+}
+
 .dzd-section-title {
     color: var(--dzd-blue-500);
     font-weight: 600;

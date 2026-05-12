@@ -27,7 +27,9 @@ public class UserMappingProfile : Profile
             .ForMember(dest => dest.Children, opt => opt.MapFrom(src =>
                 src.Children ?? new List<ChildInfo>()))
             .ForMember(dest => dest.EducationHistories, opt => opt.MapFrom(src =>
-                src.EducationHistories ?? new List<EducationHistory>()));
+                src.EducationHistories ?? new List<EducationHistory>()))
+            .ForMember(dest => dest.CareerPathName,
+                opt => opt.MapFrom(src => src.CareerPath != null ? src.CareerPath.Name : null));
 
         CreateMap<UpdateContactInfoDto, User>()
             .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.WorkPhoneNumber))

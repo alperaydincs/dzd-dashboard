@@ -40,6 +40,9 @@ public class UserService : ApiServiceBase
     public async Task<HttpResponseMessage> UpdateFamilyInfoAsync(int userId, UpdateFamilyInfoDto dto)
         => await PutAsync($"api/users/{userId}/family-info", dto);
 
+    public async Task<HttpResponseMessage> UpdateCareerAssignmentAsync(int userId, UpdateCareerAssignmentDto dto)
+        => await PutAsync($"api/users/{userId}/career", dto);
+
     public async Task<HttpResponseMessage> UpdateBasicInfoAsync(int userId, UpdateBasicInfoDto dto)
     {
         return await PutAsync($"api/users/{userId}/basic-info", dto);

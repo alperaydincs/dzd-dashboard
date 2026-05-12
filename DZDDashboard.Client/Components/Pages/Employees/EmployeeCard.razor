@@ -127,9 +127,10 @@
         </div>
 
         <div class="employee-card-tabs-scope">
-            <div class="view-tabs-shell active-@_activeViewIndex" role="tablist" aria-label="Employee card views">
+            <div class="view-tabs-shell active-@_activeViewIndex view-tabs-3" role="tablist" aria-label="Employee card views">
                 <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 0 ? "true" : "false")" @onclick="() => SetView(0)">Overview</button>
                 <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 1 ? "true" : "false")" @onclick="() => SetView(1)">Personal Info</button>
+                <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 2 ? "true" : "false")" @onclick="() => SetView(2)">Career</button>
             </div>
 
             @if (_activeViewIndex == 0)
@@ -277,6 +278,181 @@
                         </MudPaper>
                     </MudItem>
                 </MudGrid>
+            }
+            else if (_activeViewIndex == 2)
+            {
+                <!-- ===== Career Tab ===== -->
+                @if (!_careerDataLoaded)
+                {
+                    <MudStack AlignItems="AlignItems.Center" Class="py-8">
+                        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                    </MudStack>
+                }
+                else
+                {
+                <MudStack Spacing="4" Class="mt-4">
+
+                    <!-- Organization Placement -->
+                    <MudPaper Elevation="0" Class="pa-4" Style="border-radius:12px; border:1px solid var(--dzd-bg-input);">
+                        <MudStack Spacing="3">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                    <div Style="width:36px;height:36px;background:#E8EBFF;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                                        <MudIcon Icon="@DzdIcons.Building2" Style="color:#2B38F5;font-size:18px;" />
+                                    </div>
+                                    <MudText Typo="Typo.subtitle1" Style="font-weight:600;">Organization Placement</MudText>
+                                </MudStack>
+                                @if (!_editingCareer)
+                                {
+                                    <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary"
+                                                   OnClick="() => _editingCareer = true" />
+                                }
+                            </MudStack>
+                            <MudDivider />
+
+                            @if (_editingCareer)
+                            {
+                                <MudGrid Spacing="3">
+                                    <MudItem xs="12" sm="4">
+                                        <MudSelect T="string" Label="Company"
+                                                   Value="_careerCompanyName"
+                                                   ValueChanged="OnCareerCompanyChanged"
+                                                   Variant="Variant.Outlined" Margin="Margin.Dense">
+                                            <MudSelectItem T="string" Value="@("")">— None —</MudSelectItem>
+                                            @foreach (var c in _careerCompanies)
+                                            {
+                                                <MudSelectItem T="string" Value="@c.Name">@c.Name</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="4">
+                                        <MudSelect T="int?" Label="Department"
+                                                   Value="_careerDeptId"
+                                                   ValueChanged="OnCareerDeptChanged"
+                                                   Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                   Disabled="@string.IsNullOrEmpty(_careerCompanyName)">
+                                            <MudSelectItem T="int?" Value="@((int?)null)">— None —</MudSelectItem>
+                                            @foreach (var d in _careerDepts)
+                                            {
+                                                <MudSelectItem T="int?" Value="@((int?)d.Id)">@d.Name</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="4">
+                                        <MudSelect T="int?" Label="Team" @bind-Value="_careerTeamId"
+                                                   Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                   Disabled="@(_careerDeptId == null)">
+                                            <MudSelectItem T="int?" Value="@((int?)null)">— None —</MudSelectItem>
+                                            @foreach (var t in _careerTeams)
+                                            {
+                                                <MudSelectItem T="int?" Value="@((int?)t.Id)">@t.Name</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </MudItem>
+                                </MudGrid>
+                            }
+                            else
+                            {
+                                <MudGrid Spacing="2">
+                                    <MudItem xs="12" sm="4">
+                                        <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Building2" Size="Size.Small" /> Company</div>
+                                        <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_careerCompanyName ?? "-")</MudText>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="4">
+                                        <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Building" Size="Size.Small" /> Department</div>
+                                        <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_careerDeptId.HasValue ? CareerDeptName : "-")</MudText>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="4">
+                                        <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Users" Size="Size.Small" /> Team</div>
+                                        <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_careerTeamId.HasValue ? CareerTeamName : "-")</MudText>
+                                    </MudItem>
+                                </MudGrid>
+                            }
+                        </MudStack>
+                    </MudPaper>
+
+                    <!-- Career Path Assignment -->
+                    <MudPaper Elevation="0" Class="pa-4" Style="border-radius:12px; border:1px solid var(--dzd-bg-input);">
+                        <MudStack Spacing="3">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <div Style="width:36px;height:36px;background:#E3F0EE;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                                    <MudIcon Icon="@DzdIcons.Route" Style="color:#70A37F;font-size:18px;" />
+                                </div>
+                                <MudText Typo="Typo.subtitle1" Style="font-weight:600;">Career Path Assignment</MudText>
+                            </MudStack>
+                            <MudDivider />
+
+                            @if (_editingCareer)
+                            {
+                                <MudGrid Spacing="3">
+                                    <MudItem xs="12" sm="4">
+                                        <MudSelect T="int?" Label="Career Path"
+                                                   Value="_careerPathId"
+                                                   ValueChanged="OnCareerPathChanged"
+                                                   Variant="Variant.Outlined" Margin="Margin.Dense">
+                                            <MudSelectItem T="int?" Value="@((int?)null)">— None —</MudSelectItem>
+                                            @foreach (var p in _careerPaths)
+                                            {
+                                                <MudSelectItem T="int?" Value="@((int?)p.Id)">@p.Name (@p.UserGroupName)</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="4">
+                                        <MudSelect T="int?" Label="Job Title"
+                                                   Value="_careerJobId"
+                                                   ValueChanged="OnCareerJobChanged"
+                                                   Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                   Disabled="@(_careerPathId == null)">
+                                            <MudSelectItem T="int?" Value="@((int?)null)">— None —</MudSelectItem>
+                                            @foreach (var j in _careerPathJobs)
+                                            {
+                                                <MudSelectItem T="int?" Value="@((int?)j.Id)">@j.Name</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="4">
+                                        <MudSelect T="int?" Label="Grade Level" @bind-Value="_careerGrade"
+                                                   Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                   Disabled="@(_careerJobId == null)">
+                                            <MudSelectItem T="int?" Value="@((int?)null)">— None —</MudSelectItem>
+                                            @foreach (var g in _careerJobGrades)
+                                            {
+                                                <MudSelectItem T="int?" Value="@((int?)g)">@g</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </MudItem>
+                                </MudGrid>
+                            }
+                            else
+                            {
+                                <MudGrid Spacing="2">
+                                    <MudItem xs="12" sm="4">
+                                        <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Route" Size="Size.Small" /> Career Path</div>
+                                        <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_careerPathId.HasValue ? CareerPathName : "-")</MudText>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="4">
+                                        <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Briefcase" Size="Size.Small" /> Job Title</div>
+                                        <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_careerJobId.HasValue ? CareerJobName : "-")</MudText>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="4">
+                                        <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.BadgeCheck" Size="Size.Small" /> Grade Level</div>
+                                        <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_careerGrade?.ToString() ?? "-")</MudText>
+                                    </MudItem>
+                                </MudGrid>
+                            }
+                        </MudStack>
+                    </MudPaper>
+
+                    @if (_editingCareer)
+                    {
+                        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+                            <MudButton Variant="Variant.Outlined" OnClick="CancelCareerEdit">Cancel</MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveCareerAssignmentAsync">Save</MudButton>
+                        </MudStack>
+                    }
+
+                </MudStack>
+                }
             }
             else
             {
@@ -1076,6 +1252,31 @@
     private int _activeViewIndex;
     private int? _employeeId;
     private List<PayrollLocationDto> _payrollLocations = new();
+
+    // Career tab state
+    private bool _careerDataLoaded;
+    private bool _editingCareer;
+    private List<CompanyDto> _careerCompanies = new();
+    private List<DepartmentDto> _allDepartments = new();
+    private List<TeamDto> _allTeams = new();
+    private List<JobDto> _allJobs = new();
+    private List<CareerPathDto> _careerPaths = new();
+    private string? _careerCompanyName;
+    private int? _careerDeptId;
+    private int? _careerTeamId;
+    private int? _careerPathId;
+    private int? _careerJobId;
+    private int? _careerGrade;
+    private List<DepartmentDto> _careerDepts = new();
+    private List<TeamDto> _careerTeams = new();
+    private List<JobDto> _careerPathJobs = new();
+    private List<int> _careerJobGrades = new();
+
+    // Helpers to resolve display names
+    private string CareerDeptName => _allDepartments.FirstOrDefault(d => d.Id == _careerDeptId)?.Name ?? "-";
+    private string CareerTeamName => _allTeams.FirstOrDefault(t => t.Id == _careerTeamId)?.Name ?? "-";
+    private string CareerPathName => _careerPaths.FirstOrDefault(p => p.Id == _careerPathId)?.Name ?? "-";
+    private string CareerJobName  => _allJobs.FirstOrDefault(j => j.Id == _careerJobId)?.Name ?? "-";
 
     protected override async Task OnInitializedAsync()
     {
@@ -1958,7 +2159,185 @@
         return intl;
     }
 
-    private void SetView(int index) => _activeViewIndex = index;
+    private void SetView(int index)
+    {
+        _activeViewIndex = index;
+        if (index == 2 && !_careerDataLoaded)
+            _ = LoadCareerDataAsync();
+    }
+
+    private async Task LoadCareerDataAsync()
+    {
+        try
+        {
+            _careerCompanies  = await OrgService.GetCompaniesAsync();
+            _allDepartments   = await OrgService.GetDepartmentsAsync();
+            _allTeams         = await OrgService.GetTeamsAsync();
+            _allJobs          = await OrgService.GetJobsAsync();
+            _careerPaths      = await OrgService.GetCareerPathsAsync();
+            _careerDataLoaded = true;
+            _editingCareer    = false;
+
+            // Seed current values from profile
+            _careerCompanyName = _profile?.CompanyName;
+            _careerDeptId      = _profile?.DepartmentId;
+            _careerTeamId      = _profile?.TeamId;
+            _careerPathId      = _profile?.CareerPathId;
+            _careerJobId       = _profile?.JobId;
+            _careerGrade       = _profile?.Grade;
+
+            if (!string.IsNullOrEmpty(_careerCompanyName))
+                _careerDepts = _allDepartments
+                    .Where(d => _careerCompanies.Any(c => c.Name == _careerCompanyName && c.Id == d.CompanyId))
+                    .ToList();
+
+            if (_careerDeptId.HasValue)
+                _careerTeams = _allTeams.Where(t => t.DepartmentId == _careerDeptId).ToList();
+
+            if (_careerPathId.HasValue)
+            {
+                var path = _careerPaths.FirstOrDefault(p => p.Id == _careerPathId);
+                if (path != null)
+                {
+                    _careerPathJobs = path.Rules
+                        .SelectMany(r => r.PositionJobs)
+                        .DistinctBy(j => j.Id)
+                        .ToList();
+
+                    if (_careerJobId.HasValue)
+                        _careerJobGrades = path.Rules
+                            .Where(r => r.PositionJobIds.Contains(_careerJobId.Value))
+                            .Select(r => r.Grade)
+                            .OrderBy(g => g)
+                            .ToList();
+                }
+            }
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load career data: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void OnCareerCompanyChanged(string? name)
+    {
+        _careerCompanyName = name;
+        _careerDeptId      = null;
+        _careerTeamId      = null;
+        _careerDepts       = string.IsNullOrEmpty(name)
+            ? new()
+            : _allDepartments
+                .Where(d => _careerCompanies.Any(c => c.Name == name && c.Id == d.CompanyId))
+                .ToList();
+        _careerTeams = new();
+    }
+
+    private void OnCareerDeptChanged(int? deptId)
+    {
+        _careerDeptId = deptId;
+        _careerTeamId = null;
+        _careerTeams  = deptId.HasValue
+            ? _allTeams.Where(t => t.DepartmentId == deptId).ToList()
+            : new();
+    }
+
+    private void OnCareerPathChanged(int? pathId)
+    {
+        _careerPathId   = pathId;
+        _careerJobId    = null;
+        _careerGrade    = null;
+        _careerJobGrades = new();
+
+        var path = _careerPaths.FirstOrDefault(p => p.Id == pathId);
+        _careerPathJobs = path is null
+            ? new()
+            : path.Rules
+                .SelectMany(r => r.PositionJobs)
+                .DistinctBy(j => j.Id)
+                .ToList();
+    }
+
+    private void OnCareerJobChanged(int? jobId)
+    {
+        _careerJobId = jobId;
+        _careerGrade = null;
+
+        var path = _careerPaths.FirstOrDefault(p => p.Id == _careerPathId);
+        _careerJobGrades = (path is null || !jobId.HasValue)
+            ? new()
+            : path.Rules
+                .Where(r => r.PositionJobIds.Contains(jobId.Value))
+                .Select(r => r.Grade)
+                .OrderBy(g => g)
+                .ToList();
+
+        if (_careerJobGrades.Count == 1)
+            _careerGrade = _careerJobGrades[0];
+    }
+
+    private void CancelCareerEdit()
+    {
+        _editingCareer = false;
+
+        // Reset form back to saved profile values without reloading
+        _careerCompanyName = _profile?.CompanyName;
+        _careerDeptId      = _profile?.DepartmentId;
+        _careerTeamId      = _profile?.TeamId;
+        _careerPathId      = _profile?.CareerPathId;
+        _careerJobId       = _profile?.JobId;
+        _careerGrade       = _profile?.Grade;
+
+        _careerDepts = string.IsNullOrEmpty(_careerCompanyName)
+            ? new()
+            : _allDepartments
+                .Where(d => _careerCompanies.Any(c => c.Name == _careerCompanyName && c.Id == d.CompanyId))
+                .ToList();
+
+        _careerTeams = _careerDeptId.HasValue
+            ? _allTeams.Where(t => t.DepartmentId == _careerDeptId).ToList()
+            : new();
+
+        var path = _careerPaths.FirstOrDefault(p => p.Id == _careerPathId);
+        _careerPathJobs = path is null
+            ? new()
+            : path.Rules.SelectMany(r => r.PositionJobs).DistinctBy(j => j.Id).ToList();
+
+        _careerJobGrades = (path is null || !_careerJobId.HasValue)
+            ? new()
+            : path.Rules
+                .Where(r => r.PositionJobIds.Contains(_careerJobId.Value))
+                .Select(r => r.Grade)
+                .OrderBy(g => g)
+                .ToList();
+    }
+
+    private async Task SaveCareerAssignmentAsync()
+    {
+        if (_employeeId is null) return;
+
+        var dto = new UpdateCareerAssignmentDto
+        {
+            CompanyName   = _careerCompanyName,
+            DepartmentId  = _careerDeptId,
+            TeamId        = _careerTeamId,
+            CareerPathId  = _careerPathId,
+            JobId         = _careerJobId,
+            Grade         = _careerGrade,
+        };
+
+        var resp = await UserService.UpdateCareerAssignmentAsync(_employeeId.Value, dto);
+        if (resp.IsSuccessStatusCode)
+        {
+            _editingCareer    = false;
+            _careerDataLoaded = false;
+            await LoadData();
+            await LoadCareerDataAsync();
+            Snackbar.Add("Career assignment saved.", Severity.Success);
+        }
+        else Snackbar.Add("Failed to save career assignment.", Severity.Error);
+    }
     private void Back() => Nav.NavigateTo("/employees");
     private string GetManagerDisplayName() => AppFormatter.BuildFullName(_profile?.ReportsTo?.FirstName, _profile?.ReportsTo?.LastName) ?? "-";
     private string GetManagerDepartmentName() => _profile?.ReportsTo?.Department?.Name ?? "-";

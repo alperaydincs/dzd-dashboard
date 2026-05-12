@@ -117,6 +117,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                .HasForeignKey(u => u.ModifiedById)
                .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(u => u.CareerPath)
+               .WithMany()
+               .HasForeignKey(u => u.CareerPathId)
+               .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasOne(u => u.Avatar)
                .WithOne(a => a.User)
                .HasForeignKey<UserAvatar>(a => a.UserId)

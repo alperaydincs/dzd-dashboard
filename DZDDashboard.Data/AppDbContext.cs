@@ -22,7 +22,9 @@ public class AppDbContext : DbContext
     public DbSet<ProjectDocument> ProjectDocuments { get; set; }
     public DbSet<Company> Companies { get; set; }
     public DbSet<WorkType> WorkTypes { get; set; }
+    public DbSet<CareerPath> CareerPaths { get; set; }
     public DbSet<CareerMapRule> CareerMapRules { get; set; }
+    public DbSet<CareerMapRulePosition> CareerMapRulePositions { get; set; }
     public DbSet<Department> Departments { get; set; }
     public DbSet<DefaultDocument> DefaultDocuments { get; set; }
     public DbSet<DzdStatus> DzdStatuses { get; set; }

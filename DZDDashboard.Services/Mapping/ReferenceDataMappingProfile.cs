@@ -9,32 +9,15 @@ public class ReferenceDataMappingProfile : Profile
     public ReferenceDataMappingProfile()
     {
         CreateMap<TargetEffort, TargetEffortDto>();
-        CreateMap<SalaryHistory, SalaryHistoryDto>();
-        CreateMap<GradeHistory, GradeHistoryDto>();
-        CreateMap<ChildInfo, ChildInfoDto>().ReverseMap();
-        CreateMap<ExCompanyHistory, ExCompanyHistoryDto>();
-        CreateMap<UserTraining, UserTrainingDto>();
-        CreateMap<UserDocument, UserDocumentDto>();
-        CreateMap<UserDocumentCategory, UserDocumentCategoryDto>();
-        CreateMap<Bank, BankDto>();
         CreateMap<Period, PeriodDto>();
-        CreateMap<Training, TrainingDto>();
-        CreateMap<Bid, BidDto>();
-        CreateMap<Project, ProjectDto>();
-        CreateMap<ProjectBonusCoefficient, ProjectBonusCoefficientDto>();
-        CreateMap<ProjectDocument, ProjectDocumentDto>();
-        CreateMap<ProjectInvoice, ProjectInvoiceDto>();
-        CreateMap<DefaultDocument, DefaultDocumentDto>();
-        CreateMap<Itsm, ItsmDto>();
-        CreateMap<IssuePaymentType, IssuePaymentTypeDto>();
-        CreateMap<IssuePriority, IssuePriorityDto>();
-        CreateMap<IssueStatus, IssueStatusDto>();
-        CreateMap<IssueType, IssueTypeDto>();
-        CreateMap<Resolution, ResolutionDto>();
-        CreateMap<DzdStatus, DzdStatusDto>();
-        CreateMap<JiraStatus, JiraStatusDto>();
-        CreateMap<CareerMapRule, CareerMapRuleDto>();
-        CreateMap<HeadLeadCoefficient, HeadLeadCoefficientDto>();
-        CreateMap<Salesforce, SalesforceDto>();
+        CreateMap<ChildInfo, ChildInfoDto>().ReverseMap();
+        CreateMap<UserTraining, UserTrainingDto>();
+        CreateMap<CareerMapRule, CareerMapRuleDto>()
+            .ForMember(dest => dest.PositionJobIds, opt => opt.MapFrom(src => src.Positions.Select(p => p.JobId).ToList()))
+            .ForMember(dest => dest.PositionJobs, opt => opt.MapFrom(src => src.Positions.Select(p => p.Job).Where(j => j != null).ToList()));
+
+        CreateMap<CareerPath, CareerPathDto>()
+            .ForMember(dest => dest.UserGroupName, opt => opt.MapFrom(src => src.UserGroup != null ? src.UserGroup.GroupName : null))
+            .ForMember(dest => dest.Rules, opt => opt.MapFrom(src => src.Rules.OrderBy(r => r.Grade)));
     }
 }

@@ -159,6 +159,14 @@ public class UsersController : BaseController
         return result ? Ok() : BadRequest();
     }
 
+    [HttpPut("{id}/career")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateCareerAssignment(int id, [FromBody] UpdateCareerAssignmentDto dto)
+    {
+        var result = await _userService.UpdateCareerAssignmentAsync(id, dto);
+        return result ? Ok() : BadRequest();
+    }
+
     [HttpPut("{id}/address-info")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateAddressInfo(int id, [FromBody] UpdateAddressInfoDto dto)

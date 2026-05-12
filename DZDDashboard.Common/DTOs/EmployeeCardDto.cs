@@ -15,6 +15,8 @@ public class EmployeeCardDto
     public int? DepartmentId { get; set; }
     public int? TeamId { get; set; }
     public int? PayrollLocationId { get; set; }
+    public int? CareerPathId { get; set; }
+    public string? CareerPathName { get; set; }
     public int? ReportsToId { get; set; }
     public int? OrganizationPositionId { get; set; }
 

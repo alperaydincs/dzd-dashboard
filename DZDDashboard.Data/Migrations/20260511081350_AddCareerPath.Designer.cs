@@ -4,6 +4,7 @@ using DZDDashboard.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DZDDashboard.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260511081350_AddCareerPath")]
+    partial class AddCareerPath
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -158,7 +161,7 @@ namespace DZDDashboard.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("AssessmentCenterApplication")
+                    b.Property<bool>("AssesmentCenterApplication")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
@@ -176,10 +179,25 @@ namespace DZDDashboard.Data.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
+                    b.Property<string>("EmployerContributionLimit")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<bool>("EnglishProficiency")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
+
+                    b.Property<bool>("Evaluation")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int?>("ExperienceMaxYear")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ExperienceMinYear")
+                        .HasColumnType("int");
 
                     b.Property<int>("Grade")
                         .HasColumnType("int");
@@ -188,6 +206,10 @@ namespace DZDDashboard.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
+
+                    b.Property<string>("MealAllowance")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int?>("MinExperienceMonth")
                         .HasColumnType("int");
@@ -198,7 +220,7 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<int?>("MinRoleTimeMonth")
                         .HasColumnType("int");
 
-                    b.Property<int?>("MinRoleTimeYear")
+                    b.Property<int?>("MinRoleTimeyear")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("ModifiedAt")
@@ -207,13 +229,24 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<int?>("ModifiedById")
                         .HasColumnType("int");
 
+                    b.Property<string>("PrivatePensionInsurance")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<int?>("ProjectObjective")
                         .HasColumnType("int");
+
+                    b.Property<decimal?>("SalaryIncreasePercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
 
                     b.Property<bool>("TechnicalInterview")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
+
+                    b.Property<int?>("Tenure")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -1574,9 +1607,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
-                    b.Property<int?>("CareerPathId")
-                        .HasColumnType("int");
-
                     b.Property<string>("CitizenshipNumber")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
@@ -1781,8 +1811,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CareerPathId");
 
                     b.HasIndex("DepartmentId");
 
@@ -2756,11 +2784,6 @@ namespace DZDDashboard.Data.Migrations
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.User", b =>
                 {
-                    b.HasOne("DZDDashboard.Data.Entities.CareerPath", "CareerPath")
-                        .WithMany()
-                        .HasForeignKey("CareerPathId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("DZDDashboard.Data.Entities.Department", "Department")
                         .WithMany("Users")
                         .HasForeignKey("DepartmentId")
@@ -2800,8 +2823,6 @@ namespace DZDDashboard.Data.Migrations
                         .WithMany("User")
                         .HasForeignKey("UserGroupId")
                         .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("CareerPath");
 
                     b.Navigation("Department");
 

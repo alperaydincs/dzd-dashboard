@@ -1,0 +1,207 @@
+@using DZDDashboard.Common.DTOs
+@using MudBlazor
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(Rule.Id == 0 ? "Add Grade Level" : $"Edit Grade — G{Rule.Grade}")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+
+            <!-- Grade Number -->
+            <MudNumericField @bind-Value="_grade" Label="Grade Number" Min="1" Max="20"
+                             Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+
+            <!-- Job Titles -->
+            <div>
+                @if (AvailableJobs.Count == 0)
+                {
+                    <MudAlert Severity="Severity.Info" Dense="true">No job titles defined. Add them in Settings → Organization.</MudAlert>
+                }
+                else
+                {
+                    <MudAutocomplete T="JobDto"
+                                     @ref="_autocomplete"
+                                     Label="Search and add job titles"
+                                     Value="_jobToAdd"
+                                     ValueChanged="OnJobSelected"
+                                     SearchFunc="SearchJobs"
+                                     ToStringFunc="j => j?.Name ?? string.Empty"
+                                     Variant="Variant.Outlined"
+                                     Margin="Margin.Dense"
+                                     Dense="true"
+                                     Clearable="true"
+                                     ResetValueOnEmptyText="true"
+                                     CoerceText="false"
+                                     CoerceValue="false"
+                                     ShowProgressIndicator="false"
+                                     MaxItems="50"
+                                     Placeholder="Search job title to add…"
+                                     AdornmentIcon="@Icons.Material.Filled.Search"
+                                     AdornmentColor="Color.Default" />
+
+                    <div class="mt-2">
+                        @if (_selectedJobIds.Count == 0)
+                        {
+                            <MudText Typo="Typo.caption" Style="color:#9ca3af; padding-left:4px;">No job title has been assigned.</MudText>
+                        }
+                        else
+                        {
+                            <MudPaper Outlined="true" Class="pa-2 d-flex flex-wrap gap-1" Style="border-radius:8px;">
+                                @foreach (var id in _selectedJobIds.ToList())
+                                {
+                                    var idCapture = id;
+                                    var jobName = AvailableJobs.FirstOrDefault(j => j.Id == id)?.Name ?? "?";
+                                    <MudChip T="string"
+                                             Text="@jobName"
+                                             Color="Color.Primary"
+                                             Variant="Variant.Filled"
+                                             Size="Size.Small"
+                                             OnClose="() => RemoveJob(idCapture)"
+                                             Class="gd-job-chip" />
+                                }
+                            </MudPaper>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Minimum Durations -->
+            <MudText Typo="Typo.caption" Style="color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">
+                Minimum Durations
+            </MudText>
+
+            <MudGrid Spacing="2">
+                <MudItem xs="12">
+                    <MudText Typo="Typo.body2" Class="mb-1" Style="font-weight:500;">Min. Time in Role</MudText>
+                    <MudGrid Spacing="2">
+                        <MudItem xs="6">
+                            <MudNumericField @bind-Value="_retentionMonth" Label="Months"
+                                             Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudNumericField @bind-Value="_retentionYear" Label="Years"
+                                             Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" />
+                        </MudItem>
+                    </MudGrid>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.body2" Class="mb-1" Style="font-weight:500;">Min. General Experience</MudText>
+                    <MudGrid Spacing="2">
+                        <MudItem xs="6">
+                            <MudNumericField @bind-Value="_minExpMonth" Label="Months"
+                                             Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudNumericField @bind-Value="_minExpYear" Label="Years"
+                                             Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" />
+                        </MudItem>
+                    </MudGrid>
+                </MudItem>
+            </MudGrid>
+
+            <!-- Requirements -->
+            <MudText Typo="Typo.caption" Style="color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">
+                Requirements
+            </MudText>
+            <MudGrid Spacing="1">
+                <MudItem xs="6"><MudCheckBox @bind-Value="_manager"            Label="Manager Performance Evaluation" Dense="true" /></MudItem>
+                <MudItem xs="6"><MudCheckBox @bind-Value="_assessCenter"       Label="Assessment Center Application"  Dense="true" /></MudItem>
+                <MudItem xs="6"><MudCheckBox @bind-Value="_technicalInterview" Label="Technical Interview"            Dense="true" /></MudItem>
+                <MudItem xs="6"><MudCheckBox @bind-Value="_caseStudy"          Label="Case Study"                    Dense="true" /></MudItem>
+                <MudItem xs="6"><MudCheckBox @bind-Value="_english"            Label="English Proficiency"            Dense="true" /></MudItem>
+                <MudItem xs="6"><MudCheckBox @bind-Value="_committee"          Label="Committee Approval"             Dense="true" /></MudItem>
+                <MudItem xs="6">
+                    <MudNumericField @bind-Value="_projectTarget" Label="Project Target"
+                                     Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" />
+                </MudItem>
+            </MudGrid>
+
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit"
+                   Disabled="@(_grade < 1)">
+            Save
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public CareerMapRuleDto Rule { get; set; } = new();
+    [Parameter] public List<JobDto> AvailableJobs { get; set; } = new();
+
+    private MudAutocomplete<JobDto> _autocomplete = default!;
+
+    private int _grade;
+    private HashSet<int> _selectedJobIds = new();
+    private JobDto? _jobToAdd;
+
+    private int? _minExpMonth, _minExpYear, _retentionMonth, _retentionYear;
+    private bool _manager, _assessCenter, _technicalInterview, _caseStudy, _english, _committee;
+    private int? _projectTarget;
+
+    protected override void OnInitialized()
+    {
+        _grade              = Rule.Grade;
+        _selectedJobIds     = Rule.PositionJobIds.ToHashSet();
+        _minExpMonth        = Rule.MinExperienceMonth;
+        _minExpYear         = Rule.MinExperienceYear;
+        _retentionMonth     = Rule.MinRoleTimeMonth;
+        _retentionYear      = Rule.MinRoleTimeYear;
+        _manager            = Rule.ManagerPerformanceEvaluation;
+        _assessCenter       = Rule.AssessmentCenterApplication;
+        _technicalInterview = Rule.TechnicalInterview;
+        _caseStudy          = Rule.CaseStudy;
+        _english            = Rule.EnglishProficiency;
+        _projectTarget      = Rule.ProjectObjective;
+        _committee          = Rule.CommitteeApproval;
+    }
+
+    private Task<IEnumerable<JobDto>> SearchJobs(string value, CancellationToken token)
+    {
+        var results = AvailableJobs
+            .Where(j => !_selectedJobIds.Contains(j.Id))
+            .Where(j => string.IsNullOrWhiteSpace(value) ||
+                        (j.Name?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false));
+        return Task.FromResult(results);
+    }
+
+    private async Task OnJobSelected(JobDto? job)
+    {
+        if (job is null) return;
+        _selectedJobIds.Add(job.Id);
+        _jobToAdd = null;
+        await _autocomplete.ClearAsync();
+    }
+
+    private void RemoveJob(int jobId) => _selectedJobIds.Remove(jobId);
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Submit()
+    {
+        if (_grade < 1) return;
+
+        MudDialog.Close(DialogResult.Ok(new CareerMapRuleDto
+        {
+            Id                           = Rule.Id,
+            CareerPathId                 = Rule.CareerPathId,
+            Grade                        = _grade,
+            PositionJobIds               = _selectedJobIds.ToList(),
+            MinExperienceMonth           = _minExpMonth,
+            MinExperienceYear            = _minExpYear,
+            MinRoleTimeMonth             = _retentionMonth,
+            MinRoleTimeYear              = _retentionYear,
+            ManagerPerformanceEvaluation = _manager,
+            AssessmentCenterApplication  = _assessCenter,
+            TechnicalInterview           = _technicalInterview,
+            CaseStudy                    = _caseStudy,
+            EnglishProficiency           = _english,
+            ProjectObjective             = _projectTarget,
+            CommitteeApproval            = _committee,
+        }));
+    }
+}

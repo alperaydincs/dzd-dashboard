@@ -333,6 +333,10 @@
     align-items: center;
 }
 
+::deep .settings-tabs-shell.settings-tabs-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 ::deep .settings-tabs-shell::before {
     content: "";
     position: absolute;
@@ -346,6 +350,10 @@
     transform: translateX(0%);
     transition: transform 240ms cubic-bezier(0.22, 0.8, 0.32, 1);
     z-index: 0;
+}
+
+::deep .settings-tabs-shell.settings-tabs-3::before {
+    width: calc((100% - 6px) / 3);
 }
 
 ::deep .settings-tab-segment {
@@ -389,6 +397,10 @@
 
 ::deep .settings-tabs-shell.active-1::before {
     transform: translateX(100%);
+}
+
+::deep .settings-tabs-shell.active-2::before {
+    transform: translateX(200%);
 }
 
 /* Stat Cards */

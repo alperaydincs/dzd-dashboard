@@ -1,23 +1,30 @@
-
 namespace DZDDashboard.Common.DTOs
 {
-    public record CareerMapRuleDto
+    public class CareerMapRuleDto
     {
-        public int Id { get; init; }
-        public int JobId { get; init; }
-        public JobDto? Job { get; init; }
-        public int Grade { get; init; }
-        public int? MinExperienceMonth { get; init; }
-        public int? MinExperienceYear { get; init; }
-        public int? MinRoleTimeMonth { get; init; }
-        public int? MinRoleTimeyear { get; init; }
-        public bool ManagerPerformanceEvaluation { get; init; }
-        public bool AssesmentCenterApplication { get; init; }
-        public bool TechnicalInterview { get; init; }
-        public bool CaseStudy { get; init; }
-        public bool EnglishProficiency { get; init; }
-        public int? ProjectObjective { get; init; }
-        public bool CommitteeApproval { get; init; }
+        public int Id { get; set; }
+        public int CareerPathId { get; set; }
+        public int Grade { get; set; }
+
+        // Minimum role duration
+        public int? MinRoleTimeMonth { get; set; }
+        public int? MinRoleTimeYear { get; set; }
+
+        // Minimum general experience
+        public int? MinExperienceMonth { get; set; }
+        public int? MinExperienceYear { get; set; }
+
+        // Requirement flags
+        public bool ManagerPerformanceEvaluation { get; set; }
+        public bool AssessmentCenterApplication { get; set; }
+        public bool TechnicalInterview { get; set; }
+        public bool CaseStudy { get; set; }
+        public bool EnglishProficiency { get; set; }
+        public int? ProjectObjective { get; set; }
+        public bool CommitteeApproval { get; set; }
+
+        // Linked job titles
+        public List<int> PositionJobIds { get; set; } = new();
+        public List<JobDto> PositionJobs { get; set; } = new();
     }
 }
-

@@ -119,6 +119,68 @@ public class OrganizationController : BaseController
     public Task<IActionResult> DeleteGrade(int id)
         => ExecuteNoContent(() => _service.DeleteGradeAsync(id), "Delete grade");
 
+    [HttpGet("careerpaths")]
+    public async Task<ActionResult<List<CareerPathDto>>> GetCareerPaths()
+        => await _service.GetCareerPathsAsync();
+
+    [HttpPost("careerpaths")]
+    [Authorize(Roles = "Admin,HR")]
+    public async Task<IActionResult> CreateCareerPath(CareerPathDto dto)
+    {
+        try { return Ok(await _service.CreateCareerPathAsync(dto)); }
+        catch (Exception ex) { return HandleException(ex, "Create career path"); }
+    }
+
+    [HttpPut("careerpaths/{id}")]
+    [Authorize(Roles = "Admin,HR")]
+    public async Task<IActionResult> UpdateCareerPath(int id, CareerPathDto dto)
+    {
+        if (id != dto.Id) return BadRequest("Id mismatch");
+        try { await _service.UpdateCareerPathAsync(dto); return NoContent(); }
+        catch (Exception ex) { return HandleException(ex, "Update career path"); }
+    }
+
+    [HttpDelete("careerpaths/{id}")]
+    [Authorize(Roles = "Admin,HR")]
+    public Task<IActionResult> DeleteCareerPath(int id)
+        => ExecuteNoContent(() => _service.DeleteCareerPathAsync(id), "Delete career path");
+
+    [HttpPost("careermaprules")]
+    [Authorize(Roles = "Admin,HR")]
+    public async Task<IActionResult> CreateCareerMapRule(CareerMapRuleDto dto)
+    {
+        try
+        {
+            var result = await _service.CreateCareerMapRuleAsync(dto);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return HandleException(ex, "Create career map rule");
+        }
+    }
+
+    [HttpPut("careermaprules/{id}")]
+    [Authorize(Roles = "Admin,HR")]
+    public async Task<IActionResult> UpdateCareerMapRule(int id, CareerMapRuleDto dto)
+    {
+        if (id != dto.Id) return BadRequest("Id mismatch");
+        try
+        {
+            await _service.UpdateCareerMapRuleAsync(dto);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return HandleException(ex, "Update career map rule");
+        }
+    }
+
+    [HttpDelete("careermaprules/{id}")]
+    [Authorize(Roles = "Admin,HR")]
+    public Task<IActionResult> DeleteCareerMapRule(int id)
+        => ExecuteNoContent(() => _service.DeleteCareerMapRuleAsync(id), "Delete career map rule");
+
     [HttpGet("payrolllocations")]
     public async Task<ActionResult<List<PayrollLocationDto>>> GetPayrollLocations() => await _service.GetPayrollLocationsAsync();
 

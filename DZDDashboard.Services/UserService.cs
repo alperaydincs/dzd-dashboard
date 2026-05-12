@@ -322,6 +322,22 @@ public class UserService
         await _context.SaveChangesAsync();
     }
 
+    public async Task<bool> UpdateCareerAssignmentAsync(int userId, UpdateCareerAssignmentDto dto)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return false;
+
+        user.CompanyName   = dto.CompanyName;
+        user.DepartmentId  = dto.DepartmentId;
+        user.TeamId        = dto.TeamId;
+        user.CareerPathId  = dto.CareerPathId;
+        user.JobId         = dto.JobId;
+        user.Grade         = dto.Grade;
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
     private static void EnsureValidEmail(string? email, string fieldName)
     {
         if (string.IsNullOrWhiteSpace(email))

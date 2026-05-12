@@ -100,4 +100,28 @@ public class OrganizationService : ApiServiceBase
 
     public async Task<UserGroupDto?> GetUserGroupWithMembersAsync(int userGroupId)
         => await GetAsync<UserGroupDto>($"api/organization/usergroups/{userGroupId}/members");
+
+    public async Task<HttpResponseMessage> UpdateJobAsync(JobDto dto)
+        => await PutAsync("api/organization/jobs", dto);
+
+    public async Task<List<CareerPathDto>> GetCareerPathsAsync()
+        => await GetAsync<List<CareerPathDto>>("api/organization/careerpaths") ?? new();
+
+    public async Task<HttpResponseMessage> CreateCareerPathAsync(CareerPathDto dto)
+        => await PostAsync("api/organization/careerpaths", dto);
+
+    public async Task<HttpResponseMessage> UpdateCareerPathAsync(CareerPathDto dto)
+        => await PutAsync($"api/organization/careerpaths/{dto.Id}", dto);
+
+    public async Task<HttpResponseMessage> DeleteCareerPathAsync(int id)
+        => await DeleteAsync($"api/organization/careerpaths/{id}");
+
+    public async Task<HttpResponseMessage> CreateCareerMapRuleAsync(CareerMapRuleDto dto)
+        => await PostAsync("api/organization/careermaprules", dto);
+
+    public async Task<HttpResponseMessage> UpdateCareerMapRuleAsync(CareerMapRuleDto dto)
+        => await PutAsync($"api/organization/careermaprules/{dto.Id}", dto);
+
+    public async Task<HttpResponseMessage> DeleteCareerMapRuleAsync(int id)
+        => await DeleteAsync($"api/organization/careermaprules/{id}");
 }

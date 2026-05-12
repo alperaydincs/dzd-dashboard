@@ -32,6 +32,8 @@ public class User : IAuditableEntity
     public virtual ICollection<User> Subordinates { get; set; } = new List<User>();
     public int? OrganizationPositionId { get; set; }
     public OrganizationPosition? OrganizationPosition { get; set; }
+    public int? CareerPathId { get; set; }
+    public CareerPath? CareerPath { get; set; }
     public string? ApprovalProcessUnit { get; set; } 
     public string? PhoneNumber { get; set; } 
     public string? PersonalEmail { get; set; } 

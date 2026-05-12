@@ -1,0 +1,345 @@
+@using DZDDashboard.Client.Components.Pages.Admin.Dialogs
+@using DZDDashboard.Client.Services
+@using DZDDashboard.Common.DTOs
+@using DZDDashboard.Client.Theme
+
+@inject IDialogService DialogServiceRef
+@inject ISnackbar Snackbar
+@inject OrganizationService OrgService
+
+@if (_loading)
+{
+    <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="py-8">
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    </MudStack>
+}
+else
+{
+    <MudStack Spacing="4">
+
+        <!-- Header -->
+        <div class="gm-header">
+            <div>
+                <div class="gm-title">Grade Management by Career Path</div>
+                <div class="gm-subtitle">Define career paths per employee group, then add grade levels and assign job titles to each grade</div>
+            </div>
+            <button type="button" class="gm-add-btn" @onclick="OpenAddCareerPathDialog">
+                <MudIcon Icon="@DzdIcons.Plus" Size="Size.Small" />
+                Add Career Path
+            </button>
+        </div>
+
+        <!-- Career Path Cards -->
+        @foreach (var path in _careerPaths)
+        {
+            var pathCapture = path;
+            var isExpanded = _expandedIds.Contains(path.Id);
+
+            <div class="gm-job-card">
+                <!-- Card Header -->
+                <div class="gm-job-hdr @(isExpanded ? "gm-job-hdr-expanded" : "")">
+                    <button type="button" class="gm-toggle-btn" @onclick="() => TogglePath(pathCapture.Id)">
+                        <MudIcon Icon="@(isExpanded ? DzdIcons.ChevronDown : DzdIcons.ChevronRight)" Size="Size.Small" />
+                    </button>
+                    <div class="gm-icon-wrap">
+                        <MudIcon Icon="@DzdIcons.Route" Size="Size.Small" />
+                    </div>
+                    <div class="gm-job-title-group" @onclick="() => TogglePath(pathCapture.Id)" style="cursor:pointer">
+                        <span class="gm-job-name">@path.Name</span>
+                        <span class="gm-job-meta">
+                            @path.UserGroupName
+                            <span class="gm-meta-sep">·</span>
+                            @path.Rules.Count grade levels
+                        </span>
+                    </div>
+                    <div class="gm-job-actions">
+                        <button type="button" class="gm-icon-btn" title="Edit" @onclick="() => OpenEditCareerPathDialog(pathCapture)" @onclick:stopPropagation>
+                            <MudIcon Icon="@DzdIcons.Pencil" Size="Size.Small" />
+                        </button>
+                        <button type="button" class="gm-icon-btn gm-icon-btn-danger" title="Delete" @onclick="() => DeleteCareerPath(pathCapture)" @onclick:stopPropagation>
+                            <MudIcon Icon="@DzdIcons.Trash2" Size="Size.Small" />
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Grade Table -->
+                @if (isExpanded)
+                {
+                    @if (path.Rules.Count == 0)
+                    {
+                        <div class="gm-no-grades">
+                            <span>No grade levels yet.</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="gm-table-wrap">
+                            <table class="gm-table">
+                                <thead>
+                                    <tr>
+                                        <th class="gm-th gm-th-grade">Grade</th>
+                                        <th class="gm-th gm-th-pos">Job Titles</th>
+                                        <th class="gm-th">Min. Time in Role</th>
+                                        <th class="gm-th">Min. Experience</th>
+                                        <th class="gm-th gm-th-check">Manager Performance Eval.</th>
+                                        <th class="gm-th gm-th-check">Assessment Center</th>
+                                        <th class="gm-th gm-th-check">Technical Interview</th>
+                                        <th class="gm-th gm-th-check">Case Study</th>
+                                        <th class="gm-th gm-th-check">English Proficiency</th>
+                                        <th class="gm-th gm-th-check">Committee Approval</th>
+                                        <th class="gm-th">Project Target</th>
+                                        <th class="gm-th gm-th-actions">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var rule in path.Rules.OrderBy(r => r.Grade))
+                                    {
+                                        var ruleCapture = rule;
+                                        <tr class="gm-tr">
+                                            <td class="gm-td gm-td-grade">
+                                                <span class="gm-grade-badge">G@(rule.Grade)</span>
+                                            </td>
+                                            <td class="gm-td gm-td-pos">
+                                                @if (rule.PositionJobs.Count > 0)
+                                                {
+                                                    <div class="gm-pos-chips">
+                                                        @foreach (var j in rule.PositionJobs)
+                                                        {
+                                                            <span class="gm-pos-chip">@j.Name</span>
+                                                        }
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span class="gm-empty-dash">—</span>
+                                                }
+                                            </td>
+                                            <td class="gm-td">@FormatRetention(rule)</td>
+                                            <td class="gm-td">@FormatMinExperience(rule)</td>
+                                            <td class="gm-td gm-td-check">@CheckIcon(rule.ManagerPerformanceEvaluation)</td>
+                                            <td class="gm-td gm-td-check">@CheckIcon(rule.AssessmentCenterApplication)</td>
+                                            <td class="gm-td gm-td-check">@CheckIcon(rule.TechnicalInterview)</td>
+                                            <td class="gm-td gm-td-check">@CheckIcon(rule.CaseStudy)</td>
+                                            <td class="gm-td gm-td-check">@CheckIcon(rule.EnglishProficiency)</td>
+                                            <td class="gm-td gm-td-check">@CheckIcon(rule.CommitteeApproval)</td>
+                                            <td class="gm-td">@(rule.ProjectObjective?.ToString() ?? "—")</td>
+                                            <td class="gm-td gm-td-actions">
+                                                <div class="gm-actions-wrap">
+                                                    <button type="button" class="gm-icon-btn" title="Edit" @onclick="() => OpenEditRuleDialog(pathCapture, ruleCapture)">
+                                                        <MudIcon Icon="@DzdIcons.Pencil" Size="Size.Small" />
+                                                    </button>
+                                                    <button type="button" class="gm-icon-btn gm-icon-btn-danger" title="Delete" @onclick="() => DeleteRule(ruleCapture)">
+                                                        <MudIcon Icon="@DzdIcons.Trash2" Size="Size.Small" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+
+                    <div class="gm-add-grade-row">
+                        <button type="button" class="gm-add-grade-btn" @onclick="() => OpenAddRuleDialog(pathCapture)">
+                            <MudIcon Icon="@DzdIcons.Plus" Size="Size.Small" />
+                            Add Grade Level
+                        </button>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (_careerPaths.Count == 0)
+        {
+            <div class="gm-empty-state">
+                <MudIcon Icon="@DzdIcons.Route" Size="Size.Large" Class="gm-empty-icon" />
+                <div class="gm-empty-text">No career paths defined yet.</div>
+                <div class="gm-empty-sub">Click "+ Add Career Path" to get started.</div>
+            </div>
+        }
+
+    </MudStack>
+}
+
+@code {
+    private bool _loading = true;
+    private List<CareerPathDto> _careerPaths = new();
+    private HashSet<int> _expandedIds = new();
+
+    protected override async Task OnInitializedAsync() => await LoadData();
+
+    public async Task LoadData()
+    {
+        _loading = true;
+        try
+        {
+            _careerPaths = await OrgService.GetCareerPathsAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load career paths: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void TogglePath(int id)
+    {
+        if (!_expandedIds.Add(id)) _expandedIds.Remove(id);
+    }
+
+    // --- Career Path CRUD ---
+
+    private async Task OpenAddCareerPathDialog()
+    {
+        var groups = await OrgService.GetUserGroupsAsync();
+        if (groups.Count == 0)
+        {
+            Snackbar.Add("No employee groups found. Create one in Settings → Organization first.", Severity.Warning);
+            return;
+        }
+
+        var parameters = new DialogParameters { ["UserGroups"] = groups };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogServiceRef.ShowAsync<AddCareerPathDialog>("Add Career Path", parameters, options);
+        var result = await dialog.Result;
+        if (result is { Canceled: false, Data: CareerPathDto dto })
+        {
+            var resp = await OrgService.CreateCareerPathAsync(dto);
+            if (resp.IsSuccessStatusCode)
+            {
+                await LoadData();
+                // expand the new path
+                var created = _careerPaths.FirstOrDefault(p => p.Name == dto.Name && p.UserGroupId == dto.UserGroupId);
+                if (created != null) _expandedIds.Add(created.Id);
+                Snackbar.Add("Career path created.", Severity.Success);
+            }
+            else Snackbar.Add("Failed to create career path.", Severity.Error);
+        }
+    }
+
+    private async Task OpenEditCareerPathDialog(CareerPathDto path)
+    {
+        var groups = await OrgService.GetUserGroupsAsync();
+        var parameters = new DialogParameters
+        {
+            ["CareerPath"] = path,
+            ["UserGroups"] = groups
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogServiceRef.ShowAsync<EditCareerPathDialog>("Edit Career Path", parameters, options);
+        var result = await dialog.Result;
+        if (result is { Canceled: false, Data: CareerPathDto updated })
+        {
+            var resp = await OrgService.UpdateCareerPathAsync(updated);
+            if (resp.IsSuccessStatusCode) { await LoadData(); Snackbar.Add("Career path updated.", Severity.Success); }
+            else Snackbar.Add("Failed to update career path.", Severity.Error);
+        }
+    }
+
+    private async Task DeleteCareerPath(CareerPathDto path)
+    {
+        var confirm = await DialogServiceRef.ShowMessageBox("Delete Career Path",
+            $"Delete \"{path.Name}\" and all its grade levels?", yesText: "Delete", cancelText: "Cancel");
+        if (confirm == true)
+        {
+            var resp = await OrgService.DeleteCareerPathAsync(path.Id);
+            if (resp.IsSuccessStatusCode) { await LoadData(); Snackbar.Add("Career path deleted.", Severity.Success); }
+            else Snackbar.Add("Failed to delete career path.", Severity.Error);
+        }
+    }
+
+    // --- Grade Level CRUD ---
+
+    private async Task OpenAddRuleDialog(CareerPathDto path)
+    {
+        var allJobs = await OrgService.GetJobsAsync();
+        var nextGrade = path.Rules.Count > 0 ? path.Rules.Max(r => r.Grade) + 1 : 1;
+
+        var parameters = new DialogParameters
+        {
+            ["Rule"] = new CareerMapRuleDto { CareerPathId = path.Id, Grade = nextGrade },
+            ["AvailableJobs"] = allJobs
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = await DialogServiceRef.ShowAsync<GradeLevelDialog>("Add Grade Level", parameters, options);
+        var result = await dialog.Result;
+        if (result is { Canceled: false, Data: CareerMapRuleDto rule })
+        {
+            rule.CareerPathId = path.Id;
+            var resp = await OrgService.CreateCareerMapRuleAsync(rule);
+            if (resp.IsSuccessStatusCode) { await LoadData(); Snackbar.Add("Grade level added.", Severity.Success); }
+            else Snackbar.Add("Failed to add grade level.", Severity.Error);
+        }
+    }
+
+    private async Task OpenEditRuleDialog(CareerPathDto path, CareerMapRuleDto rule)
+    {
+        var allJobs = await OrgService.GetJobsAsync();
+        var clone = new CareerMapRuleDto
+        {
+            Id                           = rule.Id,
+            CareerPathId                 = rule.CareerPathId,
+            Grade                        = rule.Grade,
+            MinRoleTimeMonth             = rule.MinRoleTimeMonth,
+            MinRoleTimeYear              = rule.MinRoleTimeYear,
+            MinExperienceMonth           = rule.MinExperienceMonth,
+            MinExperienceYear            = rule.MinExperienceYear,
+            ManagerPerformanceEvaluation = rule.ManagerPerformanceEvaluation,
+            AssessmentCenterApplication  = rule.AssessmentCenterApplication,
+            TechnicalInterview           = rule.TechnicalInterview,
+            CaseStudy                    = rule.CaseStudy,
+            EnglishProficiency           = rule.EnglishProficiency,
+            ProjectObjective             = rule.ProjectObjective,
+            CommitteeApproval            = rule.CommitteeApproval,
+            PositionJobIds               = rule.PositionJobIds.ToList(),
+            PositionJobs                 = rule.PositionJobs.ToList()
+        };
+
+        var parameters = new DialogParameters { ["Rule"] = clone, ["AvailableJobs"] = allJobs };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = await DialogServiceRef.ShowAsync<GradeLevelDialog>($"Edit Grade — {path.Name} G{rule.Grade}", parameters, options);
+        var result = await dialog.Result;
+        if (result is { Canceled: false, Data: CareerMapRuleDto updated })
+        {
+            var resp = await OrgService.UpdateCareerMapRuleAsync(updated);
+            if (resp.IsSuccessStatusCode) { await LoadData(); Snackbar.Add("Grade level updated.", Severity.Success); }
+            else Snackbar.Add("Failed to update grade level.", Severity.Error);
+        }
+    }
+
+    private async Task DeleteRule(CareerMapRuleDto rule)
+    {
+        var confirm = await DialogServiceRef.ShowMessageBox("Delete Grade Level",
+            $"Delete G{rule.Grade}?", yesText: "Delete", cancelText: "Cancel");
+        if (confirm == true)
+        {
+            var resp = await OrgService.DeleteCareerMapRuleAsync(rule.Id);
+            if (resp.IsSuccessStatusCode) { await LoadData(); Snackbar.Add("Grade level deleted.", Severity.Success); }
+            else Snackbar.Add("Failed to delete grade level.", Severity.Error);
+        }
+    }
+
+    // --- Helpers ---
+
+    private string FormatMinExperience(CareerMapRuleDto r)
+    {
+        if (r.MinExperienceMonth.HasValue && r.MinExperienceMonth > 0) return $"{r.MinExperienceMonth}mo";
+        if (r.MinExperienceYear.HasValue && r.MinExperienceYear > 0) return $"{r.MinExperienceYear}yr";
+        return "—";
+    }
+
+    private string FormatRetention(CareerMapRuleDto r)
+    {
+        if (r.MinRoleTimeMonth.HasValue && r.MinRoleTimeMonth > 0) return $"{r.MinRoleTimeMonth}mo";
+        if (r.MinRoleTimeYear.HasValue && r.MinRoleTimeYear > 0) return $"{r.MinRoleTimeYear}yr";
+        return "—";
+    }
+
+    private RenderFragment CheckIcon(bool value) => value
+        ? @<MudIcon Icon="@DzdIcons.Check" Size="Size.Small" Class="gm-check-yes" />
+        : @<MudIcon Icon="@DzdIcons.X" Size="Size.Small" Class="gm-check-no" />;
+}

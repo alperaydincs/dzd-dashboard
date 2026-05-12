@@ -201,13 +201,13 @@
 
 ::deep .status-chip {
     border-radius: 999px;
-    font-weight: 700;
+    font-weight: 400;
     padding-inline: 8px;
 }
 
 ::deep .status-active {
-    color: #15a34a;
-    background: #ddfce8;
+    color: #016630;
+    background: #DCFCE7;
 }
 
 ::deep .status-leave {

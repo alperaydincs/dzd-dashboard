@@ -117,4 +117,14 @@ h1:focus {
     max-width: 100% !important;
 }
 
+/* ===== Grade Level Dialog ===== */
 
+/* Compact selected-job chips inside the outlined paper box */
+.gd-job-chip .mud-chip-content {
+    font-size: 0.78rem;
+}
+
+/* Prevent autocomplete dropdown from being clipped by dialog overflow */
+.mud-dialog .mud-popover-overflow-y-auto {
+    max-height: 220px;
+}
