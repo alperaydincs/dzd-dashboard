@@ -42,4 +42,10 @@ public static class ValidationConstants
     public const int MaxNotesLength         = 1000;
     /// <summary>DB column width for short reference codes (Jira project/task numbers, T-shirt sizes).</summary>
     public const int MaxReferenceCodeLength = 50;
+
+    // Payment screen
+    /// <summary>DB column width for benefit provider/policy names (e.g. BES sağlayıcı adı).</summary>
+    public const int MaxProviderNameLength = 200;
+    /// <summary>Max number of dependent rows under a single benefit record (BR-PAY-03).</summary>
+    public const int MaxBenefitDependents  = 5;
 }

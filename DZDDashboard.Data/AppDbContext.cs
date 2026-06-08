@@ -53,6 +53,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, IAuditProvider
     public DbSet<Grade> Grades { get; set; }
     public DbSet<GradeHistory> GradeHistories { get; set; }
     public DbSet<SalaryHistory> SalaryHistories { get; set; }
+    public DbSet<BenefitRecord> BenefitRecords { get; set; }
+    public DbSet<BenefitDependent> BenefitDependents { get; set; }
+    public DbSet<AdditionalPayment> AdditionalPayments { get; set; }
     public DbSet<OrganizationPosition> OrganizationPositions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

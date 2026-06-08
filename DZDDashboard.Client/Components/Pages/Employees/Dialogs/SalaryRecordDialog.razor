@@ -1,0 +1,105 @@
+@using DZDDashboard.Common.Constants
+@using DZDDashboard.Common.DTOs
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="2">
+            <MudGrid>
+                <MudItem xs="6">
+                    <MudNumericField T="decimal" Label="Net Amount" @bind-Value="_model.NetAmount" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Min="0.01m" Format="N2" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudNumericField T="decimal?" Label="Gross Amount (optional)" @bind-Value="_model.GrossAmount" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0.01m" Format="N2" />
+                </MudItem>
+            </MudGrid>
+
+            <MudGrid>
+                <MudItem xs="6">
+                    <MudSelect T="string" Label="Currency" @bind-Value="_model.Currency" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
+                        @foreach (var option in Currencies.All)
+                        {
+                            <MudSelectItem Value="@option">@option</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudSelect T="string" Label="Period" @bind-Value="_model.Period" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
+                        @foreach (var option in PaymentPeriods.All)
+                        {
+                            <MudSelectItem Value="@option">@option</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+
+            <MudTextField T="string" Label="Payroll Cycle (optional)" @bind-Value="_model.PayrollCycle" Variant="Variant.Outlined" Margin="Margin.Dense" />
+
+            <MudGrid>
+                <MudItem xs="6">
+                    <MudDatePicker Label="Start Date" Date="@_model.StartDate" DateChanged="@(d => _model.StartDate = d ?? _model.StartDate)"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" Required="true"
+                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudDatePicker Label="End Date (optional)" Date="@_model.EndDate" DateChanged="@(d => _model.EndDate = d)"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense"
+                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
+                </MudItem>
+            </MudGrid>
+
+            <MudTextField T="string" Label="Notes (optional)" @bind-Value="_model.Notes" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" />
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_submitted">@ConfirmButtonText</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public SalaryRecordDto? InitialModel { get; set; }
+    [Parameter] public string ConfirmButtonText { get; set; } = "Add";
+
+    private SalaryRecordDto _model = new() { Currency = Currencies.Try, Period = PaymentPeriods.Monthly, StartDate = DateTime.Today };
+
+    private bool _initialized;
+    private bool _submitted;
+
+    protected override void OnParametersSet()
+    {
+        // Guard: only seed from InitialModel once — re-renders shouldn't reset in-progress edits.
+        if (_initialized || InitialModel is null) return;
+        _initialized = true;
+
+        _model = InitialModel with { };
+    }
+
+    private void Save()
+    {
+        if (_submitted) return;
+
+        if (_model.NetAmount <= 0)
+        {
+            Snackbar.Add("Net amount must be greater than zero.", Severity.Warning);
+            return;
+        }
+        if (_model.StartDate == default)
+        {
+            Snackbar.Add("Start date is required.", Severity.Warning);
+            return;
+        }
+        if (_model.EndDate.HasValue && _model.EndDate < _model.StartDate)
+        {
+            Snackbar.Add("End date cannot be before start date.", Severity.Warning);
+            return;
+        }
+
+        _submitted = true;
+        MudDialog.Close(DialogResult.Ok(_model));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

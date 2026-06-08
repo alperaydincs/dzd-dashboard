@@ -1,0 +1,211 @@
+@using DZDDashboard.Client.Components.Pages.Employees.Dialogs
+@using DZDDashboard.Client.Services
+@using DZDDashboard.Common.Constants
+@using DZDDashboard.Common.DTOs
+@using DZDDashboard.Common.Utils
+
+<div>
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2 mt-4">
+        <div class="dzd-section-title" style="margin:0;">
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Payment Information
+        </div>
+    </MudStack>
+
+    <MudPaper Elevation="1" Class="dzd-card pa-6">
+        @if (_loading)
+        {
+            <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+        }
+        else if (_loadError is not null)
+        {
+            <MudAlert Severity="Severity.Error">@_loadError</MudAlert>
+        }
+        else if (_payment is not null)
+        {
+            <MudGrid Class="mb-4">
+                @foreach (var item in _payment.Summary.EstimatedMonthlyCost)
+                {
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudPaper Class="pa-3" Elevation="0" Outlined="true" Style="border-radius:8px;">
+                            <MudText Typo="Typo.caption" Style="color:var(--dzd-text-secondary);">Est. Monthly Cost (@item.Currency)</MudText>
+                            <MudText Typo="Typo.h6">@FormatMoney(item.Amount, item.Currency)</MudText>
+                        </MudPaper>
+                    </MudItem>
+                }
+                @foreach (var item in _payment.Summary.ActiveBenefitsTotal)
+                {
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudPaper Class="pa-3" Elevation="0" Outlined="true" Style="border-radius:8px;">
+                            <MudText Typo="Typo.caption" Style="color:var(--dzd-text-secondary);">Active Benefits Total (@item.Currency)</MudText>
+                            <MudText Typo="Typo.h6">@FormatMoney(item.Amount, item.Currency)</MudText>
+                        </MudPaper>
+                    </MudItem>
+                }
+                <MudItem xs="6" sm="3" md="2">
+                    <MudPaper Class="pa-3" Elevation="0" Outlined="true" Style="border-radius:8px;">
+                        <MudText Typo="Typo.caption" Style="color:var(--dzd-text-secondary);">Active Items</MudText>
+                        <MudText Typo="Typo.h6">@_payment.Summary.ActiveItemCount</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="6" sm="3" md="2">
+                    <MudPaper Class="pa-3" Elevation="0" Outlined="true" Style="border-radius:8px;">
+                        <MudText Typo="Typo.caption" Style="color:var(--dzd-text-secondary);">Expiring (30 days)</MudText>
+                        <MudText Typo="Typo.h6">@_payment.Summary.UpcomingExpirationCount</MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+
+            <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true">
+                <MudTabPanel Text="Salary" Icon="@DzdIcons.Banknote">
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-2 mb-2">
+                        <MudButton Variant="Variant.Outlined" StartIcon="@DzdIcons.Plus" OnClick="OpenAddSalaryDialogAsync">Add Salary Record</MudButton>
+                    </MudStack>
+
+                    @if (_payment.SalaryHistory.Count == 0)
+                    {
+                        <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">No salary records added yet.</MudText>
+                    }
+                    else
+                    {
+                        <MudStack Spacing="3">
+                            @foreach (var record in _payment.SalaryHistory)
+                            {
+                                <MudPaper Class="pa-3 d-flex align-center gap-4" Elevation="0" Outlined="true" Style="border-radius:8px;">
+                                    <MudAvatar Color="@(record.EndDate is null ? Color.Success : Color.Default)" Variant="Variant.Outlined" Size="Size.Medium">
+                                        <MudIcon Icon="@DzdIcons.Banknote" />
+                                    </MudAvatar>
+                                    <div style="flex-grow:1;">
+                                        <MudText Typo="Typo.subtitle2">
+                                            @FormatMoney(record.NetAmount, record.Currency) <span style="color:var(--dzd-text-secondary);font-size:0.8rem;">/ @record.Period</span>
+                                            @if (record.EndDate is null)
+                                            {
+                                                <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Text">Active</MudChip>
+                                            }
+                                        </MudText>
+                                        <MudText Typo="Typo.body2">
+                                            @AppFormatter.FormatDate(record.StartDate) — @(record.EndDate.HasValue ? AppFormatter.FormatDate(record.EndDate) : "present")
+                                            @(record.GrossAmount.HasValue ? $" · Gross: {FormatMoney(record.GrossAmount.Value, record.Currency)}" : "")
+                                        </MudText>
+                                        @if (!string.IsNullOrWhiteSpace(record.ModifiedByName))
+                                        {
+                                            <MudText Typo="Typo.caption" Color="Color.Default">Last modified by @record.ModifiedByName on @AppFormatter.FormatDate(record.ModifiedAt)</MudText>
+                                        }
+                                    </div>
+                                    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                                        <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" OnClick="@(() => OpenEditSalaryDialogAsync(record))" />
+                                        <MudIconButton Icon="@DzdIcons.Trash" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteSalaryRecordAsync(record))" />
+                                    </MudStack>
+                                </MudPaper>
+                            }
+                        </MudStack>
+                    }
+                </MudTabPanel>
+
+                <MudTabPanel Text="Benefits" Icon="@DzdIcons.Gift">
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-2 mb-2">
+                        <MudButton Variant="Variant.Outlined" StartIcon="@DzdIcons.Plus" OnClick="OpenAddBenefitDialogAsync">Add Benefit</MudButton>
+                    </MudStack>
+
+                    @if (_payment.Benefits.Count == 0)
+                    {
+                        <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">No benefit records added yet.</MudText>
+                    }
+                    else
+                    {
+                        <MudStack Spacing="3">
+                            @foreach (var record in _payment.Benefits)
+                            {
+                                <MudPaper Class="pa-3" Elevation="0" Outlined="true" Style="border-radius:8px;">
+                                    <div class="d-flex align-center gap-4">
+                                        <MudAvatar Color="@(record.EndDate is null ? Color.Success : Color.Default)" Variant="Variant.Outlined" Size="Size.Medium">
+                                            <MudIcon Icon="@DzdIcons.Gift" />
+                                        </MudAvatar>
+                                        <div style="flex-grow:1;">
+                                            <MudText Typo="Typo.subtitle2">
+                                                @record.BenefitType <MudChip T="string" Size="Size.Small" Variant="Variant.Text">@record.Payer</MudChip>
+                                                @if (record.EndDate is null)
+                                                {
+                                                    <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Text">Active</MudChip>
+                                                }
+                                            </MudText>
+                                            <MudText Typo="Typo.body2">
+                                                @FormatMoney(record.Amount, record.Currency) / @record.Period · @AppFormatter.FormatDate(record.StartDate) — @(record.EndDate.HasValue ? AppFormatter.FormatDate(record.EndDate) : "present")
+                                            </MudText>
+                                            @if (!string.IsNullOrWhiteSpace(record.ProviderName))
+                                            {
+                                                <MudText Typo="Typo.caption" Color="Color.Default">Provider: @record.ProviderName</MudText>
+                                            }
+                                        </div>
+                                        <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                                            <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" OnClick="@(() => OpenEditBenefitDialogAsync(record))" />
+                                            <MudIconButton Icon="@DzdIcons.Trash" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteBenefitRecordAsync(record))" />
+                                        </MudStack>
+                                    </div>
+
+                                    @if (record.Dependents.Count > 0)
+                                    {
+                                        <MudStack Spacing="1" Class="mt-2 ml-12">
+                                            @foreach (var dependent in record.Dependents.OrderBy(d => d.Order))
+                                            {
+                                                <MudText Typo="Typo.caption" Style="color:var(--dzd-text-secondary);">
+                                                    @dependent.Order. @dependent.DependentType — @FormatMoney(dependent.Amount, record.Currency) (@AppFormatter.FormatDate(dependent.StartDate) — @(dependent.EndDate.HasValue ? AppFormatter.FormatDate(dependent.EndDate) : "present"))
+                                                </MudText>
+                                            }
+                                        </MudStack>
+                                    }
+                                </MudPaper>
+                            }
+                        </MudStack>
+                    }
+                </MudTabPanel>
+
+                <MudTabPanel Text="Additional Payments" Icon="@DzdIcons.Coins">
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-2 mb-2">
+                        <MudButton Variant="Variant.Outlined" StartIcon="@DzdIcons.Plus" OnClick="OpenAddAdditionalPaymentDialogAsync">Add Payment</MudButton>
+                    </MudStack>
+
+                    @if (_payment.AdditionalPayments.Count == 0)
+                    {
+                        <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">No additional payments added yet.</MudText>
+                    }
+                    else
+                    {
+                        <MudStack Spacing="3">
+                            @foreach (var record in _payment.AdditionalPayments)
+                            {
+                                <MudPaper Class="pa-3 d-flex align-center gap-4" Elevation="0" Outlined="true" Style="border-radius:8px;">
+                                    <MudAvatar Color="Color.Default" Variant="Variant.Outlined" Size="Size.Medium">
+                                        <MudIcon Icon="@DzdIcons.Coins" />
+                                    </MudAvatar>
+                                    <div style="flex-grow:1;">
+                                        <MudText Typo="Typo.subtitle2">
+                                            @record.PaymentType <MudChip T="string" Size="Size.Small" Variant="Variant.Text">@record.Period</MudChip>
+                                            @if (record.TaxableFlag == true)
+                                            {
+                                                <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Text">Taxable</MudChip>
+                                            }
+                                        </MudText>
+                                        <MudText Typo="Typo.body2">
+                                            @FormatMoney(record.Amount, record.Currency)
+                                            @(record.Period == AdditionalPaymentPeriods.OneTime
+                                                ? $" · {AppFormatter.FormatDate(record.PaymentDate)}"
+                                                : $" · {AppFormatter.FormatDate(record.StartDate)} — {(record.EndDate.HasValue ? AppFormatter.FormatDate(record.EndDate) : "present")}")
+                                        </MudText>
+                                        @if (!string.IsNullOrWhiteSpace(record.Description))
+                                        {
+                                            <MudText Typo="Typo.caption" Color="Color.Default">@record.Description</MudText>
+                                        }
+                                    </div>
+                                    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                                        <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" OnClick="@(() => OpenEditAdditionalPaymentDialogAsync(record))" />
+                                        <MudIconButton Icon="@DzdIcons.Trash" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteAdditionalPaymentAsync(record))" />
+                                    </MudStack>
+                                </MudPaper>
+                            }
+                        </MudStack>
+                    }
+                </MudTabPanel>
+            </MudTabs>
+        }
+    </MudPaper>
+</div>

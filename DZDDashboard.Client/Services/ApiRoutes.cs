@@ -9,6 +9,7 @@ public static class ApiRoutes
         public const string MyAvatar       = "api/users/my-avatar";
         public const string MyProfileAvatar = "api/users/my-profile/avatar";
         public const string MyContactInfo  = "api/users/my-profile/contact-info";
+        public const string MyPaymentSummary = "api/users/my-profile/payment-summary";
 
         public static string All(int page, int pageSize)         => $"api/users?page={page}&pageSize={pageSize}";
         public static string Card(int userId)                    => $"api/users/{userId}/card";
@@ -23,6 +24,14 @@ public static class ApiRoutes
         public static string OrganizationPosition(int userId)    => $"api/users/{userId}/organization-position";
         public static string EmergencyContacts(int userId)       => $"api/users/{userId}/emergency-contacts";
         public static string FamilyInfo(int userId)              => $"api/users/{userId}/family-info";
+
+        public static string Payment(int userId)                            => $"api/users/{userId}/payment";
+        public static string PaymentSalary(int userId)                      => $"api/users/{userId}/payment/salary";
+        public static string PaymentSalaryRecord(int userId, int recordId)  => $"api/users/{userId}/payment/salary/{recordId}";
+        public static string PaymentBenefits(int userId)                    => $"api/users/{userId}/payment/benefits";
+        public static string PaymentBenefitRecord(int userId, int recordId) => $"api/users/{userId}/payment/benefits/{recordId}";
+        public static string PaymentAdditional(int userId)                  => $"api/users/{userId}/payment/additional-payments";
+        public static string PaymentAdditionalRecord(int userId, int paymentId) => $"api/users/{userId}/payment/additional-payments/{paymentId}";
     }
 
     public static class Organization

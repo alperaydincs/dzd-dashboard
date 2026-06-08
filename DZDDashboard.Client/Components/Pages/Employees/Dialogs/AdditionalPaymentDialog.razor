@@ -1,0 +1,141 @@
+@using DZDDashboard.Common.Constants
+@using DZDDashboard.Common.DTOs
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="2">
+            <MudGrid>
+                <MudItem xs="6">
+                    <MudSelect T="string" Label="Payment Type" @bind-Value="_model.PaymentType" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
+                        @foreach (var option in AdditionalPaymentTypes.All)
+                        {
+                            <MudSelectItem Value="@option">@option</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudSelect T="string" Label="Period" @bind-Value="_model.Period" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
+                        @foreach (var option in AdditionalPaymentPeriods.All)
+                        {
+                            <MudSelectItem Value="@option">@option</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+
+            <MudGrid>
+                <MudItem xs="6">
+                    <MudNumericField T="decimal" Label="Amount" @bind-Value="_model.Amount" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Min="0.01m" Format="N2" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudSelect T="string" Label="Currency" @bind-Value="_model.Currency" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
+                        @foreach (var option in Currencies.All)
+                        {
+                            <MudSelectItem Value="@option">@option</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+
+            @if (_model.Period == AdditionalPaymentPeriods.OneTime)
+            {
+                <MudDatePicker Label="Payment Date" Date="@_model.PaymentDate" DateChanged="@(d => _model.PaymentDate = d)"
+                               Variant="Variant.Outlined" Margin="Margin.Dense" Required="true"
+                               AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
+            }
+            else
+            {
+                <MudGrid>
+                    <MudItem xs="6">
+                        <MudDatePicker Label="Start Date" Date="@_model.StartDate" DateChanged="@(d => _model.StartDate = d)"
+                                       Variant="Variant.Outlined" Margin="Margin.Dense" Required="true"
+                                       AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudDatePicker Label="End Date (optional)" Date="@_model.EndDate" DateChanged="@(d => _model.EndDate = d)"
+                                       Variant="Variant.Outlined" Margin="Margin.Dense"
+                                       AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
+                    </MudItem>
+                </MudGrid>
+            }
+
+            <MudCheckBox T="bool" Label="Taxable" Value="@(_model.TaxableFlag ?? false)" ValueChanged="@(v => _model.TaxableFlag = v)" />
+
+            <MudTextField T="string" Label="Description (optional)" @bind-Value="_model.Description" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" />
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_submitted">@ConfirmButtonText</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public AdditionalPaymentDto? InitialModel { get; set; }
+    [Parameter] public string ConfirmButtonText { get; set; } = "Add";
+
+    private AdditionalPaymentDto _model = new()
+    {
+        PaymentType = AdditionalPaymentTypes.Bonus,
+        Currency    = Currencies.Try,
+        Period      = AdditionalPaymentPeriods.OneTime,
+        PaymentDate = DateTime.Today
+    };
+
+    private bool _initialized;
+    private bool _submitted;
+
+    protected override void OnParametersSet()
+    {
+        // Guard: only seed from InitialModel once — re-renders shouldn't reset in-progress edits.
+        if (_initialized || InitialModel is null) return;
+        _initialized = true;
+
+        _model = InitialModel with { };
+    }
+
+    private void Save()
+    {
+        if (_submitted) return;
+
+        if (_model.Amount <= 0)
+        {
+            Snackbar.Add("Amount must be greater than zero.", Severity.Warning);
+            return;
+        }
+
+        // BR-PAY-06: OneTime entries need PaymentDate; periodic entries need a StartDate range.
+        if (_model.Period == AdditionalPaymentPeriods.OneTime)
+        {
+            if (!_model.PaymentDate.HasValue)
+            {
+                Snackbar.Add("Payment date is required for one-time payments.", Severity.Warning);
+                return;
+            }
+            _model.StartDate = null;
+            _model.EndDate   = null;
+        }
+        else
+        {
+            if (!_model.StartDate.HasValue)
+            {
+                Snackbar.Add("Start date is required for periodic payments.", Severity.Warning);
+                return;
+            }
+            if (_model.EndDate.HasValue && _model.EndDate < _model.StartDate)
+            {
+                Snackbar.Add("End date cannot be before start date.", Severity.Warning);
+                return;
+            }
+            _model.PaymentDate = null;
+        }
+
+        _submitted = true;
+        MudDialog.Close(DialogResult.Ok(_model));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

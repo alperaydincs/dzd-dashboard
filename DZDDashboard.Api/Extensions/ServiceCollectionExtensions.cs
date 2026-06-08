@@ -168,6 +168,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IReferenceDataService, ReferenceDataService>();
         services.AddScoped<IOrganizationPositionService, OrganizationPositionService>();
         services.AddScoped<ICareerPathService, CareerPathService>();
+        services.AddScoped<IPaymentService, PaymentService>();
         return services;
     }
 }

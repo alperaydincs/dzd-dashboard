@@ -3,13 +3,14 @@ namespace DZDDashboard.Data.Entities;
 public partial class User
 {
     // ── Audit history (Restrict delete — see SalaryHistoryConfiguration / GradeHistoryConfiguration) ─
-    // These navigation properties are defined for future salary/grade history tracking.
-    // No service writes to these tables yet. The delete guard in UserService.DeleteAsync
-    // is intentionally kept as a safety net so the restriction is enforced automatically
-    // once history records start being created.
-    // Roadmap: add service methods + API endpoints + Blazor pages before using these.
+    // GradeHistory remains unwired (no service writes to it yet — same roadmap note as before).
+    // SalaryHistory is now live: it backs the Payment screen's "Salary" tab via PaymentService.
     public List<SalaryHistory>? SalaryHistories { get; set; }
     public List<GradeHistory>?  GradeHistories  { get; set; }
+
+    // ── Payment screen (Restrict delete — audit history must survive a user soft-delete) ───
+    public List<BenefitRecord>?     BenefitRecords     { get; set; }
+    public List<AdditionalPayment>? AdditionalPayments { get; set; }
 
     // ── Operational collections (Cascade delete — operational data) ──────────
     public List<EmergencyContact>?  EmergencyContacts  { get; set; }

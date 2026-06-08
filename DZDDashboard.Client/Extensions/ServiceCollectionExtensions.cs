@@ -100,6 +100,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserClientService>(sp => sp.GetRequiredService<UserService>());
         services.AddScoped<OrganizationService>();
         services.AddScoped<IOrganizationClientService>(sp => sp.GetRequiredService<OrganizationService>());
+        services.AddScoped<PaymentService>();
+        services.AddScoped<IPaymentClientService>(sp => sp.GetRequiredService<PaymentService>());
         services.AddScoped<NotificationCenterService>();
         services.AddScoped<INotificationCenterService>(sp => sp.GetRequiredService<NotificationCenterService>());
 
