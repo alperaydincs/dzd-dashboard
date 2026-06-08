@@ -1,11 +1,13 @@
 namespace DZDDashboard.Common.DTOs;
 
-public class UpdateCareerAssignmentDto
+// Validation is handled exclusively by UpdateCareerAssignmentDtoValidator (FluentValidation).
+// Data annotations removed to avoid dual-validation with different error formats.
+public record UpdateCareerAssignmentDto
 {
-    public string? CompanyName { get; set; }
-    public int? DepartmentId { get; set; }
-    public int? TeamId { get; set; }
-    public int? CareerPathId { get; set; }
-    public int? JobId { get; set; }
-    public int? Grade { get; set; }
+    public string? CompanyName  { get; init; }
+    public int?    DepartmentId { get; init; }
+    public int?    TeamId       { get; init; }
+    public int?    CareerPathId { get; init; }
+    public int?    JobId        { get; init; }
+    public int?    Grade        { get; init; }
 }

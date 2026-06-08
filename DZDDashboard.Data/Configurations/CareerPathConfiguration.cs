@@ -1,3 +1,4 @@
+using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -13,7 +14,7 @@ public class CareerPathConfiguration : IEntityTypeConfiguration<CareerPath>
 
         builder.Property(c => c.Name)
                .IsRequired()
-               .HasMaxLength(200);
+               .HasMaxLength(ValidationConstants.MaxStandardLength);
 
         builder.HasOne(c => c.UserGroup)
                .WithMany()

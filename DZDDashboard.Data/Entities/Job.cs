@@ -1,13 +1,10 @@
 ﻿namespace DZDDashboard.Data.Entities;
 
-public class Job : IAuditableEntity
+public class Job : AuditableEntity
 {
     public int Id { get; set; }
     public string? Title { get; set; }
-    public List<User>? Users { get; set; }
-    public List<HeadLeadCoefficient>? HeadLeadCoefficients { get; set; }
     public int? Level { get; set; }
-    public DateTime? ModifiedAt { get; set; }   
-    public int? ModifiedById { get; set; }
-    public User? ModifiedBy { get; set; }
+    public ICollection<User> Users { get; set; } = new List<User>();
+    public ICollection<HeadLeadCoefficient> HeadLeadCoefficients { get; set; } = new List<HeadLeadCoefficient>();
 }

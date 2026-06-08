@@ -1,3 +1,4 @@
+﻿using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -13,20 +14,20 @@ public class BidConfiguration : IEntityTypeConfiguration<Bid>
         builder.HasKey(b => b.Id);
 
         builder.Property(b => b.JiraProjectNo)
-               .HasMaxLength(50);
+               .HasMaxLength(ValidationConstants.MaxReferenceCodeLength);
 
         builder.Property(b => b.ProjectName)
                .IsRequired()
-               .HasMaxLength(250);
+               .HasMaxLength(ValidationConstants.MaxProjectNameLength);
 
         builder.Property(b => b.TshirtSize)
-               .HasMaxLength(10);
+               .HasMaxLength(ValidationConstants.MaxCurrencyCodeLength);
 
         builder.Property(b => b.Budget)
                .HasColumnType("decimal(18, 2)");
 
         builder.Property(b => b.Notes)
-               .HasMaxLength(1000);
+               .HasMaxLength(ValidationConstants.MaxNotesLength);
 
         builder.HasIndex(b => b.JiraProjectNo).IsUnique();
 

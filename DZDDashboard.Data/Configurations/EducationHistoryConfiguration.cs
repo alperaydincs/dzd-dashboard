@@ -1,3 +1,4 @@
+using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -13,16 +14,16 @@ public class EducationHistoryConfiguration : IEntityTypeConfiguration<EducationH
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.Level)
-            .HasMaxLength(100);
+            .HasMaxLength(ValidationConstants.MaxEducationLevelLength);
 
         builder.Property(x => x.Institution)
-            .HasMaxLength(250);
+            .HasMaxLength(ValidationConstants.MaxInstitutionLength);
 
         builder.Property(x => x.Program)
-            .HasMaxLength(250);
+            .HasMaxLength(ValidationConstants.MaxStandardLength);
 
         builder.Property(x => x.Status)
-            .HasMaxLength(100);
+            .HasMaxLength(ValidationConstants.MaxShortNameLength);
 
         builder.HasOne(x => x.User)
             .WithMany(u => u.EducationHistories)

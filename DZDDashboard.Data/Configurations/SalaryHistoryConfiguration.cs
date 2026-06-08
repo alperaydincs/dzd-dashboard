@@ -15,8 +15,9 @@ public class SalaryHistoryConfiguration : IEntityTypeConfiguration<SalaryHistory
         builder.Property(s => s.StartDate).IsRequired();
 
         builder.HasOne(s => s.User)
-               .WithMany(u => u.SalaryHistories) 
+               .WithMany(u => u.SalaryHistories)
                .HasForeignKey(s => s.UserId)
-               .OnDelete(DeleteBehavior.Cascade);
+               .OnDelete(DeleteBehavior.Restrict);
+
     }
 }

@@ -1,20 +1,16 @@
+using DZDDashboard.Data.Abstractions;
 using DZDDashboard.Data.Entities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
-using System.Security.Claims;
 
 namespace DZDDashboard.Data;
 
-public class AppDbContext : DbContext
+public class AppDbContext(DbContextOptions<AppDbContext> options, IAuditProvider? auditProvider = null)
+    : DbContext(options)
 {
-    private readonly IHttpContextAccessor? _httpContextAccessor;
-
-    public AppDbContext(DbContextOptions<AppDbContext> options, IHttpContextAccessor? httpContextAccessor = null)
-        : base(options)
-    {
-        _httpContextAccessor = httpContextAccessor;
-    }
+    // Migrations and tests may omit auditProvider — fall back to NullAuditProvider so audit
+    // stamps still run (with null ModifiedById) rather than being silently skipped.
+    private readonly IAuditProvider _audit = auditProvider ?? NullAuditProvider.Instance;
 
     public DbSet<User> Users { get; set; }
     public DbSet<Bank> Banks { get; set; }
@@ -55,12 +51,13 @@ public class AppDbContext : DbContext
     public DbSet<EmergencyContact> EmergencyContacts { get; set; }
     public DbSet<EducationHistory> EducationHistories { get; set; }
     public DbSet<Grade> Grades { get; set; }
+    public DbSet<GradeHistory> GradeHistories { get; set; }
+    public DbSet<SalaryHistory> SalaryHistories { get; set; }
     public DbSet<OrganizationPosition> OrganizationPositions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
 
@@ -78,13 +75,14 @@ public class AppDbContext : DbContext
 
     private void ApplyAuditInfo()
     {
-        if (_httpContextAccessor?.HttpContext == null) return;
+        var now           = _audit.GetNow();
+        var currentUserId = _audit.GetCurrentUserId();
 
-        var now = DateTime.UtcNow;
-        var currentUserId = ResolveCurrentUserId(_httpContextAccessor.HttpContext.User);
-
-        foreach (var entry in ChangeTracker.Entries<IAuditableEntity>())
+        foreach (var entry in ChangeTracker.Entries<AuditableEntity>())
         {
+            if (entry.State == EntityState.Added)
+                entry.Entity.CreatedAt = now;
+
             if (entry.State == EntityState.Added || entry.State == EntityState.Modified)
             {
                 entry.Entity.ModifiedAt = now;
@@ -92,24 +90,5 @@ public class AppDbContext : DbContext
                     entry.Entity.ModifiedById = currentUserId.Value;
             }
         }
-    }
-
-    private static int? ResolveCurrentUserId(ClaimsPrincipal? user)
-    {
-        if (user == null) return null;
-
-        var databaseUserId = user.FindFirst("database_user_id")?.Value;
-        if (int.TryParse(databaseUserId, out var parsedDatabaseUserId))
-        {
-            return parsedDatabaseUserId;
-        }
-
-        var nameIdentifier = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (int.TryParse(nameIdentifier, out var parsedNameIdentifier))
-        {
-            return parsedNameIdentifier;
-        }
-
-        return null;
     }
 }

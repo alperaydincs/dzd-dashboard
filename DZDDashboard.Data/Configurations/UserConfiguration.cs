@@ -1,4 +1,5 @@
-﻿using DZDDashboard.Data.Entities;
+﻿using DZDDashboard.Common.Validation;
+using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,51 +12,55 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.ToTable("Users");
         builder.HasKey(u => u.Id);
 
-        builder.Property(u => u.Email).HasMaxLength(256); 
-        builder.Property(u => u.NormalizedEmail).HasMaxLength(256);
+        builder.Property(u => u.Email).HasMaxLength(ValidationConstants.MaxEmailLength);
+        builder.Property(u => u.NormalizedEmail).HasMaxLength(ValidationConstants.MaxEmailLength);
         builder.HasIndex(u => u.NormalizedEmail).HasDatabaseName("IX_Users_NormalizedEmail");
 
-        builder.Property(u => u.FirstName).HasMaxLength(100);
-        builder.Property(u => u.LastName).HasMaxLength(100);
-        builder.Property(u => u.CompanyName).HasMaxLength(200);
+        // EntraObjectId is looked up on every authenticated request — unique index is critical
+        builder.Property(u => u.EntraObjectId).HasMaxLength(36); // UUID format: 8-4-4-4-12 with hyphens
+        builder.HasIndex(u => u.EntraObjectId)
+               .IsUnique()
+               .HasDatabaseName("IX_Users_EntraObjectId");
 
-        builder.Property(u => u.ContractType).HasMaxLength(50);
-        
-        builder.Property(u => u.WorkModel).HasMaxLength(50);
-        builder.Property(u => u.UnitName).HasMaxLength(200); 
+        builder.Property(u => u.FirstName).HasMaxLength(ValidationConstants.MaxNameLength);
+        builder.Property(u => u.LastName).HasMaxLength(ValidationConstants.MaxNameLength);
+        // Composite index for the default sort in GetAllSummariesAsync (LastName, FirstName)
+        builder.HasIndex(u => new { u.LastName, u.FirstName }).HasDatabaseName("IX_Users_Name");
+        builder.Property(u => u.CompanyName).HasMaxLength(ValidationConstants.MaxStandardLength);
 
-        builder.Property(u => u.ApprovalProcessUnit).HasMaxLength(150);
+        builder.Property(u => u.ContractType).HasMaxLength(ValidationConstants.MaxShortNameLength);
+        builder.Property(u => u.WorkModel).HasMaxLength(ValidationConstants.MaxShortNameLength);
+        builder.Property(u => u.UnitName).HasMaxLength(ValidationConstants.MaxStandardLength);
 
-        builder.Property(u => u.PhoneNumber).HasMaxLength(20); 
-        builder.Property(u => u.PersonalEmail).HasMaxLength(256);
-        builder.Property(u => u.PersonalPhoneNumber).HasMaxLength(20);
+        builder.Property(u => u.ApprovalProcessUnit).HasMaxLength(ValidationConstants.MaxEntityNameLength);
 
-        builder.Property(u => u.Gender).HasMaxLength(30);
+        builder.Property(u => u.PhoneNumber).HasMaxLength(ValidationConstants.MaxPhoneLength);
+        builder.Property(u => u.PersonalEmail).HasMaxLength(ValidationConstants.MaxEmailLength);
+        builder.Property(u => u.PersonalPhoneNumber).HasMaxLength(ValidationConstants.MaxPhoneLength);
+
+        builder.Property(u => u.Gender).HasMaxLength(30); // Longest value: "Female" — 30 is permissive by design
         builder.Property(u => u.DisabilityStatus).HasDefaultValue(false);
-        builder.Property(u => u.DisabilityDegree).HasMaxLength(100);
-        builder.Property(u => u.Nationality).HasMaxLength(100);
-        builder.Property(u => u.CitizenshipNumber).HasMaxLength(20);
-        builder.Property(u => u.EmergencyContactFullName).HasMaxLength(200);
-        builder.Property(u => u.EmergencyContactRelationship).HasMaxLength(100);
-        builder.Property(u => u.EmergencyContactPhoneNumber).HasMaxLength(20);
+        builder.Property(u => u.DisabilityDegree).HasMaxLength(ValidationConstants.MaxNameLength);
+        builder.Property(u => u.Nationality).HasMaxLength(ValidationConstants.MaxNameLength);
+        builder.Property(u => u.CitizenshipNumber).HasMaxLength(ValidationConstants.MaxNumericIdentifierLength);
 
-        builder.Property(u => u.MaritalStatus).HasMaxLength(50);
-        builder.Property(u => u.SpouseFullName).HasMaxLength(200);
+        builder.Property(u => u.MaritalStatus).HasMaxLength(ValidationConstants.MaxShortNameLength);
+        builder.Property(u => u.SpouseFullName).HasMaxLength(ValidationConstants.MaxFullNameLength);
 
-        builder.Property(u => u.LegalAddress).HasMaxLength(500);
-        builder.Property(u => u.CurrentAddress).HasMaxLength(500);
-        
-        builder.Property(u => u.City).HasMaxLength(100);
-        builder.Property(u => u.Country).HasMaxLength(100);
+        builder.Property(u => u.LegalAddress).HasMaxLength(ValidationConstants.MaxAddressLength);
+        builder.Property(u => u.CurrentAddress).HasMaxLength(ValidationConstants.MaxAddressLength);
 
-        builder.Property(u => u.BankName).HasMaxLength(150);
-        builder.Property(u => u.Iban).HasMaxLength(34); 
+        builder.Property(u => u.City).HasMaxLength(ValidationConstants.MaxNameLength);
+        builder.Property(u => u.Country).HasMaxLength(ValidationConstants.MaxNameLength);
 
-        builder.Property(u => u.RegistrationNumber).HasMaxLength(50);
-        
-        builder.Property(u => u.CvFilePath).HasMaxLength(500);
-        builder.Property(u => u.EmployeeGroup).HasMaxLength(100); 
-        builder.Property(u => u.AutoEnrollmentPensionStatus).HasMaxLength(50);
+        builder.Property(u => u.BankName).HasMaxLength(ValidationConstants.MaxEntityNameLength);
+        builder.Property(u => u.Iban).HasMaxLength(34); // IBAN international standard: max 34 chars
+
+        builder.Property(u => u.RegistrationNumber).HasMaxLength(ValidationConstants.MaxShortNameLength);
+
+        builder.Property(u => u.CvFilePath).HasMaxLength(ValidationConstants.MaxAddressLength);
+        builder.Property(u => u.EmployeeGroup).HasMaxLength(ValidationConstants.MaxNameLength);
+        builder.Property(u => u.AutoEnrollmentPensionStatus).HasMaxLength(ValidationConstants.MaxShortNameLength);
         
         builder.Property(u => u.HasEmployerPension).HasDefaultValue(false);
         builder.Property(u => u.EmployerPensionEmployeeContribution).HasPrecision(18, 2);
@@ -117,6 +122,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                .HasForeignKey(u => u.ModifiedById)
                .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasIndex(u => u.OrganizationPositionId)
+               .HasDatabaseName("IX_Users_OrganizationPositionId");
+
         builder.HasOne(u => u.CareerPath)
                .WithMany()
                .HasForeignKey(u => u.CareerPathId)
@@ -132,14 +140,16 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                .HasForeignKey(c => c.UserId)
                .OnDelete(DeleteBehavior.Cascade); 
 
+        // Restrict delete so audit history is never silently wiped.
+        // Callers must archive or reassign history before deleting a user.
         builder.HasMany(u => u.SalaryHistories)
                .WithOne(s => s.User)
                .HasForeignKey(s => s.UserId)
-               .OnDelete(DeleteBehavior.Cascade); 
+               .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(u => u.GradeHistories)
                .WithOne(g => g.User)
                .HasForeignKey(g => g.UserId)
-               .OnDelete(DeleteBehavior.Cascade); 
+               .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -1,13 +1,11 @@
-using System;
+namespace DZDDashboard.Common.DTOs;
 
-namespace DZDDashboard.Common.DTOs
+// Validation is handled exclusively by UpdateAddressInfoDtoValidator (FluentValidation).
+// Data annotations removed to avoid dual-validation with different error formats.
+public record UpdateAddressInfoDto
 {
-    public class UpdateAddressInfoDto
-    {
-        public int UserId { get; set; }
-        public string? LegalAddress { get; set; }
-        public string? CurrentAddress { get; set; }
-        public string? City { get; set; }
-        public string? Country { get; set; }
-    }
+    public string? LegalAddress   { get; init; }
+    public string? CurrentAddress { get; init; }
+    public string? City           { get; init; }
+    public string? Country        { get; init; }
 }

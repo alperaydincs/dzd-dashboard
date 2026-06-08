@@ -16,6 +16,10 @@
   </ItemGroup>
 
 	<ItemGroup>
+    <ProjectReference Include="..\DZDDashboard.Common\DZDDashboard.Common.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <Folder Include="Migrations\" />
 	</ItemGroup>
 	

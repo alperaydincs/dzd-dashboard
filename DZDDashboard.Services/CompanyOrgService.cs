@@ -1,0 +1,102 @@
+using AutoMapper;
+using DZDDashboard.Common.DTOs;
+using DZDDashboard.Common.Exceptions;
+using DZDDashboard.Data;
+using DZDDashboard.Data.Entities;
+using DZDDashboard.Data.Extensions;
+using Microsoft.EntityFrameworkCore;
+
+namespace DZDDashboard.Services;
+
+// Interface is in Abstractions/ICompanyOrgService.cs
+
+/// <summary>
+/// Manages the company organisational hierarchy: companies, departments, and teams.
+/// </summary>
+public class CompanyOrgService(AppDbContext context, IMapper mapper) : ICompanyOrgService
+{
+    // ── Companies ─────────────────────────────────────────────────────────────
+
+    public async Task<List<CompanyDto>> GetCompaniesAsync(CancellationToken cancellationToken = default)
+        => mapper.Map<List<CompanyDto>>(await context.Companies.AsNoTracking().ToListAsync(cancellationToken));
+
+    public async Task<CompanyDto> CreateCompanyAsync(CompanyDto dto, CancellationToken cancellationToken = default)
+    {
+        var entity = mapper.Map<Company>(dto);
+        context.Companies.Add(entity);
+        await context.SaveChangesAsync(cancellationToken);
+        return mapper.Map<CompanyDto>(entity);
+    }
+
+    public async Task UpdateCompanyAsync(CompanyDto dto, CancellationToken cancellationToken = default)
+    {
+        var entity = await context.Companies.FindRequiredAsync(dto.Id, nameof(Company), cancellationToken);
+        mapper.Map(dto, entity);
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteCompanyAsync(int id, CancellationToken cancellationToken = default)
+    {
+        // CompanyConfiguration sets OnDelete(Cascade) for Company→Department→Team,
+        // so the DB handles the cascade — no need to load the hierarchy into memory.
+        var entity = await context.Companies.FindRequiredAsync(id, nameof(Company), cancellationToken);
+        context.Companies.Remove(entity);
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    // ── Departments ───────────────────────────────────────────────────────────
+
+    public async Task<List<DepartmentDto>> GetDepartmentsAsync(CancellationToken cancellationToken = default)
+        => mapper.Map<List<DepartmentDto>>(
+            await context.Departments.AsNoTracking().ToListAsync(cancellationToken));
+
+    public async Task<DepartmentDto> CreateDepartmentAsync(DepartmentDto dto, CancellationToken cancellationToken = default)
+    {
+        var entity = mapper.Map<Department>(dto);
+        context.Departments.Add(entity);
+        await context.SaveChangesAsync(cancellationToken);
+        return mapper.Map<DepartmentDto>(entity);
+    }
+
+    public async Task UpdateDepartmentAsync(DepartmentDto dto, CancellationToken cancellationToken = default)
+    {
+        var entity = await context.Departments.FindRequiredAsync(dto.Id, nameof(Department), cancellationToken);
+        mapper.Map(dto, entity);
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteDepartmentAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var entity = await context.Departments.FindRequiredAsync(id, nameof(Department), cancellationToken);
+        context.Departments.Remove(entity);
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    // ── Teams ─────────────────────────────────────────────────────────────────
+
+    public async Task<List<TeamDto>> GetTeamsAsync(CancellationToken cancellationToken = default)
+        => mapper.Map<List<TeamDto>>(
+            await context.Teams.AsNoTracking().ToListAsync(cancellationToken));
+
+    public async Task<TeamDto> CreateTeamAsync(TeamDto dto, CancellationToken cancellationToken = default)
+    {
+        var entity = mapper.Map<Team>(dto);
+        context.Teams.Add(entity);
+        await context.SaveChangesAsync(cancellationToken);
+        return mapper.Map<TeamDto>(entity);
+    }
+
+    public async Task UpdateTeamAsync(TeamDto dto, CancellationToken cancellationToken = default)
+    {
+        var entity = await context.Teams.FindRequiredAsync(dto.Id, nameof(Team), cancellationToken);
+        mapper.Map(dto, entity);
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteTeamAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var entity = await context.Teams.FindRequiredAsync(id, nameof(Team), cancellationToken);
+        context.Teams.Remove(entity);
+        await context.SaveChangesAsync(cancellationToken);
+    }
+}

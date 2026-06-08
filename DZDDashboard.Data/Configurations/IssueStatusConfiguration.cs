@@ -1,3 +1,4 @@
+﻿using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -14,7 +15,7 @@ public class IssueStatusConfiguration : IEntityTypeConfiguration<IssueStatus>
 
         builder.Property(i => i.StatusName)
                .IsRequired()
-               .HasMaxLength(100);
+               .HasMaxLength(ValidationConstants.MaxNameLength);
 
         builder.HasIndex(i => i.StatusName).IsUnique();
 

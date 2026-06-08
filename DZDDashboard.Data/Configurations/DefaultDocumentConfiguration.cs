@@ -1,3 +1,4 @@
+﻿using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -14,14 +15,14 @@ public class DefaultDocumentConfiguration : IEntityTypeConfiguration<DefaultDocu
 
         builder.Property(d => d.DocumentName)
                .IsRequired()
-               .HasMaxLength(255);
+               .HasMaxLength(ValidationConstants.MaxFileNameLength);
 
         builder.Property(d => d.Content)
                .IsRequired();
 
         builder.Property(d => d.ContentType)
                .IsRequired()
-               .HasMaxLength(100);
+               .HasMaxLength(ValidationConstants.MaxContentTypeLength);
 
         builder.HasIndex(d => d.DocumentName).IsUnique();
 

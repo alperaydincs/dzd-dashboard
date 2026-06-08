@@ -1,13 +1,11 @@
-using System;
+namespace DZDDashboard.Common.DTOs;
 
-namespace DZDDashboard.Common.DTOs
+// Validation is handled exclusively by UpdateContactsDtoValidator (FluentValidation).
+// Data annotations removed to avoid dual-validation with different error formats.
+public record UpdateContactsDto
 {
-    public class UpdateContactsDto
-    {
-        public int UserId { get; set; }
-        public string? Email { get; set; }
-        public string? PhoneNumber { get; set; }
-        public string? PersonalEmail { get; set; }
-        public string? PersonalPhoneNumber { get; set; }
-    }
+    public string? Email               { get; init; }
+    public string? PhoneNumber         { get; init; }
+    public string? PersonalEmail       { get; init; }
+    public string? PersonalPhoneNumber { get; init; }
 }

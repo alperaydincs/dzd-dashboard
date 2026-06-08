@@ -1,3 +1,4 @@
+/* ── Avatar — MudAvatar renders its own HTML → ::deep required ───────────── */
 ::deep .dzd-avatar {
     --dzd-avatar-size: 48px;
     width: var(--dzd-avatar-size) !important;
@@ -25,4 +26,124 @@
 
 ::deep .dzd-avatar-lg {
     --dzd-avatar-size: 64px;
+}
+
+/* ── Node layout — MudStack / MudPaper render their own HTML → ::deep ──────── */
+::deep .node-container {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+
+::deep .node-row {
+    align-items: stretch;
+}
+
+/* ── Node card ───────────────────────────────────────────────────────────── */
+::deep .node-card {
+    border: 1px solid #d7dbe4;
+    color: #101828;
+    display: inline-block;
+    border-radius: 14px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    background-color: #ffffff;
+    min-width: 260px;
+    max-width: 300px;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+    cursor: default;
+}
+
+::deep .node-card.cursor-pointer {
+    cursor: pointer;
+}
+
+::deep .node-card:hover {
+    border-color: #a8b1c2;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+    transform: translateY(-1px);
+}
+
+::deep .node-card.node-card-empty {
+    border-style: dashed;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+::deep .node-card-content {
+    width: 100%;
+    align-items: center;
+}
+
+/* ── Avatar placeholder ──────────────────────────────────────────────────── */
+::deep .node-avatar-empty {
+    background-color: #e5e7eb;
+    color: #4b5563;
+}
+
+/* ── Text area ───────────────────────────────────────────────────────────── */
+::deep .node-texts {
+    min-width: 0;
+    text-align: left;
+}
+
+::deep .node-primary {
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.15;
+    margin-bottom: 2px;
+}
+
+::deep .node-primary-empty {
+    color: #b45309;
+}
+
+::deep .node-position {
+    color: #6b7280;
+    margin-bottom: 6px;
+}
+
+::deep .node-meta-chip {
+    border-color: #d1d5db;
+    color: #374151;
+    background: #f9fafb;
+    font-size: 0.72rem;
+    max-width: 100%;
+    white-space: normal;
+    height: auto;
+    line-height: 1.2;
+    padding: 2px 6px;
+}
+
+/* ── Edit-mode action buttons ────────────────────────────────────────────── */
+::deep .node-actions {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* ── Depth-limit placeholder ─────────────────────────────────────────────── */
+::deep .node-depth-limit {
+    float: left;
+    list-style-type: none;
+    padding: 8px 16px;
+}
+
+::deep .node-depth-limit span {
+    font-size: 0.8rem;
+    color: #6b7280;
+    font-style: italic;
+}
+
+/* ── Expand / collapse button ────────────────────────────────────────────── */
+::deep .expand-btn {
+    margin-top: 0;
+    background-color: #ffffff !important;
+    border: 1px solid #d1d5db;
+    z-index: 3;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.1);
+}
+
+::deep .expand-btn:hover {
+    background-color: #f3f4f6 !important;
 }

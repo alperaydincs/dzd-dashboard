@@ -1,0 +1,103 @@
+/* ── Wrapper ─────────────────────────────────────────────────────────────── */
+.tree {
+    display: inline-block;
+    min-width: max-content;
+    width: 100%;
+}
+
+/* Root UL — no padding-top, no parent connector needed */
+.tree > ul {
+    padding-top: 0;
+    position: relative;
+    transition: all 0.5s;
+    display: flex;
+    justify-content: center;
+}
+
+/* Suppress the vertical stem on the root UL — there is no parent node above it */
+.tree > ul::before {
+    display: none;
+}
+
+/* ── All nested ULs live inside OrgChartNode → ::deep required ───────────── */
+.tree ::deep ul {
+    padding-top: 20px;
+    position: relative;
+    transition: all 0.5s;
+    display: flex;
+    justify-content: center;
+}
+
+/* Vertical stem connecting a UL to its parent node */
+.tree ::deep ul::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    border-left: 1px solid #ccc;
+    width: 0;
+    height: 20px;
+}
+
+/* ── LI nodes — all in OrgChartNode → ::deep required ───────────────────── */
+.tree ::deep li {
+    float: left;
+    text-align: center;
+    list-style-type: none;
+    position: relative;
+    padding: 20px 5px 0 5px;
+    transition: all 0.5s;
+}
+
+/* Horizontal connector branches */
+.tree ::deep li::before,
+.tree ::deep li::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 50%;
+    border-top: 1px solid #ccc;
+    width: 50%;
+    height: 20px;
+}
+
+.tree ::deep li::after {
+    right: auto;
+    left: 50%;
+    border-left: 1px solid #ccc;
+}
+
+/* Single child: no branches */
+.tree ::deep li:only-child::before,
+.tree ::deep li:only-child::after {
+    display: none;
+}
+
+.tree ::deep li:only-child {
+    padding-top: 0;
+}
+
+/* First and last sibling: trim the overhanging branch */
+.tree ::deep li:first-child::before,
+.tree ::deep li:last-child::after {
+    border: 0 none;
+}
+
+.tree ::deep li:last-child::before {
+    border-right: 1px solid #ccc;
+    border-radius: 0 5px 0 0;
+}
+
+.tree ::deep li:first-child::after {
+    border-radius: 5px 0 0 0;
+}
+
+/* ── Root-level nodes: no top padding, no horizontal connectors ──────────── */
+.tree ::deep li.tree-root {
+    padding-top: 0;
+}
+
+.tree ::deep li.tree-root::before,
+.tree ::deep li.tree-root::after {
+    display: none;
+}

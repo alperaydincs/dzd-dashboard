@@ -1,3 +1,4 @@
+﻿using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -13,14 +14,14 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
         builder.HasKey(p => p.Id);
 
         builder.Property(p => p.JiraProjectNo)
-               .HasMaxLength(50);
+               .HasMaxLength(ValidationConstants.MaxReferenceCodeLength);
 
         builder.Property(p => p.JiraTaskNo)
-               .HasMaxLength(50);
+               .HasMaxLength(ValidationConstants.MaxReferenceCodeLength);
 
         builder.Property(p => p.ProjectName)
                .IsRequired()
-               .HasMaxLength(250);
+               .HasMaxLength(ValidationConstants.MaxProjectNameLength);
 
         builder.Property(p => p.TotalEffort)
                .HasColumnType("decimal(18, 2)");
@@ -35,15 +36,16 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
                .HasColumnType("decimal(18, 2)");
 
         builder.Property(p => p.Notes)
-               .HasMaxLength(1000);
+               .HasMaxLength(ValidationConstants.MaxNotesLength);
 
         builder.Property(p => p.Color)
-               .HasMaxLength(20);
+               .HasMaxLength(ValidationConstants.MaxNumericIdentifierLength);
 
         builder.Property(p => p.IsIncludedInBonus)
                .HasDefaultValue(true);
 
         builder.HasIndex(p => new { p.JiraProjectNo, p.JiraTaskNo }).IsUnique();
+        builder.HasIndex(p => p.PeriodId).HasDatabaseName("IX_Projects_PeriodId");
 
         builder.HasOne(p => p.Bank)
                .WithMany(b => b.Projects)
@@ -61,7 +63,7 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
                .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(p => p.Department)
-               .WithMany(d => d.Project)
+               .WithMany(d => d.Projects)
                .HasForeignKey(p => p.DepartmentId)
                .OnDelete(DeleteBehavior.SetNull);
 

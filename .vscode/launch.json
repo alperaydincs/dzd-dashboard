@@ -27,7 +27,11 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_URLS": "https://localhost:7111"
       },
-      "preLaunchTask": "build-solution"
+      "preLaunchTask": "build-solution",
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      }
     }
   ],
   "compounds": [

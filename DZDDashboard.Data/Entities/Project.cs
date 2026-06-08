@@ -1,13 +1,13 @@
 ﻿namespace DZDDashboard.Data.Entities;
 
-public class Project : IAuditableEntity
+public class Project : AuditableEntity
 {
     public int Id { get; set; }
     public Bank? Bank { get; set; }
     public int? BankId { get; set; }
     public string? JiraProjectNo { get; set; }
     public string? JiraTaskNo { get; set; }
-    public string? ProjectName { get; set; }
+    public string ProjectName { get; set; } = string.Empty;
     public DzdStatus? DzdStatus { get; set; }
     public int? DzdStatusId { get; set; }
     public JiraStatus? JiraStatus { get; set; }
@@ -32,8 +32,5 @@ public class Project : IAuditableEntity
     public Salesforce? IntertechTeam { get; set; }
     public int? IntertechTeamId { get; set; }
     public string? Color { get; set; }
-    public bool IsIncludedInBonus { get; set; } = true;
-    public DateTime? ModifiedAt { get; set; }
-    public int? ModifiedById { get; set; }
-    public User? ModifiedBy { get; set; }
+    public bool IsIncludedInBonus { get; set; }
 }

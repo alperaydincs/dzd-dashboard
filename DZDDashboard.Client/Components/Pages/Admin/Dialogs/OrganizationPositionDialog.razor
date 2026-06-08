@@ -6,14 +6,17 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit">Save</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(string.IsNullOrWhiteSpace(_name))">Save</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
+    public record Result(string Name, int? ParentId);
+
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
     [Parameter] public string Name { get; set; } = "";
     [Parameter] public int? ParentId { get; set; }
+
     private string _name = string.Empty;
     private int? _parentId;
 
@@ -27,7 +30,7 @@
 
     private void Submit()
     {
-        MudDialog.Close(DialogResult.Ok(new { Name = _name, ParentId = _parentId }));
+        if (string.IsNullOrWhiteSpace(_name)) return;
+        MudDialog.Close(DialogResult.Ok(new Result(_name.Trim(), _parentId)));
     }
 }
-

@@ -1,8 +1,9 @@
-@using DZDDashboard.Client.Services
+﻿@using DZDDashboard.Client.Services
+@using DZDDashboard.Client.Utils
 @using DZDDashboard.Common.Utils
 
 
-@inject UserService UserService
+@inject IUserClientService UserService
 
 <MudDialog>
     <DialogContent>
@@ -24,27 +25,26 @@
             {
                 <MudProgressCircular Indeterminate="true" />
             }
-            else if (!_users.Any())
+            else if (_users.Count == 0)
             {
                 <MudAlert Severity="Severity.Info">No users available</MudAlert>
             }
             else
             {
-                @if (HasCurrentUser && _currentUser != null)
+                @if (_totalUserCount > _users.Count)
+                {
+                    <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-2">
+                        Showing @_users.Count of @_totalUserCount users. Search is limited to this page.
+                    </MudAlert>
+                }
+                @if (_currentUser != null)
                 {
                     <div style="margin-bottom: 16px;">
                         <MudText Typo="Typo.caption" Style="opacity:.6;">Current Assignment</MudText>
                         <MudPaper Class="pa-3 d-flex justify-space-between align-center" Outlined="true" Style="background-color: #E3F2FD; border-color: #2196F3;">
                             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                                 <MudAvatar Size="Size.Medium" Color="@GetAvatarColor(_currentUser)">
-                                    @if (_currentUser.Avatar != null && !string.IsNullOrEmpty(_currentUser.Avatar.ContentBase64))
-                                    {
-                                        <MudImage Src="@($"data:{_currentUser.Avatar.ContentType};base64,{_currentUser.Avatar.ContentBase64}")" />
-                                    }
-                                    else
-                                    {
-                                        @AppFormatter.GetInitials(AppFormatter.BuildFullName(_currentUser.FirstName, _currentUser.LastName))
-                                    }
+                                    @AppFormatter.GetInitials(AppFormatter.BuildFullName(_currentUser.FirstName, _currentUser.LastName))
                                 </MudAvatar>
                                 <MudStack Spacing="0">
                                     <MudText Typo="Typo.body2" Style="font-weight:500;">@AppFormatter.BuildFullName(_currentUser.FirstName, _currentUser.LastName)</MudText>
@@ -62,8 +62,8 @@
                     </div>
                 }
                 
-                <div style="max-height: 300px; overflow-y: auto;">
-                    @if (!AvailableUsers.Any())
+                <div style="max-height: @UserListMaxHeight; overflow-y: auto;">
+                    @if (AvailableUsers.Count == 0)
                     {
                         <MudAlert Severity="Severity.Info">All users are assigned</MudAlert>
                     }
@@ -76,14 +76,7 @@
                             <MudPaper Class="pa-3 d-flex justify-space-between align-center" Outlined="true">
                                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                                     <MudAvatar Size="Size.Medium" Color="@GetAvatarColor(user)">
-                                        @if (user.Avatar != null && !string.IsNullOrEmpty(user.Avatar.ContentBase64))
-                                        {
-                                            <MudImage Src="@($"data:{user.Avatar.ContentType};base64,{user.Avatar.ContentBase64}")" />
-                                        }
-                                        else
-                                        {
-                                            @AppFormatter.GetInitials(AppFormatter.BuildFullName(user.FirstName, user.LastName))
-                                        }
+                                        @AppFormatter.GetInitials(AppFormatter.BuildFullName(user.FirstName, user.LastName))
                                     </MudAvatar>
                                     <MudStack Spacing="0">
                                         <MudText Typo="Typo.body2" Style="font-weight:500;">@AppFormatter.BuildFullName(user.FirstName, user.LastName)</MudText>
@@ -102,12 +95,13 @@
                         </MudStack>
                     }
                 </div>
-            }
+            } @* end available users *@
         </MudStack>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Save">Save</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Save"
+                   Disabled="@(_users is null)">Save</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -115,55 +109,57 @@
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
     [Parameter] public string PositionName { get; set; } = string.Empty;
     [Parameter] public int? CurrentUserId { get; set; }
-    [Parameter] public bool HasCurrentUser { get; set; }
-    
-    private string _positionName = string.Empty;
-    private List<UserDto>? _users;
-    private UserDto? _currentUser;
-    private UserDto? _originalUser;
-    private UserDto? _selectedUser;
-    private bool _removeRequested;
 
-    private List<UserDto> AvailableUsers => _users?
+    private const int    UserListPageSize  = 200;
+    private const string UserListMaxHeight = "300px";
+
+    private string _positionName  = string.Empty;
+    private List<UserSummaryDto>? _users;
+    private int                   _totalUserCount;
+    private UserSummaryDto?       _currentUser;
+    private UserSummaryDto?       _originalUser;
+    private UserSummaryDto?       _selectedUser;
+    private bool                  _removeRequested;
+
+    private List<UserSummaryDto> AvailableUsers => _users?
         .Where(u => !u.OrganizationPositionId.HasValue && u.Id != CurrentUserId)
         .OrderBy(u => u.FirstName)
         .ThenBy(u => u.LastName)
-        .ToList() ?? new List<UserDto>();
+        .ToList() ?? [];
 
     protected override async Task OnInitializedAsync()
     {
         _positionName = PositionName;
-        _users = await UserService.GetAllUsersAsync();
-        if (HasCurrentUser && CurrentUserId.HasValue)
+        var paged = await UserService.GetAllUsersAsync(pageSize: UserListPageSize);
+        _users          = paged?.Items?.ToList() ?? [];
+        _totalUserCount = paged?.TotalCount ?? 0;
+        if (CurrentUserId.HasValue)
         {
-            _currentUser = _users?.FirstOrDefault(u => u.Id == CurrentUserId.Value);
+            _currentUser  = _users.FirstOrDefault(u => u.Id == CurrentUserId.Value);
             _originalUser = _currentUser;
         }
     }
 
-    private void SelectUser(UserDto user)
+    private void SelectUser(UserSummaryDto user)
     {
-        _selectedUser = user;
-        _currentUser = user;
-        HasCurrentUser = true;
+        _selectedUser    = user;
+        _currentUser     = user;
         _removeRequested = false;
-        StateHasChanged();
     }
 
     private void RemoveUser()
     {
-        _selectedUser = null;
-        _currentUser = null;
-        HasCurrentUser = false;
+        _selectedUser    = null;
+        _currentUser     = null;
         _removeRequested = true;
-        StateHasChanged();
     }
+
+    public sealed record PositionUserDialogResult(string PositionName, UserSummaryDto? User);
 
     private void Save()
     {
         var userToSave = _removeRequested ? null : (_selectedUser ?? _originalUser);
-        var result = (Name: _positionName, User: userToSave);
-        MudDialog.Close(DialogResult.Ok(result));
+        MudDialog.Close(DialogResult.Ok(new PositionUserDialogResult(_positionName, userToSave)));
     }
 
     private void Cancel()
@@ -171,22 +167,6 @@
         MudDialog.Cancel();
     }
 
-    private static Color GetAvatarColor(UserDto? user)
-    {
-        if (user is null)
-        {
-            return Color.Primary;
-        }
-
-        return (user.Id % 6) switch
-        {
-            0 => Color.Primary,
-            1 => Color.Secondary,
-            2 => Color.Info,
-            3 => Color.Success,
-            4 => Color.Warning,
-            _ => Color.Tertiary
-        };
-    }
+    private static Color GetAvatarColor(UserSummaryDto? user) => UiHelpers.GetAvatarColor(user);
 }
 

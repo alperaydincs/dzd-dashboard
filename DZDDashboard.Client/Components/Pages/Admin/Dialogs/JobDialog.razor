@@ -1,7 +1,9 @@
 @using DZDDashboard.Common.DTOs
+@using DZDDashboard.Client.Services
+@using DZDDashboard.Client.Components.Shared
 @using MudBlazor
-@inject IHttpClientFactory HttpClientFactory
-@inject ISnackbar Snackbar
+@inherits CrudDialogBase
+@inject IOrganizationClientService OrgService
 
 <MudDialog>
     <DialogContent>
@@ -9,41 +11,18 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit">Save</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">Save</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
     [Parameter] public JobDto Job { get; set; } = new();
 
-    private void Cancel() => MudDialog.Cancel();
+    private bool IsFormValid => !string.IsNullOrWhiteSpace(Job.Name);
 
-    private async Task Submit()
-    {
-        if (string.IsNullOrWhiteSpace(Job.Name))
-        {
-            Snackbar.Add("Title is required", Severity.Warning);
-            return;
-        }
-
-        try
-        {
-            var client = HttpClientFactory.CreateClient("Api");
-            if (Job.Id == 0)
-            {
-                await client.PostAsJsonAsync("api/organization/jobs", Job);
-            }
-            else
-            {
-                await client.PutAsJsonAsync("api/organization/jobs", Job);
-            }
-            MudDialog.Close(DialogResult.Ok(true));
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Error saving: {ex.Message}", Severity.Error);
-        }
-    }
+    private async Task Submit() => await SaveAsync(
+        Job.Id,
+        () => OrgService.CreateJobAsync(Job),
+        () => OrgService.UpdateJobAsync(Job),
+        "job title");
 }
-

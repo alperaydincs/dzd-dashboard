@@ -1,5 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Components.Forms
 @using DZDDashboard.Client.Models
+@using DZDDashboard.Common.Constants
 @inject ISnackbar Snackbar
 
 <MudDialog>
@@ -8,13 +9,13 @@
 
             <MudItem xs="12" Class="d-flex flex-column align-center">
                 <MudText Typo="Typo.subtitle1" GutterBottom="true">
-                    @(!string.IsNullOrEmpty(previewImageDataUrl) ? "New Photo (Preview)" : "Current Photo")
+                    @(!string.IsNullOrEmpty(_previewImageDataUrl) ? "New Photo (Preview)" : "Current Photo")
                 </MudText>
 
                 <MudAvatar Color="Color.Primary" Rounded="true" Size="Size.Large" Style="width:180px; height:180px; font-size: 5rem;">
-                    @if (!string.IsNullOrEmpty(previewImageDataUrl))
+                    @if (!string.IsNullOrEmpty(_previewImageDataUrl))
                     {
-                        <MudImage Src="@previewImageDataUrl" Alt="New Avatar Preview" />
+                        <MudImage Src="@_previewImageDataUrl" Alt="New Avatar Preview" />
                     }
                     else if (!string.IsNullOrEmpty(CurrentAvatarUrl))
                     {
@@ -39,10 +40,10 @@
                         </MudButton>
                     </ActivatorContent>
                 </MudFileUpload>
-                @if (selectedFile != null)
+                @if (_selectedFile is not null)
                 {
                     <MudText Typo="Typo.body2" Class="mt-2" Align="Align.Center">
-                        Selected file: @selectedFile.Name
+                        Selected file: @_selectedFile.Name
                     </MudText>
                 }
             </MudItem>
@@ -51,83 +52,68 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Save" Disabled="@(selectedFile == null)">Save</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Save" Disabled="@(_selectedFile is null)">Save</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    [CascadingParameter]
-    IMudDialogInstance MudDialog { get; set; } = default!;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
 
-    [Parameter]
-    public string CurrentAvatarUrl { get; set; } = string.Empty;
-    
-    [Parameter]
-    public string UserInitials { get; set; } = string.Empty;
+    [Parameter] public string CurrentAvatarUrl { get; set; } = string.Empty;
+    [Parameter] public string UserInitials      { get; set; } = string.Empty;
 
-    private IBrowserFile? selectedFile;
-    private string? previewImageDataUrl;
-    private byte[]? _fileBytes;
+    private IBrowserFile? _selectedFile;
+    private string?       _previewImageDataUrl;
+    private byte[]?       _fileBytes;
 
     private async Task OnInputFileChanged(InputFileChangeEventArgs e)
     {
+        if (e.FileCount == 0) { Reset(); return; }
+
+        var file = e.File;
+        if (file is null) return;
+
+        // Client-side MIME validation — mirrors server-side AvatarConstants
+        if (!AvatarConstants.AllowedMimeTypes.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
+        {
+            Snackbar.Add($"Unsupported file type. Allowed: {string.Join(", ", AvatarConstants.AllowedExtensions)}.", Severity.Warning);
+            Reset(); return;
+        }
+
+        if (file.Size > AvatarConstants.MaxFileSizeBytes)
+        {
+            Snackbar.Add($"File size cannot exceed {AvatarConstants.MaxFileSizeBytes / 1024 / 1024} MB.", Severity.Warning);
+            Reset(); return;
+        }
+
         try
         {
-            if (e.FileCount == 0)
-            {
-                selectedFile = null;
-                previewImageDataUrl = null;
-                _fileBytes = null;
-                return; 
-            }
-            var file = e.File;
-            if (file == null) return;
-
-            long maxFileSize = 5 * 1024 * 1024; 
-            if (file.Size > maxFileSize)
-            {
-                Snackbar.Add("Dosya boyutu 5MB'dan büyük olamaz.", Severity.Warning);
-                selectedFile = null;
-                previewImageDataUrl = null;
-                _fileBytes = null;
-                return;
-            }
-
-            using var stream = file.OpenReadStream(maxFileSize);
-            using var ms = new MemoryStream();
-
+            using var stream = file.OpenReadStream(AvatarConstants.MaxFileSizeBytes);
+            using var ms     = new MemoryStream();
             await stream.CopyToAsync(ms);
-            _fileBytes = ms.ToArray();
-
-            previewImageDataUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(_fileBytes)}";
-            selectedFile = file;
-
-            StateHasChanged();
+            _fileBytes           = ms.ToArray();
+            _previewImageDataUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(_fileBytes)}";
+            _selectedFile        = file;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            
-            Console.WriteLine($"Dosya okuma hatası: {ex.Message}");
-            Snackbar.Add("Dosya işlenirken bir hata oluştu.", Severity.Error);
-
-            selectedFile = null;
-            previewImageDataUrl = null;
-            _fileBytes = null;
+            Snackbar.Add("Failed to read the selected file. Please try a different file.", Severity.Error);
+            Reset();
         }
+    }
+
+    private void Reset()
+    {
+        _selectedFile        = null;
+        _previewImageDataUrl = null;
+        _fileBytes           = null;
     }
 
     void Save()
     {
-        if (selectedFile != null && _fileBytes != null)
-        {
-            var result = new AvatarUploadResult
-            {
-                FileName = selectedFile.Name,
-                ContentType = selectedFile.ContentType,
-                Content = _fileBytes
-            };
-            MudDialog.Close(DialogResult.Ok(result));
-        }
+        if (_selectedFile is null || _fileBytes is null) return;
+        MudDialog.Close(DialogResult.Ok(
+            new AvatarUploadResult(_selectedFile.Name, _selectedFile.ContentType, _fileBytes)));
     }
 
     void Cancel() => MudDialog.Cancel();

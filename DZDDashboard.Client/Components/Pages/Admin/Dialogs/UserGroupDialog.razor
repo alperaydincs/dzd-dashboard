@@ -1,55 +1,41 @@
 @using DZDDashboard.Common.DTOs
+@using DZDDashboard.Client.Services
+@using DZDDashboard.Client.Components.Shared
 @using MudBlazor
-@inject IHttpClientFactory HttpClientFactory
-@inject ISnackbar Snackbar
+@inherits CrudDialogBase
+@inject IOrganizationClientService OrgService
 
 <MudDialog>
     <DialogContent>
-        <MudTextField @bind-Value="UserGroup.GroupName" 
-                      Label="Group Name" 
+        <MudTextField @bind-Value="UserGroup.GroupName"
+                      Label="Group Name"
                       Variant="Variant.Outlined"
-                      Required="true" 
+                      Required="true"
                       FullWidth="true" />
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid)">Save</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">Save</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
     [Parameter] public UserGroupDto UserGroup { get; set; } = new();
 
     private bool IsFormValid => !string.IsNullOrWhiteSpace(UserGroup.GroupName);
 
-    private void Cancel() => MudDialog.Cancel();
-
-    private async Task Submit()
-    {
-        if (string.IsNullOrWhiteSpace(UserGroup.GroupName))
+    private async Task Submit() => await SaveAsync(
+        UserGroup.Id,
+        () => OrgService.CreateUserGroupAsync(UserGroup),
+        () => OrgService.UpdateUserGroupAsync(UserGroup),
+        "employee group",
+        () =>
         {
-            Snackbar.Add("Group name is required", Severity.Warning);
-            return;
-        }
-
-        try
-        {
-            var client = HttpClientFactory.CreateClient("Api");
-            if (UserGroup.Id == 0)
+            if (!IsFormValid)
             {
-                await client.PostAsJsonAsync("api/organization/usergroups", UserGroup);
+                Snackbar.Add("Group name is required", Severity.Warning);
+                return false;
             }
-            else
-            {
-                await client.PutAsJsonAsync("api/organization/usergroups", UserGroup);
-            }
-            MudDialog.Close(DialogResult.Ok(true));
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Error saving: {ex.Message}", Severity.Error);
-        }
-    }
+            return true;
+        });
 }
-

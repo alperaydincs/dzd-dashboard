@@ -1,3 +1,4 @@
+using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -13,10 +14,10 @@ public class UserTrainingConfiguration : IEntityTypeConfiguration<UserTraining>
         builder.HasKey(ut => ut.Id);
 
         builder.Property(ut => ut.Status)
-               .HasMaxLength(100);
+               .HasMaxLength(ValidationConstants.MaxNameLength);
 
         builder.Property(ut => ut.Description)
-               .HasMaxLength(500);
+               .HasMaxLength(ValidationConstants.MaxAddressLength);
 
         builder.Property(ut => ut.IsActive)
                .HasDefaultValue(true);

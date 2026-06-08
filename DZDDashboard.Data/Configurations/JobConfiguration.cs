@@ -1,3 +1,4 @@
+using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -14,7 +15,7 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
 
         builder.Property(j => j.Title)
                .IsRequired()
-               .HasMaxLength(150);
+               .HasMaxLength(ValidationConstants.MaxEntityNameLength);
 
         builder.HasIndex(j => j.Title).IsUnique();
 

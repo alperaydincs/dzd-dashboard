@@ -1,9 +1,10 @@
 namespace DZDDashboard.Common.DTOs;
 
-public class UpdateFamilyInfoDto
+// Validation is handled exclusively by UpdateFamilyInfoDtoValidator (FluentValidation).
+// Data annotations removed to avoid dual-validation with different error formats.
+public record UpdateFamilyInfoDto
 {
-    public int UserId { get; set; }
-    public string? MaritalStatus { get; set; }
-    public string? SpouseFullName { get; set; }
-    public List<ChildInfoDto> Children { get; set; } = new();
+    public string?         MaritalStatus  { get; init; }
+    public string?         SpouseFullName { get; init; }
+    public List<ChildInfoDto> Children   { get; init; } = [];
 }

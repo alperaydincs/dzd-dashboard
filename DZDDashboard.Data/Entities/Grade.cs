@@ -1,27 +1,14 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+namespace DZDDashboard.Data.Entities;
 
-namespace DZDDashboard.Data.Entities
+// Column constraints (Required, MaxLength, precision) are configured in GradeConfiguration.
+// Data annotations removed to keep the entity clean and avoid dual-validation with FluentValidation.
+public class Grade
 {
-    public class Grade
-    {
-        public int Id { get; set; }
-
-        [Required]
-        public string Level { get; set; } = string.Empty; 
-
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal MinSalary { get; set; }
-
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal MaxSalary { get; set; }
-
-        [Required]
-        public string Currency { get; set; } = "TRY";
-
-        public int? NextStepId { get; set; }
-        
-        [ForeignKey("NextStepId")]
-        public Grade? NextStep { get; set; }
-    }
+    public int     Id         { get; set; }
+    public string  Level      { get; set; } = string.Empty;
+    public decimal MinSalary  { get; set; }
+    public decimal MaxSalary  { get; set; }
+    public string  Currency   { get; set; } = "TRY";
+    public int?    NextStepId { get; set; }
+    public Grade?  NextStep   { get; set; }
 }

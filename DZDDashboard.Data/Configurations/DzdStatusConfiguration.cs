@@ -1,3 +1,4 @@
+using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -14,7 +15,7 @@ public class DzdStatusConfiguration : IEntityTypeConfiguration<DzdStatus>
 
         builder.Property(d => d.DzdStatusName)
                .IsRequired()
-               .HasMaxLength(100);
+               .HasMaxLength(ValidationConstants.MaxNameLength);
 
         builder.HasIndex(d => d.DzdStatusName).IsUnique();
 

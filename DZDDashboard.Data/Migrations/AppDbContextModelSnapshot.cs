@@ -35,6 +35,9 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
 
@@ -72,6 +75,9 @@ namespace DZDDashboard.Data.Migrations
                         .HasColumnType("decimal(18, 2)");
 
                     b.Property<DateTime?>("CloseDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int?>("DepartmentId")
@@ -176,6 +182,9 @@ namespace DZDDashboard.Data.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("EnglishProficiency")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -188,18 +197,6 @@ namespace DZDDashboard.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
-
-                    b.Property<int?>("MinExperienceMonth")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MinExperienceYear")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MinRoleTimeMonth")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MinRoleTimeYear")
-                        .HasColumnType("int");
 
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
@@ -248,6 +245,9 @@ namespace DZDDashboard.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
 
@@ -279,6 +279,9 @@ namespace DZDDashboard.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("DateOfBirth")
                         .HasColumnType("datetime2");
 
@@ -286,10 +289,18 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ModifiedById")
+                        .HasColumnType("int");
+
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ModifiedById");
 
                     b.HasIndex("UserId");
 
@@ -304,8 +315,12 @@ namespace DZDDashboard.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
@@ -315,13 +330,17 @@ namespace DZDDashboard.Data.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ModifiedById");
 
-                    b.ToTable("Companies");
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Companies", (string)null);
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.DefaultDocument", b =>
@@ -340,6 +359,9 @@ namespace DZDDashboard.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DocumentName")
                         .IsRequired()
@@ -373,10 +395,8 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<int?>("CompanyId")
                         .HasColumnType("int");
 
-                    b.Property<string>("DepartmentName")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
@@ -384,14 +404,19 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<int?>("ModifiedById")
                         .HasColumnType("int");
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyId");
 
-                    b.HasIndex("DepartmentName")
-                        .IsUnique();
-
                     b.HasIndex("ModifiedById");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("Departments", (string)null);
                 });
@@ -403,6 +428,9 @@ namespace DZDDashboard.Data.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DzdStatusName")
                         .IsRequired()
@@ -433,12 +461,15 @@ namespace DZDDashboard.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("GraduationDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Institution")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
 
                     b.Property<string>("Level")
                         .HasMaxLength(100)
@@ -451,12 +482,12 @@ namespace DZDDashboard.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Program")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Status")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -478,6 +509,9 @@ namespace DZDDashboard.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("FullName")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -489,8 +523,8 @@ namespace DZDDashboard.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("PhoneNumber")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Relationship")
                         .HasMaxLength(100)
@@ -521,6 +555,9 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
@@ -545,7 +582,8 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasIndex("ModifiedById");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_ExCompanyHistories_UserId");
 
                     b.ToTable("ExCompanyHistories", (string)null);
                 });
@@ -560,11 +598,13 @@ namespace DZDDashboard.Data.Migrations
 
                     b.Property<string>("Currency")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("Level")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<decimal>("MaxSalary")
                         .HasColumnType("decimal(18,2)");
@@ -579,7 +619,7 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasIndex("NextStepId");
 
-                    b.ToTable("Grades");
+                    b.ToTable("Grades", (string)null);
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.GradeHistory", b =>
@@ -620,6 +660,9 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<decimal>("Coefficient")
                         .HasColumnType("decimal(5, 2)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int?>("JobId")
                         .HasColumnType("int");
 
@@ -656,6 +699,9 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<decimal>("Coefficient")
                         .HasColumnType("decimal(5, 2)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
 
@@ -691,6 +737,9 @@ namespace DZDDashboard.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
 
@@ -720,6 +769,9 @@ namespace DZDDashboard.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
 
@@ -748,6 +800,9 @@ namespace DZDDashboard.Data.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
@@ -783,11 +838,14 @@ namespace DZDDashboard.Data.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
-                    b.Property<int?>("AsigneeId")
+                    b.Property<int?>("AssigneeId")
                         .HasColumnType("int");
 
                     b.Property<int?>("BankId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("IssueKey")
                         .IsRequired()
@@ -823,7 +881,8 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AsigneeId");
+                    b.HasIndex("AssigneeId")
+                        .HasDatabaseName("IX_Itsms_AssigneeId");
 
                     b.HasIndex("BankId");
 
@@ -840,7 +899,8 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasIndex("ModifiedById");
 
-                    b.HasIndex("PeriodId");
+                    b.HasIndex("PeriodId")
+                        .HasDatabaseName("IX_Itsms_PeriodId");
 
                     b.HasIndex("ResolutionId");
 
@@ -856,6 +916,9 @@ namespace DZDDashboard.Data.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("JiraStatusName")
                         .IsRequired()
@@ -885,6 +948,9 @@ namespace DZDDashboard.Data.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int?>("Level")
                         .HasColumnType("int");
@@ -918,6 +984,9 @@ namespace DZDDashboard.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
 
@@ -936,7 +1005,8 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasIndex("ModifiedById");
 
-                    b.HasIndex("ParentId");
+                    b.HasIndex("ParentId")
+                        .HasDatabaseName("IX_OrganizationPositions_ParentId");
 
                     b.ToTable("OrganizationPositions");
                 });
@@ -948,6 +1018,9 @@ namespace DZDDashboard.Data.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Location")
                         .IsRequired()
@@ -982,6 +1055,9 @@ namespace DZDDashboard.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
@@ -1024,6 +1100,9 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<string>("Color")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int?>("DepartmentId")
                         .HasColumnType("int");
@@ -1104,7 +1183,8 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasIndex("ModifiedById");
 
-                    b.HasIndex("PeriodId");
+                    b.HasIndex("PeriodId")
+                        .HasDatabaseName("IX_Projects_PeriodId");
 
                     b.HasIndex("ProjectManagerId");
 
@@ -1127,6 +1207,9 @@ namespace DZDDashboard.Data.Migrations
 
                     b.Property<decimal>("Coefficient")
                         .HasColumnType("decimal(5, 2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
@@ -1160,6 +1243,9 @@ namespace DZDDashboard.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DocumentName")
                         .IsRequired()
@@ -1199,6 +1285,9 @@ namespace DZDDashboard.Data.Migrations
 
                     b.Property<int?>("BankId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int?>("DepartmentId")
                         .HasColumnType("int");
@@ -1300,6 +1389,9 @@ namespace DZDDashboard.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
 
@@ -1357,6 +1449,9 @@ namespace DZDDashboard.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Info")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
@@ -1407,6 +1502,9 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<decimal>("CompletedTarget")
                         .HasColumnType("decimal(18, 2)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -1434,7 +1532,9 @@ namespace DZDDashboard.Data.Migrations
                         .HasColumnType("decimal(18, 2)");
 
                     b.Property<decimal>("RemainingTarget")
-                        .HasColumnType("decimal(18, 2)");
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("decimal(18, 2)")
+                        .HasComputedColumnSql("[Target] - [CompletedTarget]", true);
 
                     b.Property<decimal>("Target")
                         .HasColumnType("decimal(18, 2)");
@@ -1466,6 +1566,9 @@ namespace DZDDashboard.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int?>("DepartmentId")
                         .HasColumnType("int");
 
@@ -1475,7 +1578,7 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<int?>("ModifiedById")
                         .HasColumnType("int");
 
-                    b.Property<string>("TeamName")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
@@ -1486,7 +1589,7 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasIndex("ModifiedById");
 
-                    b.HasIndex("TeamName")
+                    b.HasIndex("Name")
                         .IsUnique();
 
                     b.ToTable("Teams", (string)null);
@@ -1499,6 +1602,9 @@ namespace DZDDashboard.Data.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Details")
                         .HasMaxLength(1000)
@@ -1600,6 +1706,9 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("CurrentAddress")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -1627,18 +1736,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<string>("EmergencyContactFullName")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("EmergencyContactPhoneNumber")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("EmergencyContactRelationship")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<string>("EmployeeGroup")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -1655,7 +1752,8 @@ namespace DZDDashboard.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("EntraObjectId")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
 
                     b.Property<string>("FirstName")
                         .HasMaxLength(100)
@@ -1786,6 +1884,11 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasIndex("DepartmentId");
 
+                    b.HasIndex("EntraObjectId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Users_EntraObjectId")
+                        .HasFilter("[EntraObjectId] IS NOT NULL");
+
                     b.HasIndex("JobId");
 
                     b.HasIndex("ModifiedById");
@@ -1793,7 +1896,8 @@ namespace DZDDashboard.Data.Migrations
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("IX_Users_NormalizedEmail");
 
-                    b.HasIndex("OrganizationPositionId");
+                    b.HasIndex("OrganizationPositionId")
+                        .HasDatabaseName("IX_Users_OrganizationPositionId");
 
                     b.HasIndex("PayrollLocationId");
 
@@ -1802,6 +1906,9 @@ namespace DZDDashboard.Data.Migrations
                     b.HasIndex("TeamId");
 
                     b.HasIndex("UserGroupId");
+
+                    b.HasIndex("LastName", "FirstName")
+                        .HasDatabaseName("IX_Users_Name");
 
                     b.ToTable("Users", (string)null);
                 });
@@ -1819,9 +1926,11 @@ namespace DZDDashboard.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ContentType")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
@@ -1854,6 +1963,9 @@ namespace DZDDashboard.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int?>("DocumentCategoryId")
                         .HasColumnType("int");
@@ -1901,6 +2013,9 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -1939,6 +2054,9 @@ namespace DZDDashboard.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("GroupName")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -1969,6 +2087,9 @@ namespace DZDDashboard.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("CompletionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
@@ -2020,8 +2141,12 @@ namespace DZDDashboard.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
@@ -2031,13 +2156,14 @@ namespace DZDDashboard.Data.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ModifiedById");
 
-                    b.ToTable("WorkTypes");
+                    b.ToTable("WorkTypes", (string)null);
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.Bank", b =>
@@ -2136,7 +2262,55 @@ namespace DZDDashboard.Data.Migrations
                         .HasForeignKey("ModifiedById")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.OwnsOne("DZDDashboard.Data.Entities.RoleDuration", "MinExperience", b1 =>
+                        {
+                            b1.Property<int>("CareerMapRuleId")
+                                .HasColumnType("int");
+
+                            b1.Property<int?>("Months")
+                                .HasColumnType("int")
+                                .HasColumnName("MinExperienceMonth");
+
+                            b1.Property<int?>("Years")
+                                .HasColumnType("int")
+                                .HasColumnName("MinExperienceYear");
+
+                            b1.HasKey("CareerMapRuleId");
+
+                            b1.ToTable("CareerMapRules");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CareerMapRuleId");
+                        });
+
+                    b.OwnsOne("DZDDashboard.Data.Entities.RoleDuration", "MinRoleTime", b1 =>
+                        {
+                            b1.Property<int>("CareerMapRuleId")
+                                .HasColumnType("int");
+
+                            b1.Property<int?>("Months")
+                                .HasColumnType("int")
+                                .HasColumnName("MinRoleTimeMonth");
+
+                            b1.Property<int?>("Years")
+                                .HasColumnType("int")
+                                .HasColumnName("MinRoleTimeYear");
+
+                            b1.HasKey("CareerMapRuleId");
+
+                            b1.ToTable("CareerMapRules");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CareerMapRuleId");
+                        });
+
                     b.Navigation("CareerPath");
+
+                    b.Navigation("MinExperience")
+                        .IsRequired();
+
+                    b.Navigation("MinRoleTime")
+                        .IsRequired();
 
                     b.Navigation("ModifiedBy");
                 });
@@ -2180,11 +2354,17 @@ namespace DZDDashboard.Data.Migrations
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.ChildInfo", b =>
                 {
+                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
+                        .WithMany()
+                        .HasForeignKey("ModifiedById");
+
                     b.HasOne("DZDDashboard.Data.Entities.User", "User")
                         .WithMany("Children")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("ModifiedBy");
 
                     b.Navigation("User");
                 });
@@ -2193,7 +2373,8 @@ namespace DZDDashboard.Data.Migrations
                 {
                     b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
                         .WithMany()
-                        .HasForeignKey("ModifiedById");
+                        .HasForeignKey("ModifiedById")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ModifiedBy");
                 });
@@ -2212,7 +2393,8 @@ namespace DZDDashboard.Data.Migrations
                 {
                     b.HasOne("DZDDashboard.Data.Entities.Company", "Company")
                         .WithMany("Departments")
-                        .HasForeignKey("CompanyId");
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
                         .WithMany()
@@ -2291,7 +2473,8 @@ namespace DZDDashboard.Data.Migrations
                 {
                     b.HasOne("DZDDashboard.Data.Entities.Grade", "NextStep")
                         .WithMany()
-                        .HasForeignKey("NextStepId");
+                        .HasForeignKey("NextStepId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("NextStep");
                 });
@@ -2301,7 +2484,7 @@ namespace DZDDashboard.Data.Migrations
                     b.HasOne("DZDDashboard.Data.Entities.User", "User")
                         .WithMany("GradeHistories")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("User");
                 });
@@ -2379,9 +2562,9 @@ namespace DZDDashboard.Data.Migrations
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.Itsm", b =>
                 {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "Asignee")
+                    b.HasOne("DZDDashboard.Data.Entities.User", "Assignee")
                         .WithMany()
-                        .HasForeignKey("AsigneeId")
+                        .HasForeignKey("AssigneeId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("DZDDashboard.Data.Entities.Bank", "Bank")
@@ -2429,7 +2612,7 @@ namespace DZDDashboard.Data.Migrations
                         .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.Navigation("Asignee");
+                    b.Navigation("Assignee");
 
                     b.Navigation("Bank");
 
@@ -2520,7 +2703,7 @@ namespace DZDDashboard.Data.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("DZDDashboard.Data.Entities.Department", "Department")
-                        .WithMany("Project")
+                        .WithMany("Projects")
                         .HasForeignKey("DepartmentId")
                         .OnDelete(DeleteBehavior.SetNull);
 
@@ -2681,7 +2864,7 @@ namespace DZDDashboard.Data.Migrations
                     b.HasOne("DZDDashboard.Data.Entities.User", "User")
                         .WithMany("SalaryHistories")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -2732,7 +2915,8 @@ namespace DZDDashboard.Data.Migrations
                 {
                     b.HasOne("DZDDashboard.Data.Entities.Department", "Department")
                         .WithMany("Teams")
-                        .HasForeignKey("DepartmentId");
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.ClientCascade);
 
                     b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
                         .WithMany()
@@ -2797,7 +2981,7 @@ namespace DZDDashboard.Data.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("DZDDashboard.Data.Entities.UserGroup", "UserGroup")
-                        .WithMany("User")
+                        .WithMany("Users")
                         .HasForeignKey("UserGroupId")
                         .OnDelete(DeleteBehavior.SetNull);
 
@@ -2911,7 +3095,8 @@ namespace DZDDashboard.Data.Migrations
                 {
                     b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
                         .WithMany()
-                        .HasForeignKey("ModifiedById");
+                        .HasForeignKey("ModifiedById")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ModifiedBy");
                 });
@@ -2940,7 +3125,7 @@ namespace DZDDashboard.Data.Migrations
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.Department", b =>
                 {
-                    b.Navigation("Project");
+                    b.Navigation("Projects");
 
                     b.Navigation("Teams");
 
@@ -3063,7 +3248,7 @@ namespace DZDDashboard.Data.Migrations
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.UserGroup", b =>
                 {
-                    b.Navigation("User");
+                    b.Navigation("Users");
                 });
 #pragma warning restore 612, 618
         }

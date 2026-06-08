@@ -1,3 +1,4 @@
+﻿using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -14,12 +15,14 @@ public class ItsmConfiguration : IEntityTypeConfiguration<Itsm>
 
         builder.Property(i => i.IssueKey)
                .IsRequired()
-               .HasMaxLength(50);
+               .HasMaxLength(ValidationConstants.MaxReferenceCodeLength);
 
         builder.Property(i => i.Active)
                .HasDefaultValue(true);
 
         builder.HasIndex(i => i.IssueKey).IsUnique();
+        builder.HasIndex(i => i.AssigneeId).HasDatabaseName("IX_Itsms_AssigneeId");
+        builder.HasIndex(i => i.PeriodId).HasDatabaseName("IX_Itsms_PeriodId");
 
         builder.HasOne(i => i.IssueType)
                .WithMany(it => it.Itsms)
@@ -31,9 +34,9 @@ public class ItsmConfiguration : IEntityTypeConfiguration<Itsm>
                .HasForeignKey(i => i.BankId)
                .OnDelete(DeleteBehavior.SetNull);
 
-        builder.HasOne(i => i.Asignee)
+        builder.HasOne(i => i.Assignee)
                .WithMany()
-               .HasForeignKey(i => i.AsigneeId)
+               .HasForeignKey(i => i.AssigneeId)
                .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(i => i.Team)

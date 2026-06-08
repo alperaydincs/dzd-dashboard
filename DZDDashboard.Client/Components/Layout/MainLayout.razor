@@ -5,13 +5,14 @@
 @using DZDDashboard.Client.Theme
 @using System.Security.Claims
 @using DZDDashboard.Client.Services
+@using DZDDashboard.Common.Constants
 @using DZDDashboard.Common.Utils
 @using Microsoft.Identity.Web
 
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Nav
-@inject UserService UserService
-@inject NotificationCenterService NotificationCenter
+@inject IUserClientService UserService
+@inject INotificationCenterService NotificationCenter
 @inject IJSRuntime JS
 
 @implements IDisposable
@@ -29,7 +30,7 @@
             </Authorized>
         </AuthorizeView>
 
-        <MudText Typo="Typo.h5" Class="ml-3">@_pageTitle</MudText>
+        <MudText Typo="Typo.h5" Class="ml-3">@PageTitle</MudText>
         <MudSpacer />
         <AuthorizeView>
             <Authorized>
@@ -74,7 +75,7 @@
                                                         }
                                                     </MudStack>
                                                     <MudText Typo="Typo.caption">@notification.Message</MudText>
-                                                    <MudText Typo="Typo.caption" Class="notification-time">@FormatNotificationTime(notification.CreatedAtUtc)</MudText>
+                                                    <MudText Typo="Typo.caption" Class="notification-time">@AppFormatter.FormatElapsed(notification.CreatedAtUtc)</MudText>
                                                 </MudStack>
                                             </MudListItem>
                                         }
@@ -99,7 +100,7 @@
                         </ActivatorContent>
                         <ChildContent>
                             <MudMenuItem Href="/my-profile" Icon="@DzdIcons.User">My Profile</MudMenuItem>
-                            <AuthorizeView Roles="Admin,HR" Context="authContext">
+                            <AuthorizeView Roles="@Roles.AdminOrHr" Context="authContext">
                                 <Authorized>
                                     <MudMenuItem Href="/settings" Icon="@DzdIcons.Settings">Settings</MudMenuItem>
                                 </Authorized>
@@ -122,64 +123,66 @@
                     <img src="/images/dzd_logo.png" alt="Company Logo" class="sidebar-logo-image" />
                 </div>
                 <nav class="sidebar-nav">
-                    <a href="/" class="nav-item @(_isDashboardSelected ? "nav-item-active" : "")">
+                    <a href="/" class="nav-item @(IsActive(NavSection.Dashboard) ? "nav-item-active" : "")">
                         <MudIcon Icon="@DzdIcons.LayoutDashboard" Class="nav-icon" />
                         <span class="nav-label">Dashboard</span>
                     </a>
 
-                    <div class="nav-item @(_isEmployeesMenuActive ? "nav-item-active" : "")" @onclick="ToggleEmployeesMenu">
+                    <div class="nav-item @(IsEmployeesMenuActive ? "nav-item-active" : "")" @onclick="ToggleEmployeesMenu">
                         <MudIcon Icon="@DzdIcons.Users" Class="nav-icon" />
                         <span class="nav-label">Employees</span>
                         <MudIcon Icon="@(_employeesMenuExpanded ? DzdIcons.ChevronUp : DzdIcons.ChevronDown)" Class="nav-expand-icon" />
                     </div>
-                    
+
                     @if (_employeesMenuExpanded)
                     {
                         <div class="submenu">
-                            <a href="/employees" class="submenu-item @(_isEmployeesSelected ? "submenu-item-active" : "")">
+                            <a href="/employees" class="submenu-item @(IsActive(NavSection.Employees) ? "submenu-item-active" : "")">
                                 <span class="submenu-indicator"></span>
                                 <span class="submenu-label">Employees</span>
                             </a>
-                            <a href="/departments" class="submenu-item @(_isDepartmentsSelected ? "submenu-item-active" : "")">
+                            <a href="/departments" class="submenu-item @(IsActive(NavSection.Departments) ? "submenu-item-active" : "")">
                                 <span class="submenu-indicator"></span>
                                 <span class="submenu-label">Departments</span>
                             </a>
-                            <a href="/positions" class="submenu-item @(_isPositionsSelected ? "submenu-item-active" : "")">
+                            <a href="/positions" class="submenu-item @(IsActive(NavSection.Positions) ? "submenu-item-active" : "")">
                                 <span class="submenu-indicator"></span>
                                 <span class="submenu-label">Positions</span>
                             </a>
                         </div>
                     }
 
-                    <a href="/attendance" class="nav-item @(_isAttendanceSelected ? "nav-item-active" : "")">
+                    <a href="/attendance" class="nav-item @(IsActive(NavSection.Attendance) ? "nav-item-active" : "")">
                         <MudIcon Icon="@DzdIcons.Clock3" Class="nav-icon" />
                         <span class="nav-label">Attendance</span>
                     </a>
 
-                    <a href="/leave-management" class="nav-item @(_isLeaveManagementSelected ? "nav-item-active" : "")">
+                    <a href="/leave-management" class="nav-item @(IsActive(NavSection.LeaveManagement) ? "nav-item-active" : "")">
                         <MudIcon Icon="@DzdIcons.CalendarCheck" Class="nav-icon" />
                         <span class="nav-label">Leave Management</span>
                     </a>
 
-                    <a href="/training" class="nav-item @(_isTrainingSelected ? "nav-item-active" : "")">
+                    <a href="/training" class="nav-item @(IsActive(NavSection.Training) ? "nav-item-active" : "")">
                         <MudIcon Icon="@DzdIcons.GraduationCap" Class="nav-icon" />
                         <span class="nav-label">Training</span>
                     </a>
 
-                    <a href="/performance" class="nav-item @(_isPerformanceSelected ? "nav-item-active" : "")">
+                    <a href="/performance" class="nav-item @(IsActive(NavSection.Performance) ? "nav-item-active" : "")">
                         <MudIcon Icon="@DzdIcons.TrendingUp" Class="nav-icon" />
                         <span class="nav-label">Performance</span>
                     </a>
 
-                    <a href="/company" class="nav-item @(_isCompanySelected ? "nav-item-active" : "")">
+                    <a href="/company" class="nav-item @(IsActive(NavSection.Company) ? "nav-item-active" : "")">
                         <MudIcon Icon="@DzdIcons.BriefcaseBusiness" Class="nav-icon" />
                         <span class="nav-label">Company</span>
                     </a>
 
-                    <a href="/settings" class="nav-item @(_isSettingsSelected ? "nav-item-active" : "")">
-                        <MudIcon Icon="@DzdIcons.Settings" Class="nav-icon" />
-                        <span class="nav-label">Settings</span>
-                    </a>
+                    <AuthorizeView Roles="@Roles.AdminOrHr" Context="navAuthCtx">
+                        <a href="/settings" class="nav-item @(IsActive(NavSection.Settings) ? "nav-item-active" : "")">
+                            <MudIcon Icon="@DzdIcons.Settings" Class="nav-icon" />
+                            <span class="nav-label">Settings</span>
+                        </a>
+                    </AuthorizeView>
                 </nav>
             </MudDrawer>
         </Authorized>
@@ -190,40 +193,52 @@
 </MudLayout>
 
 @code {
-    private string _pageTitle = "DZD Dashboard";
+    // ── Nav section enum (replaces 10 individual booleans) ──────────────────
+    private enum NavSection
+    {
+        None, Dashboard, Employees, Departments, Positions,
+        Attendance, LeaveManagement, Training, Performance, Company, Settings, MyProfile
+    }
+
+    private static readonly Dictionary<NavSection, string> NavTitles = new()
+    {
+        [NavSection.None]           = "DZD Dashboard",
+        [NavSection.Dashboard]      = "DZD Dashboard",
+        [NavSection.Employees]      = "Employees",
+        [NavSection.Departments]    = "Departments",
+        [NavSection.Positions]      = "Positions",
+        [NavSection.Attendance]     = "Attendance",
+        [NavSection.LeaveManagement]= "Leave Management",
+        [NavSection.Training]       = "Training",
+        [NavSection.Performance]    = "Performance",
+        [NavSection.Company]        = "Company",
+        [NavSection.Settings]       = "Settings",
+        [NavSection.MyProfile]      = "My Profile",
+    };
+
+    private static readonly HashSet<NavSection> EmployeesMenuSections =
+        [NavSection.Employees, NavSection.Departments, NavSection.Positions];
+
+    private NavSection _activeSection = NavSection.Dashboard;
+    private bool _employeesMenuExpanded;
+
+    private bool IsActive(NavSection section) => _activeSection == section;
+    private bool IsEmployeesMenuActive => EmployeesMenuSections.Contains(_activeSection);
+    private string PageTitle => NavTitles.GetValueOrDefault(_activeSection, "DZD Dashboard");
+
     private readonly MudTheme _myTheme = AppTheme.Default;
     private bool _drawerOpen = true;
-    private bool _employeesMenuExpanded = false;
-    private bool _isEmployeesSelected;
-    private bool _isDashboardSelected;
-    private bool _isDepartmentsSelected;
-    private bool _isPositionsSelected;
-    private bool _isAttendanceSelected;
-    private bool _isLeaveManagementSelected;
-    private bool _isTrainingSelected;
-    private bool _isPerformanceSelected;
-    private bool _isCompanySelected;
-    private bool _isSettingsSelected;
-    
-    private bool _isEmployeesMenuActive => _isEmployeesSelected || _isDepartmentsSelected || _isPositionsSelected;
     private string _avatarDataUrl = string.Empty;
     private string _userInitials = "?";
-    private List<AppNotification> _notifications = new();
+    private List<AppNotification> _notifications = [];
     private int _unreadNotifications;
 
-    private void DrawerToggle()
-    {
-        _drawerOpen = !_drawerOpen;
-    }
-
-    private void ToggleEmployeesMenu()
-    {
-        _employeesMenuExpanded = !_employeesMenuExpanded;
-    }
+    private void DrawerToggle() => _drawerOpen = !_drawerOpen;
+    private void ToggleEmployeesMenu() => _employeesMenuExpanded = !_employeesMenuExpanded;
 
     protected override async Task OnInitializedAsync()
     {
-        UpdatePageTitle(Nav.Uri);
+        SetActiveSection(Nav.Uri);
         AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
         Nav.LocationChanged += OnLocationChanged;
         NotificationCenter.Changed += OnNotificationsChanged;
@@ -236,33 +251,25 @@
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
-        if (user.Identity?.IsAuthenticated ?? false)
+        if (user.Identity?.IsAuthenticated == true)
         {
             _userInitials = AppFormatter.GetInitials(user.Identity.Name);
-
             try
             {
                 var avatarDto = await UserService.GetMyAvatarAsync();
-
-                if (avatarDto != null && !string.IsNullOrEmpty(avatarDto.ContentBase64))
-                {
-                    _avatarDataUrl = $"data:{avatarDto.ContentType ?? "image/png"};base64,{avatarDto.ContentBase64}";
-                }
-                else
-                {
-                    _avatarDataUrl = string.Empty;
-                }
+                _avatarDataUrl = avatarDto != null && !string.IsNullOrEmpty(avatarDto.ContentBase64)
+                    ? $"data:{avatarDto.ContentType ?? "image/png"};base64,{avatarDto.ContentBase64}"
+                    : string.Empty;
             }
-            catch (Exception ex)
+            catch
             {
                 _avatarDataUrl = string.Empty;
-                Console.WriteLine($"MainLayout: Avatar yüklenemedi: {ex.Message}");
             }
         }
         else
         {
             _avatarDataUrl = string.Empty;
-            _userInitials = "?";
+            _userInitials  = "?";
         }
 
         await InvokeAsync(StateHasChanged);
@@ -270,8 +277,8 @@
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        UpdatePageTitle(e.Location);
-        InvokeAsync(StateHasChanged);
+        SetActiveSection(e.Location);
+        _ = InvokeAsync(StateHasChanged);
     }
 
     private Task Logout()
@@ -280,9 +287,12 @@
         return Task.CompletedTask;
     }
 
-    private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
+    private void OnAuthenticationStateChanged(Task<AuthenticationState> task)
+        => _ = HandleAuthStateChangedAsync(task);
+
+    private async Task HandleAuthStateChangedAsync(Task<AuthenticationState> task)
     {
-        await task;
+        try { await task; } catch { /* auth state tasks can fault on circuit teardown */ }
         await LoadAvatarAsync();
     }
 
@@ -296,122 +306,44 @@
     private void OnNotificationsChanged()
     {
         LoadNotifications();
-        InvokeAsync(StateHasChanged);
+        _ = InvokeAsync(StateHasChanged);
     }
 
     private void LoadNotifications()
     {
-        _notifications = NotificationCenter.GetAll().ToList();
+        _notifications       = NotificationCenter.GetAll().ToList();
         _unreadNotifications = NotificationCenter.UnreadCount;
     }
 
-    private void MarkNotificationAsRead(int id)
+    private void MarkNotificationAsRead(int id) => NotificationCenter.MarkAsRead(id);
+    private void MarkAllNotificationsAsRead()   => NotificationCenter.MarkAllAsRead();
+
+
+    private void SetActiveSection(string location)
     {
-        NotificationCenter.MarkAsRead(id);
-    }
+        var path = Nav.ToBaseRelativePath(location);
 
-    private void MarkAllNotificationsAsRead()
-    {
-        NotificationCenter.MarkAllAsRead();
-    }
-
-    private static string FormatNotificationTime(DateTime createdAtUtc)
-    {
-        var elapsed = DateTime.UtcNow - createdAtUtc;
-        if (elapsed.TotalMinutes < 1)
+        _activeSection = true switch
         {
-            return "now";
-        }
+            _ when string.IsNullOrEmpty(path)                                        => NavSection.Dashboard,
+            _ when Seg(path, "employees") || Seg(path, "employee")                   => NavSection.Employees,
+            _ when Seg(path, "departments")                                           => NavSection.Departments,
+            _ when Seg(path, "positions")                                             => NavSection.Positions,
+            _ when Seg(path, "attendance")                                            => NavSection.Attendance,
+            _ when Seg(path, "leave-management")                                      => NavSection.LeaveManagement,
+            _ when Seg(path, "training")                                              => NavSection.Training,
+            _ when Seg(path, "performance")                                           => NavSection.Performance,
+            _ when Seg(path, "company")                                               => NavSection.Company,
+            _ when Seg(path, "settings")                                              => NavSection.Settings,
+            _ when path.Equals("my-profile", StringComparison.OrdinalIgnoreCase)     => NavSection.MyProfile,
+            _                                                                         => NavSection.None,
+        };
 
-        if (elapsed.TotalHours < 1)
-        {
-            return $"{(int)elapsed.TotalMinutes}m ago";
-        }
-
-        if (elapsed.TotalDays < 1)
-        {
-            return $"{(int)elapsed.TotalHours}h ago";
-        }
-
-        return $"{(int)elapsed.TotalDays}d ago";
-    }
-
-    private void UpdatePageTitle(string location)
-    {
-        var relativePath = Nav.ToBaseRelativePath(location);
-        
-        _isEmployeesSelected = false;
-        _isDepartmentsSelected = false;
-        _isPositionsSelected = false;
-        _isDashboardSelected = false;
-        _isAttendanceSelected = false;
-        _isLeaveManagementSelected = false;
-        _isTrainingSelected = false;
-        _isPerformanceSelected = false;
-        _isCompanySelected = false;
-        _isSettingsSelected = false;
-
-        if (string.IsNullOrEmpty(relativePath))
-        {
-            _isDashboardSelected = true;
-            _pageTitle = "DZD Dashboard";
-        }
-        else if (relativePath.StartsWith("employees", StringComparison.OrdinalIgnoreCase) || 
-                 relativePath.StartsWith("employee", StringComparison.OrdinalIgnoreCase))
-        {
-            _isEmployeesSelected = true;
+        if (EmployeesMenuSections.Contains(_activeSection))
             _employeesMenuExpanded = true;
-            _pageTitle = "Employees";
-        }
-        else if (relativePath.StartsWith("departments", StringComparison.OrdinalIgnoreCase))
-        {
-            _isDepartmentsSelected = true;
-            _employeesMenuExpanded = true;
-            _pageTitle = "Departments";
-        }
-        else if (relativePath.StartsWith("positions", StringComparison.OrdinalIgnoreCase))
-        {
-            _isPositionsSelected = true;
-            _employeesMenuExpanded = true;
-            _pageTitle = "Positions";
-        }
-        else if (relativePath.StartsWith("attendance", StringComparison.OrdinalIgnoreCase))
-        {
-            _isAttendanceSelected = true;
-            _pageTitle = "Attendance";
-        }
-        else if (relativePath.StartsWith("leave-management", StringComparison.OrdinalIgnoreCase))
-        {
-            _isLeaveManagementSelected = true;
-            _pageTitle = "Leave Management";
-        }
-        else if (relativePath.StartsWith("training", StringComparison.OrdinalIgnoreCase))
-        {
-            _isTrainingSelected = true;
-            _pageTitle = "Training";
-        }
-        else if (relativePath.StartsWith("performance", StringComparison.OrdinalIgnoreCase))
-        {
-            _isPerformanceSelected = true;
-            _pageTitle = "Performance";
-        }
-        else if (relativePath.StartsWith("company", StringComparison.OrdinalIgnoreCase))
-        {
-            _isCompanySelected = true;
-            _pageTitle = "Company";
-        }
-        else if (relativePath.StartsWith("settings", StringComparison.OrdinalIgnoreCase))
-        {
-            _isSettingsSelected = true;
-            _pageTitle = "Settings";
-        }
-        else if (relativePath.Equals("my-profile", StringComparison.OrdinalIgnoreCase))
-        {
-            _pageTitle = "My Profile";
-        }
-        else
-        {
-            _pageTitle = "DZD Dashboard";
-        }
     }
+
+    private static bool Seg(string path, string segment)
+        => path.Equals(segment, StringComparison.OrdinalIgnoreCase)
+        || path.StartsWith(segment + "/", StringComparison.OrdinalIgnoreCase);
 }

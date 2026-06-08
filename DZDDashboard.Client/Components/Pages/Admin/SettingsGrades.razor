@@ -1,9 +1,0 @@
-@page "/settings/grades"
-@using Microsoft.AspNetCore.Authorization
-@attribute [Authorize(Roles = "Admin,HR")]
-
-<div class="settings-scope">
-    <MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
-        <GradeManagementPanel />
-    </MudContainer>
-</div>

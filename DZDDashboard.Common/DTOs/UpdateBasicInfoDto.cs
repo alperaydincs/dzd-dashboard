@@ -1,19 +1,19 @@
-using System;
-using System.Collections.Generic;
+namespace DZDDashboard.Common.DTOs;
 
-namespace DZDDashboard.Common.DTOs
+// Validation is handled exclusively by UpdateBasicInfoDtoValidator (FluentValidation).
+// Data annotations removed to avoid dual-validation with different error formats.
+public record UpdateBasicInfoDto
 {
-    public class UpdateBasicInfoDto
-    {
-        public int UserId { get; set; }
-        public string? FirstName { get; set; }
-        public string? LastName { get; set; }
-        public string? RegistrationNumber { get; set; }
-        public DateTime? UserStartDate { get; set; }
-        public DateTime? PositionStartDate { get; set; }
-        public string? ContractType { get; set; }
-        public DateTime? ContractEndDate { get; set; }
-        public string? WorkModel { get; set; }
-        public int? PayrollLocationId { get; set; }
-    }
+    public string?   FirstName          { get; init; }
+    public string?   LastName           { get; init; }
+    public string?   RegistrationNumber { get; init; }
+
+    public DateTime? UserStartDate      { get; init; }
+    public DateTime? PositionStartDate  { get; init; }
+    public DateTime? ContractEndDate    { get; init; }
+
+    public string?   ContractType       { get; init; }
+    public string?   WorkModel          { get; init; }
+
+    public int?      PayrollLocationId  { get; init; }
 }

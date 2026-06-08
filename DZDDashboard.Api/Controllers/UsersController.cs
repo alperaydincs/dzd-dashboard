@@ -1,218 +1,203 @@
+using DZDDashboard.Api.Abstractions;
+using DZDDashboard.Api.Options;
+using DZDDashboard.Api.Utils;
+using DZDDashboard.Common.Constants;
 using DZDDashboard.Common.DTOs;
 using DZDDashboard.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.RegularExpressions;
 
 namespace DZDDashboard.Api.Controllers;
 
-[ApiController]
+/// <summary>
+/// Manages employee read/write operations.
+/// Depends on <see cref="IUserReadService"/> and <see cref="IUserWriteService"/> rather than the
+/// combined <see cref="IUserService"/> to honour the Interface Segregation Principle.
+/// <see cref="IUserSyncService"/> is consumed exclusively by <c>EntraUserSyncMiddleware</c>.
+/// </summary>
 [Route("api/[controller]")]
-[Authorize]
-public class UsersController : BaseController
+public class UsersController(
+    IUserReadService  readService,
+    IUserWriteService writeService,
+    ICurrentUserAccessor currentUser) : BaseController
 {
-    private static readonly Regex PhoneRegex = new(@"^\+?[0-9]{6,20}$", RegexOptions.Compiled);
 
-    private readonly UserService _userService;
-
-    public UsersController(UserService userService)
-    {
-        _userService = userService;
-    }
-
+    /// <summary>
+    /// Returns a paged list of user summaries (no avatar base64 — optimised for list views).
+    /// Use GET /api/users/{id}/card for the full employee record.
+    /// </summary>
     [HttpGet]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<IEnumerable<UserDto>>> GetAll()
-    {
-        var users = await _userService.GetAllWithRolesAsync();
-        return Ok(users);
-    }
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<ActionResult<PagedResult<UserSummaryDto>>> GetAll([FromQuery] PaginationParams pagination, CancellationToken cancellationToken)
+        => Ok(await readService.GetAllSummariesAsync(pagination.NormalizedPage, pagination.NormalizedPageSize, cancellationToken));
 
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Delete(int id)
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        try
-        {
-            var success = await _userService.DeleteAsync(id);
-            if (!success) throw new KeyNotFoundException();
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, "Delete user");
-        }
+        await writeService.DeleteAsync(id, cancellationToken);
+        return NoContent();
     }
 
     [HttpGet("my-profile")]
-    public async Task<ActionResult<UserProfileDto>> GetMyProfile()
+    public async Task<ActionResult<UserProfileDto>> GetMyProfile(CancellationToken cancellationToken)
     {
-        var userId = GetCurrentUserId();
+        var userId = currentUser.UserId;
         if (!userId.HasValue) return Unauthorized();
 
-        var profile = await _userService.GetProfileByIdAsync(userId.Value);
+        var profile = await readService.GetProfileByIdAsync(userId.Value, cancellationToken);
         return profile is null ? NotFound() : Ok(profile);
     }
 
     [HttpPut("my-profile/contact-info")]
-    public async Task<IActionResult> UpdateMyContactInfo([FromBody] UpdateContactInfoDto dto)
+    public async Task<IActionResult> UpdateMyContactInfo([FromBody] UpdateContactInfoDto dto, CancellationToken cancellationToken)
     {
-        var userId = GetCurrentUserId();
+        var userId = currentUser.UserId;
         if (!userId.HasValue) return Unauthorized();
 
-        if (!string.IsNullOrWhiteSpace(dto.WorkPhoneNumber) && !PhoneRegex.IsMatch(dto.WorkPhoneNumber))
-            return BadRequest("Invalid work phone number.");
-
-        if (!string.IsNullOrWhiteSpace(dto.PersonalPhoneNumber) && !PhoneRegex.IsMatch(dto.PersonalPhoneNumber))
-            return BadRequest("Invalid personal phone number.");
-
-        try
-        {
-            var result = await _userService.UpdateContactInfoAsync(userId.Value, dto);
-            return result ? NoContent() : NotFound();
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, "Update my contact info");
-        }
+        await writeService.UpdateMyContactInfoAsync(userId.Value, dto, cancellationToken);
+        return NoContent();
     }
 
     [HttpGet("{id:int}/card")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<EmployeeCardDto>> GetEmployeeCard(int id)
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<ActionResult<EmployeeCardDto>> GetEmployeeCard(int id, CancellationToken cancellationToken)
     {
-        var card = await _userService.GetEmployeeCardAsync(id);
+        var card = await readService.GetEmployeeCardAsync(id, cancellationToken);
         return card is null ? NotFound() : Ok(card);
     }
 
-    [HttpGet("my-avatar")]
-    public async Task<ActionResult<UserAvatarDto>> GetMyAvatar()
+    /// <summary>
+    /// Returns PII-sensitive employee data (citizenship, personal contact, disability, family).
+    /// Access controlled by <see cref="Roles.SensitiveDataPolicy"/>:
+    /// currently Admin + HR; extend the policy in ServiceCollectionExtensions when new roles are added.
+    /// </summary>
+    [HttpGet("{id:int}/sensitive-info")]
+    [Authorize(Policy = Roles.SensitiveDataPolicy)]
+    public async Task<ActionResult<EmployeeSensitiveInfoDto>> GetSensitiveInfo(int id, CancellationToken cancellationToken)
     {
-        var userId = GetCurrentUserId();
+        var info = await readService.GetSensitiveInfoAsync(id, cancellationToken);
+        return info is null ? NotFound() : Ok(info);
+    }
+
+    [HttpGet("my-avatar")]
+    public async Task<ActionResult<UserAvatarDto>> GetMyAvatar(CancellationToken cancellationToken)
+    {
+        var userId = currentUser.UserId;
         if (!userId.HasValue) return Unauthorized();
 
-        var avatarDto = await _userService.GetAvatarByUserIdAsync(userId.Value);
+        var avatarDto = await readService.GetAvatarByUserIdAsync(userId.Value, cancellationToken);
         return Ok(avatarDto ?? new UserAvatarDto());
     }
 
     [HttpPost("my-profile/avatar")]
-    public async Task<IActionResult> UploadMyAvatar([FromForm] IFormFile file)
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("upload")]
+    // Reject oversized requests at the Kestrel/IIS level before the body is read into memory.
+    // AvatarConstants.MaxFileSizeBytes is a long; cast to long for the attribute.
+    [Microsoft.AspNetCore.Mvc.RequestSizeLimit(AvatarConstants.MaxFileSizeBytes)]
+    [Microsoft.AspNetCore.Mvc.RequestFormLimits(MultipartBodyLengthLimit = AvatarConstants.MaxFileSizeBytes)]
+    public async Task<IActionResult> UploadMyAvatar([FromForm] IFormFile file, CancellationToken cancellationToken)
     {
-        if (file == null || file.Length == 0) return BadRequest("No file uploaded.");
-        if (file.Length > 100 * 1024 * 1024) return BadRequest("File size exceeds 100MB limit.");
+        if (file == null || file.Length == 0)
+            return Problem("No file uploaded.", statusCode: 400, title: "Validation Error");
 
-        var userId = GetCurrentUserId();
+        if (!AvatarConstants.AllowedMimeTypes.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
+            return Problem(
+                $"Unsupported file type '{file.ContentType}'. Allowed: {string.Join(", ", AvatarConstants.AllowedMimeTypes)}.",
+                statusCode: 400, title: "Validation Error");
+
+        var userId = currentUser.UserId;
         if (!userId.HasValue) return Unauthorized();
 
-        try
-        {
-            using var ms = new MemoryStream();
-            await file.CopyToAsync(ms);
-            var base64 = Convert.ToBase64String(ms.ToArray());
+        using var ms = new MemoryStream((int)file.Length);
+        await file.CopyToAsync(ms, cancellationToken);
+        var fileBytes = ms.ToArray();
 
-            var success = await _userService.UpdateAvatarAsync(userId.Value, file.ContentType, base64);
-            if (!success) throw new KeyNotFoundException("User not found");
-            return Ok();
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, "Upload avatar");
-        }
+        // Validate magic bytes — Content-Type header can be spoofed by the client.
+        if (!AvatarMagicBytes.IsValid(fileBytes, file.ContentType))
+            return Problem("File content does not match the declared content type.",
+                statusCode: 400, title: "Validation Error");
+
+        var base64 = Convert.ToBase64String(fileBytes);
+
+        await writeService.UpdateAvatarAsync(userId.Value, file.ContentType, base64, cancellationToken);
+        return NoContent();
     }
 
     [HttpGet("{id:int}/avatar")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<UserAvatarDto>> GetUserAvatar(int id)
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<ActionResult<UserAvatarDto>> GetUserAvatar(int id, CancellationToken cancellationToken)
+        => Ok(await readService.GetAvatarByUserIdAsync(id, cancellationToken) ?? new UserAvatarDto());
+
+    [HttpPut("{id:int}/basic-info")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> UpdateBasicInfo(int id, [FromBody] UpdateBasicInfoDto dto, CancellationToken cancellationToken)
     {
-        var avatarDto = await _userService.GetAvatarByUserIdAsync(id);
-        return Ok(avatarDto ?? new UserAvatarDto());
+        await writeService.UpdateBasicInfoAsync(id, dto, cancellationToken);
+        return NoContent();
     }
 
-    [HttpPut("{id}/basic-info")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateBasicInfo(int id, [FromBody] UpdateBasicInfoDto dto)
+    [HttpPut("{id:int}/contacts")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> UpdateContacts(int id, [FromBody] UpdateContactsDto dto, CancellationToken cancellationToken)
     {
-        var result = await _userService.UpdateBasicInfoAsync(id, dto);
-        return result ? Ok() : BadRequest();
+        await writeService.UpdateContactsAsync(id, dto, cancellationToken);
+        return NoContent();
     }
 
-    [HttpPut("{id}/contacts")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateContacts(int id, [FromBody] UpdateContactsDto dto)
+    [HttpPut("{id:int}/citizenship-info")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> UpdateCitizenshipInfo(int id, [FromBody] UpdateCitizenshipInfoDto dto, CancellationToken cancellationToken)
     {
-        try
-        {
-            var result = await _userService.UpdateContactsAsync(id, dto);
-            return result ? Ok() : BadRequest();
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, "Update contacts");
-        }
+        await writeService.UpdateCitizenshipInfoAsync(id, dto, cancellationToken);
+        return NoContent();
     }
 
-    [HttpPut("{id}/citizenship-info")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateCitizenshipInfo(int id, [FromBody] UpdateCitizenshipInfoDto dto)
+    [HttpPut("{id:int}/career")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> UpdateCareerAssignment(int id, [FromBody] UpdateCareerAssignmentDto dto, CancellationToken cancellationToken)
     {
-        var result = await _userService.UpdateCitizenshipInfoAsync(id, dto);
-        return result ? Ok() : BadRequest();
+        await writeService.UpdateCareerAssignmentAsync(id, dto, cancellationToken);
+        return NoContent();
     }
 
-    [HttpPut("{id}/career")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateCareerAssignment(int id, [FromBody] UpdateCareerAssignmentDto dto)
+    [HttpPut("{id:int}/address-info")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> UpdateAddressInfo(int id, [FromBody] UpdateAddressInfoDto dto, CancellationToken cancellationToken)
     {
-        var result = await _userService.UpdateCareerAssignmentAsync(id, dto);
-        return result ? Ok() : BadRequest();
+        await writeService.UpdateAddressInfoAsync(id, dto, cancellationToken);
+        return NoContent();
     }
 
-    [HttpPut("{id}/address-info")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateAddressInfo(int id, [FromBody] UpdateAddressInfoDto dto)
+    [HttpPut("{id:int}/education-info")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> UpdateEducationInfo(int id, [FromBody] UpdateEducationInfoDto dto, CancellationToken cancellationToken)
     {
-        var result = await _userService.UpdateAddressInfoAsync(id, dto);
-        return result ? Ok() : BadRequest();
+        await writeService.UpdateEducationInfoAsync(id, dto, cancellationToken);
+        return NoContent();
     }
 
-    [HttpPut("{id}/education-info")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateEducationInfo(int id, [FromBody] UpdateEducationInfoDto dto)
+    [HttpPut("{id:int}/organization-position")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> UpdateOrganizationPosition(int id, [FromBody] UpdateUserOrganizationPositionDto dto, CancellationToken cancellationToken)
     {
-        var result = await _userService.UpdateEducationInfoAsync(id, dto);
-        return result ? Ok() : BadRequest();
-    }
-
-    [HttpPut("{id}/organization-position")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateOrganizationPosition(int id, [FromBody] UpdateUserOrganizationPositionDto dto)
-    {
-        try
-        {
-            await _userService.UpdateOrganizationPositionAsync(id, dto.OrganizationPositionId);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, "Update organization position");
-        }
+        await writeService.UpdateOrganizationPositionAsync(id, dto.OrganizationPositionId, cancellationToken);
+        return NoContent();
     }
 
     [HttpPut("{id:int}/emergency-contacts")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateEmergencyContacts(int id, [FromBody] UpdateEmergencyContactsDto dto)
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> UpdateEmergencyContacts(int id, [FromBody] UpdateEmergencyContactsDto dto, CancellationToken cancellationToken)
     {
-        dto.UserId = id;
-        var ok = await _userService.UpdateEmergencyContactsAsync(dto);
-        return ok ? Ok() : BadRequest();
+        await writeService.UpdateEmergencyContactsAsync(id, dto, cancellationToken);
+        return NoContent();
     }
 
     [HttpPut("{id:int}/family-info")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateFamilyInfo(int id, [FromBody] UpdateFamilyInfoDto dto)
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> UpdateFamilyInfo(int id, [FromBody] UpdateFamilyInfoDto dto, CancellationToken cancellationToken)
     {
-        dto.UserId = id;
-        var ok = await _userService.UpdateFamilyInfoAsync(dto);
-        return ok ? Ok() : BadRequest();
+        await writeService.UpdateFamilyInfoAsync(id, dto, cancellationToken);
+        return NoContent();
     }
 }

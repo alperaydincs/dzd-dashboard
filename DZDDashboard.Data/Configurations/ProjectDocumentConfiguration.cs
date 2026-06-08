@@ -1,3 +1,4 @@
+﻿using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -14,11 +15,11 @@ public class ProjetDocumentConfiguration : IEntityTypeConfiguration<ProjectDocum
 
         builder.Property(d => d.DocumentName)
                .IsRequired()
-               .HasMaxLength(255);
+               .HasMaxLength(ValidationConstants.MaxFileNameLength);
 
         builder.Property(d => d.ContentType)
                .IsRequired()
-               .HasMaxLength(100);
+               .HasMaxLength(ValidationConstants.MaxContentTypeLength);
 
         builder.HasOne(d => d.Project)
                .WithMany()

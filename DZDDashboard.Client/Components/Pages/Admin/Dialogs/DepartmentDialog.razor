@@ -1,7 +1,9 @@
 @using DZDDashboard.Common.DTOs
+@using DZDDashboard.Client.Services
+@using DZDDashboard.Client.Components.Shared
 @using MudBlazor
-@inject IHttpClientFactory HttpClientFactory
-@inject ISnackbar Snackbar
+@inherits CrudDialogBase
+@inject IOrganizationClientService OrgService
 
 <MudDialog>
     <DialogContent>
@@ -15,47 +17,30 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid)">Save</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">Save</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
     [Parameter] public DepartmentDto Department { get; set; } = new();
     [Parameter] public List<CompanyDto> Companies { get; set; } = new();
 
     private bool IsFormValid =>
         !string.IsNullOrWhiteSpace(Department.Name) &&
-        Department.CompanyId != null &&
-        Department.CompanyId > 0;
+        Department.CompanyId is > 0;
 
-    private void Cancel() => MudDialog.Cancel();
-
-    private async Task Submit()
-    {
-        if (string.IsNullOrWhiteSpace(Department.Name))
+    private async Task Submit() => await SaveAsync(
+        Department.Id,
+        () => OrgService.CreateDepartmentAsync(Department),
+        () => OrgService.UpdateDepartmentAsync(Department),
+        "department",
+        () =>
         {
-            Snackbar.Add("Name is required", Severity.Warning);
-            return;
-        }
-
-        try
-        {
-            var client = HttpClientFactory.CreateClient("Api");
-            if (Department.Id == 0)
+            if (!IsFormValid)
             {
-                await client.PostAsJsonAsync("api/organization/departments", Department);
+                Snackbar.Add("Name and Company are required", Severity.Warning);
+                return false;
             }
-            else
-            {
-                await client.PutAsJsonAsync("api/organization/departments", Department);
-            }
-            MudDialog.Close(DialogResult.Ok(true));
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Error saving: {ex.Message}", Severity.Error);
-        }
-    }
+            return true;
+        });
 }
-

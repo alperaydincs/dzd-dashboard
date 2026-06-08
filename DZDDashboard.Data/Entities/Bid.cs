@@ -1,6 +1,6 @@
 ﻿namespace DZDDashboard.Data.Entities;
 
-public class Bid : IAuditableEntity
+public class Bid : AuditableEntity
 {
     public int Id { get; set; }
     public Bank? Bank { get; set; }
@@ -29,7 +29,4 @@ public class Bid : IAuditableEntity
     public string? Notes { get; set; }
     public Salesforce? IntertechTeam { get; set; }
     public int? IntertechTeamId { get; set; }
-    public DateTime? ModifiedAt { get; set; }
-    public int? ModifiedById { get; set; }
-    public User? ModifiedBy { get; set; }
 }

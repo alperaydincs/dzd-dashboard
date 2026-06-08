@@ -1,6 +1,6 @@
 ﻿namespace DZDDashboard.Data.Entities
 {
-    public class UserTraining : IAuditableEntity
+    public class UserTraining : AuditableEntity
     {
         public int Id { get; set; }
         public int? TrainingId { get; set; }
@@ -11,9 +11,5 @@
         public string? Status { get; set; }
         public int? Evaluation { get; set; }
         public string? Description { get; set; }
-        public bool IsActive { get; set; } = true;
-        public DateTime? ModifiedAt { get; set; }
-        public int? ModifiedById { get; set; }
-        public User? ModifiedBy { get; set; }
-    }
+        public bool IsActive { get; set; } = true;    }
 }

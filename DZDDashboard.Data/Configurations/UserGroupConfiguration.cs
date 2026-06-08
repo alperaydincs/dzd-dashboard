@@ -1,3 +1,4 @@
+using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -14,11 +15,11 @@ public class UserGroupConfiguration : IEntityTypeConfiguration<UserGroup>
 
         builder.Property(ug => ug.GroupName)
                .IsRequired()
-               .HasMaxLength(150);
+               .HasMaxLength(ValidationConstants.MaxEntityNameLength);
 
         builder.HasIndex(ug => ug.GroupName).IsUnique();
 
-        builder.HasMany(ug => ug.User)
+        builder.HasMany(ug => ug.Users)
                .WithOne(u => u.UserGroup)
                .HasForeignKey(u => u.UserGroupId)
                .OnDelete(DeleteBehavior.SetNull);

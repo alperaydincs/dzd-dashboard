@@ -1,84 +1,33 @@
 namespace DZDDashboard.Data.Entities;
 
-public class User : IAuditableEntity
+// User entity split across partial files by concern:
+//   User.cs                — core identity + employment
+//   User.Career.cs         — org structure + career assignment
+//   User.PersonalInfo.cs   — PII (citizenship, address, family)
+//   User.Benefits.cs       — pension, insurance, benefits
+//   User.Navigation.cs     — navigation collections
+
+public partial class User : AuditableEntity
 {
-    public int Id { get; set; }
-    public string? Email { get; set; } 
+    // ── Core identity ────────────────────────────────────────────────────────
+    public int     Id              { get; set; }
+    public string? EntraObjectId   { get; set; }
+    public string? Email           { get; set; }
     public string? NormalizedEmail { get; set; }
-    public string? EntraObjectId { get; set; } 
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
-    public UserGroup? UserGroup { get; set; }
-    public int? UserGroupId { get; set; }
-    public string? CompanyName { get; set; } 
-    public Job? Job { get; set; } 
-    public int? JobId { get; set; }
-    public int? Grade { get; set; } 
-    public Department? Department { get; set; } 
-    public int? DepartmentId { get; set; }
-    public Team? Team { get; set; } 
-    public int? TeamId { get; set; }
-    public DateTime? PositionStartDate { get; set; } 
-    public DateTime? UserStartDate { get; set; } 
-    public string? ContractType { get; set; } 
-    public DateTime? ContractEndDate { get; set; } 
-    public string? WorkModel { get; set; } 
-    public PayrollLocation? PayrollLocation { get; set; } 
-    public int? PayrollLocationId { get; set; }
-    public int? AvatarId { get; set; } 
-    public UserAvatar? Avatar { get; set; } 
-    public User? ReportsTo { get; set; } 
-    public int? ReportsToId { get; set; }
-    public virtual ICollection<User> Subordinates { get; set; } = new List<User>();
-    public int? OrganizationPositionId { get; set; }
-    public OrganizationPosition? OrganizationPosition { get; set; }
-    public int? CareerPathId { get; set; }
-    public CareerPath? CareerPath { get; set; }
-    public string? ApprovalProcessUnit { get; set; } 
-    public string? PhoneNumber { get; set; } 
-    public string? PersonalEmail { get; set; } 
-    public string? PersonalPhoneNumber { get; set; } 
-    public DateTime? DateOfBirth { get; set; } 
-    public string? Gender { get; set; } 
-    public bool DisabilityStatus { get; set; } = false; 
-    public string? DisabilityDegree { get; set; } 
-    public string? Nationality { get; set; } 
-    public string? CitizenshipNumber { get; set; } 
-    public string? EmergencyContactFullName { get; set; } 
-    public string? EmergencyContactRelationship { get; set; } 
-    public string? EmergencyContactPhoneNumber { get; set; } 
-    public string? MaritalStatus { get; set; } 
-    public string? SpouseFullName { get; set; } 
-    public List<ChildInfo>? Children { get; set; } 
-    public List<EmergencyContact>? EmergencyContacts { get; set; }
-    public List<EducationHistory>? EducationHistories { get; set; }
-    public string? LegalAddress { get; set; } 
-    public string? CurrentAddress { get; set; } 
-    public string? City { get; set; } 
-    public string? Country { get; set; } 
-    public string? BankName { get; set; } 
-    public string? Iban { get; set; }
-    public List<SalaryHistory>? SalaryHistories { get; set; } 
-    public string? RegistrationNumber { get; set; } 
-    public List<GradeHistory>? GradeHistories { get; set; } 
-    public DateTime? PositionUpdateDate { get; set; } 
-    public string? CvFilePath { get; set; } 
-    public string? AutoEnrollmentPensionStatus { get; set; } 
-    public DateTime? EmployerPensionStartDate { get; set; } 
-    public bool HasEmployerPension { get; set; } 
-    public decimal? EmployerPensionEmployeeContribution { get; set; } 
-    public decimal? EmployerPensionEmployerContribution { get; set; }
-    public bool HasPrivateHealthInsurance { get; set; } 
-    public decimal? PrivateHealthInsuranceEmployeeCost { get; set; }
-    public decimal? PrivateHealthInsuranceDependentCost { get; set; }
-    public decimal? MealBenefitAmount { get; set; }
-    public string? UnitName { get; set; }
-    public List<UserTraining>? UserTrainings { get; set; }
-    public List<TargetEffort>? TargetEfforts { get; set; }
-    public List<ExCompanyHistory>? ExCompanyHistories { get; set; }
-    public string? EmployeeGroup { get; set; }
-    public bool IsActive { get; set; } = true;
-    public DateTime? ModifiedAt { get; set; }
-    public int? ModifiedById { get; set; }
-    public User? ModifiedBy { get; set; }
+    public string? FirstName       { get; set; }
+    public string? LastName        { get; set; }
+    public bool    IsActive        { get; set; } = true;
+
+    // ── Employment ───────────────────────────────────────────────────────────
+    public string?   RegistrationNumber  { get; set; }
+    public DateTime? UserStartDate       { get; set; }
+    public DateTime? PositionStartDate   { get; set; }
+    public DateTime? PositionUpdateDate  { get; set; }
+    public string?   ContractType        { get; set; }
+    public DateTime? ContractEndDate     { get; set; }
+    public string?   WorkModel           { get; set; }
+    public string?   UnitName            { get; set; }
+    public string?   ApprovalProcessUnit { get; set; }
+    public string?   EmployeeGroup       { get; set; }
+    public string?   CvFilePath          { get; set; }
 }

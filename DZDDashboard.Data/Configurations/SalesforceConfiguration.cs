@@ -1,4 +1,5 @@
-﻿using DZDDashboard.Data.Entities;
+﻿using DZDDashboard.Common.Validation;
+using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -14,16 +15,16 @@ public class SalesforceConfiguration : IEntityTypeConfiguration<Salesforce>
 
         builder.Property(s => s.TaskTeam)
                .IsRequired()
-               .HasMaxLength(150);
+               .HasMaxLength(ValidationConstants.MaxEntityNameLength);
 
         builder.Property(s => s.TaskPo)
-               .HasMaxLength(150);
+               .HasMaxLength(ValidationConstants.MaxEntityNameLength);
 
         builder.Property(s => s.IsSuitable)
-               .HasMaxLength(50);
+               .HasMaxLength(ValidationConstants.MaxShortNameLength);
 
         builder.Property(s => s.Info)
-               .HasMaxLength(1000);
+               .HasMaxLength(ValidationConstants.MaxNotesLength);
 
         builder.HasIndex(s => new { s.TaskTeam, s.TaskPo }).IsUnique();
 

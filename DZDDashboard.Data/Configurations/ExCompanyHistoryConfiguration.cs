@@ -1,3 +1,4 @@
+using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -14,19 +15,17 @@ public class ExCompanyHistoryConfiguration : IEntityTypeConfiguration<ExCompanyH
 
         builder.Property(e => e.CompanyName)
                .IsRequired()
-               .HasMaxLength(200);
+               .HasMaxLength(ValidationConstants.MaxStandardLength);
 
         builder.Property(e => e.JobTitle)
                .IsRequired()
-               .HasMaxLength(150);
+               .HasMaxLength(ValidationConstants.MaxEntityNameLength);
 
         builder.Property(e => e.StartDate)
                .IsRequired();
 
-        builder.HasOne(e => e.User)
-               .WithMany(u => u.ExCompanyHistories)
-               .HasForeignKey(e => e.UserId)
-               .OnDelete(DeleteBehavior.Restrict);
+        // User→ExCompanyHistories relationship and cascade configured in UserConfiguration — single source of truth
+        builder.HasIndex(e => e.UserId).HasDatabaseName("IX_ExCompanyHistories_UserId");
 
         builder.HasOne(e => e.ModifiedBy)
                .WithMany()

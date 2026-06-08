@@ -15,26 +15,73 @@
       }
     },
     {
+      "label": "clean-dev-ports",
+      "type": "process",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "$ports = @(7178,7111,5178,5111); $pids = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $ports -contains $_.LocalPort } | Select-Object -ExpandProperty OwningProcess -Unique; if ($pids) { $pids | ForEach-Object { Stop-Process -Id $_ -Force; Write-Host ('Stopped process ' + $_) } } else { Write-Host 'No dev port processes found.' }; exit 0"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "close": true
+      }
+    },
+    {
       "label": "run-api",
       "type": "shell",
       "command": "dotnet run --project .\\DZDDashboard.Api\\DZDDashboard.Api.csproj",
-      "isBackground": true,
       "problemMatcher": "$msCompile",
       "presentation": {
         "reveal": "always",
-        "panel": "dedicated"
+        "panel": "new"
       }
     },
     {
       "label": "run-client",
       "type": "shell",
       "command": "dotnet run --project .\\DZDDashboard.Client\\DZDDashboard.Client.csproj",
-      "isBackground": true,
       "problemMatcher": "$msCompile",
       "presentation": {
         "reveal": "always",
-        "panel": "dedicated"
+        "panel": "new"
       }
+    },
+    {
+      "label": "watch-api",
+      "type": "shell",
+      "command": "dotnet watch run --project .\\DZDDashboard.Api\\DZDDashboard.Api.csproj",
+      "dependsOn": "clean-dev-ports",
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "watchers"
+      }
+    },
+    {
+      "label": "watch-client",
+      "type": "shell",
+      "command": "dotnet watch run --project .\\DZDDashboard.Client\\DZDDashboard.Client.csproj",
+      "dependsOn": "clean-dev-ports",
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "watchers"
+      }
+    },
+    {
+      "label": "watch-all",
+      "dependsOn": [
+        "watch-api",
+        "watch-client"
+      ],
+      "group": "build"
     }
   ]
 }

@@ -1,8 +1,20 @@
 namespace DZDDashboard.Common.DTOs;
 
+/// <summary>
+/// Full employee data for the card view. Mutable — Blazor edit sections mutate properties directly.
+/// <para>
+/// <b>PII fields</b> (DateOfBirth, Gender, Nationality, CitizenshipNumber, DisabilityStatus,
+/// DisabilityDegree, MaritalStatus, SpouseFullName, PersonalEmail, PersonalPhoneNumber,
+/// LegalAddress, CurrentAddress, City, Country, Children) are intentionally <b>not populated</b>
+/// by the GET card endpoint. They are gated behind <c>SensitiveDataPolicy</c> and must be fetched
+/// separately via <c>GET /api/users/{id}/sensitive-info</c>.
+/// The fields remain in this DTO so that Blazor edit-section components can POST them back.
+/// </para>
+/// </summary>
 public class EmployeeCardDto
 {
-    public int Id { get; set; }
+    public int  Id       { get; set; }
+    public bool IsActive { get; set; }
 
     public string? FullName { get; set; }
     public string? FirstName { get; set; }

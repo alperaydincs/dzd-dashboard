@@ -1,6 +1,6 @@
 ﻿namespace DZDDashboard.Data.Entities;
 
-public class ProjectInvoice : IAuditableEntity
+public class ProjectInvoice : AuditableEntity
 {
     public int Id { get; set; }
     public Bank? Bank { get; set; }
@@ -27,7 +27,4 @@ public class ProjectInvoice : IAuditableEntity
     public decimal VatIncludedAmount { get; set; }
     public PayrollLocation? PayrollLocation { get; set; }
     public int? PayrollLocationId { get; set; }
-    public DateTime? ModifiedAt { get; set; }
-    public int? ModifiedById { get; set; }
-    public User? ModifiedBy { get; set; }
 }

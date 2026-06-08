@@ -1,14 +1,11 @@
+namespace DZDDashboard.Common.DTOs;
 
-namespace DZDDashboard.Common.DTOs
+public record UserProfileReportsToDto
 {
-    public class UserProfileReportsToDto
-    {
-        public int Id { get; set; }
-        public string? FirstName { get; set; }
-        public string? LastName { get; set; }
-        public DepartmentDto? Department { get; set; }
-        public JobDto? Job { get; set; }
-        public UserAvatarDto? Avatar { get; set; }
-    }
+    public int Id { get; init; }
+    public string? FirstName { get; init; }
+    public string? LastName { get; init; }
+    public DepartmentDto? Department { get; init; }
+    public JobDto? Job { get; init; }
+    public UserAvatarDto? Avatar { get; init; }
 }
-

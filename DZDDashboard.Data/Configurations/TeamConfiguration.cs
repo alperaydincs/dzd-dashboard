@@ -1,3 +1,4 @@
+using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -12,11 +13,18 @@ public class TeamConfiguration : IEntityTypeConfiguration<Team>
 
         builder.HasKey(t => t.Id);
 
-        builder.Property(t => t.TeamName)
+        builder.Property(t => t.Name)
                .IsRequired()
-               .HasMaxLength(150);
+               .HasMaxLength(ValidationConstants.MaxEntityNameLength);
 
-        builder.HasIndex(t => t.TeamName).IsUnique();
+        builder.HasIndex(t => t.Name).IsUnique();
+
+        // ClientCascade: EF handles cascade in memory; DB uses NO ACTION to avoid multiple cascade paths
+        // (SQL Server rejects CASCADE here because Department→Users and Department→Teams→Users both exist)
+        builder.HasOne(t => t.Department)
+               .WithMany(d => d.Teams)
+               .HasForeignKey(t => t.DepartmentId)
+               .OnDelete(DeleteBehavior.ClientCascade);
 
         builder.HasMany(t => t.Users)
                .WithOne(u => u.Team)

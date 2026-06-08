@@ -2,7 +2,7 @@ using DZDDashboard.Client.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddClientDependencies(builder.Configuration);
+builder.Services.AddClientDependencies(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 

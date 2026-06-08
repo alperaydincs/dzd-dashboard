@@ -1,21 +1,16 @@
 @using DZDDashboard.Common.DTOs
+@using DZDDashboard.Client.Services
+@using DZDDashboard.Client.Components.Shared
 @using MudBlazor
-@inject IHttpClientFactory HttpClientFactory
-@inject ISnackbar Snackbar
+@inherits CrudDialogBase
+@inject IOrganizationClientService OrgService
 
 <MudDialog>
     <DialogContent>
         <MudStack Spacing="4">
-            <MudTextField @bind-Value="Team.Name" 
-                          Label="Name" 
-                          Variant="Variant.Outlined"
-                          Required="true" />
+            <MudTextField @bind-Value="Team.Name" Label="Name" Variant="Variant.Outlined" Required="true" />
 
-            <MudSelect T="int?" 
-                       Label="Company" 
-                       @bind-Value="_selectedCompanyId"
-                       Variant="Variant.Outlined"
-                       Required="true">
+            <MudSelect T="int?" Label="Company" @bind-Value="_selectedCompanyId" Variant="Variant.Outlined" Required="true">
                 @foreach (var company in Companies)
                 {
                     <MudSelectItem Value="@((int?)company.Id)">@company.Name</MudSelectItem>
@@ -24,11 +19,7 @@
 
             @if (_selectedCompanyId != null)
             {
-                <MudSelect T="int?" 
-                           Label="Department" 
-                           @bind-Value="Team.DepartmentId"
-                           Variant="Variant.Outlined"
-                           Required="true">
+                <MudSelect T="int?" Label="Department" @bind-Value="Team.DepartmentId" Variant="Variant.Outlined" Required="true">
                     @foreach (var dept in FilteredDepartments)
                     {
                         <MudSelectItem Value="@((int?)dept.Id)">@dept.Name</MudSelectItem>
@@ -39,12 +30,11 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid)">Save</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">Save</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
     [Parameter] public TeamDto Team { get; set; } = new();
     [Parameter] public List<CompanyDto> Companies { get; set; } = new();
     [Parameter] public List<DepartmentDto> Departments { get; set; } = new();
@@ -59,48 +49,30 @@
     private bool IsFormValid =>
         !string.IsNullOrWhiteSpace(Team.Name) &&
         _selectedCompanyId != null &&
-        Team.DepartmentId != null &&
-        Team.DepartmentId > 0;
+        Team.DepartmentId is > 0;
 
     protected override void OnInitialized()
     {
         if (Team.DepartmentId > 0)
         {
-            var existingDepartment = Departments.FirstOrDefault(d => d.Id == Team.DepartmentId);
-            if (existingDepartment != null)
-            {
-                _selectedCompanyId = existingDepartment.CompanyId;
-            }
+            var dept = Departments.FirstOrDefault(d => d.Id == Team.DepartmentId);
+            if (dept != null)
+                _selectedCompanyId = dept.CompanyId;
         }
     }
 
-    private void Cancel() => MudDialog.Cancel();
-
-    private async Task Submit()
-    {
-        if (string.IsNullOrWhiteSpace(Team.Name))
+    private async Task Submit() => await SaveAsync(
+        Team.Id,
+        () => OrgService.CreateTeamAsync(Team),
+        () => OrgService.UpdateTeamAsync(Team),
+        "team",
+        () =>
         {
-            Snackbar.Add("Name is required", Severity.Warning);
-            return;
-        }
-
-        try
-        {
-            var client = HttpClientFactory.CreateClient("Api");
-            if (Team.Id == 0)
+            if (!IsFormValid)
             {
-                await client.PostAsJsonAsync("api/organization/teams", Team);
+                Snackbar.Add("Name and Department are required", Severity.Warning);
+                return false;
             }
-            else
-            {
-                await client.PutAsJsonAsync("api/organization/teams", Team);
-            }
-            MudDialog.Close(DialogResult.Ok(true));
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Error saving: {ex.Message}", Severity.Error);
-        }
-    }
+            return true;
+        });
 }
-

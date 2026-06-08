@@ -1,162 +1,160 @@
+using DZDDashboard.Common.Constants;
 using Microsoft.AspNetCore.Components;
-using System.Net.Http.Json;
-using Microsoft.Identity.Web;
 using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace DZDDashboard.Client.Services;
 
 public abstract class ApiServiceBase
 {
     protected readonly HttpClient ApiClient;
-    protected readonly NavigationManager _navigationManager;
+    private readonly NavigationManager _navigationManager;
 
-    protected ApiServiceBase(IHttpClientFactory httpClientFactory, NavigationManager navigationManager)
+    protected ApiServiceBase(
+        IHttpClientFactory httpClientFactory,
+        NavigationManager navigationManager)
     {
-        ApiClient = httpClientFactory.CreateClient("Api");
+        ApiClient          = httpClientFactory.CreateClient("Api");
         _navigationManager = navigationManager;
     }
 
-    protected async Task<T?> GetAsync<T>(string endpoint)
+    protected async Task<T?> GetAsync<T>(string endpoint, CancellationToken cancellationToken = default)
     {
         try
         {
-            return await ApiClient.GetFromJsonAsync<T>(endpoint);
+            return await ApiClient.GetFromJsonAsync<T>(endpoint, cancellationToken);
         }
         catch (Exception ex)
         {
-            if (IsChallengeException(ex))
-            {
-                HandleChallengeException();
-                return default;
-            }
-            Console.WriteLine($"GET {endpoint} failed: {ex.Message}");
+            if (IsAuthChallenge(ex)) { HandleChallenge(); return default; }
             throw;
         }
     }
 
-    protected async Task<T?> PostAsync<T>(string endpoint, object data)
+    protected async Task<T?> PostAsync<T>(string endpoint, object data, CancellationToken cancellationToken = default)
     {
         try
         {
-            var response = await ApiClient.PostAsJsonAsync(endpoint, data);
+            var response = await ApiClient.PostAsJsonAsync(endpoint, data, cancellationToken);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<T>();
+            return await response.Content.ReadFromJsonAsync<T>(cancellationToken);
         }
         catch (Exception ex)
         {
-            if (IsChallengeException(ex))
-            {
-                HandleChallengeException();
-                return default;
-            }
-            Console.WriteLine($"POST {endpoint} failed: {ex.Message}");
+            if (IsAuthChallenge(ex)) { HandleChallenge(); return default; }
             throw;
         }
     }
 
-    protected async Task<HttpResponseMessage> PostAsync(string endpoint, object data)
+    protected async Task<HttpResponseMessage> PostAsync(string endpoint, object data, CancellationToken cancellationToken = default)
     {
         try
         {
-            return await ApiClient.PostAsJsonAsync(endpoint, data);
+            return await ApiClient.PostAsJsonAsync(endpoint, data, cancellationToken);
         }
         catch (Exception ex)
         {
-            if (IsChallengeException(ex))
-            {
-                HandleChallengeException();
-                return new HttpResponseMessage(HttpStatusCode.Unauthorized);
-            }
-            Console.WriteLine($"POST {endpoint} failed: {ex.Message}");
+            if (IsAuthChallenge(ex)) { HandleChallenge(); return Unauthorized(); }
             throw;
         }
     }
 
-    protected async Task<HttpResponseMessage> PutAsync<T>(string endpoint, T data)
+    protected async Task<HttpResponseMessage> PutAsync<T>(string endpoint, T data, CancellationToken cancellationToken = default)
     {
         try
         {
-            return await ApiClient.PutAsJsonAsync(endpoint, data);
+            return await ApiClient.PutAsJsonAsync(endpoint, data, cancellationToken);
         }
         catch (Exception ex)
         {
-            if (IsChallengeException(ex))
-            {
-                HandleChallengeException();
-                return new HttpResponseMessage(HttpStatusCode.Unauthorized);
-            }
-            Console.WriteLine($"PUT {endpoint} failed: {ex.Message}");
+            if (IsAuthChallenge(ex)) { HandleChallenge(); return Unauthorized(); }
             throw;
         }
     }
 
-    protected async Task<HttpResponseMessage> DeleteAsync(string endpoint)
+    protected async Task<HttpResponseMessage> DeleteAsync(string endpoint, CancellationToken cancellationToken = default)
     {
         try
         {
-            return await ApiClient.DeleteAsync(endpoint);
+            return await ApiClient.DeleteAsync(endpoint, cancellationToken);
         }
         catch (Exception ex)
         {
-            if (IsChallengeException(ex))
-            {
-                HandleChallengeException();
-                return new HttpResponseMessage(HttpStatusCode.Unauthorized);
-            }
-            Console.WriteLine($"DELETE {endpoint} failed: {ex.Message}");
+            if (IsAuthChallenge(ex)) { HandleChallenge(); return Unauthorized(); }
             throw;
         }
     }
 
-    protected async Task<HttpResponseMessage> PostMultipartAsync(string endpoint, MultipartFormDataContent content)
+    protected async Task<HttpResponseMessage> PostMultipartAsync(string endpoint, MultipartFormDataContent content, CancellationToken cancellationToken = default)
     {
         try
         {
-            return await ApiClient.PostAsync(endpoint, content);
+            return await ApiClient.PostAsync(endpoint, content, cancellationToken);
         }
         catch (Exception ex)
         {
-            if (IsChallengeException(ex))
-            {
-                HandleChallengeException();
-                return new HttpResponseMessage(HttpStatusCode.Unauthorized);
-            }
-            Console.WriteLine($"POST (multipart) {endpoint} failed: {ex.Message}");
+            if (IsAuthChallenge(ex)) { HandleChallenge(); return Unauthorized(); }
             throw;
         }
     }
 
-    private bool IsChallengeException(Exception ex)
+    /// <summary>
+    /// Reads the <c>detail</c> field from a RFC-7807 ProblemDetails JSON response.
+    /// Returns null when the response cannot be parsed.
+    /// </summary>
+    public static async Task<string?> TryReadProblemDetailAsync(HttpResponseMessage response)
     {
-        if (ex == null) return false;
+        try
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(content)) return null;
 
-        if (ex is System.Net.Http.HttpRequestException httpEx &&
-            httpEx.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            using var doc = JsonDocument.Parse(content);
+            if (doc.RootElement.ValueKind == JsonValueKind.Object
+                && doc.RootElement.TryGetProperty("detail", out var detail))
+            {
+                var msg = detail.GetString();
+                return string.IsNullOrWhiteSpace(msg) ? null : msg;
+            }
+            return null;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    // ── Auth helpers ──────────────────────────────────────────────────────────
+
+    private static bool IsAuthChallenge(Exception ex)
+    {
+        if (ex is HttpRequestException { StatusCode: HttpStatusCode.Unauthorized })
             return true;
 
-        if (ex is MicrosoftIdentityWebChallengeUserException)
-            return true;
-
-        if (!string.IsNullOrEmpty(ex.Message) && (
-                ex.Message.Contains("IDW10502") ||
-                ex.Message.Contains("MsalUiRequiredException") ||
-                ex.Message.Contains("interaction_required") ||
-                ex.Message.Contains("consent_required") ||
-                ex.Message.Contains("login_required")))
-            return true;
-
-        return ex.InnerException != null && IsChallengeException(ex.InnerException);
+        var current = ex;
+        while (current != null)
+        {
+            if (current.GetType().FullName is
+                "Microsoft.Identity.Web.MicrosoftIdentityWebChallengeUserException" or
+                "Microsoft.Identity.Client.MsalUiRequiredException")
+                return true;
+            current = current.InnerException;
+        }
+        return false;
     }
 
-    private void HandleChallengeException()
+    private void HandleChallenge()
     {
-        var redirectUrl = "/auth/redirect";
+        var redirectUrl = RouteConstants.AuthRedirect;
         var currentUri = _navigationManager.Uri;
-
         if (!currentUri.Contains(redirectUrl, StringComparison.OrdinalIgnoreCase))
         {
             var returnUrl = Uri.EscapeDataString(currentUri);
             _navigationManager.NavigateTo($"{redirectUrl}?returnUrl={returnUrl}", forceLoad: false, replace: true);
         }
     }
+
+    private static HttpResponseMessage Unauthorized()
+        => new(HttpStatusCode.Unauthorized);
 }

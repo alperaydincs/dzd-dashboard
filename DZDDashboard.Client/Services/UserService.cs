@@ -1,70 +1,67 @@
-
 using Microsoft.AspNetCore.Components;
-
 using DZDDashboard.Common.DTOs;
 
 namespace DZDDashboard.Client.Services;
 
-public class UserService : ApiServiceBase
+public class UserService : ApiServiceBase, IUserClientService
 {
-    public UserService(IHttpClientFactory httpClientFactory, NavigationManager navigationManager)
+    public UserService(
+        IHttpClientFactory httpClientFactory,
+        NavigationManager navigationManager)
         : base(httpClientFactory, navigationManager) { }
 
     public async Task<UserProfileDto?> GetMyProfileAsync()
-        => await GetAsync<UserProfileDto>("api/users/my-profile");
+        => await GetAsync<UserProfileDto>(ApiRoutes.Users.MyProfile);
 
-    public async Task<List<UserDto>> GetAllUsersAsync()
-        => await GetAsync<List<UserDto>>("api/users/") ?? new();
+    /// <summary>
+    /// Returns a paged list of lightweight user summaries (no avatar base64).
+    /// Use <see cref="GetEmployeeCardAsync"/> for the full employee record.
+    /// </summary>
+    public async Task<PagedResult<UserSummaryDto>?> GetAllUsersAsync(int page = 1, int pageSize = 50)
+        => await GetAsync<PagedResult<UserSummaryDto>>(ApiRoutes.Users.All(page, pageSize));
 
     public async Task<EmployeeCardDto?> GetEmployeeCardAsync(int userId)
-        => await GetAsync<EmployeeCardDto>($"api/users/{userId}/card");
+        => await GetAsync<EmployeeCardDto>(ApiRoutes.Users.Card(userId));
+
+    public async Task<EmployeeSensitiveInfoDto?> GetSensitiveInfoAsync(int userId)
+        => await GetAsync<EmployeeSensitiveInfoDto>(ApiRoutes.Users.SensitiveInfo(userId));
 
     public async Task<UserAvatarDto?> GetUserAvatarAsync(int userId)
-        => await GetAsync<UserAvatarDto>($"api/users/{userId}/avatar");
+        => await GetAsync<UserAvatarDto>(ApiRoutes.Users.Avatar(userId));
 
     public async Task<UserAvatarDto?> GetMyAvatarAsync()
-        => await GetAsync<UserAvatarDto>("api/users/my-avatar");
+        => await GetAsync<UserAvatarDto>(ApiRoutes.Users.MyAvatar);
 
     public async Task<HttpResponseMessage> UpdateMyProfileAvatarAsync(MultipartFormDataContent content)
-        => await PostMultipartAsync("api/users/my-profile/avatar", content);
+        => await PostMultipartAsync(ApiRoutes.Users.MyProfileAvatar, content);
 
-    public async Task<HttpResponseMessage> UpdateContactInfoAsync(UpdateContactInfoDto dto)
-        => await PutAsync("api/users/my-profile/contact-info", dto);
+    public async Task<HttpResponseMessage> UpdateMyContactInfoAsync(UpdateContactInfoDto dto)
+        => await PutAsync(ApiRoutes.Users.MyContactInfo, dto);
 
     public async Task<HttpResponseMessage> UpdateOrganizationPositionAsync(int userId, UpdateUserOrganizationPositionDto dto)
-        => await PutAsync($"api/users/{userId}/organization-position", dto);
+        => await PutAsync(ApiRoutes.Users.OrganizationPosition(userId), dto);
 
     public async Task<HttpResponseMessage> UpdateEmergencyContactsAsync(int userId, UpdateEmergencyContactsDto dto)
-        => await PutAsync($"api/users/{userId}/emergency-contacts", dto);
+        => await PutAsync(ApiRoutes.Users.EmergencyContacts(userId), dto);
 
     public async Task<HttpResponseMessage> UpdateFamilyInfoAsync(int userId, UpdateFamilyInfoDto dto)
-        => await PutAsync($"api/users/{userId}/family-info", dto);
+        => await PutAsync(ApiRoutes.Users.FamilyInfo(userId), dto);
 
     public async Task<HttpResponseMessage> UpdateCareerAssignmentAsync(int userId, UpdateCareerAssignmentDto dto)
-        => await PutAsync($"api/users/{userId}/career", dto);
+        => await PutAsync(ApiRoutes.Users.Career(userId), dto);
 
     public async Task<HttpResponseMessage> UpdateBasicInfoAsync(int userId, UpdateBasicInfoDto dto)
-    {
-        return await PutAsync($"api/users/{userId}/basic-info", dto);
-    }
+        => await PutAsync(ApiRoutes.Users.BasicInfo(userId), dto);
 
     public async Task<HttpResponseMessage> UpdateContactsAsync(int userId, UpdateContactsDto dto)
-    {
-        return await PutAsync($"api/users/{userId}/contacts", dto);
-    }
+        => await PutAsync(ApiRoutes.Users.Contacts(userId), dto);
 
     public async Task<HttpResponseMessage> UpdateCitizenshipInfoAsync(int userId, UpdateCitizenshipInfoDto dto)
-    {
-        return await PutAsync($"api/users/{userId}/citizenship-info", dto);
-    }
+        => await PutAsync(ApiRoutes.Users.CitizenshipInfo(userId), dto);
 
     public async Task<HttpResponseMessage> UpdateAddressInfoAsync(int userId, UpdateAddressInfoDto dto)
-    {
-        return await PutAsync($"api/users/{userId}/address-info", dto);
-    }
+        => await PutAsync(ApiRoutes.Users.AddressInfo(userId), dto);
 
     public async Task<HttpResponseMessage> UpdateEducationInfoAsync(int userId, UpdateEducationInfoDto dto)
-    {
-        return await PutAsync($"api/users/{userId}/education-info", dto);
-    }
+        => await PutAsync(ApiRoutes.Users.EducationInfo(userId), dto);
 }

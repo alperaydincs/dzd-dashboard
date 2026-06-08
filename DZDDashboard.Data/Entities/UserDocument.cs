@@ -1,6 +1,6 @@
 ﻿namespace DZDDashboard.Data.Entities;
 
-public class UserDocument : IAuditableEntity
+public class UserDocument : AuditableEntity
 {
     public int Id { get; set; }
     public int UserId { get; set; }
@@ -9,8 +9,5 @@ public class UserDocument : IAuditableEntity
     public UserDocumentCategory? DocumentCategory { get; set; }
     public string? FileName { get; set; }
     public string? ContentType { get; set; }
-    public bool IsActive { get; set; } = true;
-    public DateTime? ModifiedAt { get; set; }
-    public int? ModifiedById { get; set; }
-    public User? ModifiedBy { get; set; }
+    public bool IsActive { get; set; }
 }

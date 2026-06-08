@@ -1,6 +1,6 @@
-namespace DZDDashboard.Data.Entities;
+﻿namespace DZDDashboard.Data.Entities;
 
-public class EducationHistory : IAuditableEntity
+public class EducationHistory : AuditableEntity
 {
     public int Id { get; set; }
     public int UserId { get; set; }
@@ -11,8 +11,4 @@ public class EducationHistory : IAuditableEntity
     public string? Program { get; set; }
     public DateTime? GraduationDate { get; set; }
     public string? Status { get; set; }
-
-    public DateTime? ModifiedAt { get; set; }
-    public int? ModifiedById { get; set; }
-    public User? ModifiedBy { get; set; }
 }

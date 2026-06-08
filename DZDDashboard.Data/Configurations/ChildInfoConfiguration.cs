@@ -1,4 +1,5 @@
-﻿using DZDDashboard.Data.Entities;
+﻿using DZDDashboard.Common.Validation;
+using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,7 +12,7 @@ public class ChildInfoConfiguration : IEntityTypeConfiguration<ChildInfo>
         builder.ToTable("UserChildren");
         builder.HasKey(c => c.Id);
 
-        builder.Property(c => c.FullName).HasMaxLength(200);
+        builder.Property(c => c.FullName).HasMaxLength(ValidationConstants.MaxFullNameLength);
 
         builder.HasOne(c => c.User)
                .WithMany(u => u.Children)

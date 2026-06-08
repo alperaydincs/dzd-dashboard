@@ -1,77 +1,39 @@
-﻿@page "/"
-@using Microsoft.JSInterop
-@inject AuthenticationStateProvider AuthStateProvider
-@inject NavigationManager Nav
+@page "/"
+@using DZDDashboard.Common.Constants
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
 
 <PageTitle>Home</PageTitle>
 
-@if (!_authChecked)
-{
-    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
-}
-else if (!(_user.Identity?.IsAuthenticated ?? false))
-{
-    <p>Redirecting to login...</p>
-}
-else
-{
-    <MudPaper Class="pa-4">
-        <MudText Typo="Typo.h4" GutterBottom="true">Welcome, @_user.Identity!.Name!</MudText>
-        <MudText Typo="Typo.body1">This is your dashboard. You can add more components and information here.</MudText>
+<AuthorizeView>
+    <Authorized>
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.h4" GutterBottom="true">Welcome, @context.User.Identity!.Name!</MudText>
+            <MudText Typo="Typo.body1">This is your dashboard. You can add more components and information here.</MudText>
 
-        @if (_roles.Any())
-        {
-            <MudText Typo="Typo.h6" Class="mt-4">Your Roles:</MudText>
-            <MudList T="string">
-                @foreach (var role in _roles)
-                {
-                    <MudListItem Icon="@DzdIcons.Shield">
-                        @role
-                    </MudListItem>
-                }
-            </MudList>
-        }
-        else
-        {
-            <MudAlert Severity="Severity.Info" Class="mt-4">You do not have any assigned roles.</MudAlert>
-        }
-
-    </MudPaper>
-}
-
-@code {
-    private ClaimsPrincipal _user = new(new ClaimsIdentity());
-    private bool _authChecked;
-    private List<string> _roles = new();
-
-    protected override async Task OnInitializedAsync()
-    {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        _user = authState.User;
-
-        if (!(_user.Identity?.IsAuthenticated ?? false))
-        {
-            try
-            {
-                Nav.NavigateTo("/MicrosoftIdentity/Account/SignIn", forceLoad: true, replace: true);
+            @{
+                var roles = context.User.Claims
+                    .Where(c => c.Type == DzdClaimTypes.RoleClaimType)
+                    .Select(c => c.Value)
+                    .Distinct()
+                    .OrderBy(r => r)
+                    .ToList();
             }
-            catch (JSDisconnectedException)
+
+            @if (roles.Any())
             {
+                <MudText Typo="Typo.h6" Class="mt-4">Your Roles:</MudText>
+                <MudList T="string">
+                    @foreach (var role in roles)
+                    {
+                        <MudListItem Icon="@DzdIcons.Shield">@role</MudListItem>
+                    }
+                </MudList>
             }
-        }
-        else
-        {
-            _roles = _user.Claims
-                .Where(c => c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")
-                .Select(c => c.Value)
-                .Distinct()
-                .OrderBy(r => r)
-                .ToList();
-        }
-        _authChecked = true;
-    }
-
-}
-
-
-
+            else
+            {
+                <MudAlert Severity="Severity.Info" Class="mt-4">You do not have any assigned roles.</MudAlert>
+            }
+        </MudPaper>
+    </Authorized>
+</AuthorizeView>

@@ -1,3 +1,4 @@
+using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -14,29 +15,26 @@ public class TrainingConfiguration : IEntityTypeConfiguration<Training>
 
         builder.Property(t => t.Name)
                .IsRequired()
-               .HasMaxLength(200);
+               .HasMaxLength(ValidationConstants.MaxStandardLength);
 
         builder.Property(t => t.InstructorName)
-               .HasMaxLength(150);
+               .HasMaxLength(ValidationConstants.MaxEntityNameLength);
 
         builder.Property(t => t.InstructorCompanyDetails)
-               .HasMaxLength(300);
+               .HasMaxLength(ValidationConstants.MaxInstitutionLength);
 
         builder.Property(t => t.Details)
-               .HasMaxLength(1000);
+               .HasMaxLength(ValidationConstants.MaxNotesLength);
 
         builder.Property(t => t.Location)
-               .HasMaxLength(200);
+               .HasMaxLength(ValidationConstants.MaxStandardLength);
 
         builder.Property(t => t.IsActive)
                .HasDefaultValue(true);
 
         builder.HasIndex(t => t.Name).IsUnique();
 
-        builder.HasMany(t => t.UserTrainings)
-               .WithOne(ut => ut.Training)
-               .HasForeignKey(ut => ut.TrainingId)
-               .OnDelete(DeleteBehavior.Cascade);
+        // Training→UserTrainings relationship configured in UserTrainingConfiguration — single source of truth
 
         builder.HasOne(t => t.ModifiedBy)
                .WithMany()

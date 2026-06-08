@@ -1,0 +1,177 @@
+using DZDDashboard.Common.Constants;
+using DZDDashboard.Common.DTOs;
+using DZDDashboard.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace DZDDashboard.Api.Controllers;
+
+/// <summary>
+/// Manages flat reference / lookup data: work types, jobs, grades, payroll locations, user groups.
+/// Route kept at <c>api/organization</c> for backward compatibility with existing API clients.
+/// </summary>
+[Route("api/organization")]
+public class ReferenceDataController(IReferenceDataService refDataService) : BaseController
+{
+    // ── Work Types ─────────────────────────────────────────────────────────────
+
+    [HttpGet("worktypes")]
+    public async Task<ActionResult<List<WorkTypeDto>>> GetWorkTypes(CancellationToken cancellationToken)
+        => Ok(await refDataService.GetWorkTypesAsync(cancellationToken));
+
+    [HttpPost("worktypes")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<ActionResult<WorkTypeDto>> CreateWorkType([FromBody] WorkTypeDto dto, CancellationToken cancellationToken)
+    {
+        var result = await refDataService.CreateWorkTypeAsync(dto, cancellationToken);
+        return CreatedAtAction(nameof(GetWorkTypes), null, result);
+    }
+
+    [HttpPut("worktypes/{id}")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> UpdateWorkType(int id, [FromBody] WorkTypeDto dto, CancellationToken cancellationToken)
+    {
+        if (CheckIdMismatch(id, dto.Id) is { } mismatch) return mismatch;
+        await refDataService.UpdateWorkTypeAsync(dto, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpDelete("worktypes/{id}")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> DeleteWorkType(int id, CancellationToken cancellationToken)
+    {
+        await refDataService.DeleteWorkTypeAsync(id, cancellationToken);
+        return NoContent();
+    }
+
+    // ── Jobs ───────────────────────────────────────────────────────────────────
+
+    [HttpGet("jobs")]
+    public async Task<ActionResult<List<JobDto>>> GetJobs(CancellationToken cancellationToken)
+        => Ok(await refDataService.GetJobsAsync(cancellationToken));
+
+    [HttpPost("jobs")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<ActionResult<JobDto>> CreateJob([FromBody] JobDto dto, CancellationToken cancellationToken)
+    {
+        var result = await refDataService.CreateJobAsync(dto, cancellationToken);
+        return CreatedAtAction(nameof(GetJobs), null, result);
+    }
+
+    [HttpPut("jobs/{id}")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> UpdateJob(int id, [FromBody] JobDto dto, CancellationToken cancellationToken)
+    {
+        if (CheckIdMismatch(id, dto.Id) is { } mismatch) return mismatch;
+        await refDataService.UpdateJobAsync(dto, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpDelete("jobs/{id}")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> DeleteJob(int id, CancellationToken cancellationToken)
+    {
+        await refDataService.DeleteJobAsync(id, cancellationToken);
+        return NoContent();
+    }
+
+    // ── Grades ─────────────────────────────────────────────────────────────────
+
+    [HttpGet("grades")]
+    public async Task<ActionResult<List<GradeDto>>> GetGrades(CancellationToken cancellationToken)
+        => Ok(await refDataService.GetGradesAsync(cancellationToken));
+
+    [HttpPost("grades")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<ActionResult<GradeDto>> CreateGrade([FromBody] GradeDto dto, CancellationToken cancellationToken)
+    {
+        var result = await refDataService.CreateGradeAsync(dto, cancellationToken);
+        return CreatedAtAction(nameof(GetGrades), null, result);
+    }
+
+    [HttpPut("grades/{id}")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> UpdateGrade(int id, [FromBody] GradeDto dto, CancellationToken cancellationToken)
+    {
+        if (CheckIdMismatch(id, dto.Id) is { } mismatch) return mismatch;
+        await refDataService.UpdateGradeAsync(dto, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpDelete("grades/{id}")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> DeleteGrade(int id, CancellationToken cancellationToken)
+    {
+        await refDataService.DeleteGradeAsync(id, cancellationToken);
+        return NoContent();
+    }
+
+    // ── Payroll Locations ──────────────────────────────────────────────────────
+
+    [HttpGet("payrolllocations")]
+    public async Task<ActionResult<List<PayrollLocationDto>>> GetPayrollLocations(CancellationToken cancellationToken)
+        => Ok(await refDataService.GetPayrollLocationsAsync(cancellationToken));
+
+    [HttpPost("payrolllocations")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<ActionResult<PayrollLocationDto>> CreatePayrollLocation([FromBody] PayrollLocationDto dto, CancellationToken cancellationToken)
+    {
+        var result = await refDataService.CreatePayrollLocationAsync(dto, cancellationToken);
+        return CreatedAtAction(nameof(GetPayrollLocations), null, result);
+    }
+
+    [HttpPut("payrolllocations/{id}")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> UpdatePayrollLocation(int id, [FromBody] PayrollLocationDto dto, CancellationToken cancellationToken)
+    {
+        if (CheckIdMismatch(id, dto.Id) is { } mismatch) return mismatch;
+        await refDataService.UpdatePayrollLocationAsync(dto, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpDelete("payrolllocations/{id}")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> DeletePayrollLocation(int id, CancellationToken cancellationToken)
+    {
+        await refDataService.DeletePayrollLocationAsync(id, cancellationToken);
+        return NoContent();
+    }
+
+    // ── User Groups ────────────────────────────────────────────────────────────
+
+    [HttpGet("usergroups")]
+    public async Task<ActionResult<List<UserGroupDto>>> GetUserGroups(CancellationToken cancellationToken)
+        => Ok(await refDataService.GetUserGroupsAsync(cancellationToken));
+
+    [HttpPost("usergroups")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<ActionResult<UserGroupDto>> CreateUserGroup([FromBody] UserGroupDto dto, CancellationToken cancellationToken)
+    {
+        var result = await refDataService.CreateUserGroupAsync(dto, cancellationToken);
+        return CreatedAtAction(nameof(GetUserGroups), null, result);
+    }
+
+    [HttpPut("usergroups/{id}")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> UpdateUserGroup(int id, [FromBody] UserGroupDto dto, CancellationToken cancellationToken)
+    {
+        if (CheckIdMismatch(id, dto.Id) is { } mismatch) return mismatch;
+        await refDataService.UpdateUserGroupAsync(dto, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpDelete("usergroups/{id}")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> DeleteUserGroup(int id, CancellationToken cancellationToken)
+    {
+        await refDataService.DeleteUserGroupAsync(id, cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>Returns a single user group by id. Throws EntityNotFoundException (→ 404) if not found.</summary>
+    [HttpGet("usergroups/{id}")]
+    public async Task<ActionResult<UserGroupDto>> GetUserGroupById(int id, CancellationToken cancellationToken)
+        // GetUserGroupByIdAsync always throws EntityNotFoundException when not found (never returns null).
+        // ApiExceptionFilter maps that to 404 — no null-check needed here.
+        => Ok(await refDataService.GetUserGroupByIdAsync(id, cancellationToken));
+}

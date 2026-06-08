@@ -1,6 +1,6 @@
 ﻿namespace DZDDashboard.Data.Entities;
 
-public class HeadLeadCoefficient : IAuditableEntity
+public class HeadLeadCoefficient : AuditableEntity
 {
     public int Id { get; set; }
     public int? PeriodId { get; set; }
@@ -8,7 +8,4 @@ public class HeadLeadCoefficient : IAuditableEntity
     public int? JobId { get; set; }
     public Job? Job { get; set; }
     public decimal Coefficient { get; set; }
-    public DateTime? ModifiedAt { get; set; }
-    public int? ModifiedById { get; set; }
-    public User? ModifiedBy { get; set; }
 }

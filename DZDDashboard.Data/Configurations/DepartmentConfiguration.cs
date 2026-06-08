@@ -1,3 +1,4 @@
+using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -12,13 +13,19 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
 
         builder.HasKey(d => d.Id);
 
-        builder.Property(d => d.DepartmentName)
+        builder.Property(d => d.Name)
                .IsRequired()
-               .HasMaxLength(150);
+               .HasMaxLength(ValidationConstants.MaxEntityNameLength);
 
-        builder.HasIndex(d => d.DepartmentName).IsUnique();
+        builder.HasIndex(d => d.Name).IsUnique();
 
-        builder.HasMany(d => d.Project)
+        // Parent relationship: deleting a Company cascades to its Departments (EF client-side cascade)
+        builder.HasOne(d => d.Company)
+               .WithMany(c => c.Departments)
+               .HasForeignKey(d => d.CompanyId)
+               .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(d => d.Projects)
                .WithOne(p => p.Department)
                .HasForeignKey(p => p.DepartmentId)
                .OnDelete(DeleteBehavior.SetNull);

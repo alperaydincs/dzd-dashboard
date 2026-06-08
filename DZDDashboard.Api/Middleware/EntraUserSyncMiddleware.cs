@@ -1,115 +1,142 @@
-using DZDDashboard.Data;
-using DZDDashboard.Data.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
+using DZDDashboard.Common.Constants;
+using DZDDashboard.Api.Options;
+using DZDDashboard.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Options;
 using System.Security.Claims;
+using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace DZDDashboard.Api.Middleware;
 
-public class EntraUserSyncMiddleware
+/// <summary>
+/// Enriches the authenticated principal with the internal database user-id claim.
+/// Uses IDistributedCache so user-id lookups survive pod restarts and multi-instance deployments.
+/// </summary>
+public partial class EntraUserSyncMiddleware(
+    RequestDelegate next,
+    IDistributedCache cache,
+    IOptions<MiddlewareOptions> options,
+    ILogger<EntraUserSyncMiddleware> logger)
 {
-    private static readonly TimeSpan UserIdCacheDuration = TimeSpan.FromMinutes(15);
+    private readonly TimeSpan _cacheDuration =
+        TimeSpan.FromMinutes(options.Value.UserIdCacheDurationMinutes);
 
-    private readonly RequestDelegate _next;
-    private readonly IMemoryCache _memoryCache;
-    private readonly ILogger<EntraUserSyncMiddleware> _logger;
-
-    public EntraUserSyncMiddleware(RequestDelegate next, IMemoryCache memoryCache, ILogger<EntraUserSyncMiddleware> logger)
+    public async Task InvokeAsync(HttpContext context, IUserSyncService userService)
     {
-        _next = next;
-        _memoryCache = memoryCache;
-        _logger = logger;
-    }
-
-    public async Task InvokeAsync(HttpContext context, AppDbContext db)
-    {
-        if (context.User?.Identity?.IsAuthenticated == true)
+        if (context.User?.Identity?.IsAuthenticated != true)
         {
-            var objectId = context.User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value
-                          ?? context.User.FindFirst("oid")?.Value
-                          ?? context.User.FindFirst("sub")?.Value;
-
-            if (string.IsNullOrWhiteSpace(objectId))
-            {
-                await _next(context);
-                return;
-            }
-
-            var identity = context.User.Identity as ClaimsIdentity;
-            if (identity != null && identity.HasClaim(c => c.Type == "database_user_id"))
-            {
-                await _next(context);
-                return;
-            }
-
-            var cacheKey = $"entra-user-id:{objectId}";
-            if (_memoryCache.TryGetValue(cacheKey, out int cachedUserId))
-            {
-                identity?.AddClaim(new Claim("database_user_id", cachedUserId.ToString()));
-                await _next(context);
-                return;
-            }
-
-            var email = context.User.FindFirst(ClaimTypes.Email)?.Value
-                       ?? context.User.FindFirst("email")?.Value;
-
-            var name = context.User.FindFirst(ClaimTypes.Name)?.Value
-                      ?? context.User.FindFirst("name")?.Value;
-
-            try
-            {
-                var user = await db.Users
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.EntraObjectId == objectId);
-
-                if (user == null)
-                {
-                    var (firstName, lastName) = ParseName(name);
-
-                    var newUser = new User
-                    {
-                        EntraObjectId = objectId,
-                        Email = email,
-                        NormalizedEmail = string.IsNullOrWhiteSpace(email) ? null : email.ToUpperInvariant(),
-                        FirstName = firstName,
-                        LastName = lastName,
-                        IsActive = true
-                    };
-
-                    db.Users.Add(newUser);
-                    await db.SaveChangesAsync();
-                    user = newUser;
-                }
-
-                _memoryCache.Set(cacheKey, user.Id, UserIdCacheDuration);
-
-                identity?.AddClaim(new Claim("database_user_id", user.Id.ToString()));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to sync Entra user {ObjectId} to database", objectId);
-            }
+            await next(context);
+            return;
         }
 
-        await _next(context);
+        var objectId = GetClaimValue(context.User,
+                          DzdClaimTypes.ObjectIdentifier,
+                          DzdClaimTypes.ObjectIdentifierShort,
+                          DzdClaimTypes.Subject);
+
+        if (string.IsNullOrWhiteSpace(objectId))
+        {
+            await next(context);
+            return;
+        }
+
+        if (context.User.Identity is not ClaimsIdentity identity)
+        {
+            await next(context);
+            return;
+        }
+
+        if (identity.HasClaim(c => c.Type == DzdClaimTypes.DatabaseUserId))
+        {
+            await next(context);
+            return;
+        }
+
+        // Try distributed cache first
+        var cacheKey     = CacheKey(objectId);
+        var cachedBytes  = await cache.GetAsync(cacheKey);
+        if (cachedBytes is not null)
+        {
+            var cachedId = BitConverter.ToInt32(cachedBytes);
+            identity.AddClaim(new Claim(DzdClaimTypes.DatabaseUserId, cachedId.ToString()));
+            await next(context);
+            return;
+        }
+
+        var email = GetClaimValue(context.User, ClaimTypes.Email, "email");
+        var name  = GetClaimValue(context.User, ClaimTypes.Name, "name");
+        var (firstName, lastName) = ParseName(name);
+
+        try
+        {
+            var userId = await userService.SyncEntraUserAsync(objectId, email, firstName, lastName, context.RequestAborted);
+
+            await cache.SetAsync(cacheKey, BitConverter.GetBytes(userId),
+                new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = _cacheDuration });
+
+            identity.AddClaim(new Claim(DzdClaimTypes.DatabaseUserId, userId.ToString()));
+        }
+        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+        {
+            // Client cancelled the request — do not write a response
+            return;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "User sync failed for {Path} (objectId={ObjectId})",
+                context.Request.Path, objectId);
+            await WriteProblemAsync(context, StatusCodes.Status503ServiceUnavailable,
+                "User Sync Failed", "User account synchronisation failed. Please try again.");
+            return;
+        }
+
+        await next(context);
+    }
+
+    private static string? GetClaimValue(ClaimsPrincipal user, params string[] claimTypes)
+    {
+        foreach (var type in claimTypes)
+        {
+            var value = user.FindFirst(type)?.Value;
+            if (value is not null) return value;
+        }
+        return null;
+    }
+
+    /// <summary>Prefix that namespaces the user-id cache entries in the distributed cache.</summary>
+    private const string CacheKeyPrefix = "entra-uid:";
+
+    private static string CacheKey(string objectId) => $"{CacheKeyPrefix}{objectId}";
+
+    private static async Task WriteProblemAsync(HttpContext context, int status, string title, string detail)
+    {
+        context.Response.StatusCode    = status;
+        context.Response.ContentType   = "application/problem+json";
+        await context.Response.WriteAsync(
+            JsonSerializer.Serialize(new ProblemDetails { Status = status, Title = title, Detail = detail }));
     }
 
     private static (string? FirstName, string? LastName) ParseName(string? rawName)
     {
-        if (string.IsNullOrWhiteSpace(rawName))
-            return (null, null);
+        if (string.IsNullOrWhiteSpace(rawName)) return (null, null);
 
-        var normalized = Regex.Replace(rawName.Trim(), "\\s+", " ");
-        var delimiterIndex = normalized.IndexOf(" - ", StringComparison.Ordinal);
-        var personSegment = (delimiterIndex >= 0 ? normalized[..delimiterIndex] : normalized).Trim();
-        var tokens = personSegment.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var normalized = WhitespaceRegex().Replace(rawName.Trim(), " ");
+        var delim      = normalized.IndexOf(" - ", StringComparison.Ordinal);
+        var segment    = (delim >= 0 ? normalized[..delim] : normalized).Trim();
+        var tokens     = segment.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
         return tokens.Length switch
         {
             0 => (null, null),
             1 => (tokens[0], null),
-            _ => (tokens[0], tokens[1])
+            // Join remaining tokens as last name so "Ali Mehmet Yılmaz" → ("Ali", "Mehmet Yılmaz")
+            _ => (tokens[0], string.Join(" ", tokens[1..]))
         };
     }
+
+    [GeneratedRegex(@"\s+")]
+    private static partial Regex WhitespaceRegex();
 }

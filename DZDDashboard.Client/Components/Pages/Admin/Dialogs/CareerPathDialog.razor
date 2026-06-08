@@ -1,0 +1,70 @@
+@using DZDDashboard.Common.DTOs
+@using MudBlazor
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(IsEdit ? "Edit Career Path" : "Add Career Path")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudTextField @bind-Value="_name" Label="Career Path Name" Variant="Variant.Outlined"
+                          Margin="Margin.Dense" Required="true"
+                          Placeholder="@(IsEdit ? "" : "e.g. Business Analyst Career Path")" />
+
+            <MudSelect @bind-Value="_selectedGroupId" Label="Employee Group" Variant="Variant.Outlined"
+                       Margin="Margin.Dense" Required="true" FullWidth="true">
+                @foreach (var g in UserGroups)
+                {
+                    <MudSelectItem Value="@g.Id">@g.GroupName</MudSelectItem>
+                }
+            </MudSelect>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit"
+                   Disabled="@(string.IsNullOrWhiteSpace(_name) || _selectedGroupId == 0)">
+            @(IsEdit ? "Save" : "Create")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    /// <summary>Null = Add mode. Non-null = Edit mode.</summary>
+    [Parameter] public CareerPathDto? ExistingPath { get; set; }
+    [Parameter] public List<UserGroupDto> UserGroups { get; set; } = new();
+
+    private string _name = string.Empty;
+    private int _selectedGroupId;
+
+    private bool IsEdit => ExistingPath is not null;
+
+    protected override void OnInitialized()
+    {
+        if (ExistingPath is not null)
+        {
+            _name = ExistingPath.Name;
+            _selectedGroupId = ExistingPath.UserGroupId;
+        }
+        else if (UserGroups.Count > 0)
+        {
+            _selectedGroupId = UserGroups[0].Id;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Submit()
+    {
+        if (string.IsNullOrWhiteSpace(_name) || _selectedGroupId == 0) return;
+
+        MudDialog.Close(DialogResult.Ok(new CareerPathDto
+        {
+            Id = ExistingPath?.Id ?? 0,
+            Name = _name.Trim(),
+            UserGroupId = _selectedGroupId
+        }));
+    }
+}

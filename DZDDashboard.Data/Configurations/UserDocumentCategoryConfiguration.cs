@@ -1,4 +1,5 @@
-﻿using DZDDashboard.Data.Entities;
+﻿using DZDDashboard.Common.Validation;
+using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -14,13 +15,13 @@ public class UserDocumentCategoryConfiguration : IEntityTypeConfiguration<UserDo
 
         builder.Property(c => c.Name)
                .IsRequired()
-               .HasMaxLength(150);
+               .HasMaxLength(ValidationConstants.MaxEntityNameLength);
 
         builder.Property(c => c.Description)
-               .HasMaxLength(500);
+               .HasMaxLength(ValidationConstants.MaxAddressLength);
 
         builder.Property(c => c.ContentType)
-               .HasMaxLength(100);
+               .HasMaxLength(ValidationConstants.MaxNameLength);
 
         builder.Property(c => c.IsActive)
                .HasDefaultValue(true);

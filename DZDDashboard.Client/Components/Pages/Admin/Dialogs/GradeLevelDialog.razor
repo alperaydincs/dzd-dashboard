@@ -1,4 +1,5 @@
 @using DZDDashboard.Common.DTOs
+@using DZDDashboard.Common.Validation
 @using MudBlazor
 
 <MudDialog>
@@ -9,7 +10,8 @@
         <MudStack Spacing="3">
 
             <!-- Grade Number -->
-            <MudNumericField @bind-Value="_grade" Label="Grade Number" Min="1" Max="20"
+            <MudNumericField @bind-Value="_grade" Label="Grade Number"
+                             Min="@ValidationConstants.MinGrade" Max="@ValidationConstants.MaxGrade"
                              Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
 
             <!-- Job Titles -->
@@ -76,11 +78,11 @@
                     <MudText Typo="Typo.body2" Class="mb-1" Style="font-weight:500;">Min. Time in Role</MudText>
                     <MudGrid Spacing="2">
                         <MudItem xs="6">
-                            <MudNumericField @bind-Value="_retentionMonth" Label="Months"
+                            <MudNumericField @bind-Value="RetMonths" Label="Months"
                                              Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" />
                         </MudItem>
                         <MudItem xs="6">
-                            <MudNumericField @bind-Value="_retentionYear" Label="Years"
+                            <MudNumericField @bind-Value="RetYears" Label="Years"
                                              Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" />
                         </MudItem>
                     </MudGrid>
@@ -89,11 +91,11 @@
                     <MudText Typo="Typo.body2" Class="mb-1" Style="font-weight:500;">Min. General Experience</MudText>
                     <MudGrid Spacing="2">
                         <MudItem xs="6">
-                            <MudNumericField @bind-Value="_minExpMonth" Label="Months"
+                            <MudNumericField @bind-Value="MinExpMonth" Label="Months"
                                              Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" />
                         </MudItem>
                         <MudItem xs="6">
-                            <MudNumericField @bind-Value="_minExpYear" Label="Years"
+                            <MudNumericField @bind-Value="MinExpYear" Label="Years"
                                              Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" />
                         </MudItem>
                     </MudGrid>
@@ -122,7 +124,7 @@
     <DialogActions>
         <MudButton OnClick="Cancel" Variant="Variant.Text">Cancel</MudButton>
         <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit"
-                   Disabled="@(_grade < 1)">
+                   Disabled="@(_grade < ValidationConstants.MinGrade || _selectedJobIds.Count == 0)">
             Save
         </MudButton>
     </DialogActions>
@@ -130,27 +132,34 @@
 
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
-    [Parameter] public CareerMapRuleDto Rule { get; set; } = new();
-    [Parameter] public List<JobDto> AvailableJobs { get; set; } = new();
+    [Parameter] public CareerMapRuleDto Rule    { get; set; } = new();
+    [Parameter] public List<JobDto> AvailableJobs { get; set; } = [];
 
     private MudAutocomplete<JobDto> _autocomplete = default!;
 
-    private int _grade;
-    private HashSet<int> _selectedJobIds = new();
-    private JobDto? _jobToAdd;
+    private int          _grade;
+    private HashSet<int> _selectedJobIds = [];
+    private JobDto?      _jobToAdd;
 
-    private int? _minExpMonth, _minExpYear, _retentionMonth, _retentionYear;
+    // Value objects replace 4 primitive fields → readable, encapsulated
+    private DurationRange _minExperience = DurationRange.Empty;
+    private DurationRange _minRoleTime   = DurationRange.Empty;
+
     private bool _manager, _assessCenter, _technicalInterview, _caseStudy, _english, _committee;
     private int? _projectTarget;
+
+    // Convenience accessors for binding
+    private int? MinExpMonth  { get => _minExperience.Months; set => _minExperience = _minExperience with { Months = value }; }
+    private int? MinExpYear   { get => _minExperience.Years;  set => _minExperience = _minExperience with { Years  = value }; }
+    private int? RetMonths    { get => _minRoleTime.Months;   set => _minRoleTime   = _minRoleTime   with { Months = value }; }
+    private int? RetYears     { get => _minRoleTime.Years;    set => _minRoleTime   = _minRoleTime   with { Years  = value }; }
 
     protected override void OnInitialized()
     {
         _grade              = Rule.Grade;
         _selectedJobIds     = Rule.PositionJobIds.ToHashSet();
-        _minExpMonth        = Rule.MinExperienceMonth;
-        _minExpYear         = Rule.MinExperienceYear;
-        _retentionMonth     = Rule.MinRoleTimeMonth;
-        _retentionYear      = Rule.MinRoleTimeYear;
+        _minExperience      = new(Rule.MinExperience.Months, Rule.MinExperience.Years);
+        _minRoleTime        = new(Rule.MinRoleTime.Months,   Rule.MinRoleTime.Years);
         _manager            = Rule.ManagerPerformanceEvaluation;
         _assessCenter       = Rule.AssessmentCenterApplication;
         _technicalInterview = Rule.TechnicalInterview;
@@ -178,23 +187,18 @@
     }
 
     private void RemoveJob(int jobId) => _selectedJobIds.Remove(jobId);
-
     private void Cancel() => MudDialog.Cancel();
 
     private void Submit()
     {
-        if (_grade < 1) return;
-
         MudDialog.Close(DialogResult.Ok(new CareerMapRuleDto
         {
             Id                           = Rule.Id,
             CareerPathId                 = Rule.CareerPathId,
-            Grade                        = _grade,
-            PositionJobIds               = _selectedJobIds.ToList(),
-            MinExperienceMonth           = _minExpMonth,
-            MinExperienceYear            = _minExpYear,
-            MinRoleTimeMonth             = _retentionMonth,
-            MinRoleTimeYear              = _retentionYear,
+            Grade          = _grade,
+            PositionJobIds = [.. _selectedJobIds],
+            MinExperience  = new RoleDurationDto { Months = _minExperience.Months, Years = _minExperience.Years },
+            MinRoleTime    = new RoleDurationDto { Months = _minRoleTime.Months,   Years = _minRoleTime.Years },
             ManagerPerformanceEvaluation = _manager,
             AssessmentCenterApplication  = _assessCenter,
             TechnicalInterview           = _technicalInterview,

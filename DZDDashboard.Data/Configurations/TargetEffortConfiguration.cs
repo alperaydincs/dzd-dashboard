@@ -18,7 +18,9 @@ public class TargetEffortConfiguration : IEntityTypeConfiguration<TargetEffort>
         builder.Property(t => t.CompletedTarget)
                .HasColumnType("decimal(18, 2)");
 
+        // RemainingTarget is always Target - CompletedTarget — let the DB compute it to prevent drift
         builder.Property(t => t.RemainingTarget)
+               .HasComputedColumnSql("[Target] - [CompletedTarget]", stored: true)
                .HasColumnType("decimal(18, 2)");
 
         builder.Property(t => t.ProjectBonusAmount)

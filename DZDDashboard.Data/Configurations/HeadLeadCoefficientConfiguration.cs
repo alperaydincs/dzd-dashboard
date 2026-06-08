@@ -19,7 +19,7 @@ public class HeadLeadCoefficientConfiguration : IEntityTypeConfiguration<HeadLea
         builder.HasIndex(h => new { h.PeriodId, h.JobId }).IsUnique();
 
         builder.HasOne(h => h.Period)
-               .WithMany()
+               .WithMany(p => p.HeadLeadCoefficients)
                .HasForeignKey(h => h.PeriodId)
                .OnDelete(DeleteBehavior.SetNull);
 

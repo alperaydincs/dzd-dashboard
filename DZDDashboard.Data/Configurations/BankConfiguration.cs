@@ -1,3 +1,4 @@
+using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -14,7 +15,7 @@ public class BankConfiguration : IEntityTypeConfiguration<Bank>
 
         builder.Property(b => b.BankName)
                .IsRequired()
-               .HasMaxLength(150);
+               .HasMaxLength(ValidationConstants.MaxEntityNameLength);
 
         builder.HasIndex(b => b.BankName).IsUnique();
 
@@ -23,10 +24,7 @@ public class BankConfiguration : IEntityTypeConfiguration<Bank>
                .HasForeignKey(p => p.BankId)
                .OnDelete(DeleteBehavior.SetNull);
 
-        builder.HasMany(b => b.Itsms)
-               .WithOne(i => i.Bank)
-               .HasForeignKey(i => i.BankId)
-               .OnDelete(DeleteBehavior.SetNull);
+        // Bank→Itsms relationship configured in ItsmConfiguration — single source of truth
 
         builder.HasOne(b => b.ModifiedBy)
                .WithMany()

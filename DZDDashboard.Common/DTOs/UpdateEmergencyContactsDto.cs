@@ -1,7 +1,6 @@
 namespace DZDDashboard.Common.DTOs;
 
-public class UpdateEmergencyContactsDto
+public record UpdateEmergencyContactsDto
 {
-    public int UserId { get; set; }
-    public List<EmergencyContactDto> EmergencyContacts { get; set; } = new();
+    public List<EmergencyContactDto> EmergencyContacts { get; init; } = [];
 }

@@ -1,6 +1,7 @@
+using DZDDashboard.Common.Validation;
+using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using DZDDashboard.Data.Entities;
 
 namespace DZDDashboard.Data.Configurations;
 
@@ -11,13 +12,13 @@ public class EmergencyContactConfiguration : IEntityTypeConfiguration<EmergencyC
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.FullName)
-            .HasMaxLength(200);
+            .HasMaxLength(ValidationConstants.MaxFullNameLength);
 
         builder.Property(x => x.Relationship)
-            .HasMaxLength(100);
+            .HasMaxLength(ValidationConstants.MaxNameLength);
 
         builder.Property(x => x.PhoneNumber)
-            .HasMaxLength(50);
+            .HasMaxLength(ValidationConstants.MaxPhoneLength);
 
         builder.HasOne(x => x.User)
             .WithMany(u => u.EmergencyContacts)

@@ -1,30 +1,29 @@
-namespace DZDDashboard.Common.DTOs
+namespace DZDDashboard.Common.DTOs;
+
+// Validation is handled exclusively by CareerMapRuleDtoValidator (FluentValidation).
+// Data annotations removed to avoid dual-validation with different error formats.
+public record CareerMapRuleDto
 {
-    public class CareerMapRuleDto
-    {
-        public int Id { get; set; }
-        public int CareerPathId { get; set; }
-        public int Grade { get; set; }
+    public int Id            { get; set; }
+    public int CareerPathId  { get; set; }
 
-        // Minimum role duration
-        public int? MinRoleTimeMonth { get; set; }
-        public int? MinRoleTimeYear { get; set; }
+    public int Grade { get; set; }
 
-        // Minimum general experience
-        public int? MinExperienceMonth { get; set; }
-        public int? MinExperienceYear { get; set; }
+    /// <summary>Minimum time in the current role. Only one of Months/Years should be set.</summary>
+    public RoleDurationDto MinRoleTime   { get; set; } = new();
+    /// <summary>Minimum total experience. Only one of Months/Years should be set.</summary>
+    public RoleDurationDto MinExperience { get; set; } = new();
 
-        // Requirement flags
-        public bool ManagerPerformanceEvaluation { get; set; }
-        public bool AssessmentCenterApplication { get; set; }
-        public bool TechnicalInterview { get; set; }
-        public bool CaseStudy { get; set; }
-        public bool EnglishProficiency { get; set; }
-        public int? ProjectObjective { get; set; }
-        public bool CommitteeApproval { get; set; }
+    // Requirement flags
+    public bool ManagerPerformanceEvaluation { get; set; }
+    public bool AssessmentCenterApplication  { get; set; }
+    public bool TechnicalInterview           { get; set; }
+    public bool CaseStudy                    { get; set; }
+    public bool EnglishProficiency           { get; set; }
+    public int? ProjectObjective             { get; set; }
+    public bool CommitteeApproval            { get; set; }
 
-        // Linked job titles
-        public List<int> PositionJobIds { get; set; } = new();
-        public List<JobDto> PositionJobs { get; set; } = new();
-    }
+    // Linked job titles
+    public List<int>    PositionJobIds { get; set; } = [];
+    public List<JobDto> PositionJobs   { get; set; } = [];
 }

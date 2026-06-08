@@ -1,5 +1,9 @@
 @using DZDDashboard.Common.DTOs
+@using DZDDashboard.Client.Services
+@using DZDDashboard.Client.Components.Shared
 @using MudBlazor
+@inherits CrudDialogBase
+@inject IOrganizationClientService OrgService
 
 <MudDialog>
     <DialogContent>
@@ -11,7 +15,7 @@
             <MudSelectItem T="int?" Value="null">None</MudSelectItem>
             @foreach (var g in Grades)
             {
-                if (g.Id != Grade.Id) 
+                if (g.Id != Grade.Id)
                 {
                     <MudSelectItem T="int?" Value="@g.Id">@g.Level</MudSelectItem>
                 }
@@ -20,31 +24,23 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit">Save</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">Save</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
-
     [Parameter] public GradeDto Grade { get; set; } = new();
     [Parameter] public List<GradeDto> Grades { get; set; } = new();
 
-    [Inject] HttpClient Http { get; set; } = default!;
+    private bool IsFormValid =>
+        !string.IsNullOrWhiteSpace(Grade.Level) &&
+        !string.IsNullOrWhiteSpace(Grade.Currency) &&
+        Grade.MinSalary >= 0 &&
+        Grade.MaxSalary >= Grade.MinSalary;
 
-    private async Task Submit()
-    {
-        if (Grade.Id == 0)
-        {
-            await Http.PostAsJsonAsync("api/organization/grades", Grade);
-        }
-        else
-        {
-            await Http.PutAsJsonAsync("api/organization/grades", Grade);
-        }
-        MudDialog.Close(DialogResult.Ok(true));
-    }
-
-    private void Cancel() => MudDialog.Cancel();
+    private async Task Submit() => await SaveAsync(
+        Grade.Id,
+        () => OrgService.CreateGradeAsync(Grade),
+        () => OrgService.UpdateGradeAsync(Grade),
+        "grade");
 }
-

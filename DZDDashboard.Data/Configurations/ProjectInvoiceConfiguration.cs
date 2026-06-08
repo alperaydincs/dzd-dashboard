@@ -1,3 +1,4 @@
+﻿using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -14,25 +15,25 @@ public class ProjectInvoiceConfiguration : IEntityTypeConfiguration<ProjectInvoi
 
         builder.Property(p => p.ProjectName)
                .IsRequired()
-               .HasMaxLength(250);
+               .HasMaxLength(ValidationConstants.MaxProjectNameLength);
 
         builder.Property(p => p.PurchaseInvoiceNumber)
-               .HasMaxLength(50);
+               .HasMaxLength(ValidationConstants.MaxReferenceCodeLength);
 
         builder.Property(p => p.PurchaseOrder)
-               .HasMaxLength(50);
+               .HasMaxLength(ValidationConstants.MaxReferenceCodeLength);
 
         builder.Property(p => p.EFaturaNumber)
-               .HasMaxLength(50);
+               .HasMaxLength(ValidationConstants.MaxReferenceCodeLength);
 
         builder.Property(p => p.JiraProjectNo)
-               .HasMaxLength(50);
+               .HasMaxLength(ValidationConstants.MaxReferenceCodeLength);
 
         builder.Property(p => p.JiraTaskNo)
-               .HasMaxLength(50);
+               .HasMaxLength(ValidationConstants.MaxReferenceCodeLength);
 
         builder.Property(p => p.Notes)
-               .HasMaxLength(1000);
+               .HasMaxLength(ValidationConstants.MaxNotesLength);
 
         builder.Property(p => p.TotalEffort)
                .HasColumnType("decimal(18, 2)");

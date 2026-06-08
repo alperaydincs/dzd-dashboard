@@ -1,3 +1,4 @@
+﻿using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -14,7 +15,7 @@ public class IssuePaymentTypeConfiguration : IEntityTypeConfiguration<IssuePayme
 
         builder.Property(i => i.PaymentTypeName)
                .IsRequired()
-               .HasMaxLength(150);
+               .HasMaxLength(ValidationConstants.MaxEntityNameLength);
 
         builder.Property(i => i.Coefficient)
                .IsRequired()

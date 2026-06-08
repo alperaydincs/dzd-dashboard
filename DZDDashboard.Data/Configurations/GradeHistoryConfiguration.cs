@@ -17,6 +17,7 @@ public class GradeHistoryConfiguration : IEntityTypeConfiguration<GradeHistory>
         builder.HasOne(g => g.User)
                .WithMany(u => u.GradeHistories)
                .HasForeignKey(g => g.UserId)
-               .OnDelete(DeleteBehavior.Cascade); 
+               .OnDelete(DeleteBehavior.Restrict);
+
     }
 }

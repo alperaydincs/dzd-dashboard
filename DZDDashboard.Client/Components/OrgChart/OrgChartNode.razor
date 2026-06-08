@@ -1,24 +1,19 @@
 ﻿@using DZDDashboard.Client.Components.OrgChart
 @using DZDDashboard.Client.Services
+@using DZDDashboard.Client.Utils
+@using DZDDashboard.Common.Utils
 @inject NavigationManager Nav
-@inject EmployeeNavigationState EmployeeNavigationState
 
-<li>
+<li class="@(IsRoot ? "tree-root" : null)">
     <MudStack Spacing="0" AlignItems="AlignItems.Center" Class="node-container">
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0" Class="node-row">
             <MudPaper Class="@GetNodeCardClass()" Elevation="0" @onclick="@(() => HandleNodeClick(Node.User, isUser: Node.User is not null))">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="node-card-content">
                     @if (Node.User != null)
                     {
+                        @* OrgChartUserDto has no avatar — initials only to avoid base64 payload *@
                         <MudAvatar Color="GetAvatarColor(Node.User)" Size="Size.Large" Class="node-avatar dzd-avatar dzd-avatar-lg">
-                            @if (Node.User.Avatar != null && !string.IsNullOrEmpty(Node.User.Avatar.ContentBase64))
-                            {
-                                <MudImage Src="@($"data:{Node.User.Avatar.ContentType};base64,{Node.User.Avatar.ContentBase64}")" />
-                            }
-                            else
-                            {
-                                @GetUserInitials(Node.User)
-                            }
+                            @GetUserInitials(Node.User)
                         </MudAvatar>
                     }
                     else
@@ -65,27 +60,44 @@
 
     @if (Node.IsExpanded && Node.Children.Any())
     {
-        <ul>
-            @foreach (var child in Node.Children)
-            {
-                <OrgChartNode Node="child" 
-                              IsEditMode="IsEditMode" 
-                              IsSelectionMode="IsSelectionMode"
-                              OnAddChild="OnAddChild"
-                              OnEditNode="OnEditNode"
-                              OnDeleteNode="OnDeleteNode"
-                              OnNodeSelected="OnNodeSelected" />
-            }
-        </ul>
+        @if (CurrentDepth >= MaxDepth)
+        {
+            <ul>
+                <li class="node-depth-limit">
+                    <span>… @Node.Children.Count more level(s) hidden</span>
+                </li>
+            </ul>
+        }
+        else
+        {
+            <ul>
+                @foreach (var child in Node.Children)
+                {
+                    <OrgChartNode Node="child"
+                                  IsEditMode="IsEditMode"
+                                  IsSelectionMode="IsSelectionMode"
+                                  MaxDepth="MaxDepth"
+                                  CurrentDepth="CurrentDepth + 1"
+                                  OnAddChild="OnAddChild"
+                                  OnEditNode="OnEditNode"
+                                  OnDeleteNode="OnDeleteNode"
+                                  OnNodeSelected="OnNodeSelected" />
+                }
+            </ul>
+        }
     }
 </li>
 
 @code {
     [Parameter, EditorRequired] public OrgChartNodeItem Node { get; set; } = default!;
-    
+
+    [Parameter] public bool IsRoot { get; set; }
     [Parameter] public bool IsEditMode { get; set; }
     [Parameter] public bool IsSelectionMode { get; set; }
-    
+
+    [Parameter] public int MaxDepth { get; set; } = 20;
+    [Parameter] public int CurrentDepth { get; set; } = 0;
+
     [Parameter] public EventCallback<OrgChartNodeItem> OnAddChild { get; set; }
     [Parameter] public EventCallback<OrgChartNodeItem> OnEditNode { get; set; }
     [Parameter] public EventCallback<OrgChartNodeItem> OnDeleteNode { get; set; }
@@ -96,115 +108,56 @@
         Node.IsExpanded = !Node.IsExpanded;
     }
 
-    private async Task HandleNodeClick(UserDto? user, bool isUser)
+    private async Task HandleNodeClick(OrgChartUserDto? user, bool isUser)
     {
         if (IsSelectionMode)
-        {
-             await OnNodeSelected.InvokeAsync(Node);
-        }
+            await OnNodeSelected.InvokeAsync(Node);
         else if (IsEditMode)
-        {
             await OnEditNode.InvokeAsync(Node);
-        }
         else if (isUser && user != null)
-        {
-            EmployeeNavigationState.SelectedEmployeeId = user.Id;
-            Nav.NavigateTo("/employee/card");
-        }
+            Nav.NavigateTo($"/employee/card/{user.Id}");
     }
 
     private string GetPositionName()
-    {
-        if (Node?.Position == null) return "Unknown";
-        return !string.IsNullOrWhiteSpace(Node.Position.Name) ? Node.Position.Name : $"Position {Node.Position.Id}";
-    }
+        => Node?.Position is null ? "Unknown"
+           : !string.IsNullOrWhiteSpace(Node.Position.Name) ? Node.Position.Name
+           : $"Position {Node.Position.Id}";
 
     private string GetNodeCardClass()
     {
-        var baseClass = "node-card pa-3";
-
-        if (Node.User is null)
-        {
-            baseClass += " node-card-empty";
-        }
-
-        if (IsSelectionMode) return baseClass + " cursor-pointer"; 
-        if (IsEditMode) return baseClass + " cursor-pointer";
-        if (Node.User != null) return baseClass + " cursor-pointer";
-        return baseClass;
+        var empty     = Node.User is null ? " node-card-empty" : string.Empty;
+        var clickable = IsSelectionMode || IsEditMode || Node.User != null ? " cursor-pointer" : string.Empty;
+        return $"node-card pa-3{empty}{clickable}";
     }
 
     private string GetPrimaryLabel()
     {
-        if (Node.User is null)
-        {
-            return "Empty";
-        }
-
-        var firstName = Node.User.FirstName?.Trim();
-        var lastName = Node.User.LastName?.Trim();
-        var fullName = string.Join(" ", new[] { firstName, lastName }.Where(v => !string.IsNullOrWhiteSpace(v)));
-
-        if (!string.IsNullOrWhiteSpace(fullName))
-        {
-            return fullName;
-        }
-
-        return Node.User.Email ?? $"User {Node.User.Id}";
+        if (Node.User is null) return "Empty";
+        var fullName = AppFormatter.BuildFullName(Node.User.FirstName, Node.User.LastName);
+        return !string.IsNullOrWhiteSpace(fullName) ? fullName
+             : Node.User.Email ?? $"User {Node.User.Id}";
     }
 
     private string GetPrimaryLabelClass()
-    {
-        return Node.User is null ? "node-primary node-primary-empty" : "node-primary";
-    }
+        => Node.User is null ? "node-primary node-primary-empty" : "node-primary";
 
-    private static string GetUserInitials(UserDto user)
-    {
-        var first = string.IsNullOrWhiteSpace(user.FirstName) ? string.Empty : user.FirstName.Trim()[0].ToString();
-        var last = string.IsNullOrWhiteSpace(user.LastName) ? string.Empty : user.LastName.Trim()[0].ToString();
-        var initials = (first + last).ToUpperInvariant();
-
-        return string.IsNullOrWhiteSpace(initials) ? "?" : initials;
-    }
+    private static string GetUserInitials(OrgChartUserDto user)
+        => AppFormatter.GetInitials(AppFormatter.BuildFullName(user.FirstName, user.LastName));
 
     private bool TryGetMetaChipText(out string chipText)
     {
         chipText = string.Empty;
-
-        if (Node.User is null)
-        {
-            return false;
-        }
+        if (Node.User is null) return false;
 
         var jobName = Node.User.Job?.Name?.Trim();
-        var departmentName = Node.User.Department?.Name?.Trim();
+        // OrgChartUserDto has no Department; show job name only
+        if (string.IsNullOrWhiteSpace(jobName)) return false;
 
-        if (string.IsNullOrWhiteSpace(jobName) && string.IsNullOrWhiteSpace(departmentName))
-        {
-            return false;
-        }
-
-        chipText = string.IsNullOrWhiteSpace(jobName)
-            ? departmentName!
-            : string.IsNullOrWhiteSpace(departmentName)
-                ? jobName
-                : $"{jobName} - {departmentName}";
-
+        chipText = jobName;
         return true;
     }
 
-    private static Color GetAvatarColor(UserDto u)
-    {
-        return (u.Id % 6) switch
-        {
-            0 => Color.Primary,
-            1 => Color.Secondary,
-            2 => Color.Info,
-            3 => Color.Success,
-            4 => Color.Warning,
-            _ => Color.Tertiary
-        };
-    }
+    private static Color GetAvatarColor(OrgChartUserDto u) => UiHelpers.GetAvatarColor(u);
 }
 
 

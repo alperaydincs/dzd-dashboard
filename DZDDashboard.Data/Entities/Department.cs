@@ -1,15 +1,12 @@
 ﻿namespace DZDDashboard.Data.Entities;
 
-public class Department : IAuditableEntity
+public class Department : AuditableEntity
 {
     public int Id { get; set; }
-    public string? DepartmentName { get; set; }
+    public string? Name { get; set; }
     public int? CompanyId { get; set; }
     public Company? Company { get; set; }
-    public List<Team>? Teams { get; set; }
-    public List<Project>? Project { get; set; }
-    public List<User>? Users { get; set; }
-    public DateTime? ModifiedAt { get; set; }
-    public User? ModifiedBy { get; set; }
-    public int? ModifiedById { get; set; }
+    public ICollection<Team> Teams { get; set; } = new List<Team>();
+    public ICollection<Project> Projects { get; set; } = new List<Project>();
+    public ICollection<User> Users { get; set; } = new List<User>();
 }

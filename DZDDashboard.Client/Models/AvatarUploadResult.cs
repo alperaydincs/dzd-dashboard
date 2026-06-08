@@ -1,9 +1,4 @@
-namespace DZDDashboard.Client.Models
-{
-    public class AvatarUploadResult
-    {
-        public string FileName { get; set; } = string.Empty;
-        public string ContentType { get; set; } = string.Empty;
-        public byte[] Content { get; set; } = Array.Empty<byte>();
-    }
-}
+namespace DZDDashboard.Client.Models;
+
+/// <summary>Result returned by <c>AvatarUploadDialog</c> on successful file selection.</summary>
+public sealed record AvatarUploadResult(string FileName, string ContentType, byte[] Content);

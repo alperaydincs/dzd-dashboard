@@ -1,6 +1,6 @@
 ﻿namespace DZDDashboard.Data.Entities;
 
-public class TargetEffort : IAuditableEntity
+public class TargetEffort : AuditableEntity
 {
     public int Id { get; set; }
     public int? PeriodId { get; set; }
@@ -9,14 +9,12 @@ public class TargetEffort : IAuditableEntity
     public User? User { get; set; }
     public decimal Target { get; set; }
     public decimal CompletedTarget { get; set; }
-    public decimal RemainingTarget { get; set; }
+    /// <summary>DB-computed: [Target] - [CompletedTarget]. Do not set manually.</summary>
+    public decimal RemainingTarget { get; private set; }
     public decimal ProjectBonusAmount { get; set; }
     public decimal ItsmBonusAmount { get; set; }
     public decimal ManagerBonusEffort { get; set; }
     public decimal ManagerBonusAmount { get; set; }
     public decimal TotalBonusAmount { get; set; }
     public bool IsActive { get; set; }
-    public DateTime? ModifiedAt { get; set; }
-    public int? ModifiedById { get; set; }
-    public User? ModifiedBy { get; set; }
 }

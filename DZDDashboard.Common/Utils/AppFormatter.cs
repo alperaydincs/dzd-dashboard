@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using System.Text.RegularExpressions;
+using DZDDashboard.Common.Validation;
 
 namespace DZDDashboard.Common.Utils;
 
@@ -37,16 +37,27 @@ public static class AppFormatter
         return $"{years} year{(years > 1 ? "s" : "")} {months} month{(months > 1 ? "s" : "")}";
     }
 
+    private static readonly EmailAddressAttribute _emailValidator = new();
+
     public static bool IsValidEmail(string? email)
     {
         if (string.IsNullOrWhiteSpace(email)) return false;
-        try { return new EmailAddressAttribute().IsValid(email); }
-        catch { return false; }
+        return _emailValidator.IsValid(email);
     }
 
     public static bool IsValidPhone(string? phone)
+        => string.IsNullOrWhiteSpace(phone) || PhoneValidator.IsValid(phone);
+
+    /// <summary>
+    /// Returns a human-readable elapsed time string (e.g. "just now", "5m ago", "2h ago", "3d ago").
+    /// Compares <paramref name="utcTime"/> to <see cref="DateTime.UtcNow"/>.
+    /// </summary>
+    public static string FormatElapsed(DateTime utcTime)
     {
-        if (string.IsNullOrWhiteSpace(phone)) return true; // Optional
-        return Regex.IsMatch(phone, @"^\+?[0-9]{6,20}$");
+        var elapsed = DateTime.UtcNow - utcTime;
+        return elapsed.TotalMinutes < 1  ? "just now"
+             : elapsed.TotalHours   < 1  ? $"{(int)elapsed.TotalMinutes}m ago"
+             : elapsed.TotalDays    < 1  ? $"{(int)elapsed.TotalHours}h ago"
+             : $"{(int)elapsed.TotalDays}d ago";
     }
 }
