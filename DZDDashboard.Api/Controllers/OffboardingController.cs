@@ -43,11 +43,11 @@ public class OffboardingController(IOffboardingService offboarding) : BaseContro
     public async Task<ActionResult<OffboardingProcessDto>> UpdateNote(int id, int itemId, [FromBody] UpdateChecklistNoteDto dto, CancellationToken cancellationToken)
         => Ok(await offboarding.UpdateItemNoteAsync(id, itemId, dto, cancellationToken));
 
-    [HttpPost("{id:int}/items/{itemId:int}/evidence")]
+    [HttpPost("{id:int}/items/{itemId:int}/document")]
     [EnableRateLimiting("upload")]
     [RequestSizeLimit(DocumentConstants.MaxFileSizeBytes)]
     [RequestFormLimits(MultipartBodyLengthLimit = DocumentConstants.MaxFileSizeBytes)]
-    public async Task<ActionResult<OffboardingProcessDto>> UploadEvidence(int id, int itemId, [FromForm] IFormFile file, CancellationToken cancellationToken)
+    public async Task<ActionResult<OffboardingProcessDto>> UploadDocument(int id, int itemId, [FromForm] IFormFile file, CancellationToken cancellationToken)
     {
         if (file == null || file.Length == 0)
             return Problem("No file uploaded.", statusCode: 400, title: "Validation Error");
@@ -63,17 +63,17 @@ public class OffboardingController(IOffboardingService offboarding) : BaseContro
             return Problem("File content does not match the declared content type.", statusCode: 400, title: "Validation Error");
 
         var fileName = Path.GetFileName(file.FileName);
-        return Ok(await offboarding.UploadEvidenceAsync(id, itemId, fileName, file.ContentType, bytes, cancellationToken));
+        return Ok(await offboarding.UploadDocumentAsync(id, itemId, fileName, file.ContentType, bytes, cancellationToken));
     }
 
-    [HttpDelete("{id:int}/items/{itemId:int}/evidence")]
-    public async Task<ActionResult<OffboardingProcessDto>> DeleteEvidence(int id, int itemId, CancellationToken cancellationToken)
-        => Ok(await offboarding.DeleteEvidenceAsync(id, itemId, cancellationToken));
+    [HttpDelete("{id:int}/items/{itemId:int}/document")]
+    public async Task<ActionResult<OffboardingProcessDto>> DeleteDocument(int id, int itemId, CancellationToken cancellationToken)
+        => Ok(await offboarding.DeleteDocumentAsync(id, itemId, cancellationToken));
 
-    [HttpGet("{id:int}/items/{itemId:int}/evidence")]
-    public async Task<IActionResult> DownloadEvidence(int id, int itemId, CancellationToken cancellationToken)
+    [HttpGet("{id:int}/items/{itemId:int}/document")]
+    public async Task<IActionResult> DownloadDocument(int id, int itemId, CancellationToken cancellationToken)
     {
-        var content = await offboarding.GetEvidenceAsync(id, itemId, cancellationToken);
+        var content = await offboarding.GetDocumentAsync(id, itemId, cancellationToken);
         if (content is null) return NotFound();
         return File(content.Value.Content, content.Value.ContentType ?? "application/octet-stream", content.Value.FileName);
     }

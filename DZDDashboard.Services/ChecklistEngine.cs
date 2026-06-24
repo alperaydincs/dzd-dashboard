@@ -6,6 +6,7 @@ using DZDDashboard.Common.Validation;
 using DZDDashboard.Data;
 using DZDDashboard.Data.Abstractions;
 using DZDDashboard.Data.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace DZDDashboard.Services;
 
@@ -15,11 +16,45 @@ public class ChecklistEngine(
     IFileStorageService fileStorage,
     IPaymentService paymentService)
 {
+    public async Task<List<ChecklistItem>> BuildItemsAsync(string processType, CancellationToken cancellationToken)
+    {
+        var templates = await context.ChecklistStepTemplates.AsNoTracking()
+            .Where(t => t.ProcessType == processType && t.IsEnabled)
+            .OrderBy(t => t.Sequence)
+            .ToListAsync(cancellationToken);
+
+        IEnumerable<ChecklistStepDefinition> source = templates.Count > 0
+            ? templates.Select(t => new ChecklistStepDefinition(t.StepKey, t.Title, t.Sequence, t.IsRequired, t.IsGate, t.BenefitKind, t.RequiresDocument))
+            : FallbackCatalog(processType);
+
+        return [.. source.Select(s => new ChecklistItem
+        {
+            StepKey          = s.Key,
+            Title            = s.Title,
+            Sequence         = s.Sequence,
+            IsRequired       = s.IsRequired,
+            IsGate           = s.IsGate,
+            RequiresDocument = s.RequiresDocument,
+            BenefitKind      = s.BenefitKind,
+            Status           = ChecklistItemStatuses.Pending
+        })];
+    }
+
+    private static IReadOnlyList<ChecklistStepDefinition> FallbackCatalog(string processType) => processType switch
+    {
+        TemplateProcessTypes.OffboardingResignation => OffboardingStepCatalog.ResignationSteps,
+        TemplateProcessTypes.OffboardingTermination => OffboardingStepCatalog.TerminationSteps,
+        _                                           => OnboardingStepCatalog.Steps
+    };
+
     public async Task CompleteAsync(ChecklistItem item, IReadOnlyList<ChecklistItem> siblings, int userId, DateTime processStartDate, CompleteChecklistItemDto dto, CancellationToken cancellationToken)
     {
         if (item.Status == ChecklistItemStatuses.Completed) return;
 
         EnsureGateUnblocked(item, siblings);
+
+        if (item.RequiresDocument && item.DocumentStoredFileId is null)
+            throw new DomainValidationException("Bu adım tamamlanmadan önce bir belge yüklenmelidir.");
 
         if (item.BenefitKind != ChecklistBenefitKinds.None)
             ApplyBenefitInput(item, dto);
@@ -71,34 +106,34 @@ public class ChecklistEngine(
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task UploadEvidenceAsync(ChecklistItem item, string fileName, string contentType, byte[] content, CancellationToken cancellationToken)
+    public async Task UploadDocumentAsync(ChecklistItem item, string fileName, string contentType, byte[] content, CancellationToken cancellationToken)
     {
-        if (item.EvidenceStoredFileId is { } existing)
+        if (item.DocumentStoredFileId is { } existing)
             await fileStorage.DeleteAsync(existing, cancellationToken);
 
         var storageId = await fileStorage.SaveAsync(content, contentType, cancellationToken);
-        item.EvidenceStoredFileId = storageId;
-        item.EvidenceFileName     = fileName;
-        item.EvidenceContentType  = contentType;
+        item.DocumentStoredFileId = storageId;
+        item.DocumentFileName     = fileName;
+        item.DocumentContentType  = contentType;
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task DeleteEvidenceAsync(ChecklistItem item, CancellationToken cancellationToken)
+    public async Task DeleteDocumentAsync(ChecklistItem item, CancellationToken cancellationToken)
     {
-        if (item.EvidenceStoredFileId is not { } storageId) return;
+        if (item.DocumentStoredFileId is not { } storageId) return;
         await fileStorage.DeleteAsync(storageId, cancellationToken);
-        item.EvidenceStoredFileId = null;
-        item.EvidenceFileName     = null;
-        item.EvidenceContentType  = null;
+        item.DocumentStoredFileId = null;
+        item.DocumentFileName     = null;
+        item.DocumentContentType  = null;
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<(byte[] Content, string? ContentType, string FileName)?> GetEvidenceAsync(ChecklistItem item, CancellationToken cancellationToken)
+    public async Task<(byte[] Content, string? ContentType, string FileName)?> GetDocumentAsync(ChecklistItem item, CancellationToken cancellationToken)
     {
-        if (item.EvidenceStoredFileId is not { } storageId) return null;
+        if (item.DocumentStoredFileId is not { } storageId) return null;
         var file = await fileStorage.GetAsync(storageId, cancellationToken);
         if (file is null) return null;
-        return (file.Value.Content, file.Value.ContentType ?? item.EvidenceContentType, item.EvidenceFileName ?? "evidence");
+        return (file.Value.Content, file.Value.ContentType ?? item.DocumentContentType, item.DocumentFileName ?? "document");
     }
 
     private static void EnsureGateUnblocked(ChecklistItem item, IReadOnlyList<ChecklistItem> siblings)
@@ -198,6 +233,7 @@ public class ChecklistEngine(
             Sequence    = item.Sequence,
             IsRequired  = item.IsRequired,
             IsGate      = item.IsGate,
+            RequiresDocument = item.RequiresDocument,
             BenefitKind = item.BenefitKind,
             Status      = item.Status,
             Note        = item.Note,
@@ -205,8 +241,8 @@ public class ChecklistEngine(
             CompletedByName = item.CompletedBy != null
                 ? AppFormatter.BuildFullName(item.CompletedBy.FirstName, item.CompletedBy.LastName)
                 : null,
-            HasEvidence      = item.EvidenceStoredFileId.HasValue,
-            EvidenceFileName = item.EvidenceFileName,
+            HasDocument      = item.DocumentStoredFileId.HasValue,
+            DocumentFileName = item.DocumentFileName,
             ProviderName     = item.ProviderName,
             Currency         = item.Currency,
             EmployeeAmount   = item.EmployeeAmount,

@@ -63,16 +63,7 @@ public class OnboardingService(
             StartDate = dto.StartDate,
             ManagerId = dto.ManagerId,
             Status    = ProcessStatuses.InProgress,
-            Items     = [.. OnboardingStepCatalog.Steps.Select(s => new ChecklistItem
-            {
-                StepKey     = s.Key,
-                Title       = s.Title,
-                Sequence    = s.Sequence,
-                IsRequired  = s.IsRequired,
-                IsGate      = s.IsGate,
-                BenefitKind = s.BenefitKind,
-                Status      = ChecklistItemStatuses.Pending
-            })]
+            Items     = await engine.BuildItemsAsync(TemplateProcessTypes.Onboarding, cancellationToken)
         };
         context.OnboardingProcesses.Add(process);
         await context.SaveChangesAsync(cancellationToken);
@@ -112,24 +103,24 @@ public class OnboardingService(
         return await GetAsync(processId, cancellationToken);
     }
 
-    public async Task<OnboardingProcessDto> UploadEvidenceAsync(int processId, int itemId, string fileName, string contentType, byte[] content, CancellationToken cancellationToken = default)
+    public async Task<OnboardingProcessDto> UploadDocumentAsync(int processId, int itemId, string fileName, string contentType, byte[] content, CancellationToken cancellationToken = default)
     {
         var process = await LoadAsync(processId, cancellationToken);
-        await engine.UploadEvidenceAsync(RequireItem(process, itemId), fileName, contentType, content, cancellationToken);
+        await engine.UploadDocumentAsync(RequireItem(process, itemId), fileName, contentType, content, cancellationToken);
         return await GetAsync(processId, cancellationToken);
     }
 
-    public async Task<OnboardingProcessDto> DeleteEvidenceAsync(int processId, int itemId, CancellationToken cancellationToken = default)
+    public async Task<OnboardingProcessDto> DeleteDocumentAsync(int processId, int itemId, CancellationToken cancellationToken = default)
     {
         var process = await LoadAsync(processId, cancellationToken);
-        await engine.DeleteEvidenceAsync(RequireItem(process, itemId), cancellationToken);
+        await engine.DeleteDocumentAsync(RequireItem(process, itemId), cancellationToken);
         return await GetAsync(processId, cancellationToken);
     }
 
-    public async Task<(byte[] Content, string? ContentType, string FileName)?> GetEvidenceAsync(int processId, int itemId, CancellationToken cancellationToken = default)
+    public async Task<(byte[] Content, string? ContentType, string FileName)?> GetDocumentAsync(int processId, int itemId, CancellationToken cancellationToken = default)
     {
         var process = await LoadAsync(processId, cancellationToken);
-        return await engine.GetEvidenceAsync(RequireItem(process, itemId), cancellationToken);
+        return await engine.GetDocumentAsync(RequireItem(process, itemId), cancellationToken);
     }
 
     private async Task<OnboardingProcess> LoadAsync(int processId, CancellationToken cancellationToken)
@@ -200,8 +191,8 @@ public class OnboardingService(
     {
         var process = await LoadAsync(processId, cancellationToken);
 
-        foreach (var item in process.Items.Where(i => i.EvidenceStoredFileId.HasValue))
-            await fileStorage.DeleteAsync(item.EvidenceStoredFileId!.Value, cancellationToken);
+        foreach (var item in process.Items.Where(i => i.DocumentStoredFileId.HasValue))
+            await fileStorage.DeleteAsync(item.DocumentStoredFileId!.Value, cancellationToken);
 
         var userDocs = await context.UserDocuments
             .Where(d => d.UserId == process.UserId)
@@ -237,16 +228,7 @@ public class OnboardingService(
                 UserId    = userId,
                 StartDate = DateTime.UtcNow.Date,
                 Status    = ProcessStatuses.InProgress,
-                Items     = [.. OnboardingStepCatalog.Steps.Select(s => new ChecklistItem
-                {
-                    StepKey     = s.Key,
-                    Title       = s.Title,
-                    Sequence    = s.Sequence,
-                    IsRequired  = s.IsRequired,
-                    IsGate      = s.IsGate,
-                    BenefitKind = s.BenefitKind,
-                    Status      = ChecklistItemStatuses.Pending
-                })]
+                Items     = await engine.BuildItemsAsync(TemplateProcessTypes.Onboarding, cancellationToken)
             };
             context.OnboardingProcesses.Add(process);
             await context.SaveChangesAsync(cancellationToken);

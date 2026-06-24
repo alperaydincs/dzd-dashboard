@@ -54,13 +54,30 @@ public static class ChecklistBenefitKinds
     public const string Oss  = "OSS";
 }
 
+public static class TemplateProcessTypes
+{
+    public const string Onboarding             = "Onboarding";
+    public const string OffboardingResignation = "Offboarding:Resignation";
+    public const string OffboardingTermination = "Offboarding:Termination";
+
+    public static readonly IReadOnlyList<string> All =
+        [Onboarding, OffboardingResignation, OffboardingTermination];
+
+    public static string ForOffboarding(string offboardingType) => offboardingType switch
+    {
+        OffboardingTypes.Termination => OffboardingTermination,
+        _                            => OffboardingResignation
+    };
+}
+
 public sealed record ChecklistStepDefinition(
     string Key,
     string Title,
     int Sequence,
     bool IsRequired = true,
     bool IsGate = false,
-    string BenefitKind = ChecklistBenefitKinds.None);
+    string BenefitKind = ChecklistBenefitKinds.None,
+    bool RequiresDocument = false);
 
 public static class OnboardingStepCatalog
 {

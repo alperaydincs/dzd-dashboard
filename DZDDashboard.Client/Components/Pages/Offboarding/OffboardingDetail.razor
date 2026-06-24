@@ -41,9 +41,9 @@
                         OnSkip="HandleSkip"
                         OnReopen="HandleReopen"
                         OnSaveNote="HandleSaveNote"
-                        OnUploadEvidence="HandleUploadEvidence"
-                        OnDeleteEvidence="HandleDeleteEvidence"
-                        OnDownloadEvidence="HandleDownloadEvidence" />
+                        OnUploadDocument="HandleUploadDocument"
+                        OnDeleteDocument="HandleDeleteDocument"
+                        OnDownloadDocument="HandleDownloadDocument" />
     }
 </MudContainer>
 
@@ -81,29 +81,29 @@
         await LoadAsync();
     }
 
-    private async Task HandleUploadEvidence((int ItemId, IBrowserFile File) e)
+    private async Task HandleUploadDocument((int ItemId, IBrowserFile File) e)
     {
         await using var stream = e.File.OpenReadStream(DocumentConstants.MaxFileSizeBytes);
-        var response = await OffboardingService.UploadEvidenceAsync(Id, e.ItemId, e.File.Name, e.File.ContentType, stream);
+        var response = await OffboardingService.UploadDocumentAsync(Id, e.ItemId, e.File.Name, e.File.ContentType, stream);
         if (!response.IsSuccessStatusCode)
         {
             var detail = await DZDDashboard.Client.Services.ApiServiceBase.TryReadProblemDetailAsync(response);
-            Snackbar.Add(detail ?? "Kanıt yüklenemedi.", Severity.Error);
+            Snackbar.Add(detail ?? "Belge yüklenemedi.", Severity.Error);
             return;
         }
-        Snackbar.Add("Kanıt yüklendi.", Severity.Success);
+        Snackbar.Add("Belge yüklendi.", Severity.Success);
         await LoadAsync();
     }
 
-    private async Task HandleDeleteEvidence(int itemId)
-        => await Apply(await OffboardingService.DeleteEvidenceAsync(Id, itemId), "Kanıt silindi.");
+    private async Task HandleDeleteDocument(int itemId)
+        => await Apply(await OffboardingService.DeleteDocumentAsync(Id, itemId), "Belge silindi.");
 
-    private async Task HandleDownloadEvidence(int itemId)
+    private async Task HandleDownloadDocument(int itemId)
     {
         var item = _process?.Items.FirstOrDefault(i => i.Id == itemId);
-        var bytes = await OffboardingService.DownloadEvidenceAsync(Id, itemId);
+        var bytes = await OffboardingService.DownloadDocumentAsync(Id, itemId);
         if (bytes is null) { Snackbar.Add("İndirilemedi.", Severity.Error); return; }
-        await JS.InvokeVoidAsync("dzdDownloadFile", item?.EvidenceFileName ?? "kanit", Convert.ToBase64String(bytes), "application/octet-stream");
+        await JS.InvokeVoidAsync("dzdDownloadFile", item?.DocumentFileName ?? "kanit", Convert.ToBase64String(bytes), "application/octet-stream");
     }
 
     private async Task Apply(OffboardingProcessDto? result, string successMessage)

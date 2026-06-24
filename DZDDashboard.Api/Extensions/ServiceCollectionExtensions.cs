@@ -154,6 +154,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ChecklistEngine>();
         services.AddScoped<IOnboardingService, OnboardingService>();
         services.AddScoped<IOffboardingService, OffboardingService>();
+        services.AddScoped<IChecklistTemplateService, ChecklistTemplateService>();
         return services;
     }
 }

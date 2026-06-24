@@ -42,9 +42,9 @@ public class OnboardingController(IOnboardingService onboarding) : BaseControlle
         return NoContent();
     }
 
-    [HttpDelete("{id:int}/items/{itemId:int}/evidence")]
-    public async Task<ActionResult<OnboardingProcessDto>> DeleteEvidence(int id, int itemId, CancellationToken cancellationToken)
-        => Ok(await onboarding.DeleteEvidenceAsync(id, itemId, cancellationToken));
+    [HttpDelete("{id:int}/items/{itemId:int}/document")]
+    public async Task<ActionResult<OnboardingProcessDto>> DeleteDocument(int id, int itemId, CancellationToken cancellationToken)
+        => Ok(await onboarding.DeleteDocumentAsync(id, itemId, cancellationToken));
 
     [HttpPost("{id:int}/items/{itemId:int}/complete")]
     public async Task<ActionResult<OnboardingProcessDto>> Complete(int id, int itemId, [FromBody] CompleteChecklistItemDto dto, CancellationToken cancellationToken)
@@ -62,11 +62,11 @@ public class OnboardingController(IOnboardingService onboarding) : BaseControlle
     public async Task<ActionResult<OnboardingProcessDto>> UpdateNote(int id, int itemId, [FromBody] UpdateChecklistNoteDto dto, CancellationToken cancellationToken)
         => Ok(await onboarding.UpdateItemNoteAsync(id, itemId, dto, cancellationToken));
 
-    [HttpPost("{id:int}/items/{itemId:int}/evidence")]
+    [HttpPost("{id:int}/items/{itemId:int}/document")]
     [EnableRateLimiting("upload")]
     [RequestSizeLimit(DocumentConstants.MaxFileSizeBytes)]
     [RequestFormLimits(MultipartBodyLengthLimit = DocumentConstants.MaxFileSizeBytes)]
-    public async Task<ActionResult<OnboardingProcessDto>> UploadEvidence(int id, int itemId, [FromForm] IFormFile file, CancellationToken cancellationToken)
+    public async Task<ActionResult<OnboardingProcessDto>> UploadDocument(int id, int itemId, [FromForm] IFormFile file, CancellationToken cancellationToken)
     {
         if (file == null || file.Length == 0)
             return Problem("No file uploaded.", statusCode: 400, title: "Validation Error");
@@ -82,13 +82,13 @@ public class OnboardingController(IOnboardingService onboarding) : BaseControlle
             return Problem("File content does not match the declared content type.", statusCode: 400, title: "Validation Error");
 
         var fileName = Path.GetFileName(file.FileName);
-        return Ok(await onboarding.UploadEvidenceAsync(id, itemId, fileName, file.ContentType, bytes, cancellationToken));
+        return Ok(await onboarding.UploadDocumentAsync(id, itemId, fileName, file.ContentType, bytes, cancellationToken));
     }
 
-    [HttpGet("{id:int}/items/{itemId:int}/evidence")]
-    public async Task<IActionResult> DownloadEvidence(int id, int itemId, CancellationToken cancellationToken)
+    [HttpGet("{id:int}/items/{itemId:int}/document")]
+    public async Task<IActionResult> DownloadDocument(int id, int itemId, CancellationToken cancellationToken)
     {
-        var content = await onboarding.GetEvidenceAsync(id, itemId, cancellationToken);
+        var content = await onboarding.GetDocumentAsync(id, itemId, cancellationToken);
         if (content is null) return NotFound();
         return File(content.Value.Content, content.Value.ContentType ?? "application/octet-stream", content.Value.FileName);
     }

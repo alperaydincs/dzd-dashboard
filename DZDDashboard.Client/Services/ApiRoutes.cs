@@ -85,7 +85,14 @@ public static class ApiRoutes
         public static string ItemSkip(int id, int itemId)     => $"{Base}/{id}/items/{itemId}/skip";
         public static string ItemReopen(int id, int itemId)   => $"{Base}/{id}/items/{itemId}/reopen";
         public static string ItemNote(int id, int itemId)     => $"{Base}/{id}/items/{itemId}/note";
-        public static string ItemEvidence(int id, int itemId) => $"{Base}/{id}/items/{itemId}/evidence";
+        public static string ItemDocument(int id, int itemId) => $"{Base}/{id}/items/{itemId}/document";
+    }
+
+    public static class ChecklistTemplates
+    {
+        public const string Base = "api/checklist-templates";
+        public static string List(string processType) => $"{Base}?processType={Uri.EscapeDataString(processType)}";
+        public static string Item(int id) => $"{Base}/{id}";
     }
 
     public static class MyOnboarding
@@ -105,6 +112,6 @@ public static class ApiRoutes
         public static string ItemSkip(int id, int itemId)     => $"{Base}/{id}/items/{itemId}/skip";
         public static string ItemReopen(int id, int itemId)   => $"{Base}/{id}/items/{itemId}/reopen";
         public static string ItemNote(int id, int itemId)     => $"{Base}/{id}/items/{itemId}/note";
-        public static string ItemEvidence(int id, int itemId) => $"{Base}/{id}/items/{itemId}/evidence";
+        public static string ItemDocument(int id, int itemId) => $"{Base}/{id}/items/{itemId}/document";
     }
 }

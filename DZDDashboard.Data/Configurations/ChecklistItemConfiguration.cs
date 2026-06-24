@@ -18,8 +18,8 @@ public class ChecklistItemConfiguration : IEntityTypeConfiguration<ChecklistItem
         builder.Property(x => x.BenefitKind).IsRequired().HasMaxLength(ValidationConstants.MaxShortNameLength);
         builder.Property(x => x.Note).HasMaxLength(ValidationConstants.MaxNotesLength);
 
-        builder.Property(x => x.EvidenceFileName).HasMaxLength(ValidationConstants.MaxFileNameLength);
-        builder.Property(x => x.EvidenceContentType).HasMaxLength(ValidationConstants.MaxShortNameLength);
+        builder.Property(x => x.DocumentFileName).HasMaxLength(ValidationConstants.MaxFileNameLength);
+        builder.Property(x => x.DocumentContentType).HasMaxLength(ValidationConstants.MaxShortNameLength);
 
         builder.Property(x => x.ProviderName).HasMaxLength(ValidationConstants.MaxProviderNameLength);
         builder.Property(x => x.Currency).HasMaxLength(ValidationConstants.MaxCurrencyCodeLength);
@@ -39,9 +39,9 @@ public class ChecklistItemConfiguration : IEntityTypeConfiguration<ChecklistItem
             .HasForeignKey(x => x.ModifiedById)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(x => x.EvidenceStoredFile)
+        builder.HasOne(x => x.DocumentStoredFile)
             .WithMany()
-            .HasForeignKey(x => x.EvidenceStoredFileId)
+            .HasForeignKey(x => x.DocumentStoredFileId)
             .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasMany(x => x.Dependents)

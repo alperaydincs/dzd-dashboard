@@ -16,8 +16,9 @@ public class ChecklistItem : AuditableEntity
     public string Title    { get; set; } = string.Empty;
     public int    Sequence { get; set; }
 
-    public bool IsRequired { get; set; } = true;
-    public bool IsGate     { get; set; }
+    public bool IsRequired      { get; set; } = true;
+    public bool IsGate          { get; set; }
+    public bool RequiresDocument { get; set; }
 
     public string BenefitKind { get; set; } = ChecklistBenefitKinds.None;
 
@@ -29,10 +30,10 @@ public class ChecklistItem : AuditableEntity
     public int?      CompletedById { get; set; }
     public User?     CompletedBy   { get; set; }
 
-    public int?     EvidenceStoredFileId { get; set; }
-    public StoredFile? EvidenceStoredFile { get; set; }
-    public string?  EvidenceFileName     { get; set; }
-    public string?  EvidenceContentType  { get; set; }
+    public int?     DocumentStoredFileId { get; set; }
+    public StoredFile? DocumentStoredFile { get; set; }
+    public string?  DocumentFileName     { get; set; }
+    public string?  DocumentContentType  { get; set; }
 
     public string?  ProviderName   { get; set; }
     public string?  Currency       { get; set; }

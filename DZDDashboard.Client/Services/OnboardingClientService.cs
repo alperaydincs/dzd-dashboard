@@ -27,9 +27,9 @@ public class OnboardingClientService(IHttpClientFactory httpClientFactory, Navig
     public async Task<HttpResponseMessage> CancelAsync(int id)
         => await PostAsync(ApiRoutes.Onboarding.Cancel(id), new { });
 
-    public async Task<OnboardingProcessDto?> DeleteEvidenceAsync(int id, int itemId)
+    public async Task<OnboardingProcessDto?> DeleteDocumentAsync(int id, int itemId)
     {
-        var response = await DeleteAsync(ApiRoutes.Onboarding.ItemEvidence(id, itemId));
+        var response = await DeleteAsync(ApiRoutes.Onboarding.ItemDocument(id, itemId));
         return response.IsSuccessStatusCode ? await GetAsync(id) : null;
     }
 
@@ -45,18 +45,18 @@ public class OnboardingClientService(IHttpClientFactory httpClientFactory, Navig
     public async Task<HttpResponseMessage> UpdateNoteAsync(int id, int itemId, UpdateChecklistNoteDto dto)
         => await PutAsync(ApiRoutes.Onboarding.ItemNote(id, itemId), dto);
 
-    public async Task<HttpResponseMessage> UploadEvidenceAsync(int id, int itemId, string fileName, string contentType, Stream content)
+    public async Task<HttpResponseMessage> UploadDocumentAsync(int id, int itemId, string fileName, string contentType, Stream content)
     {
         using var form = new MultipartFormDataContent();
         var streamContent = new StreamContent(content);
         streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
         form.Add(streamContent, "file", fileName);
-        return await PostMultipartAsync(ApiRoutes.Onboarding.ItemEvidence(id, itemId), form);
+        return await PostMultipartAsync(ApiRoutes.Onboarding.ItemDocument(id, itemId), form);
     }
 
-    public async Task<byte[]?> DownloadEvidenceAsync(int id, int itemId)
+    public async Task<byte[]?> DownloadDocumentAsync(int id, int itemId)
     {
-        var resp = await ApiClient.GetAsync(ApiRoutes.Onboarding.ItemEvidence(id, itemId));
+        var resp = await ApiClient.GetAsync(ApiRoutes.Onboarding.ItemDocument(id, itemId));
         return resp.IsSuccessStatusCode ? await resp.Content.ReadAsByteArrayAsync() : null;
     }
 }
@@ -113,24 +113,24 @@ public class OffboardingClientService(IHttpClientFactory httpClientFactory, Navi
     public async Task<HttpResponseMessage> UpdateNoteAsync(int id, int itemId, UpdateChecklistNoteDto dto)
         => await PutAsync(ApiRoutes.Offboarding.ItemNote(id, itemId), dto);
 
-    public async Task<HttpResponseMessage> UploadEvidenceAsync(int id, int itemId, string fileName, string contentType, Stream content)
+    public async Task<HttpResponseMessage> UploadDocumentAsync(int id, int itemId, string fileName, string contentType, Stream content)
     {
         using var form = new MultipartFormDataContent();
         var streamContent = new StreamContent(content);
         streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
         form.Add(streamContent, "file", fileName);
-        return await PostMultipartAsync(ApiRoutes.Offboarding.ItemEvidence(id, itemId), form);
+        return await PostMultipartAsync(ApiRoutes.Offboarding.ItemDocument(id, itemId), form);
     }
 
-    public async Task<OffboardingProcessDto?> DeleteEvidenceAsync(int id, int itemId)
+    public async Task<OffboardingProcessDto?> DeleteDocumentAsync(int id, int itemId)
     {
-        var response = await DeleteAsync(ApiRoutes.Offboarding.ItemEvidence(id, itemId));
+        var response = await DeleteAsync(ApiRoutes.Offboarding.ItemDocument(id, itemId));
         return response.IsSuccessStatusCode ? await GetAsync(id) : null;
     }
 
-    public async Task<byte[]?> DownloadEvidenceAsync(int id, int itemId)
+    public async Task<byte[]?> DownloadDocumentAsync(int id, int itemId)
     {
-        var resp = await ApiClient.GetAsync(ApiRoutes.Offboarding.ItemEvidence(id, itemId));
+        var resp = await ApiClient.GetAsync(ApiRoutes.Offboarding.ItemDocument(id, itemId));
         return resp.IsSuccessStatusCode ? await resp.Content.ReadAsByteArrayAsync() : null;
     }
 }

@@ -53,16 +53,7 @@ public class OffboardingService(AppDbContext context, IAuditProvider audit, Chec
             Type     = dto.Type,
             ExitDate = dto.ExitDate,
             Status   = ProcessStatuses.InProgress,
-            Items    = [.. OffboardingStepCatalog.For(dto.Type).Select(s => new ChecklistItem
-            {
-                StepKey     = s.Key,
-                Title       = s.Title,
-                Sequence    = s.Sequence,
-                IsRequired  = s.IsRequired,
-                IsGate      = s.IsGate,
-                BenefitKind = s.BenefitKind,
-                Status      = ChecklistItemStatuses.Pending
-            })]
+            Items    = await engine.BuildItemsAsync(TemplateProcessTypes.ForOffboarding(dto.Type), cancellationToken)
         };
         context.OffboardingProcesses.Add(process);
         await context.SaveChangesAsync(cancellationToken);
@@ -101,24 +92,24 @@ public class OffboardingService(AppDbContext context, IAuditProvider audit, Chec
         return await GetAsync(processId, cancellationToken);
     }
 
-    public async Task<OffboardingProcessDto> UploadEvidenceAsync(int processId, int itemId, string fileName, string contentType, byte[] content, CancellationToken cancellationToken = default)
+    public async Task<OffboardingProcessDto> UploadDocumentAsync(int processId, int itemId, string fileName, string contentType, byte[] content, CancellationToken cancellationToken = default)
     {
         var process = await LoadAsync(processId, cancellationToken);
-        await engine.UploadEvidenceAsync(RequireItem(process, itemId), fileName, contentType, content, cancellationToken);
+        await engine.UploadDocumentAsync(RequireItem(process, itemId), fileName, contentType, content, cancellationToken);
         return await GetAsync(processId, cancellationToken);
     }
 
-    public async Task<OffboardingProcessDto> DeleteEvidenceAsync(int processId, int itemId, CancellationToken cancellationToken = default)
+    public async Task<OffboardingProcessDto> DeleteDocumentAsync(int processId, int itemId, CancellationToken cancellationToken = default)
     {
         var process = await LoadAsync(processId, cancellationToken);
-        await engine.DeleteEvidenceAsync(RequireItem(process, itemId), cancellationToken);
+        await engine.DeleteDocumentAsync(RequireItem(process, itemId), cancellationToken);
         return await GetAsync(processId, cancellationToken);
     }
 
-    public async Task<(byte[] Content, string? ContentType, string FileName)?> GetEvidenceAsync(int processId, int itemId, CancellationToken cancellationToken = default)
+    public async Task<(byte[] Content, string? ContentType, string FileName)?> GetDocumentAsync(int processId, int itemId, CancellationToken cancellationToken = default)
     {
         var process = await LoadAsync(processId, cancellationToken);
-        return await engine.GetEvidenceAsync(RequireItem(process, itemId), cancellationToken);
+        return await engine.GetDocumentAsync(RequireItem(process, itemId), cancellationToken);
     }
 
     private async Task<OffboardingProcess> LoadAsync(int processId, CancellationToken cancellationToken)

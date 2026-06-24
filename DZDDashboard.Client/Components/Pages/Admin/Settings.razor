@@ -35,6 +35,11 @@
                     </button>
                 </div>
 
+                @if (_activeSettingsTabIndex == 2)
+                {
+                    <ChecklistTemplatePanel />
+                }
+
                 @if (_activeSettingsTabIndex == 1)
                 {
                     <GradeManagementPanel />

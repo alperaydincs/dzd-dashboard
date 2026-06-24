@@ -80,15 +80,15 @@
                                   Variant="Variant.Outlined" Margin="Margin.Dense" Lines="1" Immediate="false" />
                 </MudItem>
                 <MudItem xs="12" sm="4" Class="d-flex align-center gap-2">
-                    @if (item.HasEvidence)
+                    @if (item.HasDocument)
                     {
                         <MudButton Variant="Variant.Text" Size="Size.Small" StartIcon="@DzdIcons.Paperclip"
-                                   OnClick="@(() => OnDownloadEvidence.InvokeAsync(item.Id))">@item.EvidenceFileName</MudButton>
-                        <MudIconButton Icon="@DzdIcons.Trash2" Color="Color.Error" Size="Size.Small" OnClick="@(() => OnDeleteEvidence.InvokeAsync(item.Id))" />
+                                   OnClick="@(() => OnDownloadDocument.InvokeAsync(item.Id))">@item.DocumentFileName</MudButton>
+                        <MudIconButton Icon="@DzdIcons.Trash2" Color="Color.Error" Size="Size.Small" OnClick="@(() => OnDeleteDocument.InvokeAsync(item.Id))" />
                     }
                     <MudFileUpload T="IBrowserFile" FilesChanged="@(f => OnFileSelected(item.Id, f))" MaximumFileCount="1">
                         <ActivatorContent>
-                            <MudButton Size="Size.Small" Variant="Variant.Outlined" StartIcon="@DzdIcons.Upload">Kanıt</MudButton>
+                            <MudButton Size="Size.Small" Variant="Variant.Outlined" StartIcon="@DzdIcons.Upload">Belge</MudButton>
                         </ActivatorContent>
                     </MudFileUpload>
                 </MudItem>
@@ -103,9 +103,9 @@
     [Parameter] public EventCallback<int> OnSkip { get; set; }
     [Parameter] public EventCallback<int> OnReopen { get; set; }
     [Parameter] public EventCallback<(int ItemId, string? Note)> OnSaveNote { get; set; }
-    [Parameter] public EventCallback<(int ItemId, IBrowserFile File)> OnUploadEvidence { get; set; }
-    [Parameter] public EventCallback<int> OnDeleteEvidence { get; set; }
-    [Parameter] public EventCallback<int> OnDownloadEvidence { get; set; }
+    [Parameter] public EventCallback<(int ItemId, IBrowserFile File)> OnUploadDocument { get; set; }
+    [Parameter] public EventCallback<int> OnDeleteDocument { get; set; }
+    [Parameter] public EventCallback<int> OnDownloadDocument { get; set; }
 
     private async Task CompleteAsync(ChecklistItemDto item)
     {
@@ -129,7 +129,7 @@
             Snackbar.Add($"Dosya {DocumentConstants.MaxFileSizeBytes / 1024 / 1024} MB sınırını aşıyor.", Severity.Warning);
             return;
         }
-        await OnUploadEvidence.InvokeAsync((itemId, file));
+        await OnUploadDocument.InvokeAsync((itemId, file));
     }
 
     private static string StatusIcon(string status) => status switch

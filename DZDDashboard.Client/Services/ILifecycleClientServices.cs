@@ -14,9 +14,9 @@ public interface IOnboardingClientService
     Task<OnboardingProcessDto?> SkipItemAsync(int id, int itemId);
     Task<OnboardingProcessDto?> ReopenItemAsync(int id, int itemId);
     Task<HttpResponseMessage> UpdateNoteAsync(int id, int itemId, UpdateChecklistNoteDto dto);
-    Task<HttpResponseMessage> UploadEvidenceAsync(int id, int itemId, string fileName, string contentType, Stream content);
-    Task<OnboardingProcessDto?> DeleteEvidenceAsync(int id, int itemId);
-    Task<byte[]?> DownloadEvidenceAsync(int id, int itemId);
+    Task<HttpResponseMessage> UploadDocumentAsync(int id, int itemId, string fileName, string contentType, Stream content);
+    Task<OnboardingProcessDto?> DeleteDocumentAsync(int id, int itemId);
+    Task<byte[]?> DownloadDocumentAsync(int id, int itemId);
 }
 
 public interface IMyOnboardingClientService
@@ -37,7 +37,7 @@ public interface IOffboardingClientService
     Task<OffboardingProcessDto?> SkipItemAsync(int id, int itemId);
     Task<OffboardingProcessDto?> ReopenItemAsync(int id, int itemId);
     Task<HttpResponseMessage> UpdateNoteAsync(int id, int itemId, UpdateChecklistNoteDto dto);
-    Task<HttpResponseMessage> UploadEvidenceAsync(int id, int itemId, string fileName, string contentType, Stream content);
-    Task<OffboardingProcessDto?> DeleteEvidenceAsync(int id, int itemId);
-    Task<byte[]?> DownloadEvidenceAsync(int id, int itemId);
+    Task<HttpResponseMessage> UploadDocumentAsync(int id, int itemId, string fileName, string contentType, Stream content);
+    Task<OffboardingProcessDto?> DeleteDocumentAsync(int id, int itemId);
+    Task<byte[]?> DownloadDocumentAsync(int id, int itemId);
 }

@@ -18,9 +18,9 @@ public interface IOnboardingService
     Task<OnboardingProcessDto> ReopenItemAsync(int processId, int itemId, CancellationToken cancellationToken = default);
     Task<OnboardingProcessDto> UpdateItemNoteAsync(int processId, int itemId, UpdateChecklistNoteDto dto, CancellationToken cancellationToken = default);
 
-    Task<OnboardingProcessDto> UploadEvidenceAsync(int processId, int itemId, string fileName, string contentType, byte[] content, CancellationToken cancellationToken = default);
-    Task<OnboardingProcessDto> DeleteEvidenceAsync(int processId, int itemId, CancellationToken cancellationToken = default);
-    Task<(byte[] Content, string? ContentType, string FileName)?> GetEvidenceAsync(int processId, int itemId, CancellationToken cancellationToken = default);
+    Task<OnboardingProcessDto> UploadDocumentAsync(int processId, int itemId, string fileName, string contentType, byte[] content, CancellationToken cancellationToken = default);
+    Task<OnboardingProcessDto> DeleteDocumentAsync(int processId, int itemId, CancellationToken cancellationToken = default);
+    Task<(byte[] Content, string? ContentType, string FileName)?> GetDocumentAsync(int processId, int itemId, CancellationToken cancellationToken = default);
 }
 
 public interface IOffboardingService
@@ -34,7 +34,7 @@ public interface IOffboardingService
     Task<OffboardingProcessDto> ReopenItemAsync(int processId, int itemId, CancellationToken cancellationToken = default);
     Task<OffboardingProcessDto> UpdateItemNoteAsync(int processId, int itemId, UpdateChecklistNoteDto dto, CancellationToken cancellationToken = default);
 
-    Task<OffboardingProcessDto> UploadEvidenceAsync(int processId, int itemId, string fileName, string contentType, byte[] content, CancellationToken cancellationToken = default);
-    Task<OffboardingProcessDto> DeleteEvidenceAsync(int processId, int itemId, CancellationToken cancellationToken = default);
-    Task<(byte[] Content, string? ContentType, string FileName)?> GetEvidenceAsync(int processId, int itemId, CancellationToken cancellationToken = default);
+    Task<OffboardingProcessDto> UploadDocumentAsync(int processId, int itemId, string fileName, string contentType, byte[] content, CancellationToken cancellationToken = default);
+    Task<OffboardingProcessDto> DeleteDocumentAsync(int processId, int itemId, CancellationToken cancellationToken = default);
+    Task<(byte[] Content, string? ContentType, string FileName)?> GetDocumentAsync(int processId, int itemId, CancellationToken cancellationToken = default);
 }

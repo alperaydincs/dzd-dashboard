@@ -16,6 +16,7 @@ public record ChecklistItemDto
     public int    Sequence    { get; set; }
     public bool   IsRequired  { get; set; }
     public bool   IsGate      { get; set; }
+    public bool   RequiresDocument { get; set; }
     public string BenefitKind { get; set; } = string.Empty;
     public string Status      { get; set; } = string.Empty;
     public string? Note       { get; set; }
@@ -23,8 +24,8 @@ public record ChecklistItemDto
     public DateTime? CompletedAt    { get; set; }
     public string?   CompletedByName { get; set; }
 
-    public bool    HasEvidence      { get; set; }
-    public string? EvidenceFileName { get; set; }
+    public bool    HasDocument      { get; set; }
+    public string? DocumentFileName { get; set; }
 
     public string?  ProviderName   { get; set; }
     public string?  Currency       { get; set; }
