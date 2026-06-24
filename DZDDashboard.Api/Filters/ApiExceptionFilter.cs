@@ -17,12 +17,8 @@ public class ApiExceptionFilter(ILogger<ApiExceptionFilter> logger) : IException
             EntityNotFoundException e      => LogAndMap(e, StatusCodes.Status404NotFound,             "Not Found",           e.Message, isWarning: true),
             DomainValidationException e    => LogAndMap(e, StatusCodes.Status400BadRequest,           "Validation Error",    e.Message, isWarning: true),
             DomainConflictException e      => LogAndMap(e, StatusCodes.Status409Conflict,             "Conflict",            e.Message, isWarning: true),
-            // HTTP 403 Forbidden — caller is authenticated but not authorised.
-            // HTTP 401 means "not authenticated"; using 401 for authorisation failures causes login-redirect loops.
             UnauthorizedAccessException e  => LogAndMap(e, StatusCodes.Status403Forbidden,            "Forbidden",           e.Message, isWarning: true),
             KeyNotFoundException e         => LogAndMap(e, StatusCodes.Status404NotFound,             "Not Found",           e.Message, isWarning: true),
-            // InvalidOperationException intentionally absent — thrown by EF Core / ASP.NET internals and
-            // must NOT map to 400. Use DomainValidationException for business-rule violations instead.
             DbUpdateConcurrencyException e => LogAndMap(e, StatusCodes.Status409Conflict,             "Conflict",            "The resource was modified by another request. Please retry.", isWarning: true),
             _                              => LogAndMap(ex, StatusCodes.Status500InternalServerError, "Internal Server Error", "An unexpected error occurred. Please contact support.", isWarning: false)
         };

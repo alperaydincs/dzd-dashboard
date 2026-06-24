@@ -4,13 +4,6 @@ using FluentValidation;
 
 namespace DZDDashboard.Api.Validators;
 
-/// <summary>
-/// Validates individual <see cref="RoleDurationDto"/> instances.
-/// Range rules live here — in the value object validator — rather than scattered across
-/// parent validators (Single Responsibility Principle).
-/// Both Months and Years may be set simultaneously (e.g. "1yr 6mo" — the UI provides
-/// independent fields for each), so no mutual-exclusion rule is applied.
-/// </summary>
 public class RoleDurationDtoValidator : AbstractValidator<RoleDurationDto>
 {
     public RoleDurationDtoValidator()
@@ -40,7 +33,6 @@ public class CareerMapRuleDtoValidator : AbstractValidator<CareerMapRuleDto>
         RuleFor(x => x.PositionJobIds)
             .NotEmpty().WithMessage("At least one job must be assigned to the career map rule.");
 
-        // Delegate month/year range rules to the value object validator
         RuleFor(x => x.MinRoleTime).SetValidator(new RoleDurationDtoValidator());
         RuleFor(x => x.MinExperience).SetValidator(new RoleDurationDtoValidator());
     }
@@ -72,6 +64,13 @@ public class UpdateCareerAssignmentDtoValidator : AbstractValidator<UpdateCareer
         RuleFor(x => x.Grade)
             .InclusiveBetween(ValidationConstants.MinGrade, ValidationConstants.MaxGrade).When(x => x.Grade.HasValue)
             .WithMessage($"Grade must be between {ValidationConstants.MinGrade} and {ValidationConstants.MaxGrade}.");
+
+        RuleFor(x => x.ManagerId)
+            .GreaterThan(0).When(x => x.ManagerId.HasValue)
+            .WithMessage("Manager id must be a positive integer.");
+
+        RuleFor(x => x.NewPositionName)
+            .MaximumLength(ValidationConstants.MaxPositionNameLength).When(x => x.NewPositionName != null);
     }
 }
 

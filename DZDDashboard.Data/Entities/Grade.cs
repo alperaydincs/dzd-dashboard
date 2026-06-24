@@ -1,7 +1,5 @@
 namespace DZDDashboard.Data.Entities;
 
-// Column constraints (Required, MaxLength, precision) are configured in GradeConfiguration.
-// Data annotations removed to keep the entity clean and avoid dual-validation with FluentValidation.
 public class Grade
 {
     public int     Id         { get; set; }

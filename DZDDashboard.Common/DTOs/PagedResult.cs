@@ -1,6 +1,5 @@
 namespace DZDDashboard.Common.DTOs;
 
-/// <summary>Generic paged response envelope.</summary>
 public sealed record PagedResult<T>
 {
     public IReadOnlyList<T> Items { get; init; } = [];
@@ -12,7 +11,6 @@ public sealed record PagedResult<T>
     public bool HasPreviousPage => Page > 1;
 }
 
-/// <summary>Common pagination query parameters.</summary>
 public sealed record PaginationParams
 {
     public const int DefaultPageSize = 50;

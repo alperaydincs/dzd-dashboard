@@ -1,23 +1,18 @@
-<MudItem xs="12" sm="6" md="4">
-    <MudPaper Elevation="0" Class="pa-4" Style="border-radius: 16px; border: 1px solid var(--dzd-bg-input); background-color: var(--dzd-surface-primary);">
-        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
-            <div Style="@($"width: 48px; height: 48px; background-color: {IconBg}; border-radius: 8px; display: flex; align-items: center; justify-content: center;")">
-                <MudIcon Icon="@Icon" Style="@($"color: {IconColor}; font-size: 24px;")" />
-            </div>
-            <MudStack Spacing="0" Style="flex-grow: 1;">
-                <MudText Typo="Typo.caption" Style="color: #6b7280; font-weight: 500;">@Label</MudText>
-                <MudText Typo="Typo.h6" Style="font-weight: 500; color: var(--dzd-text-primary); font-size: 1.1rem;">
-                    @Value
-                </MudText>
-            </MudStack>
-        </MudStack>
-    </MudPaper>
-</MudItem>
+<div class="dzd-info-card accent-@Accent.ToString().ToLowerInvariant()">
+    <div class="dzd-info-card__icon">
+        <MudIcon Icon="@Icon" />
+    </div>
+    <div class="dzd-info-card__body">
+        <span class="dzd-info-card__label">@Label</span>
+        <span class="dzd-info-card__value">@Value</span>
+    </div>
+</div>
 
 @code {
+    public enum AccentColor { Blue, Purple, Orange, Green, Red, Gray }
+
     [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
     [Parameter, EditorRequired] public string Value { get; set; } = string.Empty;
-    [Parameter, EditorRequired] public string Icon { get; set; } = string.Empty;
-    [Parameter] public string IconBg { get; set; } = "#E8EBFF";
-    [Parameter] public string IconColor { get; set; } = "#2B38F5";
+    [Parameter, EditorRequired] public string Icon  { get; set; } = string.Empty;
+    [Parameter] public AccentColor Accent { get; set; } = AccentColor.Blue;
 }

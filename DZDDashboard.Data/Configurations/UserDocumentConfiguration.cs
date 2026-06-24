@@ -1,4 +1,4 @@
-﻿using DZDDashboard.Common.Validation;
+using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -35,6 +35,11 @@ public class UserDocumentConfiguration : IEntityTypeConfiguration<UserDocument>
                .WithMany(c => c.UserDocuments)
                .HasForeignKey(ud => ud.DocumentCategoryId)
                .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(ud => ud.StoredFile)
+               .WithMany()
+               .HasForeignKey(ud => ud.StoredFileId)
+               .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(ud => ud.ModifiedBy)
                .WithMany()

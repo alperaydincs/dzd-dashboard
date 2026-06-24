@@ -27,21 +27,13 @@ public static class ServiceCollectionExtensions
         services.AddValidatorsFromAssemblyContaining<CompanyDtoValidator>();
         services.AddOpenApi();
 
-        // ForwardedHeaders: resolve real client IP from X-Forwarded-For / X-Forwarded-Proto
-        // before rate limiting and authentication run. UseForwardedHeaders() is called in the pipeline.
-        // In production, restrict KnownProxies/KnownNetworks to your load-balancer's CIDR.
         services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-            // Clear default loopback-only restriction so Azure / cloud LBs can forward headers.
-            // Restrict to specific proxy IPs in production via options.KnownProxies.Add(IPAddress.Parse("...")).
             options.KnownNetworks.Clear();
             options.KnownProxies.Clear();
         });
 
-        // Rate limiting — IP-based fixed window, limits configured in appsettings Api:RateLimit.
-        // After UseForwardedHeaders middleware runs, context.Connection.RemoteIpAddress is the
-        // real client IP — no manual header parsing needed.
         var rl = configuration.GetSection("Api:RateLimit").Get<ApiRateLimitOptions>() ?? new ApiRateLimitOptions();
         services.AddRateLimiter(options =>
         {
@@ -76,7 +68,6 @@ public static class ServiceCollectionExtensions
         }
         else
         {
-            // Distributed cache — safe under multi-instance deployments
             services.AddDistributedSqlServerCache(options =>
             {
                 options.ConnectionString = connectionString;
@@ -107,12 +98,9 @@ public static class ServiceCollectionExtensions
         {
             options.FallbackPolicy = options.DefaultPolicy;
 
-            // AdminOrHrPolicy — Admin or HR can perform write operations on employee data.
             options.AddPolicy(Roles.AdminOrHrPolicy, policy =>
                 policy.RequireRole(Roles.Admin, Roles.Hr));
 
-            // SensitiveDataPolicy — governs access to employee PII (citizenship, personal contact, etc.).
-            // To add a new role: append it here AND add the role to Azure Entra ID.
             options.AddPolicy(Roles.SensitiveDataPolicy, policy =>
                 policy.RequireRole(Roles.Admin, Roles.Hr));
         });
@@ -128,8 +116,6 @@ public static class ServiceCollectionExtensions
 
         var allowedOrigins = configuration.GetSection("Api:AllowedCorsOrigins").Get<string[]>() ?? [];
 
-        // Guard: an empty CORS origin list silently blocks all cross-origin requests in production.
-        // Fail fast at startup so misconfiguration is caught before deploying.
         if (!environment.IsDevelopment() && allowedOrigins.Length == 0)
             throw new InvalidOperationException(
                 "Api:AllowedCorsOrigins must contain at least one origin for non-development environments. " +
@@ -141,19 +127,12 @@ public static class ServiceCollectionExtensions
                       .AllowAnyHeader()
                       .AllowAnyMethod()));
 
-        // Health checks
         services.AddHealthChecks()
             .AddSqlServer(connectionString, name: "sql", failureStatus: HealthStatus.Degraded);
 
         return services;
     }
 
-    /// <summary>
-    /// Returns the client IP for rate-limiter partitioning.
-    /// By the time this runs, <c>UseForwardedHeaders</c> middleware has already resolved
-    /// <c>RemoteIpAddress</c> from the <c>X-Forwarded-For</c> chain, so no manual
-    /// header parsing is needed (and safe against header-spoofing attacks).
-    /// </summary>
     private static string ResolveClientIp(HttpContext context)
         => context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
@@ -169,6 +148,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOrganizationPositionService, OrganizationPositionService>();
         services.AddScoped<ICareerPathService, CareerPathService>();
         services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<IFileStorageService, DbFileStorageService>();
+        services.AddScoped<IUserDocumentService, UserDocumentService>();
         return services;
     }
 }

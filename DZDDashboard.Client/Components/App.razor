@@ -21,6 +21,18 @@
     </CascadingAuthenticationState>
     <script src="@Assets["_content/MudBlazor/MudBlazor.min.js"]"></script>
     <script src="@Assets["_content/IntlTelInputBlazor/js/intlTelInput.js"]"></script>
+    <script>
+        // Triggers a browser download from base64 content fetched via authenticated HttpClient
+        // (a plain anchor can't carry the bearer token, so files are streamed through Blazor first).
+        window.dzdDownloadFile = (fileName, base64, contentType) => {
+            const link = document.createElement('a');
+            link.href = `data:${contentType || 'application/octet-stream'};base64,${base64}`;
+            link.download = fileName || 'download';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+    </script>
     <script src="_framework/blazor.web.js"></script>
 </body>
 

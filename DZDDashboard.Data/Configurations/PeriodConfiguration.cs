@@ -1,4 +1,4 @@
-﻿using DZDDashboard.Common.Validation;
+using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -37,7 +37,6 @@ public class PeriodConfiguration : IEntityTypeConfiguration<Period>
                .HasForeignKey(pr => pr.PeriodId)
                .OnDelete(DeleteBehavior.SetNull);
 
-        // Periodâ†’HeadLeadCoefficients relationship configured in HeadLeadCoefficientConfiguration
 
         builder.HasOne(p => p.ModifiedBy)
                .WithMany()

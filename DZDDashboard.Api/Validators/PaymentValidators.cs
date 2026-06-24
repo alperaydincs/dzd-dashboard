@@ -5,13 +5,6 @@ using FluentValidation;
 
 namespace DZDDashboard.Api.Validators;
 
-/// <summary>
-/// Input-shape validation for the Payment screen DTOs — required fields, lengths and
-/// allowed-value-set membership. Cross-record business rules (overlap checks, dependent
-/// caps/ranges, OneTime date requirements — BR-PAY-*) are enforced in <c>PaymentService</c>
-/// because they need database state; keeping them out of here avoids dual-validation drift
-/// (same convention as <c>UpdateEducationInfoDtoValidator</c>).
-/// </summary>
 public class SalaryRecordDtoValidator : AbstractValidator<SalaryRecordDto>
 {
     public SalaryRecordDtoValidator()
@@ -28,6 +21,9 @@ public class SalaryRecordDtoValidator : AbstractValidator<SalaryRecordDto>
 
         RuleFor(x => x.Period)
             .Must(p => PaymentPeriods.All.Contains(p)).WithMessage(ValidationMessages.SalaryPeriodInvalid);
+
+        RuleFor(x => x.PayType)
+            .Must(t => PayTypes.All.Contains(t)).WithMessage(ValidationMessages.SalaryPayTypeInvalid);
 
         RuleFor(x => x.PayrollCycle)
             .MaximumLength(ValidationConstants.MaxStandardLength);
@@ -48,6 +44,9 @@ public class BenefitDependentDtoValidator : AbstractValidator<BenefitDependentDt
 {
     public BenefitDependentDtoValidator()
     {
+        RuleFor(x => x.DependentName)
+            .MaximumLength(ValidationConstants.MaxShortNameLength);
+
         RuleFor(x => x.DependentType)
             .NotEmpty().WithMessage(ValidationMessages.DependentTypeRequired)
             .Must(t => DependentTypes.All.Contains(t)).WithMessage(ValidationMessages.DependentTypeRequired);
@@ -93,6 +92,16 @@ public class BenefitRecordDtoValidator : AbstractValidator<BenefitRecordDto>
         RuleFor(x => x.ReferenceId).MaximumLength(ValidationConstants.MaxReferenceCodeLength);
         RuleFor(x => x.ProviderName).MaximumLength(ValidationConstants.MaxProviderNameLength);
         RuleFor(x => x.Notes).MaximumLength(ValidationConstants.MaxNotesLength);
+        RuleFor(x => x.BenefitName).MaximumLength(ValidationConstants.MaxBenefitNameLength);
+        RuleFor(x => x.PolicyNumber).MaximumLength(ValidationConstants.MaxPolicyNumberLength);
+
+        RuleFor(x => x.EmployeeContributionAmount)
+            .GreaterThanOrEqualTo(0).When(x => x.EmployeeContributionAmount.HasValue)
+            .WithMessage("Employee contribution amount cannot be negative.");
+
+        RuleFor(x => x.EmployerContributionAmount)
+            .GreaterThanOrEqualTo(0).When(x => x.EmployerContributionAmount.HasValue)
+            .WithMessage("Employer contribution amount cannot be negative.");
 
         RuleFor(x => x.Dependents)
             .Must(d => d.Count <= ValidationConstants.MaxBenefitDependents)
@@ -120,8 +129,28 @@ public class AdditionalPaymentDtoValidator : AbstractValidator<AdditionalPayment
 
         RuleFor(x => x.Description).MaximumLength(ValidationConstants.MaxNotesLength);
 
-        // BR-PAY-06 (date-required-by-period) is enforced in PaymentService — it's a
-        // cross-field business rule, not a pure input-shape check, and the service already
-        // needs to branch on Period to decide which date(s) to persist.
+    }
+}
+
+public class DeductionDtoValidator : AbstractValidator<DeductionDto>
+{
+    public DeductionDtoValidator()
+    {
+        RuleFor(x => x.DeductionType)
+            .Must(t => DeductionTypes.All.Contains(t)).WithMessage(ValidationMessages.DeductionTypeInvalid);
+
+        RuleFor(x => x.Amount)
+            .GreaterThan(0).WithMessage(ValidationMessages.DeductionAmountInvalid);
+
+        RuleFor(x => x.Currency)
+            .Must(c => Currencies.All.Contains(c)).WithMessage(ValidationMessages.CurrencyInvalid);
+
+        RuleFor(x => x.Period)
+            .Must(p => PaymentPeriods.All.Contains(p)).WithMessage(ValidationMessages.SalaryPeriodInvalid);
+
+        RuleFor(x => x.Notes).MaximumLength(ValidationConstants.MaxNotesLength);
+
+        RuleFor(x => x.StartDate)
+            .NotEqual(default(DateTime)).WithMessage(ValidationMessages.DeductionStartDateRequired);
     }
 }

@@ -2,10 +2,6 @@ using DZDDashboard.Common.DTOs;
 
 namespace DZDDashboard.Services;
 
-/// <summary>
-/// Manages flat reference / lookup data: work types, jobs, grades,
-/// payroll locations, and user groups.
-/// </summary>
 public interface IReferenceDataService
 {
     Task<List<WorkTypeDto>>        GetWorkTypesAsync(CancellationToken cancellationToken = default);

@@ -34,12 +34,9 @@ public class OrganizationMappingProfile : Profile
         CreateMap<PayrollLocationDto, PayrollLocation>()
             .ForMember(dest => dest.Location, opt => opt.MapFrom(src => src.Name));
 
-        // OrgChartUserDto — slim projection, no avatar base64
         CreateMap<User, OrgChartUserDto>()
             .ForMember(dest => dest.Job, opt => opt.MapFrom(src => src.Job));
 
-        // In-memory mapping only — not ProjectTo-compatible because OrderBy/FirstOrDefault
-        // on a navigation collection cannot be translated to SQL.
         CreateMap<OrganizationPosition, OrganizationPositionDto>()
             .ForMember(dest => dest.UserCount, opt => opt.MapFrom(src => src.Users.Count))
             .ForMember(dest => dest.User,      opt => opt.MapFrom(src => src.Users.OrderBy(x => x.Id).FirstOrDefault()))

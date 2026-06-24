@@ -1,0 +1,90 @@
+@using DZDDashboard.Common.DTOs
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="3" Style="min-width:380px;">
+            <MudSelect T="int?" Label="Title" Value="_jobId" ValueChanged="OnJobChanged"
+                       Variant="Variant.Outlined" Margin="Margin.Dense"
+                       ToStringFunc="@(id => _jobs.FirstOrDefault(j => j.Id == id)?.Name ?? string.Empty)">
+                @foreach (var j in _jobs)
+                {
+                    <MudSelectItem T="int?" Value="@((int?)j.Id)">@j.Name</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudSelect T="int?" Label="Grade" @bind-Value="_grade" Variant="Variant.Outlined" Margin="Margin.Dense"
+                       ToStringFunc="@(g => g is null ? string.Empty : $"Grade {g}")"
+                       Disabled="@(_jobId == null)">
+                @foreach (var g in _grades)
+                {
+                    <MudSelectItem T="int?" Value="@((int?)g)">Grade @g</MudSelectItem>
+                }
+            </MudSelect>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.TrendingUp"
+                   OnClick="Save" Disabled="@_submitted">Promote</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public CareerPathDto? Path { get; set; }
+    [Parameter] public int? JobId { get; set; }
+    [Parameter] public int? Grade { get; set; }
+
+    private int? _jobId;
+    private int? _grade;
+    private List<JobDto> _jobs   = [];
+    private List<int>    _grades = [];
+    private bool _initialized;
+    private bool _submitted;
+
+    protected override void OnParametersSet()
+    {
+        if (_initialized) return;
+        _initialized = true;
+
+        _jobId = JobId;
+        _grade = Grade;
+        _jobs  = Path is null ? [] : Path.Rules.SelectMany(r => r.PositionJobs).DistinctBy(j => j.Id).ToList();
+        RecomputeGrades();
+    }
+
+    private void OnJobChanged(int? jobId)
+    {
+        _jobId = jobId;
+        _grade = null;
+        RecomputeGrades();
+        if (_grades.Count == 1) _grade = _grades[0];
+    }
+
+    private void RecomputeGrades()
+        => _grades = (Path is null || !_jobId.HasValue)
+            ? []
+            : Path.Rules.Where(r => r.PositionJobIds.Contains(_jobId.Value)).Select(r => r.Grade).OrderBy(g => g).ToList();
+
+    private void Save()
+    {
+        if (_submitted) return;
+        if (_jobId is null || _grade is null)
+        {
+            Snackbar.Add("Select a title and grade.", Severity.Warning);
+            return;
+        }
+        _submitted = true;
+        MudDialog.Close(DialogResult.Ok(new PromotionResult { JobId = _jobId, Grade = _grade }));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    public sealed class PromotionResult
+    {
+        public int? JobId { get; set; }
+        public int? Grade { get; set; }
+    }
+}

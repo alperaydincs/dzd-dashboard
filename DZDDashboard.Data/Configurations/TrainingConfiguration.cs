@@ -34,7 +34,6 @@ public class TrainingConfiguration : IEntityTypeConfiguration<Training>
 
         builder.HasIndex(t => t.Name).IsUnique();
 
-        // Training→UserTrainings relationship configured in UserTrainingConfiguration — single source of truth
 
         builder.HasOne(t => t.ModifiedBy)
                .WithMany()

@@ -1,7 +1,6 @@
 using DZDDashboard.Common.Constants;
 using Microsoft.AspNetCore.Components;
 using System.Net;
-using System.Net.Http.Json;
 using System.Text.Json;
 
 namespace DZDDashboard.Client.Services;
@@ -99,10 +98,6 @@ public abstract class ApiServiceBase
         }
     }
 
-    /// <summary>
-    /// Reads the <c>detail</c> field from a RFC-7807 ProblemDetails JSON response.
-    /// Returns null when the response cannot be parsed.
-    /// </summary>
     public static async Task<string?> TryReadProblemDetailAsync(HttpResponseMessage response)
     {
         try
@@ -125,7 +120,6 @@ public abstract class ApiServiceBase
         }
     }
 
-    // ── Auth helpers ──────────────────────────────────────────────────────────
 
     private static bool IsAuthChallenge(Exception ex)
     {

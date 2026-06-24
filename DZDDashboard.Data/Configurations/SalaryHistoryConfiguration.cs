@@ -15,6 +15,10 @@ public class SalaryHistoryConfiguration : IEntityTypeConfiguration<SalaryHistory
         builder.Property(s => s.NetAmount).HasPrecision(18, 2);
         builder.Property(s => s.GrossAmount).HasPrecision(18, 2);
 
+        builder.Property(s => s.PayType)
+            .IsRequired()
+            .HasMaxLength(ValidationConstants.MaxShortNameLength);
+
         builder.Property(s => s.Currency)
             .IsRequired()
             .HasMaxLength(ValidationConstants.MaxCurrencyCodeLength);

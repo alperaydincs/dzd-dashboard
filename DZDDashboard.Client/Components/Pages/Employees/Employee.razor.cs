@@ -1,36 +1,45 @@
+using DZDDashboard.Client.Components.Pages;
 using DZDDashboard.Client.Components.Pages.Employees.Dialogs;
+using DZDDashboard.Client.Models;
 using DZDDashboard.Client.Services;
+using DZDDashboard.Client.Theme;
 using DZDDashboard.Common.Constants;
 using DZDDashboard.Common.DTOs;
 using DZDDashboard.Common.Utils;
 using IntlTelInputBlazor;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 using MudBlazor;
 
 namespace DZDDashboard.Client.Components.Pages.Employees;
 
-/// <summary>Code-behind for EmployeeCard.razor — separated from UI markup for maintainability.</summary>
-public partial class EmployeeCard
+public partial class Employee
 {
     private static readonly DialogOptions SmallEscDialog =
         new() { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
 
-    /// <summary>Route parameter — preferred navigation method. Falls back to EmployeeNavigationState.</summary>
-    [Parameter] public int EmployeeId { get; set; }
+    [Parameter] public string? Slug { get; set; }
+
+    [Parameter] public bool SelfService { get; set; }
+
+    private int _userId;
 
     [Inject] private NavigationManager Nav { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private IUserClientService UserService { get; set; } = default!;
     [Inject] private IOrganizationClientService OrgService { get; set; } = default!;
+    [Inject] private IPaymentClientService PaymentService { get; set; } = default!;
+    [Inject] private IUserAvatarState AvatarState { get; set; } = default!;
     [Inject] private IJSRuntime JS { get; set; } = default!;
 
-    // ── State ────────────────────────────────────────────────────────────────
+    private MyPaymentSummaryDto? _myPaymentSummary;
+    private bool _myPaymentSummaryLoading;
+
     private bool _loading;
     private string? _error;
     private EmployeeCardDto? _profile;
-    // ── Per-section edit state (IsEditing + rollback snapshot) ───────────────
     private readonly SectionEditState<EmployeeCardDto>              _basicInfoEdit   = new();
     private readonly SectionEditState<EmployeeCardDto>              _contactsEdit    = new();
     private readonly SectionEditState<EmployeeCardDto>              _citizenshipEdit = new();
@@ -41,7 +50,6 @@ public partial class EmployeeCard
 
     private string _avatarDataUrl = string.Empty;
     private string _fullName = string.Empty;
-    private string _initials = "?";
     private string? _employmentDuration;
     private List<EducationHistoryRecord> _educationHistoryRecords = [];
     private IntlTel _workPhoneIntl = new();
@@ -50,23 +58,92 @@ public partial class EmployeeCard
     private int _activeViewIndex;
     private List<PayrollLocationDto> _payrollLocations = [];
 
-    // Career tab state — all 15 fields encapsulated in CareerTabState
     private readonly CareerTabState _career = new();
 
-    // ── Lifecycle ─────────────────────────────────────────────────────────────
-    // @attribute [Authorize(Roles = Roles.Admin)] on the razor file enforces access before
-    // OnInitializedAsync runs — no manual role check needed here.
+    private List<PositionHistoryDto> _positionHistory = [];
+
+    private List<UserDocumentDto> _cvDocuments = [];
+    private bool _cvUploading;
+    private const string CvAcceptList = ".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg";
+
     protected override async Task OnInitializedAsync()
     {
-        if (EmployeeId <= 0)
+        if (SelfService)
+        {
+            await LoadSelfData();
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(Slug))
         {
             _error = "Employee not selected. Please open a profile from the Employees page.";
             return;
         }
+
+        var openPersonalInfo = new Uri(Nav.Uri).Query.Contains("tab=personal", StringComparison.OrdinalIgnoreCase);
+        if (openPersonalInfo)
+        {
+            _activeViewIndex = 1;
+            Nav.NavigateTo($"/employee/{Slug}", replace: true);
+        }
+
         await LoadData();
     }
 
-    // ── Data loading ──────────────────────────────────────────────────────────
+    private async Task LoadSelfData()
+    {
+        _loading = true;
+        _error   = null;
+        try
+        {
+            _profile = await UserService.GetMyCardAsync();
+            if (_profile is null) { _error = "Could not load your profile."; return; }
+            _userId = _profile.Id;
+
+            try { MergeSensitiveInfo(_profile, await UserService.GetMySensitiveInfoAsync()); } catch { }
+
+            _fullName           = AppFormatter.BuildFullName(_profile.FirstName, _profile.LastName);
+            _employmentDuration = AppFormatter.FormatDurationFrom(_profile.UserStartDate ?? _profile.PositionStartDate);
+
+            try
+            {
+                if (_profile.Avatar is { ContentBase64: { Length: > 0 } b64 })
+                    _avatarDataUrl = $"data:{_profile.Avatar.ContentType ?? "image/png"};base64,{b64}";
+                else
+                {
+                    var avatar = await UserService.GetMyAvatarAsync();
+                    if (avatar is { ContentBase64: { Length: > 0 } ab64 })
+                        _avatarDataUrl = $"data:{avatar.ContentType ?? "image/png"};base64,{ab64}";
+                }
+            }
+            catch { }
+
+            SyncIntlPhoneInputs();
+            _educationHistoryRecords = MapEducationHistories(_profile);
+            _positionHistory = MapPositionHistory(_profile);
+
+            _ = LoadMyPaymentSummaryAsync();
+        }
+        catch (Exception)
+        {
+            _error = "Failed to load your profile.";
+            Snackbar.Add(_error, Severity.Error);
+        }
+        finally { _loading = false; }
+    }
+
+    private async Task LoadMyPaymentSummaryAsync()
+    {
+        _myPaymentSummaryLoading = true;
+        try { _myPaymentSummary = await PaymentService.GetMyPaymentSummaryAsync(); }
+        catch { _myPaymentSummary = null; }
+        finally
+        {
+            _myPaymentSummaryLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
     private async Task LoadData()
     {
         _loading = true;
@@ -74,28 +151,19 @@ public partial class EmployeeCard
 
         try
         {
-            var selectedId  = EmployeeId;
-
-            // Critical calls run in parallel — any failure surfaces to the outer catch.
-            // sensitiveInfoTask fetches PII via SensitiveDataPolicy endpoint because the card endpoint
-            // intentionally does not return PII (gated behind the sensitive-info endpoint for compliance).
-            var profileTask       = UserService.GetEmployeeCardAsync(selectedId);
-            var sensitiveInfoTask = UserService.GetSensitiveInfoAsync(selectedId);
-            var avatarTask        = UserService.GetUserAvatarAsync(selectedId);
-            await Task.WhenAll(profileTask, sensitiveInfoTask, avatarTask);
-
-            // Non-critical: payroll locations enrich dropdowns but don't block rendering.
-            // Isolated so a failure here does not abort the whole card load.
-            try { _payrollLocations = await OrgService.GetPayrollLocationsAsync(); } catch { /* non-critical */ }
-
-            _profile = await profileTask;
-            if (_profile is not null)
-                MergeSensitiveInfo(_profile, await sensitiveInfoTask);
-
+            _profile = await UserService.GetEmployeeCardBySlugAsync(Slug!);
             if (_profile is null) { _error = "User profile not found."; return; }
+            _userId = _profile.Id;
+
+            var sensitiveInfoTask = UserService.GetSensitiveInfoAsync(_userId);
+            var avatarTask        = UserService.GetUserAvatarAsync(_userId);
+            await Task.WhenAll(sensitiveInfoTask, avatarTask);
+
+            try { _payrollLocations = await OrgService.GetPayrollLocationsAsync(); } catch { }
+
+            MergeSensitiveInfo(_profile, await sensitiveInfoTask);
 
             _fullName           = AppFormatter.BuildFullName(_profile.FirstName, _profile.LastName);
-            _initials           = AppFormatter.GetInitials(_fullName);
             _employmentDuration = AppFormatter.FormatDurationFrom(_profile.UserStartDate ?? _profile.PositionStartDate);
 
             try
@@ -109,10 +177,11 @@ public partial class EmployeeCard
                         _avatarDataUrl = $"data:{avatar.ContentType ?? "image/png"};base64,{avatar.ContentBase64}";
                 }
             }
-            catch { /* avatar load is non-critical */ }
+            catch { }
 
             SyncIntlPhoneInputs();
             _educationHistoryRecords = MapEducationHistories(_profile);
+            _positionHistory = MapPositionHistory(_profile);
         }
         catch (HttpRequestException)
         {
@@ -129,10 +198,10 @@ public partial class EmployeeCard
 
     private async Task RefreshProfileAsync()
     {
-        if (EmployeeId <= 0) return;
+        if (_userId <= 0) return;
 
-        var cardTask     = UserService.GetEmployeeCardAsync(EmployeeId);
-        var piiTask      = UserService.GetSensitiveInfoAsync(EmployeeId);
+        var cardTask     = SelfService ? UserService.GetMyCardAsync()         : UserService.GetEmployeeCardAsync(_userId);
+        var piiTask      = SelfService ? UserService.GetMySensitiveInfoAsync() : UserService.GetSensitiveInfoAsync(_userId);
         await Task.WhenAll(cardTask, piiTask);
 
         var latestProfile = await cardTask;
@@ -142,19 +211,16 @@ public partial class EmployeeCard
         _profile = latestProfile;
 
         _fullName           = AppFormatter.BuildFullName(_profile.FirstName, _profile.LastName);
-        _initials           = AppFormatter.GetInitials(_fullName);
         _employmentDuration = AppFormatter.FormatDurationFrom(_profile.UserStartDate ?? _profile.PositionStartDate);
+
+        if (_profile.Avatar is { ContentBase64: { Length: > 0 } b64 })
+            _avatarDataUrl = $"data:{_profile.Avatar.ContentType ?? "image/png"};base64,{b64}";
 
         SyncIntlPhoneInputs();
         _educationHistoryRecords = MapEducationHistories(_profile);
+        _positionHistory = MapPositionHistory(_profile);
     }
 
-    /// <summary>
-    /// Merges PII fields from <paramref name="pii"/> into the card DTO.
-    /// The card endpoint intentionally returns null for PII fields (gated by SensitiveDataPolicy).
-    /// This helper populates them from the dedicated sensitive-info endpoint so the edit sections
-    /// can show the current values when the admin opens them.
-    /// </summary>
     private static void MergeSensitiveInfo(EmployeeCardDto card, EmployeeSensitiveInfoDto? pii)
     {
         if (pii is null) return;
@@ -168,10 +234,12 @@ public partial class EmployeeCard
         card.SpouseFullName     = pii.SpouseFullName;
         card.PersonalEmail      = pii.PersonalEmail;
         card.PersonalPhoneNumber = pii.PersonalPhoneNumber;
-        card.LegalAddress       = pii.LegalAddress;
-        card.CurrentAddress     = pii.CurrentAddress;
-        card.City               = pii.City;
-        card.Country            = pii.Country;
+        card.LegalAddress        = pii.LegalAddress;
+        card.LegalAddressCity    = pii.LegalAddressCity;
+        card.LegalAddressCountry = pii.LegalAddressCountry;
+        card.CurrentAddress      = pii.CurrentAddress;
+        card.City                = pii.City;
+        card.Country             = pii.Country;
         card.Children           = pii.Children
             .Select(c => new ChildInfoDto { Id = c.Id, FullName = c.FullName, DateOfBirth = c.DateOfBirth })
             .ToList();
@@ -190,13 +258,14 @@ public partial class EmployeeCard
             })
             .ToList();
 
-    // ── Edit start / cancel ───────────────────────────────────────────────────
+    private static List<PositionHistoryDto> MapPositionHistory(EmployeeCardDto? profile)
+        => (profile?.PositionHistories ?? [])
+            .OrderByDescending(p => p.EndDate == null)
+            .ThenByDescending(p => p.StartDate)
+            .ToList();
+
     private bool _isEditingActionInProgress;
 
-    /// <summary>
-    /// Shared guard + try/finally wrapper for all "start edit section" actions.
-    /// Eliminates the identical boilerplate repeated across seven Start*Edit methods.
-    /// </summary>
     private async Task StartEditAsync(Action configure)
     {
         if (_isEditingActionInProgress || _profile is null) return;
@@ -271,10 +340,12 @@ public partial class EmployeeCard
     private Task StartAddressInfoEdit() => StartEditAsync(() =>
         _addressEdit.Begin(new EmployeeCardDto
         {
-            LegalAddress   = _profile!.LegalAddress,
-            CurrentAddress = _profile.CurrentAddress,
-            City           = _profile.City,
-            Country        = _profile.Country
+            LegalAddress        = _profile!.LegalAddress,
+            LegalAddressCity    = _profile.LegalAddressCity,
+            LegalAddressCountry = _profile.LegalAddressCountry,
+            CurrentAddress      = _profile.CurrentAddress,
+            City                = _profile.City,
+            Country             = _profile.Country
         }));
 
     private Task StartEducationInfoEdit() => StartEditAsync(() =>
@@ -389,10 +460,12 @@ public partial class EmployeeCard
         var backup = _addressEdit.Cancel();
         if (backup is not null && _profile is not null)
         {
-            _profile.LegalAddress   = backup.LegalAddress;
-            _profile.CurrentAddress = backup.CurrentAddress;
-            _profile.City           = backup.City;
-            _profile.Country        = backup.Country;
+            _profile.LegalAddress        = backup.LegalAddress;
+            _profile.LegalAddressCity    = backup.LegalAddressCity;
+            _profile.LegalAddressCountry = backup.LegalAddressCountry;
+            _profile.CurrentAddress      = backup.CurrentAddress;
+            _profile.City                = backup.City;
+            _profile.Country             = backup.Country;
         }
     }
 
@@ -402,7 +475,6 @@ public partial class EmployeeCard
         _educationHistoryRecords = backup?.Select(CloneEducationHistoryRecord).ToList() ?? [];
     }
 
-    // ── Save operations ───────────────────────────────────────────────────────
     private async Task SaveBasicInfoAsync()
     {
         if (_profile is null) return;
@@ -420,11 +492,14 @@ public partial class EmployeeCard
         };
 
         await ExecuteSaveRequestAsync(
-            () => UserService.UpdateBasicInfoAsync(EmployeeId, dto),
+            () => UserService.UpdateBasicInfoAsync(_userId, dto),
             "Basic information updated successfully.",
             "Failed to update basic information.",
             refreshProfileOnSuccess: true,
             onSuccess: () => _basicInfoEdit.Commit());
+
+        if (_profile is not null && !string.Equals(_profile.Slug, Slug, StringComparison.OrdinalIgnoreCase))
+            Nav.NavigateTo($"/employee/{_profile.Slug}?tab=personal", forceLoad: true);
     }
 
     private async Task SaveContactsAsync()
@@ -442,8 +517,17 @@ public partial class EmployeeCard
         if (!IsEmailValidOrEmpty(dto.Email))        { Snackbar.Add("Please enter a valid work email address.", Severity.Error); return; }
         if (!IsEmailValidOrEmpty(dto.PersonalEmail)) { Snackbar.Add("Please enter a valid personal email address.", Severity.Error); return; }
 
+        Func<Task<HttpResponseMessage>> request = SelfService
+            ? () => UserService.UpdateMyContactInfoAsync(new UpdateContactInfoDto
+                {
+                    WorkPhoneNumber     = dto.PhoneNumber,
+                    PersonalEmail       = dto.PersonalEmail,
+                    PersonalPhoneNumber = dto.PersonalPhoneNumber
+                })
+            : () => UserService.UpdateContactsAsync(_userId, dto);
+
         await ExecuteSaveRequestAsync(
-            () => UserService.UpdateContactsAsync(EmployeeId, dto),
+            request,
             "Contact information updated successfully.",
             "Failed to update contact information.",
             refreshProfileOnSuccess: true,
@@ -464,7 +548,7 @@ public partial class EmployeeCard
         };
 
         await ExecuteSaveRequestAsync(
-            () => UserService.UpdateCitizenshipInfoAsync(EmployeeId, dto),
+            () => UserService.UpdateCitizenshipInfoAsync(_userId, dto),
             "Citizenship information updated successfully.",
             "Failed to update citizenship information.",
             refreshProfileOnSuccess: true,
@@ -475,7 +559,6 @@ public partial class EmployeeCard
     {
         if (_profile is null) return;
 
-        // Sync IntlTel values back
         if (_profile.EmergencyContacts != null)
         {
             foreach (var contact in _profile.EmergencyContacts)
@@ -496,7 +579,9 @@ public partial class EmployeeCard
         };
 
         await ExecuteSaveRequestAsync(
-            () => UserService.UpdateEmergencyContactsAsync(EmployeeId, dto),
+            SelfService
+                ? () => UserService.UpdateMyEmergencyContactsAsync(dto)
+                : () => UserService.UpdateEmergencyContactsAsync(_userId, dto),
             "Emergency contact updated successfully.",
             "Failed to update emergency contact.",
             refreshProfileOnSuccess: true,
@@ -508,14 +593,16 @@ public partial class EmployeeCard
         if (_profile is null) return;
         var dto = new UpdateAddressInfoDto
         {
-            LegalAddress   = _profile.LegalAddress,
-            CurrentAddress = _profile.CurrentAddress,
-            City           = _profile.City,
-            Country        = _profile.Country
+            LegalAddress        = _profile.LegalAddress,
+            LegalAddressCity    = _profile.LegalAddressCity,
+            LegalAddressCountry = _profile.LegalAddressCountry,
+            CurrentAddress      = _profile.CurrentAddress,
+            City                = _profile.City,
+            Country             = _profile.Country
         };
 
         await ExecuteSaveRequestAsync(
-            () => UserService.UpdateAddressInfoAsync(EmployeeId, dto),
+            () => UserService.UpdateAddressInfoAsync(_userId, dto),
             "Address information updated successfully.",
             "Failed to update address information.",
             refreshProfileOnSuccess: true,
@@ -536,7 +623,7 @@ public partial class EmployeeCard
         };
 
         await ExecuteSaveRequestAsync(
-            () => UserService.UpdateEducationInfoAsync(EmployeeId, dto),
+            () => UserService.UpdateEducationInfoAsync(_userId, dto),
             "Education information updated successfully.",
             "Failed to update education information.",
             refreshProfileOnSuccess: true,
@@ -556,14 +643,15 @@ public partial class EmployeeCard
         };
 
         await ExecuteSaveRequestAsync(
-            () => UserService.UpdateFamilyInfoAsync(EmployeeId, dto),
+            SelfService
+                ? () => UserService.UpdateMyFamilyInfoAsync(dto)
+                : () => UserService.UpdateFamilyInfoAsync(_userId, dto),
             "Family information updated successfully.",
             "Failed to update family information.",
             refreshProfileOnSuccess: true,
             onSuccess: () => { _familyEdit.Commit(); });
     }
 
-    // ── Education dialog helpers ───────────────────────────────────────────────
     private async Task OpenAddEducationHistoryDialogAsync()
     {
         var options = SmallEscDialog;
@@ -639,19 +727,19 @@ public partial class EmployeeCard
         return Color.Default;
     }
 
-    // ── Career tab ─────────────────────────────────────────────────────────────
     private void SetView(int index)
     {
         _activeViewIndex = index;
-        if (index == 2 && !_career.IsLoaded)
+        if (!SelfService && index == 2 && !_career.IsLoaded)
             _ = LoadCareerDataAsync();
+        if (SelfService && index == 3 && _myPaymentSummary is null)
+            _ = LoadMyPaymentSummaryAsync();
     }
 
     private async Task LoadCareerDataAsync()
     {
         try
         {
-            // All 5 calls independent — run in parallel
             var tCompanies  = OrgService.GetCompaniesAsync();
             var tDepts      = OrgService.GetDepartmentsAsync();
             var tTeams      = OrgService.GetTeamsAsync();
@@ -660,13 +748,13 @@ public partial class EmployeeCard
 
             await Task.WhenAll(tCompanies, tDepts, tTeams, tJobs, tPaths);
 
-            // Tasks already completed — .Result is safe and avoids redundant async overhead
             _career.Companies   = tCompanies.Result;
             _career.AllDepts    = tDepts.Result;
             _career.AllTeams    = tTeams.Result;
             _career.AllJobs     = tJobs.Result;
             _career.CareerPaths = tPaths.Result;
             _career.MarkLoaded();
+            _ = LoadCvDocumentsAsync();
 
             _career.CompanyName = _profile?.CompanyName;
             _career.DeptId      = _profile?.DepartmentId;
@@ -677,6 +765,7 @@ public partial class EmployeeCard
 
             _career.FilteredDepts = FilteredDeptsForCompany(_career.CompanyName);
             _career.FilteredTeams = FilteredTeamsForDept(_career.DeptId);
+            PrefillManagerFromProfile();
 
             if (_career.PathId.HasValue)
             {
@@ -699,96 +788,359 @@ public partial class EmployeeCard
         }
     }
 
-    private void OnCareerCompanyChanged(string? name)
+    private void PrefillManagerFromProfile()
     {
-        _career.CompanyName   = name;
-        _career.DeptId        = null;
-        _career.TeamId        = null;
-        _career.FilteredDepts = FilteredDeptsForCompany(name);
-        _career.FilteredTeams = [];
-    }
-
-    private void OnCareerDeptChanged(int? deptId)
-    {
-        _career.DeptId        = deptId;
-        _career.TeamId        = null;
-        _career.FilteredTeams = FilteredTeamsForDept(deptId);
-    }
-
-    private void OnCareerPathChanged(int? pathId)
-    {
-        _career.PathId    = pathId;
-        _career.JobId     = null;
-        _career.Grade     = null;
-        _career.JobGrades = [];
-
-        var path = _career.CareerPaths.FirstOrDefault(p => p.Id == pathId);
-        _career.PathJobs  = path is null ? [] : path.Rules.SelectMany(r => r.PositionJobs).DistinctBy(j => j.Id).ToList();
-    }
-
-    private void OnCareerJobChanged(int? jobId)
-    {
-        _career.JobId = jobId;
-        _career.Grade = null;
-
-        var path = _career.CareerPaths.FirstOrDefault(p => p.Id == _career.PathId);
-        _career.JobGrades = (path is null || !jobId.HasValue)
-            ? []
-            : path.Rules.Where(r => r.PositionJobIds.Contains(jobId.Value))
-                .Select(r => r.Grade).OrderBy(g => g).ToList();
-
-        if (_career.JobGrades.Count == 1) _career.Grade = _career.JobGrades[0];
-    }
-
-    private void CancelCareerEdit()
-    {
-        _career.CancelEdit();
-        ApplyProfileToCareerTab();
+        _career.SelectedManager = _profile?.ReportsTo is { } r
+            ? new UserSearchResultDto
+            {
+                Id               = r.Id,
+                FirstName        = r.FirstName,
+                LastName         = r.LastName,
+                AvatarColorIndex = r.AvatarColorIndex,
+                AvatarContentType = r.Avatar?.ContentType,
+                AvatarBase64      = r.Avatar?.ContentBase64,
+            }
+            : null;
     }
 
     private bool _careerSaving;
 
-    private async Task SaveCareerAssignmentAsync()
+
+    private async Task OpenCareerAssignmentDialogAsync(PositionHistoryDto? current)
     {
-        if (EmployeeId <= 0 || _careerSaving) return;
+        if (_userId <= 0) return;
+
+        var initial = new CareerAssignmentDialog.CareerAssignmentResult
+        {
+            ManagerId    = _career.SelectedManager?.Id,
+            Manager      = _career.SelectedManager,
+            CompanyName  = _profile?.CompanyName,
+            DepartmentId = _profile?.DepartmentId,
+            TeamId       = _profile?.TeamId,
+            PathId       = _profile?.CareerPathId,
+            JobId        = _profile?.JobId,
+            Grade        = _profile?.Grade,
+            StartDate    = current?.StartDate ?? _profile?.PositionStartDate ?? DateTime.Today,
+            EndDate      = current?.EndDate
+        };
+
+        var parameters = new DialogParameters
+        {
+            [nameof(CareerAssignmentDialog.Companies)]     = _career.Companies,
+            [nameof(CareerAssignmentDialog.AllDepts)]      = _career.AllDepts,
+            [nameof(CareerAssignmentDialog.AllTeams)]      = _career.AllTeams,
+            [nameof(CareerAssignmentDialog.CareerPaths)]   = _career.CareerPaths,
+            [nameof(CareerAssignmentDialog.ExcludeUserId)] = _userId,
+            [nameof(CareerAssignmentDialog.InitialModel)]  = initial
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog  = await DialogService.ShowAsync<CareerAssignmentDialog>(
+            current is null ? "Assign Position" : "Edit Career Assignment", parameters, options);
+        var result = await dialog.Result;
+        if (result is null || result.Canceled || result.Data is not CareerAssignmentDialog.CareerAssignmentResult data) return;
+
+        await SaveAssignmentAsync(data);
+    }
+
+    private async Task SaveAssignmentAsync(CareerAssignmentDialog.CareerAssignmentResult data)
+    {
+        if (_careerSaving) return;
+
+        var manager     = data.Manager;
+        var needNewNode = manager is { OrganizationPositionId: not null } && _profile?.OrganizationPositionId is null;
+        string? newPositionName = null;
+        if (needNewNode)
+        {
+            var p = new DialogParameters
+            {
+                [nameof(PositionNameDialog.ManagerName)] = AppFormatter.BuildFullName(manager!.FirstName, manager.LastName)
+            };
+            var o  = new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true, CloseOnEscapeKey = true };
+            var pd = await DialogService.ShowAsync<PositionNameDialog>("New Position", p, o);
+            var pr = await pd.Result;
+            if (pr is not { Canceled: false, Data: string name } || string.IsNullOrWhiteSpace(name)) return;
+            newPositionName = name;
+        }
+
         _careerSaving = true;
         try
         {
             var dto = new UpdateCareerAssignmentDto
             {
-                CompanyName  = _career.CompanyName,
-                DepartmentId = _career.DeptId,
-                TeamId       = _career.TeamId,
-                CareerPathId = _career.PathId,
-                JobId        = _career.JobId,
-                Grade        = _career.Grade,
+                CompanyName     = data.CompanyName,
+                DepartmentId    = data.DepartmentId,
+                TeamId          = data.TeamId,
+                CareerPathId    = data.PathId,
+                JobId           = data.JobId,
+                Grade           = data.Grade,
+                ManagerId       = data.ManagerId,
+                NewPositionName = newPositionName
             };
+            var resp = await UserService.UpdateCareerAssignmentAsync(_userId, dto);
+            if (!resp.IsSuccessStatusCode)
+            {
+                Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? "Failed to save assignment.", Severity.Error);
+                return;
+            }
 
-            var resp = await UserService.UpdateCareerAssignmentAsync(EmployeeId, dto);
+            var posDto = new UpdatePositionHistoryDto
+            {
+                CompanyName  = data.CompanyName,
+                DepartmentId = data.DepartmentId,
+                TeamId       = data.TeamId,
+                StartDate    = data.StartDate ?? DateTime.Today,
+                EndDate      = data.EndDate
+            };
+            await UserService.UpdateCurrentPositionAsync(_userId, posDto);
+
+            await RefreshProfileAsync();
+            ApplyProfileToCareerTab();
+            Snackbar.Add("Career assignment saved.", Severity.Success);
+        }
+        finally { _careerSaving = false; }
+    }
+
+    private async Task OpenPromotionDialogAsync()
+    {
+        if (_userId <= 0) return;
+
+        var path = _profile?.CareerPathId is int id ? _career.CareerPaths.FirstOrDefault(p => p.Id == id) : null;
+        if (path is null)
+        {
+            Snackbar.Add("Assign a career path first.", Severity.Warning);
+            return;
+        }
+
+        var parameters = new DialogParameters
+        {
+            [nameof(PromotionDialog.Path)]  = path,
+            [nameof(PromotionDialog.JobId)] = _profile?.JobId,
+            [nameof(PromotionDialog.Grade)] = _profile?.Grade
+        };
+        var dialog = await DialogService.ShowAsync<PromotionDialog>("Promotion", parameters, SmallEscDialog);
+        var result = await dialog.Result;
+        if (result is null || result.Canceled || result.Data is not PromotionDialog.PromotionResult data) return;
+
+        if (_careerSaving) return;
+        _careerSaving = true;
+        try
+        {
+            var dto = new UpdateCareerAssignmentDto
+            {
+                CompanyName  = _profile?.CompanyName,
+                DepartmentId = _profile?.DepartmentId,
+                TeamId       = _profile?.TeamId,
+                CareerPathId = _profile?.CareerPathId,
+                JobId        = data.JobId,
+                Grade        = data.Grade
+            };
+            var resp = await UserService.UpdateCareerAssignmentAsync(_userId, dto);
             if (resp.IsSuccessStatusCode)
             {
-                // Refresh only the profile (card + sensitive-info) — reference data (companies/depts/jobs/
-                // career paths) is unchanged and does not need reloading. This replaces the previous
-                // LoadData() + LoadCareerDataAsync() double-reload (9 API calls → 2 API calls).
                 await RefreshProfileAsync();
                 ApplyProfileToCareerTab();
-                Snackbar.Add("Career assignment saved.", Severity.Success);
+                Snackbar.Add("Employee promoted.", Severity.Success);
             }
             else
             {
-                Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? "Failed to save career assignment.", Severity.Error);
+                Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? "Promotion failed.", Severity.Error);
             }
         }
         finally { _careerSaving = false; }
     }
 
-    // ── Career helpers ────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Applies the current <see cref="_profile"/> values to the career tab state and
-    /// recomputes the filtered department/team lists from in-memory reference data.
-    /// Used after a career-assignment save to avoid reloading unchanged reference data.
-    /// </summary>
+    private async Task LoadCvDocumentsAsync()
+    {
+        try { _cvDocuments = await UserService.GetUserDocumentsAsync(_userId); }
+        catch { _cvDocuments = []; }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnCvFileSelected(InputFileChangeEventArgs e)
+    {
+        if (_userId <= 0 || e.FileCount == 0 || e.File is not { } file) return;
+
+        if (file.Size > DocumentConstants.MaxFileSizeBytes)
+        {
+            Snackbar.Add($"File size cannot exceed {DocumentConstants.MaxFileSizeBytes / 1024 / 1024} MB.", Severity.Warning);
+            return;
+        }
+        if (!DocumentConstants.AllowedMimeTypes.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
+        {
+            Snackbar.Add("Unsupported file type. Allowed: PDF, Word, Excel, PNG, JPG.", Severity.Warning);
+            return;
+        }
+
+        _cvUploading = true;
+        try
+        {
+            await using var stream = file.OpenReadStream(DocumentConstants.MaxFileSizeBytes);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+
+            using var content     = new MultipartFormDataContent();
+            using var fileContent = new ByteArrayContent(ms.ToArray());
+            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+            content.Add(fileContent, "file", file.Name);
+
+            var resp = await UserService.UploadUserDocumentAsync(_userId, content);
+            if (resp.IsSuccessStatusCode)
+            {
+                await LoadCvDocumentsAsync();
+                Snackbar.Add("Document uploaded.", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? "Upload failed.", Severity.Error);
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Upload failed. Please try again.", Severity.Error);
+        }
+        finally { _cvUploading = false; }
+    }
+
+    private async Task DownloadDocumentAsync(UserDocumentDto doc)
+    {
+        try
+        {
+            var bytes = await UserService.DownloadUserDocumentAsync(_userId, doc.Id);
+            if (bytes is null) { Snackbar.Add("Download failed.", Severity.Error); return; }
+            await JS.InvokeVoidAsync("dzdDownloadFile", doc.FileName, Convert.ToBase64String(bytes), doc.ContentType);
+        }
+        catch { Snackbar.Add("Download failed.", Severity.Error); }
+    }
+
+    private async Task DeleteDocumentAsync(UserDocumentDto doc)
+    {
+        var resp = await UserService.DeleteUserDocumentAsync(_userId, doc.Id);
+        if (resp.IsSuccessStatusCode)
+        {
+            await LoadCvDocumentsAsync();
+            Snackbar.Add("Document deleted.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Delete failed.", Severity.Error);
+        }
+    }
+
+    private static string FormatFileSize(long bytes)
+        => bytes >= 1024 * 1024 ? $"{bytes / 1024.0 / 1024.0:0.#} MB"
+         : bytes >= 1024 ? $"{bytes / 1024.0:0.#} KB"
+         : $"{bytes} B";
+
+
+    private CareerPathDto? AssignedPath()
+        => _profile?.CareerPathId is int id ? _career.CareerPaths.FirstOrDefault(p => p.Id == id) : null;
+
+    private List<CareerMapRuleDto> PathRulesOrdered()
+        => AssignedPath()?.Rules.OrderBy(r => r.Grade).ToList() ?? [];
+
+    private CareerMapRuleDto? NextGradeRule()
+    {
+        var rules = PathRulesOrdered();
+        var grade = _profile?.Grade;
+        return grade is null ? rules.FirstOrDefault() : rules.FirstOrDefault(r => r.Grade > grade);
+    }
+
+    private static string FormatPositionRange(PositionHistoryDto p)
+        => $"{p.StartDate:MMM d, yyyy} - {(p.EndDate is { } e ? e.ToString("MMM d, yyyy") : "Present")}";
+
+    private static string FormatRoleDuration(RoleDurationDto d)
+        => d.Years is > 0 and var y ? $"{y} year{(y == 1 ? "" : "s")}"
+         : d.Months is > 0 and var m ? $"{m} month{(m == 1 ? "" : "s")}"
+         : "-";
+
+
+    internal enum ReqStatus { Completed, InProgress, Pending }
+
+    internal sealed record GradeRequirement(
+        string Icon,
+        string IconBg,
+        string IconColor,
+        string Name,
+        string Required,
+        string CurrentStatus,
+        int Progress,        ReqStatus Status);
+
+    private static int ToMonths(RoleDurationDto d) => d.Years.GetValueOrDefault() * 12 + d.Months.GetValueOrDefault();
+
+    private static int MonthsSince(DateTime? start)
+    {
+        if (start is null) return 0;
+        var now = DateTime.UtcNow.Date;
+        var total = (now.Year - start.Value.Year) * 12 + (now.Month - start.Value.Month);
+        if (now.Day < start.Value.Day) total--;
+        return Math.Max(0, total);
+    }
+
+    private CareerMapRuleDto? CurrentGradeRule()
+    {
+        var rules = PathRulesOrdered();
+        var grade = _profile?.Grade;
+        return grade is null ? rules.FirstOrDefault() : rules.FirstOrDefault(r => r.Grade == grade);
+    }
+
+    private List<GradeRequirement> NextGradeRequirements()
+    {
+        if (CurrentGradeRule() is not { } next) return [];
+
+        var rows = new List<GradeRequirement>();
+
+        static GradeRequirement Duration(string icon, string bg, string fg, string name,
+            RoleDurationDto required, int actualMonths, string currentStatus)
+        {
+            var requiredMonths = ToMonths(required);
+            var progress = requiredMonths <= 0 ? 100 : Math.Clamp(actualMonths * 100 / requiredMonths, 0, 100);
+            var status = progress >= 100 ? ReqStatus.Completed : actualMonths > 0 ? ReqStatus.InProgress : ReqStatus.Pending;
+            return new(icon, bg, fg, name, FormatRoleDuration(required), currentStatus, progress, status);
+        }
+
+        if (ToMonths(next.MinExperience) > 0)
+            rows.Add(Duration(DzdIcons.Clock, "#E8EBFF", "#2B38F5", "Minimum Experience",
+                next.MinExperience, MonthsSince(_profile?.UserStartDate),
+                AppFormatter.FormatDurationFrom(_profile?.UserStartDate) ?? "-"));
+
+        if (ToMonths(next.MinRoleTime) > 0)
+            rows.Add(Duration(DzdIcons.CalendarCheck, "#FFF1E8", "#F46036", "Time in Current Role",
+                next.MinRoleTime, MonthsSince(_profile?.PositionStartDate),
+                AppFormatter.FormatDurationFrom(_profile?.PositionStartDate) ?? "-"));
+
+        if (next.ProjectObjective is int po and > 0)
+            rows.Add(new(DzdIcons.Target, "#E3F0EE", "#70A37F", "Project Goal Achievement",
+                $"{po} project{(po == 1 ? "" : "s")}", "Pending review", 0, ReqStatus.Pending));
+
+        if (next.ManagerPerformanceEvaluation)
+            rows.Add(new(DzdIcons.UserRound, "#FFF8E8", "#FEA82F", "Manager Performance Rating",
+                "Required", "Pending review", 0, ReqStatus.Pending));
+
+        if (next.TechnicalInterview)
+            rows.Add(new(DzdIcons.ShieldCheck, "#E8EBFF", "#2B38F5", "Technical Interview",
+                "Required", "Pending review", 0, ReqStatus.Pending));
+
+        if (next.CaseStudy)
+            rows.Add(new(DzdIcons.FileText, "#E8EBFF", "#2B38F5", "Case Study",
+                "Required", "Pending review", 0, ReqStatus.Pending));
+
+        if (next.EnglishProficiency)
+            rows.Add(new(DzdIcons.Languages, "#E3F0EE", "#70A37F", "English Proficiency",
+                "Required", "Pending review", 0, ReqStatus.Pending));
+
+        if (next.AssessmentCenterApplication)
+            rows.Add(new(DzdIcons.Target, "#FFF8E8", "#FEA82F", "Assessment Center",
+                "Required", "Pending review", 0, ReqStatus.Pending));
+
+        if (next.CommitteeApproval)
+            rows.Add(new(DzdIcons.Users, "#FFF1E8", "#F46036", "Committee Approval",
+                "Required", "Pending review", 0, ReqStatus.Pending));
+
+        return rows;
+    }
+
+
     private void ApplyProfileToCareerTab()
     {
         _career.CompanyName   = _profile?.CompanyName;
@@ -797,6 +1149,7 @@ public partial class EmployeeCard
         _career.PathId        = _profile?.CareerPathId;
         _career.JobId         = _profile?.JobId;
         _career.Grade         = _profile?.Grade;
+        PrefillManagerFromProfile();
         _career.FilteredDepts = FilteredDeptsForCompany(_career.CompanyName);
         _career.FilteredTeams = FilteredTeamsForDept(_career.DeptId);
 
@@ -811,7 +1164,6 @@ public partial class EmployeeCard
                 .Select(r => r.Grade).OrderBy(g => g).ToList();
     }
 
-    /// <summary>Returns departments that belong to the company with the given <paramref name="companyName"/>.</summary>
     private List<DepartmentDto> FilteredDeptsForCompany(string? companyName)
         => string.IsNullOrEmpty(companyName)
             ? []
@@ -819,13 +1171,11 @@ public partial class EmployeeCard
                 .Where(d => _career.Companies.Any(c => c.Name == companyName && c.Id == d.CompanyId))
                 .ToList();
 
-    /// <summary>Returns teams that belong to the department with the given <paramref name="deptId"/>.</summary>
     private List<TeamDto> FilteredTeamsForDept(int? deptId)
         => deptId.HasValue
             ? _career.AllTeams.Where(t => t.DepartmentId == deptId).ToList()
             : [];
 
-    // ── Utilities ─────────────────────────────────────────────────────────────
     private void RemoveEmergencyContact(EmergencyContactDto contact)
     {
         _profile?.EmergencyContacts?.Remove(contact);
@@ -905,6 +1255,61 @@ public partial class EmployeeCard
         return intl;
     }
 
+    private async Task OpenAvatarUploadDialog()
+    {
+        if (!SelfService || _profile is null) return;
+
+        var parameters = new DialogParameters
+        {
+            ["CurrentAvatarUrl"]  = _avatarDataUrl,
+            ["UserFullName"]      = _fullName,
+            ["CurrentColorIndex"] = _profile.AvatarColorIndex
+        };
+
+        var dialog = await DialogService.ShowAsync<AvatarUploadDialog>("Update Profile Photo", parameters);
+        var result = await dialog.Result;
+        if (result is not { Canceled: false } || result.Data is not AvatarDialogResult dialogResult) return;
+
+        if (dialogResult.ColorChanged)
+        {
+            var colorResp = await UserService.UpdateMyAvatarColorAsync(dialogResult.ColorIndex);
+            if (!colorResp.IsSuccessStatusCode) Snackbar.Add("Failed to update avatar color.", Severity.Error);
+        }
+
+        if (dialogResult.File is not null) await UploadMyAvatarAsync(dialogResult.File);
+        else if (dialogResult.ColorChanged) await RefreshProfileAsync();
+
+        AvatarState.NotifyChanged();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task UploadMyAvatarAsync(AvatarUploadResult fileResult)
+    {
+        try
+        {
+            using var content       = new MultipartFormDataContent();
+            using var stream        = new MemoryStream(fileResult.Content);
+            using var streamContent = new StreamContent(stream);
+            streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(fileResult.ContentType);
+            content.Add(streamContent, name: "file", fileName: fileResult.FileName);
+
+            var response = await UserService.UpdateMyProfileAvatarAsync(content);
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Avatar updated successfully.", Severity.Success);
+                await RefreshProfileAsync();
+            }
+            else
+            {
+                Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(response) ?? "Failed to upload avatar.", Severity.Error);
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Upload failed. Please try again.", Severity.Error);
+        }
+    }
+
     private void Back() => Nav.NavigateTo("/employees");
     private string GetManagerDisplayName()
     {
@@ -914,7 +1319,6 @@ public partial class EmployeeCard
     }
     private string GetManagerDepartmentName() => _profile?.ReportsTo?.Department?.Name ?? "-";
 
-    // ── Nested types ──────────────────────────────────────────────────────────
     private sealed class EducationHistoryRecord
     {
         public int?      Id             { get; set; }

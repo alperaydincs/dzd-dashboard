@@ -14,7 +14,6 @@ public static class ServiceCollectionExtensions
         IConfiguration configuration,
         IWebHostEnvironment environment)
     {
-        // Bind typed options before any service that depends on them
         services.Configure<DownstreamApiOptions>(
             configuration.GetSection(DownstreamApiOptions.SectionName));
 
@@ -26,25 +25,15 @@ public static class ServiceCollectionExtensions
         services.AddAntiforgery();
         services.AddHttpContextAccessor();
 
-        // Development: in-memory token cache (no DB table required).
-        // Production: SQL Server-backed distributed cache (requires TokenCache table — create with
-        //   dotnet sql-cache create "<conn>" dbo TokenCache).
-        if (environment.IsDevelopment())
-        {
-            services.AddDistributedMemoryCache();
-        }
-        else
-        {
-            var connectionString = configuration.GetConnectionString("DefaultConnection")
-                ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection is required.");
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection is required.");
 
-            services.AddDistributedSqlServerCache(options =>
-            {
-                options.ConnectionString = connectionString;
-                options.SchemaName       = "dbo";
-                options.TableName        = "TokenCache";
-            });
-        }
+        services.AddDistributedSqlServerCache(options =>
+        {
+            options.ConnectionString = connectionString;
+            options.SchemaName       = "dbo";
+            options.TableName        = "TokenCache";
+        });
 
         services
             .AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
@@ -104,6 +93,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPaymentClientService>(sp => sp.GetRequiredService<PaymentService>());
         services.AddScoped<NotificationCenterService>();
         services.AddScoped<INotificationCenterService>(sp => sp.GetRequiredService<NotificationCenterService>());
+        services.AddScoped<IUserAvatarState, UserAvatarState>();
 
         return services;
     }

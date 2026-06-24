@@ -32,7 +32,6 @@ public abstract class CrudDialogBase : ComponentBase
             }
             else
             {
-                // Surface the server's ProblemDetails message when available
                 var detail = await ApiServiceBase.TryReadProblemDetailAsync(response);
                 Snackbar.Add(detail ?? $"Failed to save {entityName}.", Severity.Error);
             }

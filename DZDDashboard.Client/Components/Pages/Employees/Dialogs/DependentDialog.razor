@@ -1,0 +1,110 @@
+@using DZDDashboard.Common.Constants
+@using DZDDashboard.Common.DTOs
+@using DZDDashboard.Common.Validation
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <div class="d-flex align-center" style="gap:10px;">
+            <MudIcon Icon="@DzdIcons.Users" Size="Size.Small" Style="color:var(--dzd-blue-500); font-size:18px;" />
+            <MudText Typo="Typo.h6" Style="font-size:16px; font-weight:600;">@MudDialog.Title</MudText>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <div>
+                <div class="dzd-dialog-label">Name</div>
+                <MudTextField T="string" @bind-Value="_model.DependentName" Variant="Variant.Outlined" Margin="Margin.Dense"
+                              MaxLength="ValidationConstants.MaxShortNameLength" Placeholder="Enter dependent name" />
+            </div>
+            <div>
+                <div class="dzd-dialog-label">Relation</div>
+                <MudSelect T="string" @bind-Value="_model.DependentType" Variant="Variant.Outlined" Margin="Margin.Dense"
+                           Required="true" Placeholder="Relation">
+                    @foreach (var option in DependentTypes.All)
+                    {
+                        <MudSelectItem Value="@option">@option</MudSelectItem>
+                    }
+                </MudSelect>
+            </div>
+            <div>
+                <div class="dzd-dialog-label">Amount (₺)</div>
+                <MudNumericField T="decimal" @bind-Value="_model.Amount" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                 Required="true" Min="0.01m" Format="N2" Placeholder="0" />
+            </div>
+            <MudGrid Spacing="3">
+                <MudItem xs="6">
+                    <div class="dzd-dialog-label">Start Date</div>
+                    <MudDatePicker Date="@_model.StartDate" DateChanged="@(d => _model.StartDate = d ?? _model.StartDate)"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" Required="true"
+                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
+                </MudItem>
+                <MudItem xs="6">
+                    <div class="dzd-dialog-label">End Date (Optional)</div>
+                    <MudDatePicker Date="@_model.EndDate" DateChanged="@(d => _model.EndDate = d)"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense"
+                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
+                </MudItem>
+            </MudGrid>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_submitted">@ConfirmButtonText</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public BenefitDependentDto? InitialModel { get; set; }
+    [Parameter] public string ConfirmButtonText { get; set; } = "Add Dependent";
+
+    private BenefitDependentDto _model = new()
+    {
+        DependentType = DependentTypes.Spouse,
+        StartDate     = DateTime.Today
+    };
+
+    private bool _initialized;
+    private bool _submitted;
+
+    protected override void OnParametersSet()
+    {
+        if (_initialized || InitialModel is null) return;
+        _initialized = true;
+
+        _model = InitialModel with { };
+    }
+
+    private void Save()
+    {
+        if (_submitted) return;
+
+        if (string.IsNullOrWhiteSpace(_model.DependentType))
+        {
+            Snackbar.Add("Relation is required.", Severity.Warning);
+            return;
+        }
+        if (_model.Amount <= 0)
+        {
+            Snackbar.Add("Amount must be greater than zero.", Severity.Warning);
+            return;
+        }
+        if (_model.StartDate == default)
+        {
+            Snackbar.Add("Start date is required.", Severity.Warning);
+            return;
+        }
+        if (_model.EndDate.HasValue && _model.EndDate < _model.StartDate)
+        {
+            Snackbar.Add("End date cannot be before start date.", Severity.Warning);
+            return;
+        }
+
+        _submitted = true;
+        MudDialog.Close(DialogResult.Ok(_model));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

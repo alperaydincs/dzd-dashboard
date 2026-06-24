@@ -1,14 +1,12 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace DZDDashboard.Data.Migrations
 {
-    /// <inheritdoc />
     public partial class RemoveRoleAndUserRoleEntities : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
@@ -18,7 +16,6 @@ namespace DZDDashboard.Data.Migrations
                 name: "Roles");
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(

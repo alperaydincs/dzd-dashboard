@@ -1,4 +1,3 @@
-@using DZDDashboard.Client.Components.Pages.Admin.Dialogs
 @using DZDDashboard.Common.DTOs
 @using DZDDashboard.Client.Theme
 
@@ -16,153 +15,213 @@ else
 {
     <MudStack Spacing="4">
 
-        <!-- Header -->
         <div class="gm-header">
             <div>
-                <div class="gm-title">Grade Management by Career Path</div>
-                <div class="gm-subtitle">Define career paths per employee group, then add grade levels and assign job titles to each grade</div>
+                <MudText Typo="Typo.h5" Class="gm-title">Career Path Settings</MudText>
+                <MudText Typo="Typo.body2" Class="gm-subtitle">Define career paths per employee group, then add grade levels and assign job titles to each grade</MudText>
             </div>
-            <button type="button" class="gm-add-btn" @onclick="OpenAddCareerPathDialog">
-                <MudIcon Icon="@DzdIcons.Plus" Size="Size.Small" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       StartIcon="@DzdIcons.Plus" Disabled="@(_editPathId is not null)"
+                       OnClick="OpenAddCareerPathDialog">
                 Add Career Path
-            </button>
+            </MudButton>
         </div>
 
-        <!-- Career Path Cards -->
         @foreach (var path in _careerPaths)
         {
             var pathCapture = path;
-            var isExpanded = _expandedIds.Contains(path.Id);
+            var isExpanded  = _expandedIds.Contains(path.Id);
+            var isEditing   = IsEditingPath(path.Id);
 
-            <div class="gm-job-card">
-                <!-- Card Header -->
+            <MudPaper Elevation="0" Outlined="true" Class="gm-job-card">
+
                 <div class="gm-job-hdr @(isExpanded ? "gm-job-hdr-expanded" : "")">
-                    <button type="button" class="gm-toggle-btn" @onclick="() => TogglePath(pathCapture.Id)">
-                        <MudIcon Icon="@(isExpanded ? DzdIcons.ChevronDown : DzdIcons.ChevronRight)" Size="Size.Small" />
-                    </button>
+                    <MudIconButton Icon="@(isExpanded ? DzdIcons.ChevronDown : DzdIcons.ChevronRight)"
+                                   Size="Size.Small" Disabled="@isEditing"
+                                   OnClick="() => TogglePath(pathCapture.Id)" />
+
                     <div class="gm-icon-wrap">
                         <MudIcon Icon="@DzdIcons.Route" Size="Size.Small" />
                     </div>
-                    <div class="gm-job-title-group" @onclick="() => TogglePath(pathCapture.Id)" style="cursor:pointer">
-                        <span class="gm-job-name">@path.Name</span>
-                        <span class="gm-job-meta">
-                            @path.UserGroupName
-                            <span class="gm-meta-sep">·</span>
-                            @path.Rules.Count grade levels
-                        </span>
-                    </div>
-                    <div class="gm-job-actions">
-                        <button type="button" class="gm-icon-btn" title="Edit" @onclick="() => OpenEditCareerPathDialog(pathCapture)" @onclick:stopPropagation>
-                            <MudIcon Icon="@DzdIcons.Pencil" Size="Size.Small" />
-                        </button>
-                        <button type="button" class="gm-icon-btn gm-icon-btn-danger" title="Delete" @onclick="() => DeleteCareerPath(pathCapture)" @onclick:stopPropagation>
-                            <MudIcon Icon="@DzdIcons.Trash2" Size="Size.Small" />
-                        </button>
-                    </div>
-                </div>
 
-                <!-- Grade Table -->
-                @if (isExpanded)
-                {
-                    @if (path.Rules.Count == 0)
+                    @if (isEditing)
                     {
-                        <div class="gm-no-grades">
-                            <span>No grade levels yet.</span>
+                        <div class="gm-edit-hdr-fields">
+                            <MudTextField @bind-Value="_editPathName" Placeholder="Career path name"
+                                          Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true"
+                                          Class="gm-hdr-name" />
+                            <MudSelect T="int" @bind-Value="_editPathGroupId" Placeholder="Employee group"
+                                       Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
+                                       Class="gm-hdr-group">
+                                @foreach (var g in _userGroups)
+                                {
+                                    <MudSelectItem T="int" Value="@g.Id">@g.GroupName</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </div>
+                        <div class="gm-job-actions">
+                            <MudIconButton Icon="@DzdIcons.Check" Color="Color.Success" Size="Size.Small"
+                                           title="Save" Disabled="@(!CanSavePath)" OnClick="SavePathEdit" />
+                            <MudIconButton Icon="@DzdIcons.X" Color="Color.Error" Size="Size.Small"
+                                           title="Cancel" Disabled="@_saving" OnClick="CancelPathEdit" />
                         </div>
                     }
                     else
                     {
-                        <div class="gm-table-wrap">
-                            <table class="gm-table">
-                                <thead>
-                                    <tr>
-                                        <th class="gm-th gm-th-grade">Grade</th>
-                                        <th class="gm-th gm-th-pos">Job Titles</th>
-                                        <th class="gm-th">Min. Time in Role</th>
-                                        <th class="gm-th">Min. Experience</th>
-                                        <th class="gm-th gm-th-check">Manager Performance Eval.</th>
-                                        <th class="gm-th gm-th-check">Assessment Center</th>
-                                        <th class="gm-th gm-th-check">Technical Interview</th>
-                                        <th class="gm-th gm-th-check">Case Study</th>
-                                        <th class="gm-th gm-th-check">English Proficiency</th>
-                                        <th class="gm-th gm-th-check">Committee Approval</th>
-                                        <th class="gm-th">Project Target</th>
-                                        <th class="gm-th gm-th-actions">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var rule in path.Rules.OrderBy(r => r.Grade))
-                                    {
-                                        var ruleCapture = rule;
-                                        <tr class="gm-tr">
-                                            <td class="gm-td gm-td-grade">
-                                                <span class="gm-grade-badge">G@(rule.Grade)</span>
-                                            </td>
-                                            <td class="gm-td gm-td-pos">
-                                                @if (rule.PositionJobs.Count > 0)
-                                                {
-                                                    <div class="gm-pos-chips">
-                                                        @foreach (var j in rule.PositionJobs)
-                                                        {
-                                                            <span class="gm-pos-chip">@j.Name</span>
-                                                        }
-                                                    </div>
-                                                }
-                                                else
-                                                {
-                                                    <span class="gm-empty-dash">—</span>
-                                                }
-                                            </td>
-                                            <td class="gm-td">@FormatRetention(rule)</td>
-                                            <td class="gm-td">@FormatMinExperience(rule)</td>
-                                            <td class="gm-td gm-td-check">@CheckIcon(rule.ManagerPerformanceEvaluation)</td>
-                                            <td class="gm-td gm-td-check">@CheckIcon(rule.AssessmentCenterApplication)</td>
-                                            <td class="gm-td gm-td-check">@CheckIcon(rule.TechnicalInterview)</td>
-                                            <td class="gm-td gm-td-check">@CheckIcon(rule.CaseStudy)</td>
-                                            <td class="gm-td gm-td-check">@CheckIcon(rule.EnglishProficiency)</td>
-                                            <td class="gm-td gm-td-check">@CheckIcon(rule.CommitteeApproval)</td>
-                                            <td class="gm-td">@(rule.ProjectObjective?.ToString() ?? "—")</td>
-                                            <td class="gm-td gm-td-actions">
-                                                <div class="gm-actions-wrap">
-                                                    <button type="button" class="gm-icon-btn" title="Edit" @onclick="() => OpenEditRuleDialog(pathCapture, ruleCapture)">
-                                                        <MudIcon Icon="@DzdIcons.Pencil" Size="Size.Small" />
-                                                    </button>
-                                                    <button type="button" class="gm-icon-btn gm-icon-btn-danger" title="Delete" @onclick="() => DeleteRule(ruleCapture)">
-                                                        <MudIcon Icon="@DzdIcons.Trash2" Size="Size.Small" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
+                        <div class="gm-job-title-group" @onclick="() => TogglePath(pathCapture.Id)">
+                            <span class="gm-job-name">@path.Name</span>
+                            <span class="gm-job-meta">
+                                @path.UserGroupName
+                                <span class="gm-meta-sep">·</span>
+                                @path.Rules.Count grade levels
+                            </span>
+                        </div>
+                        <div class="gm-job-actions">
+                            <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" title="Edit"
+                                           Disabled="@(_editPathId is not null)" OnClick="() => BeginEditPath(pathCapture)" />
+                            <MudIconButton Icon="@DzdIcons.Trash2" Color="Color.Error" Size="Size.Small" title="Delete"
+                                           Disabled="@(_editPathId is not null)" OnClick="() => DeleteCareerPath(pathCapture)" />
                         </div>
                     }
+                </div>
 
-                    <div class="gm-add-grade-row">
-                        <button type="button" class="gm-add-grade-btn" @onclick="() => OpenAddRuleDialog(pathCapture)">
-                            <MudIcon Icon="@DzdIcons.Plus" Size="Size.Small" />
-                            Add Grade Level
-                        </button>
-                    </div>
-                }
-            </div>
+                <MudCollapse Expanded="isExpanded">
+                    @if (isEditing)
+                    {
+                        <div class="gm-table-wrap">
+                        <MudTable Items="_editRules.OrderBy(r => r.Grade)" Hover="true" Bordered="true"
+                                  Dense="true" Elevation="0" Class="gm-table" Breakpoint="Breakpoint.None">
+                            <HeaderContent>
+                                <MudTh Class="gm-th-grade">Grade</MudTh>
+                                <MudTh Class="gm-th-pos">Job Titles</MudTh>
+                                <MudTh Class="gm-th-dur">Min. Time in Role</MudTh>
+                                <MudTh Class="gm-th-dur">Min. Experience</MudTh>
+                                <MudTh Class="gm-th-check">Manager Performance Eval.</MudTh>
+                                <MudTh Class="gm-th-check">Assessment Center</MudTh>
+                                <MudTh Class="gm-th-check">Technical Interview</MudTh>
+                                <MudTh Class="gm-th-check">Case Study</MudTh>
+                                <MudTh Class="gm-th-check">English Proficiency</MudTh>
+                                <MudTh Class="gm-th-check">Committee Approval</MudTh>
+                                <MudTh>Project Target</MudTh>
+                                <MudTh Class="gm-th-actions"></MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Grade" Class="gm-cell-center">
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text" Class="gm-grade-badge">G@(context.Grade)</MudChip>
+                                </MudTd>
+                                <MudTd DataLabel="Job Titles">
+                                    <JobTitleSelector AllJobs="_allJobs" SelectedIds="context.JobIds" OnChanged="StateHasChanged" />
+                                </MudTd>
+                                <MudTd DataLabel="Min. Time in Role">
+                                    <div class="gm-edit-duration">
+                                        <MudNumericField T="int?" @bind-Value="context.RetYears"  Min="0" Placeholder="Yr" Variant="Variant.Outlined" Margin="Margin.Dense" Class="gm-cell-dur" />
+                                        <MudNumericField T="int?" @bind-Value="context.RetMonths" Min="0" Placeholder="Mo" Variant="Variant.Outlined" Margin="Margin.Dense" Class="gm-cell-dur" />
+                                    </div>
+                                </MudTd>
+                                <MudTd DataLabel="Min. Experience">
+                                    <div class="gm-edit-duration">
+                                        <MudNumericField T="int?" @bind-Value="context.ExpYears"  Min="0" Placeholder="Yr" Variant="Variant.Outlined" Margin="Margin.Dense" Class="gm-cell-dur" />
+                                        <MudNumericField T="int?" @bind-Value="context.ExpMonths" Min="0" Placeholder="Mo" Variant="Variant.Outlined" Margin="Margin.Dense" Class="gm-cell-dur" />
+                                    </div>
+                                </MudTd>
+                                <MudTd Class="gm-cell-center"><MudCheckBox T="bool" @bind-Value="context.Manager"   Dense="true" /></MudTd>
+                                <MudTd Class="gm-cell-center"><MudCheckBox T="bool" @bind-Value="context.Assess"    Dense="true" /></MudTd>
+                                <MudTd Class="gm-cell-center"><MudCheckBox T="bool" @bind-Value="context.Tech"      Dense="true" /></MudTd>
+                                <MudTd Class="gm-cell-center"><MudCheckBox T="bool" @bind-Value="context.Case"      Dense="true" /></MudTd>
+                                <MudTd Class="gm-cell-center"><MudCheckBox T="bool" @bind-Value="context.English"   Dense="true" /></MudTd>
+                                <MudTd Class="gm-cell-center"><MudCheckBox T="bool" @bind-Value="context.Committee" Dense="true" /></MudTd>
+                                <MudTd DataLabel="Project Target">
+                                    <MudNumericField T="int?" @bind-Value="context.ProjectTarget" Min="0" Variant="Variant.Outlined" Margin="Margin.Dense" Class="gm-cell-target" />
+                                </MudTd>
+                                <MudTd Class="gm-cell-center">
+                                    @if (IsLastRule(context))
+                                    {
+                                        <MudIconButton Icon="@DzdIcons.Trash2" Color="Color.Error" Size="Size.Small"
+                                                       title="Delete last grade" Disabled="@_saving" OnClick="RemoveLastRuleRow" />
+                                    }
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                        </div>
+
+                        <div class="gm-add-grade-row">
+                            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                                       StartIcon="@DzdIcons.Plus" OnClick="AddRuleRow" Class="gm-add-grade-btn">
+                                Add Grade Level
+                            </MudButton>
+                        </div>
+                    }
+                    else if (path.Rules.Count == 0)
+                    {
+                        <div class="gm-no-grades">No grade levels yet. Click the edit icon to add some.</div>
+                    }
+                    else
+                    {
+                        <div class="gm-table-wrap">
+                        <MudTable Items="path.Rules.OrderBy(r => r.Grade)" Hover="true" Bordered="true"
+                                  Dense="true" Elevation="0" Class="gm-table" Breakpoint="Breakpoint.None">
+                            <HeaderContent>
+                                <MudTh Class="gm-th-grade">Grade</MudTh>
+                                <MudTh Class="gm-th-pos">Job Titles</MudTh>
+                                <MudTh Class="gm-th-dur">Min. Time in Role</MudTh>
+                                <MudTh Class="gm-th-dur">Min. Experience</MudTh>
+                                <MudTh Class="gm-th-check">Manager Performance Eval.</MudTh>
+                                <MudTh Class="gm-th-check">Assessment Center</MudTh>
+                                <MudTh Class="gm-th-check">Technical Interview</MudTh>
+                                <MudTh Class="gm-th-check">Case Study</MudTh>
+                                <MudTh Class="gm-th-check">English Proficiency</MudTh>
+                                <MudTh Class="gm-th-check">Committee Approval</MudTh>
+                                <MudTh>Project Target</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Grade" Class="gm-cell-center">
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text" Class="gm-grade-badge">G@(context.Grade)</MudChip>
+                                </MudTd>
+                                <MudTd DataLabel="Job Titles">
+                                    @if (context.PositionJobs.Count > 0)
+                                    {
+                                        <div class="gm-pos-chips">
+                                            @foreach (var j in context.PositionJobs)
+                                            {
+                                                <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Text">@j.Name</MudChip>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="gm-empty-dash">—</span>
+                                    }
+                                </MudTd>
+                                <MudTd DataLabel="Min. Time in Role" Class="gm-cell-center">@FormatRetention(context)</MudTd>
+                                <MudTd DataLabel="Min. Experience" Class="gm-cell-center">@FormatMinExperience(context)</MudTd>
+                                <MudTd Class="gm-cell-center">@CheckIcon(context.ManagerPerformanceEvaluation)</MudTd>
+                                <MudTd Class="gm-cell-center">@CheckIcon(context.AssessmentCenterApplication)</MudTd>
+                                <MudTd Class="gm-cell-center">@CheckIcon(context.TechnicalInterview)</MudTd>
+                                <MudTd Class="gm-cell-center">@CheckIcon(context.CaseStudy)</MudTd>
+                                <MudTd Class="gm-cell-center">@CheckIcon(context.EnglishProficiency)</MudTd>
+                                <MudTd Class="gm-cell-center">@CheckIcon(context.CommitteeApproval)</MudTd>
+                                <MudTd DataLabel="Project Target" Class="gm-cell-center">@(context.ProjectObjective?.ToString() ?? "—")</MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                        </div>
+                    }
+                </MudCollapse>
+            </MudPaper>
         }
 
         @if (_careerPaths.Count == 0)
         {
-            <div class="gm-empty-state">
+            <MudPaper Elevation="0" Outlined="true" Class="gm-empty-state">
                 <MudIcon Icon="@DzdIcons.Route" Size="Size.Large" Class="gm-empty-icon" />
-                <div class="gm-empty-text">No career paths defined yet.</div>
-                <div class="gm-empty-sub">Click "+ Add Career Path" to get started.</div>
-            </div>
+                <MudText Typo="Typo.subtitle1" Class="gm-empty-text">No career paths defined yet.</MudText>
+                <MudText Typo="Typo.body2" Class="gm-empty-sub">Click "+ Add Career Path" to get started.</MudText>
+            </MudPaper>
         }
 
     </MudStack>
 }
 
 @code {
-    // CheckIcon uses inline Razor syntax — must remain in .razor file; all other logic in .razor.cs
     private RenderFragment CheckIcon(bool value) => value
         ? @<MudIcon Icon="@DzdIcons.Check" Size="Size.Small" Class="gm-check-yes" />
         : @<MudIcon Icon="@DzdIcons.X"     Size="Size.Small" Class="gm-check-no"  />;

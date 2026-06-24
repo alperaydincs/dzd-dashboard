@@ -1,14 +1,12 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace DZDDashboard.Data.Migrations
 {
-    /// <inheritdoc />
     public partial class AddCreatedAtToAuditableEntity : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
@@ -343,7 +341,6 @@ namespace DZDDashboard.Data.Migrations
                 principalColumn: "Id",
                 onDelete: ReferentialAction.SetNull);
 
-            // NoAction in DB — EF ClientCascade handles in-memory; avoids SQL Server multiple-cascade-paths error
             migrationBuilder.AddForeignKey(
                 name: "FK_Teams_Departments_DepartmentId",
                 table: "Teams",
@@ -353,7 +350,6 @@ namespace DZDDashboard.Data.Migrations
                 onDelete: ReferentialAction.NoAction);
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(

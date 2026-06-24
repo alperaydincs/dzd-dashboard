@@ -6,7 +6,6 @@ using MudBlazor;
 
 namespace DZDDashboard.Client.Components.Pages.Admin;
 
-/// <summary>Code-behind for GradeManagementPanel.razor — separated from UI markup (SRP).</summary>
 public partial class GradeManagementPanel
 {
     [Inject] private IDialogService            DialogServiceRef { get; set; } = default!;
@@ -20,8 +19,22 @@ public partial class GradeManagementPanel
     private List<UserGroupDto>    _userGroups  = [];
     private HashSet<int>          _expandedIds = [];
 
-    private static readonly DialogOptions SmallDialog  = new() { MaxWidth = MaxWidth.Small,  FullWidth = true };
-    private static readonly DialogOptions MediumDialog = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+    private static readonly DialogOptions SmallDialog = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
+
+    private int?                  _editPathId;    private string                _editPathName = string.Empty;
+    private int                   _editPathGroupId;
+    private List<RuleEditModel>   _editRules = [];
+    private HashSet<int>          _editOriginalRuleIds = [];
+    private bool                  _saving;
+
+    private sealed class RuleEditModel
+    {
+        public int                      Id;        public int                      Grade;
+        public HashSet<int>             JobIds = [];
+        public int?                     RetYears, RetMonths, ExpYears, ExpMonths;
+        public bool                     Manager, Assess, Tech, Case, English, Committee;
+        public int?                     ProjectTarget;
+    }
 
     protected override async Task OnInitializedAsync() => await LoadData();
 
@@ -52,7 +65,8 @@ public partial class GradeManagementPanel
 
     private void TogglePath(int id) { if (!_expandedIds.Add(id)) _expandedIds.Remove(id); }
 
-    // ── Career Path CRUD ──────────────────────────────────────────────────────
+    private bool IsEditingPath(int pathId) => _editPathId == pathId;
+
 
     private async Task OpenAddCareerPathDialog()
     {
@@ -80,20 +94,6 @@ public partial class GradeManagementPanel
         }
     }
 
-    private async Task OpenEditCareerPathDialog(CareerPathDto path)
-    {
-        var dialog = await DialogServiceRef.ShowAsync<CareerPathDialog>("Edit Career Path",
-            new() { ["ExistingPath"] = path, ["UserGroups"] = _userGroups }, SmallDialog);
-        var result = await dialog.Result;
-
-        if (result is { Canceled: false, Data: CareerPathDto updated })
-        {
-            var resp = await OrgService.UpdateCareerPathAsync(updated);
-            if (resp.IsSuccessStatusCode) { await LoadData(); Snackbar.Add("Career path updated.", Severity.Success); }
-            else Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? "Failed to update career path.", Severity.Error);
-        }
-    }
-
     private async Task DeleteCareerPath(CareerPathDto path)
     {
         if (await DialogServiceRef.ShowMessageBox("Delete Career Path",
@@ -105,54 +105,139 @@ public partial class GradeManagementPanel
         else Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? "Failed to delete career path.", Severity.Error);
     }
 
-    // ── Grade Level CRUD ──────────────────────────────────────────────────────
 
-    private async Task OpenAddRuleDialog(CareerPathDto path)
+    private void BeginEditPath(CareerPathDto path)
     {
-        var nextGrade = path.Rules.Count > 0 ? path.Rules.Max(r => r.Grade) + 1 : 1;
+        if (_editPathId is not null) return;
 
-        var dialog = await DialogServiceRef.ShowAsync<GradeLevelDialog>("Add Grade Level",
-            new() { ["Rule"] = new CareerMapRuleDto { CareerPathId = path.Id, Grade = nextGrade },
-                    ["AvailableJobs"] = _allJobs }, MediumDialog);
-        var result = await dialog.Result;
+        _editPathId          = path.Id;
+        _editPathName        = path.Name;
+        _editPathGroupId     = path.UserGroupId;
+        _editOriginalRuleIds = path.Rules.Select(r => r.Id).ToHashSet();
+        _editRules = path.Rules
+            .OrderBy(r => r.Grade)
+            .Select(r => new RuleEditModel
+            {
+                Id            = r.Id,
+                Grade         = r.Grade,
+                JobIds        = r.PositionJobIds.ToHashSet(),
+                RetYears      = r.MinRoleTime.Years,
+                RetMonths     = r.MinRoleTime.Months,
+                ExpYears      = r.MinExperience.Years,
+                ExpMonths     = r.MinExperience.Months,
+                Manager       = r.ManagerPerformanceEvaluation,
+                Assess        = r.AssessmentCenterApplication,
+                Tech          = r.TechnicalInterview,
+                Case          = r.CaseStudy,
+                English       = r.EnglishProficiency,
+                Committee     = r.CommitteeApproval,
+                ProjectTarget = r.ProjectObjective,
+            })
+            .ToList();
 
-        if (result is { Canceled: false, Data: CareerMapRuleDto rule })
+        _expandedIds.Add(path.Id);
+    }
+
+    private void CancelPathEdit()
+    {
+        _editPathId = null;
+        _editRules  = [];
+        _editOriginalRuleIds = [];
+    }
+
+    private void AddRuleRow()
+    {
+        if (_editPathId is null) return;
+        var nextGrade = _editRules.Count > 0 ? _editRules.Max(r => r.Grade) + 1 : 1;
+        _editRules.Add(new RuleEditModel { Id = 0, Grade = nextGrade });
+    }
+
+    private void RemoveLastRuleRow()
+    {
+        if (_editRules.Count == 0) return;
+        var last = _editRules.OrderBy(r => r.Grade).Last();
+        _editRules.Remove(last);
+    }
+
+    private bool IsLastRule(RuleEditModel rule) =>
+        _editRules.Count > 0 && _editRules.OrderBy(r => r.Grade).Last() == rule;
+
+    private bool CanSavePath =>
+        !string.IsNullOrWhiteSpace(_editPathName)
+        && _editPathGroupId != 0
+        && _editRules.All(r => r.JobIds.Count > 0)
+        && !_saving;
+
+    private async Task SavePathEdit()
+    {
+        if (_editPathId is null || !CanSavePath) return;
+
+        _saving = true;
+        try
         {
-            rule.CareerPathId = path.Id;
-            var resp = await OrgService.CreateCareerMapRuleAsync(rule);
-            if (resp.IsSuccessStatusCode) { await LoadData(); Snackbar.Add("Grade level added.", Severity.Success); }
-            else Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? "Failed to add grade level.", Severity.Error);
+            var pathResp = await OrgService.UpdateCareerPathAsync(new CareerPathDto
+            {
+                Id          = _editPathId.Value,
+                Name        = _editPathName.Trim(),
+                UserGroupId = _editPathGroupId,
+            });
+            if (!pathResp.IsSuccessStatusCode)
+            {
+                Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(pathResp) ?? "Failed to update career path.", Severity.Error);
+                return;
+            }
+
+            var keptIds = _editRules.Where(r => r.Id != 0).Select(r => r.Id).ToHashSet();
+            foreach (var removedId in _editOriginalRuleIds.Where(id => !keptIds.Contains(id)))
+            {
+                var delResp = await OrgService.DeleteCareerMapRuleAsync(removedId);
+                if (!delResp.IsSuccessStatusCode)
+                {
+                    Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(delResp) ?? "Failed to delete a grade level.", Severity.Error);
+                    return;
+                }
+            }
+
+            foreach (var r in _editRules)
+            {
+                var dto = ToRuleDto(r, _editPathId.Value);
+                var resp = r.Id == 0
+                    ? await OrgService.CreateCareerMapRuleAsync(dto)
+                    : await OrgService.UpdateCareerMapRuleAsync(dto);
+                if (!resp.IsSuccessStatusCode)
+                {
+                    Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? "Failed to save a grade level.", Severity.Error);
+                    return;
+                }
+            }
+
+            CancelPathEdit();
+            await LoadData();
+            Snackbar.Add("Career path saved.", Severity.Success);
+        }
+        finally
+        {
+            _saving = false;
         }
     }
 
-    private async Task OpenEditRuleDialog(CareerPathDto path, CareerMapRuleDto rule)
+    private static CareerMapRuleDto ToRuleDto(RuleEditModel r, int pathId) => new()
     {
-        var clone = rule with { PositionJobIds = rule.PositionJobIds.ToList(), PositionJobs = rule.PositionJobs.ToList() };
+        Id                           = r.Id,
+        CareerPathId                 = pathId,
+        Grade                        = r.Grade,
+        PositionJobIds               = [.. r.JobIds],
+        MinRoleTime                  = new RoleDurationDto { Years = r.RetYears, Months = r.RetMonths },
+        MinExperience                = new RoleDurationDto { Years = r.ExpYears, Months = r.ExpMonths },
+        ManagerPerformanceEvaluation = r.Manager,
+        AssessmentCenterApplication  = r.Assess,
+        TechnicalInterview           = r.Tech,
+        CaseStudy                    = r.Case,
+        EnglishProficiency           = r.English,
+        CommitteeApproval            = r.Committee,
+        ProjectObjective             = r.ProjectTarget,
+    };
 
-        var dialog = await DialogServiceRef.ShowAsync<GradeLevelDialog>(
-            $"Edit Grade — {path.Name} G{rule.Grade}",
-            new() { ["Rule"] = clone, ["AvailableJobs"] = _allJobs }, MediumDialog);
-        var result = await dialog.Result;
-
-        if (result is { Canceled: false, Data: CareerMapRuleDto updated })
-        {
-            var resp = await OrgService.UpdateCareerMapRuleAsync(updated);
-            if (resp.IsSuccessStatusCode) { await LoadData(); Snackbar.Add("Grade level updated.", Severity.Success); }
-            else Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? "Failed to update grade level.", Severity.Error);
-        }
-    }
-
-    private async Task DeleteRule(CareerMapRuleDto rule)
-    {
-        if (await DialogServiceRef.ShowMessageBox("Delete Grade Level",
-            $"Delete G{rule.Grade}?", yesText: "Delete", cancelText: "Cancel") != true) return;
-
-        var resp = await OrgService.DeleteCareerMapRuleAsync(rule.Id);
-        if (resp.IsSuccessStatusCode) { await LoadData(); Snackbar.Add("Grade level deleted.", Severity.Success); }
-        else Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? "Failed to delete grade level.", Severity.Error);
-    }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static string FormatMinExperience(CareerMapRuleDto r) =>
         FormatDuration(r.MinExperience);

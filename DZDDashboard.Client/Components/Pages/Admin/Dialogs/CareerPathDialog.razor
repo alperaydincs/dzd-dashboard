@@ -32,7 +32,6 @@
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
 
-    /// <summary>Null = Add mode. Non-null = Edit mode.</summary>
     [Parameter] public CareerPathDto? ExistingPath { get; set; }
     [Parameter] public List<UserGroupDto> UserGroups { get; set; } = new();
 

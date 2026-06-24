@@ -1,10 +1,5 @@
 namespace DZDDashboard.Data.Entities;
 
-/// <summary>
-/// A one-time or recurring additional payment (prim/ikramiye/avans/mesai/bonus/diğer)
-/// for a user. "OneTime" entries require <see cref="PaymentDate"/> (BR-PAY-06);
-/// periodic entries use <see cref="StartDate"/>/<see cref="EndDate"/> instead.
-/// </summary>
 public class AdditionalPayment : AuditableEntity
 {
     public int Id { get; set; }
@@ -18,8 +13,6 @@ public class AdditionalPayment : AuditableEntity
     public DateTime? PaymentDate { get; set; }
     public DateTime? StartDate   { get; set; }
     public DateTime? EndDate     { get; set; }
-
-    public bool? TaxableFlag { get; set; }
 
     public string? Description { get; set; }
 

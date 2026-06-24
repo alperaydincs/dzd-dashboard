@@ -15,10 +15,6 @@ public class UserMappingProfile : Profile
                     ? AppFormatter.BuildFullName(src.ReportsTo.FirstName, src.ReportsTo.LastName)
                     : null));
 
-        // UserSummaryDto is projected manually in UserService.GetAllSummariesAsync via Select()
-        // to control exactly which columns EF fetches and to inline nested DTO construction.
-        // This mapping is intentionally unused by the service — kept only for AutoMapper
-        // configuration validation (automapper.AssertConfigurationIsValid checks all maps).
         CreateMap<User, UserSummaryDto>()
             .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src =>
                 src.Avatar == null ? null : new UserAvatarSummaryDto { Id = src.Avatar.Id, ContentType = src.Avatar.ContentType }))
@@ -31,24 +27,23 @@ public class UserMappingProfile : Profile
         CreateMap<User, UserProfileDto>();
         CreateMap<EmergencyContact, EmergencyContactDto>()
             .ReverseMap()
-            .ForMember(dest => dest.UserId, opt => opt.Ignore()); // UserId set by service, not from DTO
-        CreateMap<EducationHistory, EducationHistoryDto>().ReverseMap();
+            .ForMember(dest => dest.UserId, opt => opt.Ignore());        CreateMap<EducationHistory, EducationHistoryDto>().ReverseMap();
+
+        CreateMap<PositionHistory, PositionHistoryDto>()
+            .ForMember(dest => dest.DepartmentName,
+                opt => opt.MapFrom(src => src.Department != null ? src.Department.Name : null))
+            .ForMember(dest => dest.TeamName,
+                opt => opt.MapFrom(src => src.Team != null ? src.Team.Name : null));
 
         CreateMap<User, EmployeeCardDto>()
             .ForMember(dest => dest.OrganizationPositionName,
                 opt => opt.MapFrom(src => src.OrganizationPosition != null ? src.OrganizationPosition.Name : null))
-            // EF Core-translatable string concat (replaces AppFormatter.BuildFullName which uses LINQ and
-            // is not translatable to SQL). Trim() is supported by the SQL Server EF provider.
             .ForMember(dest => dest.FullName,
                 opt => opt.MapFrom(src => (src.FirstName + " " + src.LastName).Trim()))
             .ForMember(dest => dest.CareerPathName,
                 opt => opt.MapFrom(src => src.CareerPath != null ? src.CareerPath.Name : null))
-            // Active-only TargetEfforts — EF Core translates this filter in the ProjectTo SELECT
             .ForMember(dest => dest.TargetEfforts,
                 opt => opt.MapFrom(src => src.TargetEfforts!.Where(t => t.IsActive)))
-            // ── PII fields — explicitly ignored. Fetched via GET /api/users/{id}/sensitive-info
-            // (SensitiveDataPolicy) rather than the card endpoint. Fields remain on the DTO
-            // so Blazor edit-section components can POST them; they are never auto-populated here.
             .ForMember(dest => dest.DateOfBirth,           opt => opt.Ignore())
             .ForMember(dest => dest.Gender,                opt => opt.Ignore())
             .ForMember(dest => dest.Nationality,           opt => opt.Ignore())
@@ -64,9 +59,6 @@ public class UserMappingProfile : Profile
             .ForMember(dest => dest.City,                  opt => opt.Ignore())
             .ForMember(dest => dest.Country,               opt => opt.Ignore())
             .ForMember(dest => dest.Children,              opt => opt.Ignore());
-            // BankName and Iban are not in EmployeeCardDto — never exposed through this mapping.
-            // TODO: Implement GET /api/users/{id}/bank-info gated by a Finance role policy.
 
-        // UpdateContactInfoDto → User mapping removed: properties are assigned explicitly in UserService
     }
 }

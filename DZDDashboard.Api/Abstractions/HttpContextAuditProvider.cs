@@ -5,11 +5,6 @@ using System.Security.Claims;
 
 namespace DZDDashboard.Api.Abstractions;
 
-/// <summary>
-/// Reads the current user-id from the HTTP request's claims.
-/// Lives in the Api layer because it depends on <see cref="IHttpContextAccessor"/>,
-/// an ASP.NET Core hosting concern that must not leak into the Data layer.
-/// </summary>
 public class HttpContextAuditProvider(IHttpContextAccessor httpContextAccessor) : IAuditProvider
 {
     public DateTime GetNow() => DateTime.UtcNow;

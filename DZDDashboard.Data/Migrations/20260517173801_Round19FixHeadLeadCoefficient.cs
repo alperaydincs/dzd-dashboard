@@ -1,13 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace DZDDashboard.Data.Migrations
 {
-    /// <inheritdoc />
     public partial class Round19FixHeadLeadCoefficient : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
@@ -23,7 +21,6 @@ namespace DZDDashboard.Data.Migrations
                 table: "HeadLeadCoefficients");
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<int>(

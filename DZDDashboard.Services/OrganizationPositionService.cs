@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DZDDashboard.Services;
 
-// Interface is in Abstractions/IOrganizationPositionService.cs
 
 public class OrganizationPositionService(
     AppDbContext context,
@@ -59,12 +58,9 @@ public class OrganizationPositionService(
                 throw new DomainConflictException("Cannot set a descendant as parent — circular dependency detected.");
         }
 
-        // Transaction ensures the position change, user assignment, and org-chart recalculation
-        // are atomic. If RecalculateAsync fails, the entire update is rolled back.
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
         mapper.Map(dto, entity);
         await AssignPositionUserAsync(dto.Id, dto.UserId, cancellationToken);
-        // Flush position + user changes to DB first so RecalculateAsync reads the updated state.
         await context.SaveChangesAsync(cancellationToken);
         await reportsToCalculator.RecalculateAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
@@ -88,10 +84,7 @@ public class OrganizationPositionService(
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
-    // O(n) — loads entire positions table into memory for cycle detection.
-    // Acceptable for small org charts (<500 nodes). Replace with a recursive SQL CTE if scale grows.
     private async Task<bool> IsDescendantAsync(int ancestorId, int potentialDescendantId)
     {
         var parentMap = await context.OrganizationPositions
@@ -108,28 +101,15 @@ public class OrganizationPositionService(
         return false;
     }
 
-    /// <summary>
-    /// Updates the user-to-position assignment.
-    /// <para><b>Save-ordering contract:</b> This method does NOT call <c>SaveChangesAsync</c>
-    /// or <c>RecalculateAsync</c>. The caller (<see cref="UpdatePositionAsync"/>) must:
-    /// <list type="number">
-    ///   <item>Call this method (tracks user-assignment changes in the EF change tracker).</item>
-    ///   <item>Call <c>SaveChangesAsync</c> to flush all tracked changes to the DB.</item>
-    ///   <item>Call <c>RecalculateAsync</c> so the calculator reads the committed state.</item>
-    /// </list>
-    /// This ordering is required because <c>RecalculateAsync</c> uses <c>AsNoTracking</c>
-    /// queries that bypass the EF change tracker and read directly from the DB.</para>
-    /// </summary>
     private async Task AssignPositionUserAsync(int positionId, int? userId, CancellationToken cancellationToken = default)
     {
-        var currentlyAssigned = await context.Users
-            .Where(u => u.OrganizationPositionId == positionId)
-            .ToListAsync(cancellationToken);
+        var currentOccupant = await context.Users
+            .FirstOrDefaultAsync(u => u.OrganizationPositionId == positionId, cancellationToken);
 
-        foreach (var user in currentlyAssigned)
+        if (currentOccupant is not null && currentOccupant.Id != userId)
         {
-            if (!userId.HasValue || user.Id != userId.Value)
-                user.OrganizationPositionId = null;
+            currentOccupant.OrganizationPositionId = null;
+            currentOccupant.ReportsToId            = null;
         }
 
         if (userId.HasValue)
@@ -148,28 +128,19 @@ public class OrganizationPositionService(
         return mapper.Map<OrganizationPositionDto>(position);
     }
 
-    /// <summary>Base query for position reads — single place to add/remove includes.</summary>
     private IQueryable<OrganizationPosition> PositionsWithDetails()
         => context.OrganizationPositions
             .AsNoTracking()
             .AsSplitQuery()
-            .Include(x => x.Users).ThenInclude(x => x.Job); // OrgChartUserDto needs Job; Avatar excluded (no base64)
-
-    /// <summary>
-    /// Computes the depth level for each position DTO using memoized recursion — O(n).
-    /// Level 0 = root (no parent), Level 1 = direct child of root, etc.
-    /// Cycle guard: once recursion depth exceeds the total node count, the sub-tree is treated as root-level (0).
-    /// </summary>
+            .Include(x => x.Users).ThenInclude(x => x.Job);
     private static void ComputeLevels(IList<OrganizationPositionDto> dtos)
     {
         var byId   = dtos.ToDictionary(p => p.Id);
         var depths = new Dictionary<int, int>(dtos.Count);
 
-        // Local recursive function with memoisation — each node is resolved at most once.
         int GetDepth(OrganizationPositionDto node, int guard = 0)
         {
-            if (guard > dtos.Count) return 0; // cycle detected — stop recursion
-            if (depths.TryGetValue(node.Id, out var cached)) return cached;
+            if (guard > dtos.Count) return 0;            if (depths.TryGetValue(node.Id, out var cached)) return cached;
 
             var depth = node.ParentId.HasValue && byId.TryGetValue(node.ParentId.Value, out var parent)
                 ? 1 + GetDepth(parent, guard + 1)

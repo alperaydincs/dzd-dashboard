@@ -1,20 +1,15 @@
 using DZDDashboard.Client.Components.Pages.Employees.Dialogs;
 using DZDDashboard.Client.Services;
+using DZDDashboard.Client.Theme;
+using DZDDashboard.Common.Constants;
 using DZDDashboard.Common.DTOs;
 using DZDDashboard.Common.Utils;
+using DZDDashboard.Common.Validation;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
 namespace DZDDashboard.Client.Components.Pages.Employees;
 
-/// <summary>
-/// Self-contained Payment screen section — salary history, benefits (incl. ÖSS dependents)
-/// and additional payments for a single employee. Embedded in <c>EmployeeCard</c> rather than
-/// folded into its already-large code-behind (SRP / keeps EmployeeCard from growing further).
-/// Each row maps directly to its own create/update/delete endpoint (no bulk-replace — see
-/// <c>PaymentController</c>), so saves are immediate per dialog rather than batched on a
-/// section-level "Save" button.
-/// </summary>
 public partial class PaymentSection
 {
     [Parameter, EditorRequired] public int UserId { get; set; }
@@ -28,6 +23,8 @@ public partial class PaymentSection
     private bool _loading = true;
     private string? _loadError;
     private EmployeePaymentDto? _payment;
+
+    private int _activeTab;
 
     protected override async Task OnInitializedAsync() => await LoadAsync();
 
@@ -60,7 +57,30 @@ public partial class PaymentSection
 
     private static string FormatMoney(decimal amount, string currency) => $"{amount:N2} {currency}";
 
-    // ── Salary ───────────────────────────────────────────────────────────────
+    private static string BenefitBadgeClass(string benefitType) => "amber";
+
+    private static string BenefitIcon(string benefitType) => benefitType switch
+    {
+        BenefitTypes.PrivateHealthInsurance => DzdIcons.Heart,
+        BenefitTypes.PrivatePension         => DzdIcons.FileText,
+        _                                   => DzdIcons.Wallet
+    };
+
+    private static bool HasBesDetails(BenefitRecordDto record) =>
+        record.EmployeeContributionAmount.HasValue
+        || record.EmployerContributionAmount.HasValue
+        || !string.IsNullOrWhiteSpace(record.ProviderName)
+        || !string.IsNullOrWhiteSpace(record.PolicyNumber);
+
+    private SalaryRecordDto? CurrentSalary =>
+        _payment?.SalaryHistory.FirstOrDefault(s => s.EndDate is null) ?? _payment?.SalaryHistory.FirstOrDefault();
+
+    private List<CurrencyAmountDto> AdditionalPaymentsTotal =>
+        _payment?.AdditionalPayments
+            .GroupBy(p => p.Currency)
+            .Select(g => new CurrencyAmountDto(g.Key, g.Sum(p => p.Amount)))
+            .ToList() ?? [];
+
 
     private async Task OpenAddSalaryDialogAsync()
     {
@@ -78,7 +98,7 @@ public partial class PaymentSection
         var parameters = new DialogParameters
         {
             [nameof(SalaryRecordDialog.InitialModel)]     = record,
-            [nameof(SalaryRecordDialog.ConfirmButtonText)] = "Update"
+            [nameof(SalaryRecordDialog.ConfirmButtonText)] = "Save Changes"
         };
         var dialog = await DialogService.ShowAsync<SalaryRecordDialog>("Edit Salary Record", parameters, SmallEscDialog);
         var result = await dialog.Result;
@@ -100,11 +120,10 @@ public partial class PaymentSection
         else Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? "Failed to delete salary record.", Severity.Error);
     }
 
-    // ── Benefits ─────────────────────────────────────────────────────────────
 
     private async Task OpenAddBenefitDialogAsync()
     {
-        var dialog = await DialogService.ShowAsync<BenefitRecordDialog>("Add Benefit", new DialogParameters(), SmallEscDialog);
+        var dialog = await DialogService.ShowAsync<BenefitRecordDialog>("Add New Benefit", new DialogParameters(), SmallEscDialog);
         var result = await dialog.Result;
         if (result is not { Canceled: false, Data: BenefitRecordDto dto }) return;
 
@@ -118,7 +137,7 @@ public partial class PaymentSection
         var parameters = new DialogParameters
         {
             [nameof(BenefitRecordDialog.InitialModel)]     = record,
-            [nameof(BenefitRecordDialog.ConfirmButtonText)] = "Update"
+            [nameof(BenefitRecordDialog.ConfirmButtonText)] = "Save Changes"
         };
         var dialog = await DialogService.ShowAsync<BenefitRecordDialog>("Edit Benefit", parameters, SmallEscDialog);
         var result = await dialog.Result;
@@ -127,6 +146,25 @@ public partial class PaymentSection
         var resp = await PaymentService.UpdateBenefitRecordAsync(UserId, record.Id, dto);
         if (resp.IsSuccessStatusCode) { await LoadAsync(); Snackbar.Add("Benefit updated.", Severity.Success); }
         else Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? "Failed to update benefit.", Severity.Error);
+    }
+
+    private async Task OpenAddDependentDialogAsync(BenefitRecordDto record)
+    {
+        if (record.Dependents.Count >= ValidationConstants.MaxBenefitDependents)
+        {
+            Snackbar.Add($"A benefit may have at most {ValidationConstants.MaxBenefitDependents} dependents.", Severity.Warning);
+            return;
+        }
+
+        var dialog = await DialogService.ShowAsync<DependentDialog>("Add Dependent", new DialogParameters(), SmallEscDialog);
+        var result = await dialog.Result;
+        if (result is not { Canceled: false, Data: BenefitDependentDto dependent }) return;
+
+        var updated = record with { Dependents = [.. record.Dependents, dependent] };
+
+        var resp = await PaymentService.UpdateBenefitRecordAsync(UserId, record.Id, updated);
+        if (resp.IsSuccessStatusCode) { await LoadAsync(); Snackbar.Add("Dependent added.", Severity.Success); }
+        else Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? "Failed to add dependent.", Severity.Error);
     }
 
     private async Task DeleteBenefitRecordAsync(BenefitRecordDto record)
@@ -140,7 +178,6 @@ public partial class PaymentSection
         else Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? "Failed to delete benefit.", Severity.Error);
     }
 
-    // ── Additional Payments ──────────────────────────────────────────────────
 
     private async Task OpenAddAdditionalPaymentDialogAsync()
     {
@@ -178,5 +215,44 @@ public partial class PaymentSection
         var resp = await PaymentService.DeleteAdditionalPaymentAsync(UserId, record.Id);
         if (resp.IsSuccessStatusCode) { await LoadAsync(); Snackbar.Add("Additional payment deleted.", Severity.Success); }
         else Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? "Failed to delete additional payment.", Severity.Error);
+    }
+
+
+    private async Task OpenAddDeductionDialogAsync()
+    {
+        var dialog = await DialogService.ShowAsync<DeductionDialog>("Add Deduction", new DialogParameters(), SmallEscDialog);
+        var result = await dialog.Result;
+        if (result is not { Canceled: false, Data: DeductionDto dto }) return;
+
+        var created = await PaymentService.CreateDeductionAsync(UserId, dto);
+        if (created is not null) { await LoadAsync(); Snackbar.Add("Deduction added.", Severity.Success); }
+        else Snackbar.Add("Failed to add deduction.", Severity.Error);
+    }
+
+    private async Task OpenEditDeductionDialogAsync(DeductionDto record)
+    {
+        var parameters = new DialogParameters
+        {
+            [nameof(DeductionDialog.InitialModel)]      = record,
+            [nameof(DeductionDialog.ConfirmButtonText)] = "Update"
+        };
+        var dialog = await DialogService.ShowAsync<DeductionDialog>("Edit Deduction", parameters, SmallEscDialog);
+        var result = await dialog.Result;
+        if (result is not { Canceled: false, Data: DeductionDto dto }) return;
+
+        var resp = await PaymentService.UpdateDeductionAsync(UserId, record.Id, dto);
+        if (resp.IsSuccessStatusCode) { await LoadAsync(); Snackbar.Add("Deduction updated.", Severity.Success); }
+        else Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? "Failed to update deduction.", Severity.Error);
+    }
+
+    private async Task DeleteDeductionAsync(DeductionDto record)
+    {
+        if (await DialogService.ShowMessageBox("Delete Deduction",
+            $"Delete the {record.DeductionType} deduction ({FormatMoney(record.Amount, record.Currency)} / {record.Period})?",
+            yesText: "Delete", cancelText: "Cancel") != true) return;
+
+        var resp = await PaymentService.DeleteDeductionAsync(UserId, record.Id);
+        if (resp.IsSuccessStatusCode) { await LoadAsync(); Snackbar.Add("Deduction deleted.", Severity.Success); }
+        else Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? "Failed to delete deduction.", Severity.Error);
     }
 }

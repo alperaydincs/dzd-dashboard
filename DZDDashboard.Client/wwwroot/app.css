@@ -63,6 +63,140 @@ html, body {
     text-transform: none !important;
 }
 
+.dzd-dialog-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--dzd-text-secondary);
+    margin-bottom: 6px;
+    line-height: 1.2;
+}
+
+.dzd-required {
+    color: var(--dzd-red-500);
+}
+
+.sidebar-divider.mud-divider {
+    flex: 0 0 auto !important;
+    align-self: stretch;
+    border-color: #C5CAD6;
+    border-width: 1px;
+    opacity: 1;
+    margin: 0;
+}
+
+.dzd-initials-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    color: #fff;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0.5px;
+    user-select: none;
+    text-transform: uppercase;
+}
+
+.dzd-initials-avatar.clickable {
+    cursor: pointer;
+}
+
+.dzd-initials-avatar__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-color-palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    max-width: 280px;
+}
+
+.avatar-color-swatch {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    padding: 0;
+    cursor: pointer;
+    transition: transform 120ms ease, border-color 120ms ease;
+}
+
+.avatar-color-swatch:hover {
+    transform: scale(1.1);
+}
+
+.avatar-color-swatch.selected {
+    border-color: var(--dzd-text-primary);
+    box-shadow: 0 0 0 2px var(--dzd-surface-primary), 0 0 0 4px var(--dzd-text-primary);
+}
+
+.dzd-info-card {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--dzd-bg-input);
+    background-color: var(--dzd-surface-primary);
+    box-sizing: border-box;
+}
+
+.dzd-info-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--dzd-accent, var(--dzd-blue-500)), transparent);
+}
+
+.dzd-info-card.accent-purple { --dzd-accent: var(--dzd-purple-500); --dzd-accent-bg: var(--dzd-purple-50); }
+.dzd-info-card.accent-orange { --dzd-accent: var(--dzd-orange-500); --dzd-accent-bg: var(--dzd-orange-50); }
+.dzd-info-card.accent-green  { --dzd-accent: var(--dzd-green-500);  --dzd-accent-bg: var(--dzd-green-50); }
+.dzd-info-card.accent-red    { --dzd-accent: var(--dzd-red-500);    --dzd-accent-bg: var(--dzd-red-50); }
+.dzd-info-card.accent-blue   { --dzd-accent: var(--dzd-blue-500);   --dzd-accent-bg: var(--dzd-blue-50); }
+.dzd-info-card.accent-gray   { --dzd-accent: var(--dzd-text-secondary); --dzd-accent-bg: var(--dzd-bg-secondary); }
+
+.dzd-info-card__icon {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--dzd-accent-bg, var(--dzd-blue-50));
+    color: var(--dzd-accent, var(--dzd-blue-500));
+}
+
+.dzd-info-card__body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.dzd-info-card__label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--dzd-text-secondary);
+}
+
+.dzd-info-card__value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--dzd-text-primary);
+    line-height: 1.3;
+}
+
 h1:focus {
     outline: none;
 }
@@ -117,14 +251,11 @@ h1:focus {
     max-width: 100% !important;
 }
 
-/* ===== Grade Level Dialog ===== */
 
-/* Compact selected-job chips inside the outlined paper box */
 .gd-job-chip .mud-chip-content {
     font-size: 0.78rem;
 }
 
-/* Prevent autocomplete dropdown from being clipped by dialog overflow */
 .mud-dialog .mud-popover-overflow-y-auto {
     max-height: 220px;
 }

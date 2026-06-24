@@ -1,7 +1,5 @@
 namespace DZDDashboard.Common.DTOs;
 
-// Validation is handled exclusively by UpdateBasicInfoDtoValidator (FluentValidation).
-// Data annotations removed to avoid dual-validation with different error formats.
 public record UpdateBasicInfoDto
 {
     public string?   FirstName          { get; init; }

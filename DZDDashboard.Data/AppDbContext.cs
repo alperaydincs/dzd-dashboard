@@ -8,8 +8,6 @@ namespace DZDDashboard.Data;
 public class AppDbContext(DbContextOptions<AppDbContext> options, IAuditProvider? auditProvider = null)
     : DbContext(options)
 {
-    // Migrations and tests may omit auditProvider — fall back to NullAuditProvider so audit
-    // stamps still run (with null ModifiedById) rather than being silently skipped.
     private readonly IAuditProvider _audit = auditProvider ?? NullAuditProvider.Instance;
 
     public DbSet<User> Users { get; set; }
@@ -52,10 +50,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, IAuditProvider
     public DbSet<EducationHistory> EducationHistories { get; set; }
     public DbSet<Grade> Grades { get; set; }
     public DbSet<GradeHistory> GradeHistories { get; set; }
+    public DbSet<PositionHistory> PositionHistories { get; set; }
+    public DbSet<StoredFile> StoredFiles { get; set; }
     public DbSet<SalaryHistory> SalaryHistories { get; set; }
     public DbSet<BenefitRecord> BenefitRecords { get; set; }
     public DbSet<BenefitDependent> BenefitDependents { get; set; }
     public DbSet<AdditionalPayment> AdditionalPayments { get; set; }
+    public DbSet<Deduction> Deductions { get; set; }
     public DbSet<OrganizationPosition> OrganizationPositions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -12,7 +12,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DZDDashboard.Services;
 
-// Interface is in Abstractions/IUserService.cs
 
 public class UserService(
     IMapper mapper,
@@ -29,6 +28,8 @@ public class UserService(
             !await context.PayrollLocations.AnyAsync(p => p.Id == dto.PayrollLocationId.Value, cancellationToken))
             throw new EntityNotFoundException(nameof(PayrollLocation), dto.PayrollLocationId.Value);
 
+        var nameChanged = user.FirstName != dto.FirstName || user.LastName != dto.LastName;
+
         user.FirstName           = dto.FirstName;
         user.LastName            = dto.LastName;
         user.RegistrationNumber  = dto.RegistrationNumber;
@@ -38,6 +39,9 @@ public class UserService(
         user.ContractEndDate     = dto.ContractEndDate;
         user.WorkModel           = dto.WorkModel;
         user.PayrollLocationId   = dto.PayrollLocationId;
+
+        if (nameChanged)
+            user.Slug = await GenerateUniqueSlugAsync(dto.FirstName, dto.LastName, cancellationToken);
 
         await context.SaveChangesAsync(cancellationToken);
     }
@@ -73,10 +77,12 @@ public class UserService(
     {
         var user = await RequireUserAsync(userId, cancellationToken);
 
-        user.LegalAddress   = dto.LegalAddress;
-        user.CurrentAddress = dto.CurrentAddress;
-        user.City           = dto.City;
-        user.Country        = dto.Country;
+        user.LegalAddress        = dto.LegalAddress;
+        user.LegalAddressCity    = dto.LegalAddressCity;
+        user.LegalAddressCountry = dto.LegalAddressCountry;
+        user.CurrentAddress      = dto.CurrentAddress;
+        user.City                = dto.City;
+        user.Country             = dto.Country;
 
         await context.SaveChangesAsync(cancellationToken);
     }
@@ -104,14 +110,78 @@ public class UserService(
         await context.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task UpdatePositionHistoryAsync(int userId, UpdatePositionHistoryDto dto, CancellationToken cancellationToken = default)
+    {
+        var user = await RequireUserAsync(userId, cancellationToken);
+
+        if (dto.DepartmentId.HasValue && !await context.Departments.AnyAsync(d => d.Id == dto.DepartmentId.Value, cancellationToken))
+            throw new EntityNotFoundException(nameof(Department), dto.DepartmentId.Value);
+        if (dto.TeamId.HasValue && !await context.Teams.AnyAsync(t => t.Id == dto.TeamId.Value, cancellationToken))
+            throw new EntityNotFoundException(nameof(Team), dto.TeamId.Value);
+
+        var current = await context.PositionHistories
+            .Where(p => p.UserId == userId && p.EndDate == null)
+            .OrderByDescending(p => p.StartDate)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (current is null)
+        {
+            var jobTitle = user.JobId == null ? null
+                : await context.Jobs.Where(j => j.Id == user.JobId).Select(j => j.Title).FirstOrDefaultAsync(cancellationToken);
+            current = new PositionHistory { UserId = userId, JobTitle = jobTitle, Grade = user.Grade };
+            context.PositionHistories.Add(current);
+        }
+
+        current.CompanyName  = dto.CompanyName;
+        current.DepartmentId = dto.DepartmentId;
+        current.TeamId       = dto.TeamId;
+        current.StartDate    = dto.StartDate;
+        current.EndDate      = dto.EndDate;
+
+        user.CompanyName  = dto.CompanyName;
+        user.DepartmentId = dto.DepartmentId;
+        user.TeamId       = dto.TeamId;
+
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task SnapshotPositionIfChangedAsync(User user, int? prevGrade, int? prevJobId, CancellationToken cancellationToken)
+    {
+        var gradeChanged = prevGrade != user.Grade;
+        var jobChanged   = prevJobId != user.JobId;
+        if (!gradeChanged && !jobChanged) return;
+
+        var now = DateTime.UtcNow;
+        var open = await context.PositionHistories
+            .Where(p => p.UserId == user.Id && p.EndDate == null)
+            .OrderByDescending(p => p.StartDate)
+            .FirstOrDefaultAsync(cancellationToken);
+        if (open != null) open.EndDate = now;
+
+        var jobTitle = user.JobId == null ? null
+            : await context.Jobs.Where(j => j.Id == user.JobId).Select(j => j.Title).FirstOrDefaultAsync(cancellationToken);
+
+        context.PositionHistories.Add(new PositionHistory
+        {
+            UserId       = user.Id,
+            JobTitle     = jobTitle,
+            CompanyName  = user.CompanyName,
+            DepartmentId = user.DepartmentId,
+            TeamId       = user.TeamId,
+            Grade        = user.Grade,
+            StartDate    = open?.EndDate ?? now,
+            EndDate      = null,
+            ChangeType   = (gradeChanged && jobChanged) ? "Title & Grade Upgrade"
+                         : gradeChanged ? "Grade Upgrade" : "Title Change"
+        });
+    }
+
     public async Task UpdateMyContactInfoAsync(int userId, UpdateContactInfoDto dto, CancellationToken cancellationToken = default)
     {
         var user = await RequireUserAsync(userId, cancellationToken);
         user.PhoneNumber         = dto.WorkPhoneNumber;
         user.PersonalEmail       = dto.PersonalEmail;
         user.PersonalPhoneNumber = dto.PersonalPhoneNumber;
-        // Email (work email) is intentionally not updated here — it is managed by Entra ID sync
-        // and can only be changed by an Admin via UpdateContactsAsync.
         await context.SaveChangesAsync(cancellationToken);
     }
 
@@ -164,10 +234,6 @@ public class UserService(
 
     public async Task<PagedResult<UserSummaryDto>> GetAllSummariesAsync(int page, int pageSize, CancellationToken cancellationToken = default)
     {
-        // Active-only by default — deactivated employees should not appear in employee lists.
-        // If admin needs to see inactive users, add an optional bool includeInactive param.
-        // Trade-off: CountAsync + query is 2 DB round-trips. Acceptable here as Users table is small.
-        // AsNoTracking on baseQuery so both CountAsync and the items query skip the tracking overhead.
         var baseQuery = context.Users.AsNoTracking().Where(u => u.IsActive);
         var total = await baseQuery.CountAsync(cancellationToken);
         var items = await baseQuery
@@ -176,8 +242,10 @@ public class UserService(
             .Select(u => new UserSummaryDto
             {
                 Id              = u.Id,
+                Slug            = u.Slug,
                 FirstName       = u.FirstName,
                 LastName        = u.LastName,
+                AvatarColorIndex = u.AvatarColorIndex,
                 Email           = u.Email,
                 PhoneNumber     = u.PhoneNumber,
                 City            = u.City,
@@ -186,7 +254,6 @@ public class UserService(
                 UserStartDate   = u.UserStartDate,
                 DepartmentId           = u.DepartmentId,
                 OrganizationPositionId = u.OrganizationPositionId,
-                // Projection: only ContentType loaded — ContentBase64 intentionally excluded
                 Avatar = u.Avatar == null ? null : new UserAvatarSummaryDto
                 {
                     Id          = u.Avatar.Id,
@@ -221,19 +288,29 @@ public class UserService(
         };
     }
 
-    /// <summary>
-    /// Returns the employee card DTO using <c>ProjectTo</c> so EF Core generates a SELECT
-    /// that only fetches columns referenced by <see cref="EmployeeCardDto"/> — avoids loading
-    /// all 40+ User columns and replaces the 12-Include chain with a single projected query.
-    /// PII fields (DateOfBirth, Citizenship, Family, Address) are intentionally excluded via
-    /// AutoMapper <c>Ignore()</c> and must be fetched separately via <see cref="GetSensitiveInfoAsync"/>.
-    /// </summary>
     public async Task<EmployeeCardDto?> GetEmployeeCardAsync(int id, CancellationToken cancellationToken = default)
         => await context.Users
             .AsNoTracking()
             .Where(u => u.Id == id)
             .ProjectTo<EmployeeCardDto>(mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(cancellationToken);
+
+    public async Task<EmployeeCardDto?> GetEmployeeCardBySlugAsync(string slug, CancellationToken cancellationToken = default)
+        => await context.Users
+            .AsNoTracking()
+            .Where(u => u.Slug == slug)
+            .ProjectTo<EmployeeCardDto>(mapper.ConfigurationProvider)
+            .FirstOrDefaultAsync(cancellationToken);
+
+    public async Task<string> GenerateUniqueSlugAsync(string? firstName, string? lastName, CancellationToken cancellationToken = default)
+    {
+        var baseSlug = SlugGenerator.FromName(firstName, lastName);
+        var slug = baseSlug;
+        var suffix = 2;
+        while (await context.Users.AnyAsync(u => u.Slug == slug, cancellationToken))
+            slug = $"{baseSlug}-{suffix++}";
+        return slug;
+    }
 
     public async Task<UserAvatarDto?> GetAvatarByUserIdAsync(int id, CancellationToken cancellationToken = default)
         => await context.UserAvatars
@@ -244,7 +321,6 @@ public class UserService(
 
     public async Task<EmployeeSensitiveInfoDto?> GetSensitiveInfoAsync(int id, CancellationToken cancellationToken = default)
     {
-        // Projection: only PII columns + Children are selected — avoids loading 40+ irrelevant columns.
         return await context.Users
             .AsNoTracking()
             .Where(u => u.Id == id)
@@ -262,6 +338,8 @@ public class UserService(
                 PersonalEmail       = u.PersonalEmail,
                 PersonalPhoneNumber = u.PersonalPhoneNumber,
                 LegalAddress        = u.LegalAddress,
+                LegalAddressCity    = u.LegalAddressCity,
+                LegalAddressCountry = u.LegalAddressCountry,
                 CurrentAddress      = u.CurrentAddress,
                 City                = u.City,
                 Country             = u.Country,
@@ -290,6 +368,7 @@ public class UserService(
             NormalizedEmail = string.IsNullOrWhiteSpace(email) ? null : email.ToUpperInvariant(),
             FirstName       = firstName,
             LastName        = lastName,
+            Slug            = await GenerateUniqueSlugAsync(firstName, lastName, cancellationToken),
             IsActive        = true
         };
 
@@ -301,14 +380,9 @@ public class UserService(
         }
         catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
         {
-            // Race condition: another request inserted the same EntraObjectId concurrently.
-            // The unique index on EntraObjectId prevents duplicates — fetch the winner's row.
             logger.LogWarning(
                 "Race condition in SyncEntraUserAsync: concurrent insert for EntraObjectId {ObjectId}. Fetching winning row.",
                 objectId);
-            // ChangeTracker.Clear() is safer than Entry(..).State = Detached:
-            // it releases all tracked entities so the subsequent read cannot be
-            // confused with any pending add/modify state.
             context.ChangeTracker.Clear();
             var winningId = await context.Users
                 .AsNoTracking()
@@ -321,20 +395,12 @@ public class UserService(
         }
     }
 
-    /// <summary>
-    /// Returns true when the <see cref="DbUpdateException"/> was caused by a unique-index
-    /// violation (SQL Server error 2627 — primary key / 2601 — unique index).
-    /// Prevents the race-condition fallback from masking unrelated DB errors.
-    /// </summary>
     private static bool IsUniqueConstraintViolation(DbUpdateException ex)
         => ex.InnerException is Microsoft.Data.SqlClient.SqlException sqlEx
            && (sqlEx.Number == 2627 || sqlEx.Number == 2601);
 
     public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        // Salary/grade history is audit data — Restrict delete to prevent loss (see UserConfiguration).
-        // TargetEfforts, UserTrainings, ExCompanyHistories use Cascade (operational data, deleted with user).
-        // Short-circuit: skip the second query when the first already confirms conflict.
         if (await context.SalaryHistories.AnyAsync(h => h.UserId == id, cancellationToken)
             || await context.GradeHistories.AnyAsync(h => h.UserId == id, cancellationToken))
             throw new DomainConflictException(
@@ -347,7 +413,6 @@ public class UserService(
 
     public async Task UpdateAvatarAsync(int userId, string contentType, string base64Content, CancellationToken cancellationToken = default)
     {
-        // Base64 padding adds ~33% overhead. Check corresponding byte size.
         var maxBytes = AvatarConstants.MaxFileSizeBytes;
         var approxBytes = base64Content.Length * 3 / 4;
         if (approxBytes > maxBytes) throw new DomainValidationException($"File size exceeds {maxBytes / 1024 / 1024} MB limit.");
@@ -364,6 +429,16 @@ public class UserService(
         await context.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task UpdateAvatarColorAsync(int userId, int? colorIndex, CancellationToken cancellationToken = default)
+    {
+        if (colorIndex is < 0)
+            throw new DomainValidationException("Avatar colour index must be non-negative.");
+
+        var user = await RequireUserAsync(userId, cancellationToken);
+        user.AvatarColorIndex = colorIndex;
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task UpdateOrganizationPositionAsync(int userId, int? organizationPositionId, CancellationToken cancellationToken = default)
     {
         var user = await RequireUserAsync(userId, cancellationToken);
@@ -374,25 +449,17 @@ public class UserService(
             if (!exists) throw new EntityNotFoundException("OrganizationPosition", organizationPositionId.Value);
         }
 
-        // Transaction: the position change and the recalculation must be atomic.
-        // If RecalculateAsync fails, the user's OrganizationPositionId is rolled back.
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
         user.OrganizationPositionId = organizationPositionId;
         user.ReportsToId            = null;
-        // Flush the position change to DB first so RecalculateAsync reads the updated state.
-        // RecalculateAsync uses AsNoTracking queries — it reads from DB, not the EF tracker.
         await context.SaveChangesAsync(cancellationToken);
-        await reportsToCalculator.RecalculateAsync(cancellationToken); // uses ExecuteUpdateAsync within the tx
-        await transaction.CommitAsync(cancellationToken);
+        await reportsToCalculator.RecalculateAsync(cancellationToken);        await transaction.CommitAsync(cancellationToken);
     }
 
     public async Task UpdateCareerAssignmentAsync(int userId, UpdateCareerAssignmentDto dto, CancellationToken cancellationToken = default)
     {
         var user = await RequireUserAsync(userId, cancellationToken);
 
-        // FK existence checks are sequential — EF Core DbContext is not thread-safe and must not be
-        // used concurrently (Task.WhenAll on the same context is undefined behaviour).
-        // Each check is a single-column indexed lookup and is fast in practice.
         if (dto.DepartmentId.HasValue && !await context.Departments.AnyAsync(d => d.Id == dto.DepartmentId.Value, cancellationToken))
             throw new EntityNotFoundException(nameof(Department), dto.DepartmentId.Value);
 
@@ -405,6 +472,9 @@ public class UserService(
         if (dto.CareerPathId.HasValue && !await context.CareerPaths.AnyAsync(p => p.Id == dto.CareerPathId.Value, cancellationToken))
             throw new EntityNotFoundException(nameof(CareerPath), dto.CareerPathId.Value);
 
+        var prevGrade = user.Grade;
+        var prevJobId = user.JobId;
+
         user.CompanyName  = dto.CompanyName;
         user.DepartmentId = dto.DepartmentId;
         user.TeamId       = dto.TeamId;
@@ -412,20 +482,138 @@ public class UserService(
         user.JobId        = dto.JobId;
         user.Grade        = dto.Grade;
 
+        await SnapshotPositionIfChangedAsync(user, prevGrade, prevJobId, cancellationToken);
+
+        if (!dto.ManagerId.HasValue)
+        {
+            await context.SaveChangesAsync(cancellationToken);
+            return;
+        }
+
+        await WireEmployeeUnderManagerAsync(user, dto.ManagerId.Value, dto.NewPositionName, cancellationToken);
+    }
+
+    private async Task WireEmployeeUnderManagerAsync(User employee, int managerId, string? newPositionName, CancellationToken cancellationToken)
+    {
+        if (managerId == employee.Id)
+            throw new DomainValidationException("A user cannot be their own manager.");
+
+        var manager = await context.Users.AsNoTracking()
+            .Where(u => u.Id == managerId)
+            .Select(u => new { u.OrganizationPositionId })
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw new EntityNotFoundException("User (manager)", managerId);
+
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
+        if (manager.OrganizationPositionId is not int managerPositionId)
+        {
+            var orphanedPositionId = employee.OrganizationPositionId;
+            employee.OrganizationPositionId = null;
+            employee.ReportsToId            = managerId;            await context.SaveChangesAsync(cancellationToken);
+
+            if (orphanedPositionId is int posId)
+            {
+                await RemoveEmptyLeafPositionAsync(posId, cancellationToken);
+                await reportsToCalculator.RecalculateAsync(cancellationToken);
+            }
+            await transaction.CommitAsync(cancellationToken);
+            return;
+        }
+
+        if (employee.OrganizationPositionId is int employeePositionId)
+        {
+            if (managerPositionId == employeePositionId || await IsDescendantAsync(employeePositionId, managerPositionId, cancellationToken))
+                throw new DomainConflictException("Cannot place the manager's position beneath the employee's own position — circular dependency.");
+
+            var employeePosition = await context.OrganizationPositions.FirstAsync(p => p.Id == employeePositionId, cancellationToken);
+            employeePosition.ParentId = managerPositionId;
+        }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(newPositionName))
+                throw new DomainValidationException("A position name is required to add the employee to the org chart.");
+
+            var newPosition = new OrganizationPosition { Name = newPositionName.Trim(), ParentId = managerPositionId };
+            context.OrganizationPositions.Add(newPosition);
+            await context.SaveChangesAsync(cancellationToken);            employee.OrganizationPositionId = newPosition.Id;
+        }
+
+        employee.ReportsToId = null;        await context.SaveChangesAsync(cancellationToken);
+        await reportsToCalculator.RecalculateAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+    }
+
+    private async Task RemoveEmptyLeafPositionAsync(int positionId, CancellationToken cancellationToken)
+    {
+        var hasUsers    = await context.Users.AnyAsync(u => u.OrganizationPositionId == positionId, cancellationToken);
+        var hasChildren = await context.OrganizationPositions.AnyAsync(p => p.ParentId == positionId, cancellationToken);
+        if (hasUsers || hasChildren) return;
+
+        var position = await context.OrganizationPositions.FirstOrDefaultAsync(p => p.Id == positionId, cancellationToken);
+        if (position is null) return;
+
+        context.OrganizationPositions.Remove(position);
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    private async Task<bool> IsDescendantAsync(int ancestorId, int potentialDescendantId, CancellationToken cancellationToken)
+    {
+        var parentMap = await context.OrganizationPositions.AsNoTracking()
+            .Select(p => new { p.Id, p.ParentId })
+            .ToDictionaryAsync(p => p.Id, p => p.ParentId, cancellationToken);
+
+        var currentId = (int?)potentialDescendantId;
+        var guard = 0;
+        while (currentId.HasValue && parentMap.TryGetValue(currentId.Value, out var parentId))
+        {
+            if (parentId == ancestorId) return true;
+            currentId = parentId;
+            if (++guard > parentMap.Count) break;
+        }
+        return false;
+    }
+
+    public async Task<List<UserSearchResultDto>> SearchUsersAsync(string? query, int take, CancellationToken cancellationToken = default)
+    {
+        take = Math.Clamp(take, 1, 50);
+
+        var users = context.Users.AsNoTracking().Where(u => u.IsActive);
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            var term = query.Trim();
+            users = users.Where(u =>
+                (u.FirstName != null && u.FirstName.Contains(term)) ||
+                (u.LastName  != null && u.LastName.Contains(term))  ||
+                (u.Email     != null && u.Email.Contains(term)));
+        }
+
+        return await users
+            .OrderBy(u => u.LastName).ThenBy(u => u.FirstName)
+            .Take(take)
+            .Select(u => new UserSearchResultDto
+            {
+                Id                     = u.Id,
+                Slug                   = u.Slug,
+                FirstName              = u.FirstName,
+                LastName               = u.LastName,
+                Email                  = u.Email,
+                AvatarColorIndex       = u.AvatarColorIndex,
+                AvatarContentType      = u.Avatar != null ? u.Avatar.ContentType : null,
+                AvatarBase64           = u.Avatar != null ? u.Avatar.ContentBase64 : null,
+                CompanyName            = u.CompanyName,
+                DepartmentId           = u.DepartmentId,
+                TeamId                 = u.TeamId,
+                OrganizationPositionId = u.OrganizationPositionId,
+            })
+            .ToListAsync(cancellationToken);
+    }
+
 
     private async Task<User> RequireUserAsync(int userId, CancellationToken cancellationToken = default)
         => await context.Users.FindAsync([userId], cancellationToken)
            ?? throw new EntityNotFoundException("User", userId);
 
-    /// <summary>
-    /// Merges an incoming DTO list into a tracked entity collection:
-    /// removes entities absent from the incoming list, updates matches, inserts new ones.
-    /// Eliminates the duplicate add/remove loop in UpdateEmergencyContactsAsync and UpdateFamilyInfoAsync.
-    /// </summary>
     private void MergeCollection<TEntity, TDto>(
         ICollection<TEntity> existing,
         IEnumerable<TDto>    incoming,
@@ -452,10 +640,6 @@ public class UserService(
         }
     }
 
-    /// <summary>
-    /// Loads a user with a navigation property included.
-    /// Use this instead of duplicating the Include+FirstOrDefault+throw pattern.
-    /// </summary>
     private async Task<User> RequireUserWithAsync(int userId,
         System.Linq.Expressions.Expression<Func<User, object?>> include,
         CancellationToken cancellationToken = default)

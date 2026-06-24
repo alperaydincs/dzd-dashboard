@@ -19,7 +19,6 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
 
         builder.HasIndex(d => d.Name).IsUnique();
 
-        // Parent relationship: deleting a Company cascades to its Departments (EF client-side cascade)
         builder.HasOne(d => d.Company)
                .WithMany(c => c.Departments)
                .HasForeignKey(d => d.CompanyId)

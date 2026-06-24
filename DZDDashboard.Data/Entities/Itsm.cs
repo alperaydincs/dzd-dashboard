@@ -1,4 +1,4 @@
-﻿namespace DZDDashboard.Data.Entities;
+namespace DZDDashboard.Data.Entities;
 
 public class Itsm : AuditableEntity
 {
@@ -8,9 +8,7 @@ public class Itsm : AuditableEntity
     public Bank? Bank { get; set; }
     public int? BankId { get; set; }
     public string IssueKey { get; set; } = string.Empty;
-    public int? AssigneeId { get; set; }   // Fixed typo: AsigneeId → AssigneeId
-    public User? Assignee { get; set; }    // Fixed typo: Asignee  → Assignee
-    public Team? Team { get; set; }
+    public int? AssigneeId { get; set; }    public User? Assignee { get; set; }    public Team? Team { get; set; }
     public int? TeamId { get; set; }
     public Resolution? Resolution { get; set; }
     public int? ResolutionId { get; set; }

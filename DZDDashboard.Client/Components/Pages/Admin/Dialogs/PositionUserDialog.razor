@@ -1,5 +1,4 @@
 ﻿@using DZDDashboard.Client.Services
-@using DZDDashboard.Client.Utils
 @using DZDDashboard.Common.Utils
 
 
@@ -43,9 +42,7 @@
                         <MudText Typo="Typo.caption" Style="opacity:.6;">Current Assignment</MudText>
                         <MudPaper Class="pa-3 d-flex justify-space-between align-center" Outlined="true" Style="background-color: #E3F2FD; border-color: #2196F3;">
                             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                <MudAvatar Size="Size.Medium" Color="@GetAvatarColor(_currentUser)">
-                                    @AppFormatter.GetInitials(AppFormatter.BuildFullName(_currentUser.FirstName, _currentUser.LastName))
-                                </MudAvatar>
+                                <InitialsAvatar FullName="@AppFormatter.BuildFullName(_currentUser.FirstName, _currentUser.LastName)" ColorIndex="@_currentUser.AvatarColorIndex" Size="40" />
                                 <MudStack Spacing="0">
                                     <MudText Typo="Typo.body2" Style="font-weight:500;">@AppFormatter.BuildFullName(_currentUser.FirstName, _currentUser.LastName)</MudText>
                                     <MudText Typo="Typo.caption">@_currentUser.Email</MudText>
@@ -75,9 +72,7 @@
                         {
                             <MudPaper Class="pa-3 d-flex justify-space-between align-center" Outlined="true">
                                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                    <MudAvatar Size="Size.Medium" Color="@GetAvatarColor(user)">
-                                        @AppFormatter.GetInitials(AppFormatter.BuildFullName(user.FirstName, user.LastName))
-                                    </MudAvatar>
+                                    <InitialsAvatar FullName="@AppFormatter.BuildFullName(user.FirstName, user.LastName)" ColorIndex="@user.AvatarColorIndex" Size="40" />
                                     <MudStack Spacing="0">
                                         <MudText Typo="Typo.body2" Style="font-weight:500;">@AppFormatter.BuildFullName(user.FirstName, user.LastName)</MudText>
                                         <MudText Typo="Typo.caption">@user.Email</MudText>
@@ -95,7 +90,7 @@
                         </MudStack>
                     }
                 </div>
-            } @* end available users *@
+            }
         </MudStack>
     </DialogContent>
     <DialogActions>
@@ -166,7 +161,5 @@
     {
         MudDialog.Cancel();
     }
-
-    private static Color GetAvatarColor(UserSummaryDto? user) => UiHelpers.GetAvatarColor(user);
 }
 

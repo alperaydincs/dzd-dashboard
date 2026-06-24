@@ -6,14 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DZDDashboard.Api.Controllers;
 
-/// <summary>
-/// Manages career paths and career map rules.
-/// Route kept at <c>api/organization</c> for backward compatibility with existing API clients.
-/// </summary>
 [Route("api/organization")]
 public class CareerController(ICareerPathService careerPathService) : BaseController
 {
-    // ── Career Paths ───────────────────────────────────────────────────────────
 
     [HttpGet("careerpaths")]
     public async Task<ActionResult<List<CareerPathDto>>> GetCareerPaths(CancellationToken cancellationToken)
@@ -44,18 +39,12 @@ public class CareerController(ICareerPathService careerPathService) : BaseContro
         return NoContent();
     }
 
-    // ── Career Map Rules ───────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Creates a career map rule. Returns 201 Created. No GET-by-id endpoint exists for rules;
-    /// use GET /api/organization/careerpaths to retrieve the full tree including this rule.
-    /// </summary>
     [HttpPost("careermaprules")]
     [Authorize(Roles = Roles.AdminOrHr)]
     public async Task<ActionResult<CareerMapRuleDto>> CreateCareerMapRule([FromBody] CareerMapRuleDto dto, CancellationToken cancellationToken)
     {
         var result = await careerPathService.CreateCareerMapRuleAsync(dto, cancellationToken);
-        // No GET-by-id endpoint for CareerMapRule → return 201 without a Location header.
         return StatusCode(StatusCodes.Status201Created, result);
     }
 

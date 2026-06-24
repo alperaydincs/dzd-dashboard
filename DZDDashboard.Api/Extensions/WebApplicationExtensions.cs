@@ -15,9 +15,6 @@ public static class WebApplicationExtensions
             app.UseDeveloperExceptionPage();
         }
 
-        // UseForwardedHeaders must run before rate limiting and authentication so that
-        // context.Connection.RemoteIpAddress is the real client IP (not the proxy IP).
-        // KnownProxies / KnownNetworks are configured in ServiceCollectionExtensions.
         app.UseForwardedHeaders();
         app.UseHttpsRedirection();
         app.UseRateLimiter();
@@ -27,7 +24,6 @@ public static class WebApplicationExtensions
         app.UseAuthorization();
         app.MapControllers().RequireRateLimiting("api");
 
-        // Health check endpoints (unauthenticated)
         app.MapHealthChecks("/health", new HealthCheckOptions
         {
             ResultStatusCodes =

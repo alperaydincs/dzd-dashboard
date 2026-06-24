@@ -70,7 +70,6 @@ public class UpdateEmergencyContactsDtoValidator : AbstractValidator<UpdateEmerg
                 .NotEmpty().WithMessage(ValidationMessages.EmergencyRelationRequired)
                 .MaximumLength(ValidationConstants.MaxNameLength);
 
-            // Service also requires PhoneNumber — keep validator in sync
             contact.RuleFor(c => c.PhoneNumber)
                 .NotEmpty().WithMessage(ValidationMessages.EmergencyPhoneRequired)
                 .MaximumLength(ValidationConstants.MaxPhoneLength)

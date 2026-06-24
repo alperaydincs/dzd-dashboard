@@ -1,9 +1,5 @@
 namespace DZDDashboard.Common.Constants;
 
-/// <summary>
-/// Domain-level string constants for fields that are stored as strings in the database
-/// but have a fixed set of valid values. Centralises all magic strings in one place.
-/// </summary>
 public static class ContractTypes
 {
     public const string FullTime   = "Full-time";

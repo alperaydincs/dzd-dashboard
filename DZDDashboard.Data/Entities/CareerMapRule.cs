@@ -1,4 +1,4 @@
-﻿namespace DZDDashboard.Data.Entities;
+namespace DZDDashboard.Data.Entities;
 
 public class CareerMapRule : AuditableEntity
 {
@@ -6,9 +6,7 @@ public class CareerMapRule : AuditableEntity
     public int CareerPathId { get; set; }
     public CareerPath? CareerPath { get; set; }
     public int          Grade          { get; set; }
-    /// <summary>Minimum time in the current role. Owned type — stored as MinRoleTimeMonth/MinRoleTimeYear columns.</summary>
     public RoleDuration MinRoleTime    { get; set; } = new();
-    /// <summary>Minimum total experience. Owned type — stored as MinExperienceMonth/MinExperienceYear columns.</summary>
     public RoleDuration MinExperience  { get; set; } = new();
     public bool ManagerPerformanceEvaluation { get; set; }
     public bool AssessmentCenterApplication { get; set; }

@@ -8,10 +8,6 @@ var app = builder.Build();
 
 app.ConfigureApiPipeline();
 
-// Warn in production if no known proxy IPs are configured: the ForwardedHeaders middleware
-// currently trusts all proxies (KnownNetworks/KnownProxies cleared for cloud LB compatibility).
-// In production, restrict ForwardedHeadersOptions.KnownProxies to your load-balancer CIDRs
-// to prevent X-Forwarded-For spoofing and incorrect rate-limiter IP partitioning.
 if (!app.Environment.IsDevelopment())
 {
     var knownProxies = app.Configuration.GetSection("Api:KnownProxies").Get<string[]>();

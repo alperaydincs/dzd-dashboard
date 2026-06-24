@@ -7,15 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DZDDashboard.Api.Controllers;
 
-/// <summary>
-/// Employee Profile → Payment screen: salary history, benefit line items (incl. ÖSS
-/// dependents) and additional payments.
-/// Edit operations are Admin/HR only (per the analysis doc's role matrix — "İK Operasyon"
-/// enters/updates pay and benefits, "Finans/Bordro" tracks additional payments).
-/// Employees get a reduced, view-only summary of their own salary + BES via
-/// <c>GET api/users/my-profile/payment-summary</c> (decision: "Maaş ve BES görebilir ama
-/// düzenleyemez, sadece kendine ait olanı görür").
-/// </summary>
 [Route("api/users")]
 public class PaymentController(IPaymentService paymentService, ICurrentUserAccessor currentUser) : BaseController
 {
@@ -33,7 +24,6 @@ public class PaymentController(IPaymentService paymentService, ICurrentUserAcces
     public async Task<ActionResult<EmployeePaymentDto>> GetEmployeePayment(int id, CancellationToken cancellationToken)
         => Ok(await paymentService.GetEmployeePaymentAsync(id, cancellationToken));
 
-    // ── Salary ───────────────────────────────────────────────────────────────
 
     [HttpPost("{id:int}/payment/salary")]
     [Authorize(Roles = Roles.AdminOrHr)]
@@ -60,7 +50,6 @@ public class PaymentController(IPaymentService paymentService, ICurrentUserAcces
         return NoContent();
     }
 
-    // ── Benefits ─────────────────────────────────────────────────────────────
 
     [HttpPost("{id:int}/payment/benefits")]
     [Authorize(Roles = Roles.AdminOrHr)]
@@ -87,7 +76,6 @@ public class PaymentController(IPaymentService paymentService, ICurrentUserAcces
         return NoContent();
     }
 
-    // ── Additional Payments ──────────────────────────────────────────────────
 
     [HttpPost("{id:int}/payment/additional-payments")]
     [Authorize(Roles = Roles.AdminOrHr)]
@@ -111,6 +99,32 @@ public class PaymentController(IPaymentService paymentService, ICurrentUserAcces
     public async Task<IActionResult> DeleteAdditionalPayment(int id, int paymentId, CancellationToken cancellationToken)
     {
         await paymentService.DeleteAdditionalPaymentAsync(id, paymentId, cancellationToken);
+        return NoContent();
+    }
+
+
+    [HttpPost("{id:int}/payment/deductions")]
+    [Authorize(Roles = Roles.AdminOrHr)]
+    public async Task<ActionResult<DeductionDto>> CreateDeduction(int id, [FromBody] DeductionDto dto, CancellationToken cancellationToken)
+    {
+        var result = await paymentService.CreateDeductionAsync(id, dto, cancellationToken);
+        return CreatedAtAction(nameof(GetEmployeePayment), new { id }, result);
+    }
+
+    [HttpPut("{id:int}/payment/deductions/{deductionId:int}")]
+    [Authorize(Roles = Roles.AdminOrHr)]
+    public async Task<IActionResult> UpdateDeduction(int id, int deductionId, [FromBody] DeductionDto dto, CancellationToken cancellationToken)
+    {
+        if (CheckIdMismatch(deductionId, dto.Id) is { } mismatch) return mismatch;
+        await paymentService.UpdateDeductionAsync(id, deductionId, dto, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpDelete("{id:int}/payment/deductions/{deductionId:int}")]
+    [Authorize(Roles = Roles.AdminOrHr)]
+    public async Task<IActionResult> DeleteDeduction(int id, int deductionId, CancellationToken cancellationToken)
+    {
+        await paymentService.DeleteDeductionAsync(id, deductionId, cancellationToken);
         return NoContent();
     }
 }

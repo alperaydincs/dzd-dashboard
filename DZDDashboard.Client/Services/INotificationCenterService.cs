@@ -1,6 +1,5 @@
 namespace DZDDashboard.Client.Services;
 
-/// <summary>Per-circuit notification feed for in-app toast/bell messages.</summary>
 public interface INotificationCenterService
 {
     event Action? Changed;

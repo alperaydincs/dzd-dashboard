@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using DZDDashboard.Common.Validation;
 
 namespace DZDDashboard.Common.Utils;
@@ -20,7 +21,14 @@ public static class AppFormatter
 
     public static string FormatDate(DateTime? dt, string format = "MMMM dd, yyyy")
     {
-        return dt is null ? "-" : dt.Value.ToString(format);
+        return dt is null ? "-" : dt.Value.ToString(format, CultureInfo.InvariantCulture);
+    }
+
+    public static string FormatDateLocal(DateTime? dt, string format = "MMMM dd, yyyy")
+    {
+        if (dt is null) return "-";
+        var utc = DateTime.SpecifyKind(dt.Value, DateTimeKind.Utc);
+        return utc.ToLocalTime().ToString(format, CultureInfo.InvariantCulture);
     }
 
     public static string? FormatDurationFrom(DateTime? start)
@@ -48,10 +56,6 @@ public static class AppFormatter
     public static bool IsValidPhone(string? phone)
         => string.IsNullOrWhiteSpace(phone) || PhoneValidator.IsValid(phone);
 
-    /// <summary>
-    /// Returns a human-readable elapsed time string (e.g. "just now", "5m ago", "2h ago", "3d ago").
-    /// Compares <paramref name="utcTime"/> to <see cref="DateTime.UtcNow"/>.
-    /// </summary>
     public static string FormatElapsed(DateTime utcTime)
     {
         var elapsed = DateTime.UtcNow - utcTime;

@@ -50,8 +50,6 @@
 
     protected override void OnParametersSet()
     {
-        // Guard: only seed from InitialModel once.
-        // Without this, any parent re-render would reset in-progress edits.
         if (_initialized || InitialModel is null) return;
         _initialized = true;
 

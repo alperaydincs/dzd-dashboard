@@ -24,7 +24,6 @@ public class BankConfiguration : IEntityTypeConfiguration<Bank>
                .HasForeignKey(p => p.BankId)
                .OnDelete(DeleteBehavior.SetNull);
 
-        // Bank→Itsms relationship configured in ItsmConfiguration — single source of truth
 
         builder.HasOne(b => b.ModifiedBy)
                .WithMany()

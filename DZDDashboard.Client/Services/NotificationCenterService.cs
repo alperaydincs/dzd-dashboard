@@ -1,25 +1,10 @@
 namespace DZDDashboard.Client.Services;
 
-/// <summary>
-/// Thread-safe in-memory notification store for a single Blazor Server circuit.
-/// Uses a lock because Blazor Server circuits can receive concurrent updates
-/// from SignalR hub callbacks and UI event handlers on the same instance.
-/// <para>
-/// <b>Threading contract for subscribers:</b> <see cref="Changed"/> may be raised from a
-/// non-UI thread (e.g. a SignalR hub callback). Blazor components subscribing to this event
-/// must dispatch <c>StateHasChanged</c> via <c>InvokeAsync</c> to stay on the renderer
-/// synchronisation context:
-/// <code>
-///   _notifications.Changed += async () =&gt; await InvokeAsync(StateHasChanged);
-/// </code>
-/// </para>
-/// </summary>
 public sealed class NotificationCenterService : INotificationCenterService
 {
     private readonly List<AppNotification> _notifications = [];
     private readonly object _lock = new();
-    private int _nextId; // Interlocked.Increment returns post-incremented value
-
+    private int _nextId;
     public event Action? Changed;
 
     public IReadOnlyList<AppNotification> GetAll()

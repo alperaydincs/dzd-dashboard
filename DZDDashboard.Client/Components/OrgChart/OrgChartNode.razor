@@ -1,6 +1,5 @@
 ﻿@using DZDDashboard.Client.Components.OrgChart
 @using DZDDashboard.Client.Services
-@using DZDDashboard.Client.Utils
 @using DZDDashboard.Common.Utils
 @inject NavigationManager Nav
 
@@ -11,15 +10,12 @@
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="node-card-content">
                     @if (Node.User != null)
                     {
-                        @* OrgChartUserDto has no avatar — initials only to avoid base64 payload *@
-                        <MudAvatar Color="GetAvatarColor(Node.User)" Size="Size.Large" Class="node-avatar dzd-avatar dzd-avatar-lg">
-                            @GetUserInitials(Node.User)
-                        </MudAvatar>
+                        <InitialsAvatar FullName="@AppFormatter.BuildFullName(Node.User.FirstName, Node.User.LastName)" ColorIndex="@Node.User.AvatarColorIndex" Size="64" Class="node-avatar" />
                     }
                     else
                     {
                         <MudAvatar Color="Color.Default" Size="Size.Large" Class="node-avatar node-avatar-empty dzd-avatar dzd-avatar-lg">
-                            <MudIcon Icon="@DzdIcons.UserRound" />
+                            <MudIcon Icon="@DzdIcons.UserRound" Size="Size.Large" />
                         </MudAvatar>
                     }
 
@@ -114,8 +110,8 @@
             await OnNodeSelected.InvokeAsync(Node);
         else if (IsEditMode)
             await OnEditNode.InvokeAsync(Node);
-        else if (isUser && user != null)
-            Nav.NavigateTo($"/employee/card/{user.Id}");
+        else if (isUser && user != null && !string.IsNullOrWhiteSpace(user.Slug))
+            Nav.NavigateTo($"/employee/{user.Slug}");
     }
 
     private string GetPositionName()
@@ -141,23 +137,17 @@
     private string GetPrimaryLabelClass()
         => Node.User is null ? "node-primary node-primary-empty" : "node-primary";
 
-    private static string GetUserInitials(OrgChartUserDto user)
-        => AppFormatter.GetInitials(AppFormatter.BuildFullName(user.FirstName, user.LastName));
-
     private bool TryGetMetaChipText(out string chipText)
     {
         chipText = string.Empty;
         if (Node.User is null) return false;
 
         var jobName = Node.User.Job?.Name?.Trim();
-        // OrgChartUserDto has no Department; show job name only
         if (string.IsNullOrWhiteSpace(jobName)) return false;
 
         chipText = jobName;
         return true;
     }
-
-    private static Color GetAvatarColor(OrgChartUserDto u) => UiHelpers.GetAvatarColor(u);
 }
 
 

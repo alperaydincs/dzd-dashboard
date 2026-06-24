@@ -2,9 +2,6 @@ using DZDDashboard.Common.DTOs;
 
 namespace DZDDashboard.Services;
 
-/// <summary>
-/// Manages the company organisational hierarchy: companies, departments, and teams.
-/// </summary>
 public interface ICompanyOrgService
 {
     Task<List<CompanyDto>>    GetCompaniesAsync(CancellationToken cancellationToken = default);

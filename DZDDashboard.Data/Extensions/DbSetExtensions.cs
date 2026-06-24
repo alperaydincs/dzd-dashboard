@@ -5,10 +5,6 @@ namespace DZDDashboard.Data.Extensions;
 
 public static class DbSetExtensions
 {
-    /// <summary>
-    /// Finds an entity by primary key and throws <see cref="EntityNotFoundException"/>
-    /// if it does not exist — eliminates the repetitive <c>?? throw</c> pattern.
-    /// </summary>
     public static async Task<T> FindRequiredAsync<T>(
         this DbSet<T> dbSet,
         int id,

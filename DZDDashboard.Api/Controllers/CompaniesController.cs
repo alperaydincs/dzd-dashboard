@@ -6,14 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DZDDashboard.Api.Controllers;
 
-/// <summary>
-/// Manages the company organisational hierarchy: companies, departments, and teams.
-/// Route kept at <c>api/organization</c> for backward compatibility with existing API clients.
-/// </summary>
 [Route("api/organization")]
 public class CompaniesController(ICompanyOrgService companyService) : BaseController
 {
-    // ── Companies ──────────────────────────────────────────────────────────────
 
     [HttpGet("companies")]
     public async Task<ActionResult<List<CompanyDto>>> GetCompanies(CancellationToken cancellationToken)
@@ -44,7 +39,6 @@ public class CompaniesController(ICompanyOrgService companyService) : BaseContro
         return NoContent();
     }
 
-    // ── Departments ────────────────────────────────────────────────────────────
 
     [HttpGet("departments")]
     public async Task<ActionResult<List<DepartmentDto>>> GetDepartments(CancellationToken cancellationToken)
@@ -75,7 +69,6 @@ public class CompaniesController(ICompanyOrgService companyService) : BaseContro
         return NoContent();
     }
 
-    // ── Teams ──────────────────────────────────────────────────────────────────
 
     [HttpGet("teams")]
     public async Task<ActionResult<List<TeamDto>>> GetTeams(CancellationToken cancellationToken)

@@ -1,0 +1,98 @@
+@using DZDDashboard.Common.DTOs
+@using MudBlazor
+
+<div class="jts-root">
+<MudMenu AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft"
+         Class="jts-menu" PopoverClass="jts-popover" Dense="true">
+    <ActivatorContent>
+        <div class="jts-trigger @(SelectedIds.Count == 0 ? "jts-trigger-empty" : "")">
+            @LabelText
+        </div>
+    </ActivatorContent>
+    <ChildContent>
+        <div class="jts-pop-inner" @onclick:stopPropagation>
+            <div class="jts-section-title">Selected Positions</div>
+            <div class="jts-chips">
+                @if (SelectedIds.Count == 0)
+                {
+                    <span class="jts-empty">None selected</span>
+                }
+                else
+                {
+                    @foreach (var id in OrderedSelected)
+                    {
+                        var idc = id;
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Text"
+                                 Color="Color.Default" OnClose="@(() => Toggle(idc, false))" Class="jts-chip">
+                            @NameOf(idc)
+                        </MudChip>
+                    }
+                }
+            </div>
+
+            <div class="jts-section-title">Add Position</div>
+            <MudTextField @bind-Value="_search" Placeholder="Search positions..."
+                          Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                          Class="jts-search" />
+
+            <div class="jts-list">
+                @foreach (var job in Filtered)
+                {
+                    var jc = job;
+                    <div class="jts-list-item">
+                        <MudCheckBox T="bool" Dense="true"
+                                     Value="SelectedIds.Contains(jc.Id)"
+                                     ValueChanged="@(v => Toggle(jc.Id, v))"
+                                     Label="@jc.Name" />
+                    </div>
+                }
+                @if (Filtered.Count == 0)
+                {
+                    <div class="jts-no-results">No positions found.</div>
+                }
+            </div>
+        </div>
+    </ChildContent>
+</MudMenu>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public List<JobDto> AllJobs    { get; set; } = [];
+    [Parameter, EditorRequired] public HashSet<int> SelectedIds { get; set; } = [];
+    [Parameter] public EventCallback OnChanged { get; set; }
+
+    private string _search = string.Empty;
+
+    private IEnumerable<int> OrderedSelected =>
+        AllJobs.Where(j => SelectedIds.Contains(j.Id)).Select(j => j.Id);
+
+    private List<JobDto> Filtered =>
+        AllJobs
+            .Where(j => string.IsNullOrWhiteSpace(_search) ||
+                        (j.Name?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false))
+            .ToList();
+
+    private string LabelText
+    {
+        get
+        {
+            var ordered = OrderedSelected.ToList();
+            return ordered.Count switch
+            {
+                0 => "Select positions",
+                1 => NameOf(ordered[0]),
+                _ => $"{NameOf(ordered[0])} +{ordered.Count - 1} more"
+            };
+        }
+    }
+
+    private string NameOf(int id) => AllJobs.FirstOrDefault(j => j.Id == id)?.Name ?? "?";
+
+    private async Task Toggle(int id, bool selected)
+    {
+        if (selected) SelectedIds.Add(id);
+        else          SelectedIds.Remove(id);
+        await OnChanged.InvokeAsync();
+    }
+}

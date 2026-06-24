@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DZDDashboard.Services;
 
-// Interface is in Abstractions/ICareerPathService.cs
 
 public class CareerPathService(AppDbContext context, IMapper mapper) : ICareerPathService
 {
@@ -16,8 +15,7 @@ public class CareerPathService(AppDbContext context, IMapper mapper) : ICareerPa
     {
         var paths = await context.CareerPaths
             .AsNoTracking()
-            .AsSplitQuery()   // 3-level ThenInclude — split prevents Cartesian product
-            .Include(p => p.UserGroup)
+            .AsSplitQuery()            .Include(p => p.UserGroup)
             .Include(p => p.Rules)
                 .ThenInclude(r => r.Positions)
                     .ThenInclude(pos => pos.Job)
@@ -29,7 +27,6 @@ public class CareerPathService(AppDbContext context, IMapper mapper) : ICareerPa
 
     public async Task<CareerPathDto> CreateCareerPathAsync(CareerPathDto dto, CancellationToken cancellationToken = default)
     {
-        // Load UserGroup upfront so the returned DTO has UserGroupName — avoids a second query
         var userGroup = await context.UserGroups.FindRequiredAsync(dto.UserGroupId, nameof(UserGroup), cancellationToken);
 
         var entity = new CareerPath { Name = dto.Name, UserGroupId = dto.UserGroupId, UserGroup = userGroup };
@@ -86,8 +83,6 @@ public class CareerPathService(AppDbContext context, IMapper mapper) : ICareerPa
 
         ApplyDto(dto, entity);
 
-        // Diff-based update: only remove job-positions no longer in the list and add new ones.
-        // Avoids unnecessary DELETE + INSERT round-trips when the job list is unchanged.
         var existingJobIds = entity.Positions.Select(p => p.JobId).ToHashSet();
         var incomingJobIds = dto.PositionJobIds.ToHashSet();
 
@@ -113,13 +108,7 @@ public class CareerPathService(AppDbContext context, IMapper mapper) : ICareerPa
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Verifies all <paramref name="jobIds"/> reference existing Job rows.
-    /// Throws <see cref="EntityNotFoundException"/> listing any missing IDs
-    /// rather than letting the DB FK violation surface as an opaque 500.
-    /// </summary>
     private async Task ValidateJobIdsExistAsync(IEnumerable<int> jobIds, CancellationToken cancellationToken)
     {
         var ids       = jobIds.Distinct().ToList();

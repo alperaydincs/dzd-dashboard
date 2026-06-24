@@ -19,8 +19,6 @@ public class TeamConfiguration : IEntityTypeConfiguration<Team>
 
         builder.HasIndex(t => t.Name).IsUnique();
 
-        // ClientCascade: EF handles cascade in memory; DB uses NO ACTION to avoid multiple cascade paths
-        // (SQL Server rejects CASCADE here because Department→Users and Department→Teams→Users both exist)
         builder.HasOne(t => t.Department)
                .WithMany(d => d.Teams)
                .HasForeignKey(t => t.DepartmentId)

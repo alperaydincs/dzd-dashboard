@@ -2,7 +2,6 @@ namespace DZDDashboard.Data.Entities;
 
 public partial class User
 {
-    // ── Org structure ────────────────────────────────────────────────────────
     public int?               UserGroupId          { get; set; }
     public UserGroup?         UserGroup            { get; set; }
     public string?            CompanyName          { get; set; }
@@ -16,16 +15,13 @@ public partial class User
     public OrganizationPosition? OrganizationPosition { get; set; }
     public User?              ReportsTo            { get; set; }
     public int?               ReportsToId          { get; set; }
-    public ICollection<User>  Subordinates         { get; set; } = new List<User>(); // virtual removed — lazy loading not enabled
-
-    // ── Career assignment ────────────────────────────────────────────────────
+    public ICollection<User>  Subordinates         { get; set; } = new List<User>();
     public int?        JobId        { get; set; }
     public Job?        Job          { get; set; }
     public int?        Grade        { get; set; }
     public int?        CareerPathId { get; set; }
     public CareerPath? CareerPath   { get; set; }
 
-    // ── Avatar ───────────────────────────────────────────────────────────────
     public int?       AvatarId { get; set; }
     public UserAvatar? Avatar  { get; set; }
 }

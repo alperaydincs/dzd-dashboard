@@ -1,10 +1,8 @@
 namespace DZDDashboard.Common.Constants;
 
-/// <summary>Shared avatar constraints used by both API and Client.</summary>
 public static class AvatarConstants
 {
-    public const long MaxFileSizeBytes = 5 * 1024 * 1024; // 5 MB
-
+    public const long MaxFileSizeBytes = 5 * 1024 * 1024;
     public static readonly IReadOnlyList<string> AllowedMimeTypes =
         ["image/jpeg", "image/png", "image/webp", "image/gif"];
 

@@ -26,7 +26,6 @@
     [Parameter] public UpdateContactInfoDto Model { get; set; } = new();
     [Parameter] public string? WorkEmail { get; set; }
 
-    // At least one field must be filled, and any provided personal email must be valid.
     private bool IsFormValid =>
         (!string.IsNullOrWhiteSpace(Model.WorkPhoneNumber) ||
          !string.IsNullOrWhiteSpace(Model.PersonalEmail)   ||

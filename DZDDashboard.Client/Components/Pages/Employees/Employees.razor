@@ -4,7 +4,6 @@
 @using DZDDashboard.Client.Services
 @using DZDDashboard.Common.Constants
 @using DZDDashboard.Common.Utils
-@using DZDDashboard.Client.Utils
 @inject ISnackbar Snackbar
 @inject NavigationManager Nav
 @inject IOrganizationClientService OrgService
@@ -124,7 +123,7 @@
                         <MudAlert Severity="Severity.Error" Dense="true">@_error</MudAlert>
                     }
                     <MudPaper Elevation="3" Class="employees-table-shell">
-                        <MudTable Items="_filteredUsers" Dense="true" Hover="true" Loading="@_loading" LoadingProgressColor="Color.Primary" OnRowClick="@((TableRowClickEventArgs<UserSummaryDto> e) => View(e.Item!.Id))" Class="clickable-table">
+                        <MudTable Items="_filteredUsers" Dense="true" Hover="true" Loading="@_loading" LoadingProgressColor="Color.Primary" OnRowClick="@((TableRowClickEventArgs<UserSummaryDto> e) => View(e.Item!))" Class="clickable-table">
                             <HeaderContent>
                                 <MudTh style="min-width:280px">Employee</MudTh>
                                 <MudTh>Department</MudTh>
@@ -135,9 +134,7 @@
                             <RowTemplate>
                                 <MudTd DataLabel="Employee">
                                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                        <MudAvatar Size="Size.Medium" Class="employee-avatar dzd-avatar dzd-avatar-md" Color="@GetAvatarColor(context)" Variant="Variant.Filled">
-                                            @AppFormatter.GetInitials(AppFormatter.BuildFullName(context.FirstName, context.LastName))
-                                        </MudAvatar>
+                                        <InitialsAvatar FullName="@AppFormatter.BuildFullName(context.FirstName, context.LastName)" ColorIndex="@context.AvatarColorIndex" Size="48" Class="employee-avatar" />
                                         <MudStack Spacing="0">
                                             <MudText Typo="Typo.subtitle2" Class="employee-name">@AppFormatter.BuildFullName(context.FirstName, context.LastName)</MudText>
                                             <MudText Typo="Typo.caption" Class="employee-email">@context.Email</MudText>
@@ -166,15 +163,13 @@
                     @foreach (var user in _filteredUsers)
                     {
                         <MudItem xs="12" sm="6" md="4">
-                            <MudPaper Elevation="3" Class="employee-card pa-4" @onclick="@(() => View(user.Id))">
+                            <MudPaper Elevation="3" Class="employee-card pa-4" @onclick="@(() => View(user))">
                                 <div class="employee-card-header">
                                     <div class="employee-card-profile">
-                                        <MudAvatar Size="Size.Large" Class="employee-avatar employee-card-avatar dzd-avatar dzd-avatar-card" Color="@GetAvatarColor(user)">
-                                            @AppFormatter.GetInitials(AppFormatter.BuildFullName(user.FirstName, user.LastName))
-                                        </MudAvatar>
+                                        <InitialsAvatar FullName="@AppFormatter.BuildFullName(user.FirstName, user.LastName)" ColorIndex="@user.AvatarColorIndex" Size="72" Class="employee-avatar employee-card-avatar" />
                                         <div class="employee-card-titles">
                                             <MudText Typo="Typo.subtitle1" Class="employee-card-name">@AppFormatter.BuildFullName(user.FirstName, user.LastName)</MudText>
-                                            <MudText Typo="Typo.body2" Class="employee-card-role">@(user.Department?.Name ?? "-")</MudText>
+                                            <MudText Typo="Typo.body2" Class="employee-card-role">@(user.Job?.Name ?? "-")</MudText>
                                         </div>
                                     </div>
                                     <MudChip T="string" Class="@GetCardStatusChipClass(user.IsActive)" Variant="Variant.Text" Size="Size.Small">
@@ -184,16 +179,16 @@
 
                                 <div class="employee-card-meta">
                                     <div class="employee-card-meta-row">
-                                        <MudIcon Icon="@DzdIcons.FileText" Class="employee-card-meta-icon" Size="Size.Small" />
-                                        <span>@(user.Job?.Name ?? "Employee")</span>
+                                        <MudIcon Icon="@DzdIcons.Building2" Class="employee-card-meta-icon" Size="Size.Small" />
+                                        <span>@(user.Department?.Name ?? "-")</span>
                                     </div>
                                     <div class="employee-card-meta-row">
-                                        <MudIcon Icon="@DzdIcons.Phone" Class="employee-card-meta-icon" Size="Size.Small" />
+                                        <MudIcon Icon="@GetCardContactIcon(user)" Class="employee-card-meta-icon" Size="Size.Small" />
                                         <span>@GetCardContact(user)</span>
                                     </div>
                                     <div class="employee-card-meta-row">
                                         <MudIcon Icon="@DzdIcons.MapPin" Class="employee-card-meta-icon" Size="Size.Small" />
-                                        <span>@GetCardLocation(user)</span>
+                                        <span>@(string.IsNullOrWhiteSpace(user.City) ? "-" : user.City)</span>
                                     </div>
                                 </div>
                             </MudPaper>
@@ -306,8 +301,6 @@
         return string.Equals(u.Department?.Name, filter, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static Color GetAvatarColor(UserSummaryDto u) => UiHelpers.GetAvatarColor(u);
-
     private static string GetStatusChipClass(bool isActive)
     {
         return isActive ? "status-chip status-active" : "status-chip status-leave";
@@ -319,44 +312,22 @@
     }
 
     private static string GetCardContact(UserSummaryDto u)
-    {
-        if (!string.IsNullOrWhiteSpace(u.PhoneNumber))
-        {
-            return u.PhoneNumber;
-        }
+        => !string.IsNullOrWhiteSpace(u.PhoneNumber) ? u.PhoneNumber
+         : !string.IsNullOrWhiteSpace(u.Email)       ? u.Email
+         : "-";
 
-        return !string.IsNullOrWhiteSpace(u.Email) ? u.Email : "-";
-    }
-
-    private static string GetCardLocation(UserSummaryDto u)
-    {
-        if (!string.IsNullOrWhiteSpace(u.City) && !string.IsNullOrWhiteSpace(u.Country))
-        {
-            return $"{u.City}, {u.Country}";
-        }
-
-        if (!string.IsNullOrWhiteSpace(u.City))
-        {
-            return u.City;
-        }
-
-        if (!string.IsNullOrWhiteSpace(u.Country))
-        {
-            return u.Country;
-        }
-
-        return !string.IsNullOrWhiteSpace(u.Team?.Name) ? u.Team!.Name! : "-";
-    }
+    private static string GetCardContactIcon(UserSummaryDto u)
+        => !string.IsNullOrWhiteSpace(u.PhoneNumber) ? DzdIcons.Phone : DzdIcons.Mail;
 
     private void SetView(int index)
     {
         _activeViewIndex = index;
     }
 
-    private void View(int id)
+    private void View(UserSummaryDto user)
     {
-        // Use URL route parameter — supports direct link, back button, bookmarking
-        Nav.NavigateTo($"/employee/card/{id}");
+        if (string.IsNullOrWhiteSpace(user.Slug)) return;
+        Nav.NavigateTo($"/employee/{user.Slug}");
     }
 }
 

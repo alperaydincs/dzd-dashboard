@@ -24,7 +24,6 @@ public class ExCompanyHistoryConfiguration : IEntityTypeConfiguration<ExCompanyH
         builder.Property(e => e.StartDate)
                .IsRequired();
 
-        // User→ExCompanyHistories relationship and cascade configured in UserConfiguration — single source of truth
         builder.HasIndex(e => e.UserId).HasDatabaseName("IX_ExCompanyHistories_UserId");
 
         builder.HasOne(e => e.ModifiedBy)

@@ -1,6 +1,5 @@
 namespace DZDDashboard.Client.Services;
 
-/// <summary>API route constants — single source of truth for all client→server URL paths.</summary>
 public static class ApiRoutes
 {
     public static class Users
@@ -8,11 +7,18 @@ public static class ApiRoutes
         public const string MyProfile      = "api/users/my-profile";
         public const string MyAvatar       = "api/users/my-avatar";
         public const string MyProfileAvatar = "api/users/my-profile/avatar";
+        public const string MyProfileAvatarColor = "api/users/my-profile/avatar-color";
         public const string MyContactInfo  = "api/users/my-profile/contact-info";
         public const string MyPaymentSummary = "api/users/my-profile/payment-summary";
+        public const string MyCard               = "api/users/my-profile/card";
+        public const string MySensitiveInfo      = "api/users/my-profile/sensitive-info";
+        public const string MyEmergencyContacts  = "api/users/my-profile/emergency-contacts";
+        public const string MyFamilyInfo         = "api/users/my-profile/family-info";
 
         public static string All(int page, int pageSize)         => $"api/users?page={page}&pageSize={pageSize}";
+        public static string Search(string? query, int take = 20) => $"api/users/search?query={Uri.EscapeDataString(query ?? string.Empty)}&take={take}";
         public static string Card(int userId)                    => $"api/users/{userId}/card";
+        public static string CardBySlug(string slug)             => $"api/users/by-slug/{Uri.EscapeDataString(slug)}/card";
         public static string SensitiveInfo(int userId)           => $"api/users/{userId}/sensitive-info";
         public static string Avatar(int userId)                  => $"api/users/{userId}/avatar";
         public static string BasicInfo(int userId)               => $"api/users/{userId}/basic-info";
@@ -20,6 +26,10 @@ public static class ApiRoutes
         public static string CitizenshipInfo(int userId)         => $"api/users/{userId}/citizenship-info";
         public static string AddressInfo(int userId)             => $"api/users/{userId}/address-info";
         public static string EducationInfo(int userId)           => $"api/users/{userId}/education-info";
+        public static string CurrentPosition(int userId)         => $"api/users/{userId}/position-history/current";
+        public static string Documents(int userId)               => $"api/users/{userId}/documents";
+        public static string Document(int userId, int docId)     => $"api/users/{userId}/documents/{docId}";
+        public static string DocumentContent(int userId, int docId) => $"api/users/{userId}/documents/{docId}/content";
         public static string Career(int userId)                  => $"api/users/{userId}/career";
         public static string OrganizationPosition(int userId)    => $"api/users/{userId}/organization-position";
         public static string EmergencyContacts(int userId)       => $"api/users/{userId}/emergency-contacts";
@@ -32,6 +42,8 @@ public static class ApiRoutes
         public static string PaymentBenefitRecord(int userId, int recordId) => $"api/users/{userId}/payment/benefits/{recordId}";
         public static string PaymentAdditional(int userId)                  => $"api/users/{userId}/payment/additional-payments";
         public static string PaymentAdditionalRecord(int userId, int paymentId) => $"api/users/{userId}/payment/additional-payments/{paymentId}";
+        public static string PaymentDeductions(int userId)                  => $"api/users/{userId}/payment/deductions";
+        public static string PaymentDeductionRecord(int userId, int deductionId) => $"api/users/{userId}/payment/deductions/{deductionId}";
     }
 
     public static class Organization

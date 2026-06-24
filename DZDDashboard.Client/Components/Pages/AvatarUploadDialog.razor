@@ -12,21 +12,29 @@
                     @(!string.IsNullOrEmpty(_previewImageDataUrl) ? "New Photo (Preview)" : "Current Photo")
                 </MudText>
 
-                <MudAvatar Color="Color.Primary" Rounded="true" Size="Size.Large" Style="width:180px; height:180px; font-size: 5rem;">
-                    @if (!string.IsNullOrEmpty(_previewImageDataUrl))
-                    {
-                        <MudImage Src="@_previewImageDataUrl" Alt="New Avatar Preview" />
-                    }
-                    else if (!string.IsNullOrEmpty(CurrentAvatarUrl))
-                    {
-                        <MudImage Src="@CurrentAvatarUrl" Alt="Current Avatar" />
-                    }
-                    else
-                    {
-                        @UserInitials
-                    }
-                </MudAvatar>
+                <InitialsAvatar FullName="@UserFullName"
+                                ImageSrc="@(!string.IsNullOrEmpty(_previewImageDataUrl) ? _previewImageDataUrl : (string.IsNullOrEmpty(CurrentAvatarUrl) ? null : CurrentAvatarUrl))"
+                                ColorIndex="@_selectedColorIndex"
+                                Size="180" />
             </MudItem>
+
+            @if (string.IsNullOrEmpty(_previewImageDataUrl) && string.IsNullOrEmpty(CurrentAvatarUrl))
+            {
+                <MudItem xs="12" Class="d-flex flex-column align-center">
+                    <MudText Typo="Typo.body2" Class="mb-2" Style="color:var(--dzd-text-secondary);">Background color</MudText>
+                    <div class="avatar-color-palette">
+                        @for (var i = 0; i < InitialsAvatar.Gradients.Length; i++)
+                        {
+                            var index = i;
+                            <button type="button"
+                                    class="avatar-color-swatch @(_selectedColorIndex == index ? "selected" : "")"
+                                    style="@($"background:{InitialsAvatar.Gradients[index]};")"
+                                    @onclick="@(() => _selectedColorIndex = index)"
+                                    aria-label="@($"Color {index + 1}")"></button>
+                        }
+                    </div>
+                </MudItem>
+            }
 
             <MudItem xs="12">
                 <MudFileUpload T="IBrowserFile" Accept=".jpg,.jpeg,.png" MaximumFileCount="1" OnFilesChanged="OnInputFileChanged">
@@ -52,7 +60,7 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Save" Disabled="@(_selectedFile is null)">Save</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Save" Disabled="@(_selectedFile is null && _selectedColorIndex == CurrentColorIndex)">Save</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -60,11 +68,15 @@
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter] public string CurrentAvatarUrl { get; set; } = string.Empty;
-    [Parameter] public string UserInitials      { get; set; } = string.Empty;
+    [Parameter] public string UserFullName       { get; set; } = string.Empty;
+    [Parameter] public int?   CurrentColorIndex { get; set; }
 
     private IBrowserFile? _selectedFile;
     private string?       _previewImageDataUrl;
     private byte[]?       _fileBytes;
+    private int?          _selectedColorIndex;
+
+    protected override void OnParametersSet() => _selectedColorIndex = CurrentColorIndex;
 
     private async Task OnInputFileChanged(InputFileChangeEventArgs e)
     {
@@ -73,7 +85,6 @@
         var file = e.File;
         if (file is null) return;
 
-        // Client-side MIME validation — mirrors server-side AvatarConstants
         if (!AvatarConstants.AllowedMimeTypes.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
         {
             Snackbar.Add($"Unsupported file type. Allowed: {string.Join(", ", AvatarConstants.AllowedExtensions)}.", Severity.Warning);
@@ -111,9 +122,14 @@
 
     void Save()
     {
-        if (_selectedFile is null || _fileBytes is null) return;
-        MudDialog.Close(DialogResult.Ok(
-            new AvatarUploadResult(_selectedFile.Name, _selectedFile.ContentType, _fileBytes)));
+        var file = _selectedFile is not null && _fileBytes is not null
+            ? new AvatarUploadResult(_selectedFile.Name, _selectedFile.ContentType, _fileBytes)
+            : null;
+        var colorChanged = _selectedColorIndex != CurrentColorIndex;
+
+        if (file is null && !colorChanged) return;
+
+        MudDialog.Close(DialogResult.Ok(new AvatarDialogResult(file, _selectedColorIndex, colorChanged)));
     }
 
     void Cancel() => MudDialog.Cancel();

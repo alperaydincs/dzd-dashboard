@@ -1,11 +1,5 @@
 namespace DZDDashboard.Client.Theme;
 
-/// <summary>
-/// Lucide Icons static SVG collection
-/// Generated from lucide-static v0.454.0
-/// Total icons: 1731
-/// Usage: DzdIcons.Plus, DzdIcons.ArrowLeft, etc.
-/// </summary>
 public static class DzdIcons
 {
         public const string AArrowDown = @"

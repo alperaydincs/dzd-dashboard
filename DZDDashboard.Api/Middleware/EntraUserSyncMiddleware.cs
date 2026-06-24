@@ -11,10 +11,6 @@ using System.Text.RegularExpressions;
 
 namespace DZDDashboard.Api.Middleware;
 
-/// <summary>
-/// Enriches the authenticated principal with the internal database user-id claim.
-/// Uses IDistributedCache so user-id lookups survive pod restarts and multi-instance deployments.
-/// </summary>
 public partial class EntraUserSyncMiddleware(
     RequestDelegate next,
     IDistributedCache cache,
@@ -55,7 +51,6 @@ public partial class EntraUserSyncMiddleware(
             return;
         }
 
-        // Try distributed cache first
         var cacheKey     = CacheKey(objectId);
         var cachedBytes  = await cache.GetAsync(cacheKey);
         if (cachedBytes is not null)
@@ -81,7 +76,6 @@ public partial class EntraUserSyncMiddleware(
         }
         catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
         {
-            // Client cancelled the request — do not write a response
             return;
         }
         catch (Exception ex)
@@ -106,7 +100,6 @@ public partial class EntraUserSyncMiddleware(
         return null;
     }
 
-    /// <summary>Prefix that namespaces the user-id cache entries in the distributed cache.</summary>
     private const string CacheKeyPrefix = "entra-uid:";
 
     private static string CacheKey(string objectId) => $"{CacheKeyPrefix}{objectId}";
@@ -132,7 +125,6 @@ public partial class EntraUserSyncMiddleware(
         {
             0 => (null, null),
             1 => (tokens[0], null),
-            // Join remaining tokens as last name so "Ali Mehmet Yılmaz" → ("Ali", "Mehmet Yılmaz")
             _ => (tokens[0], string.Join(" ", tokens[1..]))
         };
     }

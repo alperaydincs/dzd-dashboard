@@ -10,7 +10,6 @@ public class OrganizationService : ApiServiceBase, IOrganizationClientService
         NavigationManager navigationManager)
         : base(httpClientFactory, navigationManager) { }
 
-    // ── Positions ──────────────────────────────────────────────────────────────
     public async Task<List<OrganizationPositionDto>> GetOrganizationPositionsAsync()
         => await GetAsync<List<OrganizationPositionDto>>(ApiRoutes.Organization.Positions) ?? [];
 
@@ -23,7 +22,6 @@ public class OrganizationService : ApiServiceBase, IOrganizationClientService
     public async Task<HttpResponseMessage> DeleteOrganizationPositionAsync(int id)
         => await DeleteAsync(ApiRoutes.Organization.Position(id));
 
-    // ── Companies ──────────────────────────────────────────────────────────────
     public async Task<List<CompanyDto>> GetCompaniesAsync()
         => await GetAsync<List<CompanyDto>>(ApiRoutes.Organization.Companies) ?? [];
 
@@ -36,7 +34,6 @@ public class OrganizationService : ApiServiceBase, IOrganizationClientService
     public async Task<HttpResponseMessage> DeleteCompanyAsync(int id)
         => await DeleteAsync(ApiRoutes.Organization.Company(id));
 
-    // ── Departments ────────────────────────────────────────────────────────────
     public async Task<List<DepartmentDto>> GetDepartmentsAsync()
         => await GetAsync<List<DepartmentDto>>(ApiRoutes.Organization.Departments) ?? [];
 
@@ -49,7 +46,6 @@ public class OrganizationService : ApiServiceBase, IOrganizationClientService
     public async Task<HttpResponseMessage> DeleteDepartmentAsync(int id)
         => await DeleteAsync(ApiRoutes.Organization.Department(id));
 
-    // ── Teams ──────────────────────────────────────────────────────────────────
     public async Task<List<TeamDto>> GetTeamsAsync()
         => await GetAsync<List<TeamDto>>(ApiRoutes.Organization.Teams) ?? [];
 
@@ -62,7 +58,6 @@ public class OrganizationService : ApiServiceBase, IOrganizationClientService
     public async Task<HttpResponseMessage> DeleteTeamAsync(int id)
         => await DeleteAsync(ApiRoutes.Organization.Team(id));
 
-    // ── Work Types ─────────────────────────────────────────────────────────────
     public async Task<List<WorkTypeDto>> GetWorkTypesAsync()
         => await GetAsync<List<WorkTypeDto>>(ApiRoutes.Organization.WorkTypes) ?? [];
 
@@ -75,7 +70,6 @@ public class OrganizationService : ApiServiceBase, IOrganizationClientService
     public async Task<HttpResponseMessage> DeleteWorkTypeAsync(int id)
         => await DeleteAsync(ApiRoutes.Organization.WorkType(id));
 
-    // ── Jobs ───────────────────────────────────────────────────────────────────
     public async Task<List<JobDto>> GetJobsAsync()
         => await GetAsync<List<JobDto>>(ApiRoutes.Organization.Jobs) ?? [];
 
@@ -88,7 +82,6 @@ public class OrganizationService : ApiServiceBase, IOrganizationClientService
     public async Task<HttpResponseMessage> DeleteJobAsync(int id)
         => await DeleteAsync(ApiRoutes.Organization.Job(id));
 
-    // ── Grades ─────────────────────────────────────────────────────────────────
     public async Task<List<GradeDto>> GetGradesAsync()
         => await GetAsync<List<GradeDto>>(ApiRoutes.Organization.Grades) ?? [];
 
@@ -101,7 +94,6 @@ public class OrganizationService : ApiServiceBase, IOrganizationClientService
     public async Task<HttpResponseMessage> DeleteGradeAsync(int id)
         => await DeleteAsync(ApiRoutes.Organization.Grade(id));
 
-    // ── Payroll Locations ──────────────────────────────────────────────────────
     public async Task<List<PayrollLocationDto>> GetPayrollLocationsAsync()
         => await GetAsync<List<PayrollLocationDto>>(ApiRoutes.Organization.PayrollLocations) ?? [];
 
@@ -114,7 +106,6 @@ public class OrganizationService : ApiServiceBase, IOrganizationClientService
     public async Task<HttpResponseMessage> DeletePayrollLocationAsync(int id)
         => await DeleteAsync(ApiRoutes.Organization.PayrollLocation(id));
 
-    // ── User Groups ────────────────────────────────────────────────────────────
     public async Task<List<UserGroupDto>> GetUserGroupsAsync()
         => await GetAsync<List<UserGroupDto>>(ApiRoutes.Organization.UserGroups) ?? [];
 
@@ -127,7 +118,6 @@ public class OrganizationService : ApiServiceBase, IOrganizationClientService
     public async Task<HttpResponseMessage> DeleteUserGroupAsync(int id)
         => await DeleteAsync(ApiRoutes.Organization.UserGroup(id));
 
-    // ── Career Paths ───────────────────────────────────────────────────────────
     public async Task<List<CareerPathDto>> GetCareerPathsAsync()
         => await GetAsync<List<CareerPathDto>>(ApiRoutes.Organization.CareerPaths) ?? [];
 
@@ -140,7 +130,6 @@ public class OrganizationService : ApiServiceBase, IOrganizationClientService
     public async Task<HttpResponseMessage> DeleteCareerPathAsync(int id)
         => await DeleteAsync(ApiRoutes.Organization.CareerPath(id));
 
-    // ── Career Map Rules ───────────────────────────────────────────────────────
     public async Task<HttpResponseMessage> CreateCareerMapRuleAsync(CareerMapRuleDto dto)
         => await PostAsync(ApiRoutes.Organization.CareerMapRules, dto);
 

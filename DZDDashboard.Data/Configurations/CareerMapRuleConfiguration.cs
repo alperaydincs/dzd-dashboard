@@ -20,8 +20,6 @@ public class CareerMapRuleConfiguration : IEntityTypeConfiguration<CareerMapRule
         builder.Property(c => c.EnglishProficiency).HasDefaultValue(false);
         builder.Property(c => c.CommitteeApproval).HasDefaultValue(false);
 
-        // ── Owned duration types ──────────────────────────────────────────────
-        // Column names preserved from the original flat-column design so no data migration is needed.
         builder.OwnsOne(c => c.MinRoleTime, b =>
         {
             b.Property(d => d.Months).HasColumnName("MinRoleTimeMonth");

@@ -32,6 +32,5 @@ public class GradeConfiguration : IEntityTypeConfiguration<Grade>
                .HasForeignKey(g => g.NextStepId)
                .OnDelete(DeleteBehavior.Restrict);
 
-        // Grade does not inherit AuditableEntity — no ModifiedBy relationship.
     }
 }

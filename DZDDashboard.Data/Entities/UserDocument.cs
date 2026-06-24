@@ -9,5 +9,9 @@ public class UserDocument : AuditableEntity
     public UserDocumentCategory? DocumentCategory { get; set; }
     public string? FileName { get; set; }
     public string? ContentType { get; set; }
+    public long SizeBytes { get; set; }
     public bool IsActive { get; set; }
+
+    public int? StoredFileId { get; set; }
+    public StoredFile? StoredFile { get; set; }
 }

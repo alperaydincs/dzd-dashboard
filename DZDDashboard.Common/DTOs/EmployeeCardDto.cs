@@ -1,24 +1,15 @@
 namespace DZDDashboard.Common.DTOs;
 
-/// <summary>
-/// Full employee data for the card view. Mutable — Blazor edit sections mutate properties directly.
-/// <para>
-/// <b>PII fields</b> (DateOfBirth, Gender, Nationality, CitizenshipNumber, DisabilityStatus,
-/// DisabilityDegree, MaritalStatus, SpouseFullName, PersonalEmail, PersonalPhoneNumber,
-/// LegalAddress, CurrentAddress, City, Country, Children) are intentionally <b>not populated</b>
-/// by the GET card endpoint. They are gated behind <c>SensitiveDataPolicy</c> and must be fetched
-/// separately via <c>GET /api/users/{id}/sensitive-info</c>.
-/// The fields remain in this DTO so that Blazor edit-section components can POST them back.
-/// </para>
-/// </summary>
 public class EmployeeCardDto
 {
     public int  Id       { get; set; }
     public bool IsActive { get; set; }
 
+    public string? Slug { get; set; }
     public string? FullName { get; set; }
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
+    public int? AvatarColorIndex { get; set; }
     public string? CompanyName { get; set; }
     public string? RegistrationNumber { get; set; }
 
@@ -38,7 +29,6 @@ public class EmployeeCardDto
     public DateTime? ContractEndDate { get; set; }
     public string? WorkModel { get; set; }
 
-    public string? UnitName { get; set; }
     public string? ApprovalProcessUnit { get; set; }
     public string? OrganizationPositionName { get; set; }
 
@@ -58,11 +48,14 @@ public class EmployeeCardDto
     public string? SpouseFullName { get; set; }
 
     public string? LegalAddress { get; set; }
+    public string? LegalAddressCity { get; set; }
+    public string? LegalAddressCountry { get; set; }
     public string? CurrentAddress { get; set; }
     public string? City { get; set; }
     public string? Country { get; set; }
 
     public List<EducationHistoryDto> EducationHistories { get; set; } = new();
+    public List<PositionHistoryDto> PositionHistories { get; set; } = new();
 
     public DepartmentDto? Department { get; set; }
     public TeamDto? Team { get; set; }

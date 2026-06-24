@@ -20,7 +20,8 @@ public static class WebApplicationExtensions
         app.MapControllers();
         app.MapStaticAssets();
         app.MapRazorComponents<App>()
-            .AddInteractiveServerRenderMode();
+            .AddInteractiveServerRenderMode()
+            .RequireAuthorization();
 
         return app;
     }

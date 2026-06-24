@@ -6,10 +6,8 @@ namespace DZDDashboard.Api.Abstractions;
 
 public interface ICurrentUserAccessor
 {
-    /// <summary>Returns the database user-id, or null when the claim is absent.</summary>
     int? UserId { get; }
 
-    /// <summary>Returns the database user-id. Throws <see cref="UnauthorizedAccessException"/> when absent.</summary>
     int RequiredUserId { get; }
 }
 

@@ -2,12 +2,6 @@ using DZDDashboard.Common.DTOs;
 
 namespace DZDDashboard.Client.Services;
 
-/// <summary>
-/// Client-side gateway for the Payment screen — salary history, benefits (incl. ÖSS
-/// dependents) and additional payments. Mirrors <c>PaymentController</c> 1:1.
-/// Edit endpoints are Admin/HR only; <see cref="GetMyPaymentSummaryAsync"/> is the
-/// reduced self-service view (own salary + active BES benefits, read-only).
-/// </summary>
 public interface IPaymentClientService
 {
     Task<MyPaymentSummaryDto?> GetMyPaymentSummaryAsync();
@@ -24,4 +18,8 @@ public interface IPaymentClientService
     Task<AdditionalPaymentDto?> CreateAdditionalPaymentAsync(int userId, AdditionalPaymentDto dto);
     Task<HttpResponseMessage> UpdateAdditionalPaymentAsync(int userId, int paymentId, AdditionalPaymentDto dto);
     Task<HttpResponseMessage> DeleteAdditionalPaymentAsync(int userId, int paymentId);
+
+    Task<DeductionDto?> CreateDeductionAsync(int userId, DeductionDto dto);
+    Task<HttpResponseMessage> UpdateDeductionAsync(int userId, int deductionId, DeductionDto dto);
+    Task<HttpResponseMessage> DeleteDeductionAsync(int userId, int deductionId);
 }

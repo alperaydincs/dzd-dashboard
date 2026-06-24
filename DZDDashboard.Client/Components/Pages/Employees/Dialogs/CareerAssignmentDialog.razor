@@ -1,0 +1,280 @@
+@using DZDDashboard.Common.DTOs
+@using DZDDashboard.Common.Utils
+@using DZDDashboard.Client.Components.Shared
+@using DZDDashboard.Client.Services
+@inject ISnackbar Snackbar
+@inject IUserClientService UserService
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="3" Style="min-width:520px;">
+
+            <MudAutocomplete T="UserSearchResultDto" Label="Manager"
+                             Value="_manager" ValueChanged="OnManagerSelected"
+                             SearchFunc="SearchManagersAsync"
+                             ToStringFunc="@(u => u is null ? string.Empty : AppFormatter.BuildFullName(u.FirstName, u.LastName))"
+                             Variant="Variant.Outlined" Margin="Margin.Dense"
+                             Clearable="true" ResetValueOnEmptyText="false"
+                             MinCharacters="0" DebounceInterval="250"
+                             Placeholder="Search by name or email">
+                <ItemTemplate Context="u">
+                    <div class="d-flex align-center gap-3">
+                        <InitialsAvatar FullName="@AppFormatter.BuildFullName(u.FirstName, u.LastName)"
+                                        ImageSrc="@ManagerAvatarUrl(u)" ColorIndex="@u.AvatarColorIndex" Size="32" />
+                        <div>
+                            <MudText Typo="Typo.body2" Style="font-weight:500;">@AppFormatter.BuildFullName(u.FirstName, u.LastName)</MudText>
+                            <MudText Typo="Typo.caption" Style="color:var(--dzd-text-secondary);">@u.Email</MudText>
+                        </div>
+                    </div>
+                </ItemTemplate>
+            </MudAutocomplete>
+
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="string" Label="Company" Value="_m.CompanyName" ValueChanged="OnCompanyChanged"
+                               Variant="Variant.Outlined" Margin="Margin.Dense">
+                        <MudSelectItem T="string" Value="@("")">None</MudSelectItem>
+                        @foreach (var c in Companies)
+                        {
+                            <MudSelectItem T="string" Value="@c.Name">@c.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="int?" Label="Department" Value="_m.DepartmentId" ValueChanged="OnDeptChanged"
+                               ToStringFunc="@(id => AllDepts.FirstOrDefault(d => d.Id == id)?.Name ?? string.Empty)"
+                               Variant="Variant.Outlined" Margin="Margin.Dense"
+                               Disabled="@string.IsNullOrEmpty(_m.CompanyName)">
+                        <MudSelectItem T="int?" Value="@((int?)null)">None</MudSelectItem>
+                        @foreach (var d in _depts)
+                        {
+                            <MudSelectItem T="int?" Value="@((int?)d.Id)">@d.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="int?" Label="Team" @bind-Value="_m.TeamId"
+                               ToStringFunc="@(id => AllTeams.FirstOrDefault(t => t.Id == id)?.Name ?? string.Empty)"
+                               Variant="Variant.Outlined" Margin="Margin.Dense"
+                               Disabled="@(_m.DepartmentId == null)">
+                        <MudSelectItem T="int?" Value="@((int?)null)">None</MudSelectItem>
+                        @foreach (var t in _teams)
+                        {
+                            <MudSelectItem T="int?" Value="@((int?)t.Id)">@t.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="int?" Label="Career Path" Value="_m.PathId" ValueChanged="OnPathChanged"
+                               Variant="Variant.Outlined" Margin="Margin.Dense">
+                        <MudSelectItem T="int?" Value="@((int?)null)">None</MudSelectItem>
+                        @foreach (var p in CareerPaths)
+                        {
+                            <MudSelectItem T="int?" Value="@((int?)p.Id)">@p.Name (@p.UserGroupName)</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="int?" Label="Job Title" Value="_m.JobId" ValueChanged="OnJobChanged"
+                               Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(_m.PathId == null)">
+                        <MudSelectItem T="int?" Value="@((int?)null)">None</MudSelectItem>
+                        @foreach (var j in _pathJobs)
+                        {
+                            <MudSelectItem T="int?" Value="@((int?)j.Id)">@j.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="int?" Label="Grade" @bind-Value="_m.Grade"
+                               Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(_m.JobId == null)">
+                        <MudSelectItem T="int?" Value="@((int?)null)">None</MudSelectItem>
+                        @foreach (var g in _jobGrades)
+                        {
+                            <MudSelectItem T="int?" Value="@((int?)g)">@g</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker Label="Position Start Date" Date="@_m.StartDate" DateChanged="@(d => _m.StartDate = d)"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense"
+                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter"
+                                   OverflowBehavior="OverflowBehavior.FlipNever" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker Label="Position End Date" Date="@_m.EndDate" DateChanged="@(d => _m.EndDate = d)"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" Editable="true"
+                                   HelperText="Leave empty for the current position"
+                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter"
+                                   OverflowBehavior="OverflowBehavior.FlipNever" />
+                </MudItem>
+            </MudGrid>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_submitted">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public List<CompanyDto>    Companies   { get; set; } = [];
+    [Parameter] public List<DepartmentDto> AllDepts    { get; set; } = [];
+    [Parameter] public List<TeamDto>       AllTeams    { get; set; } = [];
+    [Parameter] public List<CareerPathDto> CareerPaths { get; set; } = [];
+    [Parameter] public int ExcludeUserId { get; set; }
+    [Parameter] public CareerAssignmentResult? InitialModel { get; set; }
+
+    private CareerAssignmentResult _m = new();
+    private UserSearchResultDto?   _manager;
+    private List<DepartmentDto> _depts     = [];
+    private List<TeamDto>       _teams     = [];
+    private List<JobDto>        _pathJobs  = [];
+    private List<int>           _jobGrades = [];
+    private bool _initialized;
+    private bool _submitted;
+
+    protected override void OnParametersSet()
+    {
+        if (_initialized) return;
+        _initialized = true;
+
+        if (InitialModel is not null)
+        {
+            _m = new CareerAssignmentResult
+            {
+                ManagerId    = InitialModel.ManagerId,
+                Manager      = InitialModel.Manager,
+                CompanyName  = InitialModel.CompanyName,
+                DepartmentId = InitialModel.DepartmentId,
+                TeamId       = InitialModel.TeamId,
+                PathId       = InitialModel.PathId,
+                JobId        = InitialModel.JobId,
+                Grade        = InitialModel.Grade,
+                StartDate    = InitialModel.StartDate,
+                EndDate      = InitialModel.EndDate
+            };
+            _manager = InitialModel.Manager;
+        }
+
+        _depts = FilterDepts(_m.CompanyName);
+        _teams = FilterTeams(_m.DepartmentId);
+        RecomputePathJobs();
+        RecomputeGrades();
+    }
+
+    private async Task<IEnumerable<UserSearchResultDto>> SearchManagersAsync(string value, CancellationToken token)
+    {
+        var results = await UserService.SearchUsersAsync(value);
+        return results.Where(u => u.Id != ExcludeUserId);
+    }
+
+    private static string? ManagerAvatarUrl(UserSearchResultDto u)
+        => string.IsNullOrEmpty(u.AvatarBase64) ? null : $"data:{u.AvatarContentType ?? "image/png"};base64,{u.AvatarBase64}";
+
+    private void OnManagerSelected(UserSearchResultDto? manager)
+    {
+        _manager     = manager;
+        _m.ManagerId = manager?.Id;
+        _m.Manager   = manager;
+        if (manager is null) return;
+
+        OnCompanyChanged(manager.CompanyName);
+        if (manager.DepartmentId.HasValue)
+        {
+            OnDeptChanged(manager.DepartmentId);
+            _m.TeamId = manager.TeamId;
+        }
+    }
+
+    private void OnCompanyChanged(string? name)
+    {
+        _m.CompanyName  = name;
+        _m.DepartmentId = null;
+        _m.TeamId       = null;
+        _depts = FilterDepts(name);
+        _teams = [];
+    }
+
+    private void OnDeptChanged(int? deptId)
+    {
+        _m.DepartmentId = deptId;
+        _m.TeamId       = null;
+        _teams = FilterTeams(deptId);
+    }
+
+    private void OnPathChanged(int? pathId)
+    {
+        _m.PathId = pathId;
+        _m.JobId  = null;
+        _m.Grade  = null;
+        RecomputePathJobs();
+        _jobGrades = [];
+    }
+
+    private void OnJobChanged(int? jobId)
+    {
+        _m.JobId = jobId;
+        _m.Grade = null;
+        RecomputeGrades();
+        if (_jobGrades.Count == 1) _m.Grade = _jobGrades[0];
+    }
+
+    private void RecomputePathJobs()
+    {
+        var path = CareerPaths.FirstOrDefault(p => p.Id == _m.PathId);
+        _pathJobs = path is null ? [] : path.Rules.SelectMany(r => r.PositionJobs).DistinctBy(j => j.Id).ToList();
+    }
+
+    private void RecomputeGrades()
+    {
+        var path = CareerPaths.FirstOrDefault(p => p.Id == _m.PathId);
+        _jobGrades = (path is null || !_m.JobId.HasValue)
+            ? []
+            : path.Rules.Where(r => r.PositionJobIds.Contains(_m.JobId.Value)).Select(r => r.Grade).OrderBy(g => g).ToList();
+    }
+
+    private List<DepartmentDto> FilterDepts(string? companyName)
+        => string.IsNullOrEmpty(companyName)
+            ? []
+            : AllDepts.Where(d => Companies.Any(c => c.Name == companyName && c.Id == d.CompanyId)).ToList();
+
+    private List<TeamDto> FilterTeams(int? deptId)
+        => deptId.HasValue ? AllTeams.Where(t => t.DepartmentId == deptId).ToList() : [];
+
+    private void Save()
+    {
+        if (_submitted) return;
+        if (_m.StartDate is null)
+        {
+            Snackbar.Add("Position start date is required.", Severity.Warning);
+            return;
+        }
+        if (_m.EndDate is { } end && end < _m.StartDate)
+        {
+            Snackbar.Add("End date cannot be earlier than start date.", Severity.Warning);
+            return;
+        }
+        _submitted = true;
+        MudDialog.Close(DialogResult.Ok(_m));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    public sealed class CareerAssignmentResult
+    {
+        public int?      ManagerId    { get; set; }
+        public UserSearchResultDto? Manager { get; set; }
+        public string?   CompanyName  { get; set; }
+        public int?      DepartmentId { get; set; }
+        public int?      TeamId       { get; set; }
+        public int?      PathId       { get; set; }
+        public int?      JobId        { get; set; }
+        public int?      Grade        { get; set; }
+        public DateTime? StartDate    { get; set; }
+        public DateTime? EndDate      { get; set; }
+    }
+}

@@ -8,14 +8,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DZDDashboard.Services;
 
-// Interface is in Abstractions/ICompanyOrgService.cs
 
-/// <summary>
-/// Manages the company organisational hierarchy: companies, departments, and teams.
-/// </summary>
 public class CompanyOrgService(AppDbContext context, IMapper mapper) : ICompanyOrgService
 {
-    // ── Companies ─────────────────────────────────────────────────────────────
 
     public async Task<List<CompanyDto>> GetCompaniesAsync(CancellationToken cancellationToken = default)
         => mapper.Map<List<CompanyDto>>(await context.Companies.AsNoTracking().ToListAsync(cancellationToken));
@@ -37,14 +32,11 @@ public class CompanyOrgService(AppDbContext context, IMapper mapper) : ICompanyO
 
     public async Task DeleteCompanyAsync(int id, CancellationToken cancellationToken = default)
     {
-        // CompanyConfiguration sets OnDelete(Cascade) for Company→Department→Team,
-        // so the DB handles the cascade — no need to load the hierarchy into memory.
         var entity = await context.Companies.FindRequiredAsync(id, nameof(Company), cancellationToken);
         context.Companies.Remove(entity);
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    // ── Departments ───────────────────────────────────────────────────────────
 
     public async Task<List<DepartmentDto>> GetDepartmentsAsync(CancellationToken cancellationToken = default)
         => mapper.Map<List<DepartmentDto>>(
@@ -72,7 +64,6 @@ public class CompanyOrgService(AppDbContext context, IMapper mapper) : ICompanyO
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    // ── Teams ─────────────────────────────────────────────────────────────────
 
     public async Task<List<TeamDto>> GetTeamsAsync(CancellationToken cancellationToken = default)
         => mapper.Map<List<TeamDto>>(

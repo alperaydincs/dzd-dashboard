@@ -3,56 +3,65 @@
 @inject ISnackbar Snackbar
 
 <MudDialog>
+    <TitleContent>
+        <div class="d-flex align-center gap-2">
+            <MudIcon Icon="@DzdIcons.Banknote" Color="Color.Primary" Size="Size.Small" />
+            <MudText Typo="Typo.h6">@(InitialModel is null ? "Add Salary Information" : "Edit Salary Information")</MudText>
+        </div>
+    </TitleContent>
     <DialogContent>
-        <MudStack Spacing="2">
-            <MudGrid>
-                <MudItem xs="6">
-                    <MudNumericField T="decimal" Label="Net Amount" @bind-Value="_model.NetAmount" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Min="0.01m" Format="N2" />
-                </MudItem>
-                <MudItem xs="6">
-                    <MudNumericField T="decimal?" Label="Gross Amount (optional)" @bind-Value="_model.GrossAmount" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0.01m" Format="N2" />
-                </MudItem>
-            </MudGrid>
+        <MudGrid Spacing="4">
+            <MudItem xs="12" sm="6">
+                <MudSelect T="string" Label="Salary Type" @bind-Value="_model.PayType" Variant="Variant.Outlined" Margin="Margin.Dense">
+                    @foreach (var option in PayTypes.All)
+                    {
+                        <MudSelectItem Value="@option">@option</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField T="decimal" Label="Salary Amount" @bind-Value="_model.NetAmount" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Min="0.01m" Format="N2" />
+            </MudItem>
 
-            <MudGrid>
-                <MudItem xs="6">
-                    <MudSelect T="string" Label="Currency" @bind-Value="_model.Currency" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
-                        @foreach (var option in Currencies.All)
-                        {
-                            <MudSelectItem Value="@option">@option</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="6">
-                    <MudSelect T="string" Label="Period" @bind-Value="_model.Period" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
-                        @foreach (var option in PaymentPeriods.All)
-                        {
-                            <MudSelectItem Value="@option">@option</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-            </MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="string" Label="Currency" @bind-Value="_model.Currency" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
+                    @foreach (var option in Currencies.All)
+                    {
+                        <MudSelectItem Value="@option">@option</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="string" Label="Payment Period" @bind-Value="_model.Period" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
+                    @foreach (var option in PaymentPeriods.All)
+                    {
+                        <MudSelectItem Value="@option">@option</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
 
-            <MudTextField T="string" Label="Payroll Cycle (optional)" @bind-Value="_model.PayrollCycle" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            <MudItem xs="12" sm="6">
+                <MudDatePicker Label="Start Date" Date="@_model.StartDate" DateChanged="@(d => _model.StartDate = d ?? _model.StartDate)"
+                               Variant="Variant.Outlined" Margin="Margin.Dense" Required="true"
+                               AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker Label="End Date (Optional)" Date="@_model.EndDate" DateChanged="@(d => _model.EndDate = d)"
+                               Variant="Variant.Outlined" Margin="Margin.Dense"
+                               AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
+            </MudItem>
 
-            <MudGrid>
-                <MudItem xs="6">
-                    <MudDatePicker Label="Start Date" Date="@_model.StartDate" DateChanged="@(d => _model.StartDate = d ?? _model.StartDate)"
-                                   Variant="Variant.Outlined" Margin="Margin.Dense" Required="true"
-                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
-                </MudItem>
-                <MudItem xs="6">
-                    <MudDatePicker Label="End Date (optional)" Date="@_model.EndDate" DateChanged="@(d => _model.EndDate = d)"
-                                   Variant="Variant.Outlined" Margin="Margin.Dense"
-                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
-                </MudItem>
-            </MudGrid>
+            <MudItem xs="12">
+                <MudTextField T="string" Label="Payroll Cycle" @bind-Value="_model.PayrollCycle" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
 
-            <MudTextField T="string" Label="Notes (optional)" @bind-Value="_model.Notes" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" />
-        </MudStack>
+            <MudItem xs="12">
+                <MudTextField T="string" Label="Notes" @bind-Value="_model.Notes" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" />
+            </MudItem>
+        </MudGrid>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_submitted">@ConfirmButtonText</MudButton>
     </DialogActions>
 </MudDialog>
@@ -63,14 +72,13 @@
     [Parameter] public SalaryRecordDto? InitialModel { get; set; }
     [Parameter] public string ConfirmButtonText { get; set; } = "Add";
 
-    private SalaryRecordDto _model = new() { Currency = Currencies.Try, Period = PaymentPeriods.Monthly, StartDate = DateTime.Today };
+    private SalaryRecordDto _model = new() { Currency = Currencies.Try, Period = PaymentPeriods.Monthly, PayType = PayTypes.Net, StartDate = DateTime.Today };
 
     private bool _initialized;
     private bool _submitted;
 
     protected override void OnParametersSet()
     {
-        // Guard: only seed from InitialModel once — re-renders shouldn't reset in-progress edits.
         if (_initialized || InitialModel is null) return;
         _initialized = true;
 

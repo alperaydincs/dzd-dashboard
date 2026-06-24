@@ -1,12 +1,12 @@
-@page "/employee/card/{EmployeeId:int}"
-@page "/employee/card"
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = DZDDashboard.Common.Constants.Roles.Admin)]
+@page "/employee/{Slug}"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = DZDDashboard.Common.Constants.Roles.AdminOrHr)]
 @using DZDDashboard.Client.Components.Pages.Employees.Dialogs
 @using DZDDashboard.Client.Components.Shared
 @using DZDDashboard.Client.Services
 @using DZDDashboard.Common.Constants
 @using DZDDashboard.Common.Utils
 @using IntlTelInputBlazor
+@using Microsoft.AspNetCore.Components.Forms
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-3">
     @if (_loading)
@@ -19,24 +19,33 @@
     }
     else if (_profile is not null)
     {
-        <MudButton Variant="Variant.Text" Color="Color.Dark" OnClick="@Back" StartIcon="@DzdIcons.ArrowLeft" Class="mb-3" Style="text-transform:none; min-width:auto;">
-            Back to Dashboard
-        </MudButton>
+        @if (!SelfService)
+        {
+            <MudButton Variant="Variant.Text" Color="Color.Dark" OnClick="@Back" StartIcon="@DzdIcons.ArrowLeft" Class="mb-3" Style="text-transform:none; min-width:auto;">
+                Back
+            </MudButton>
+        }
 
         <div class="dzd-header-container mb-6">
-            <MudPaper Elevation="1" Class="dzd-header-card pa-6" Style="border-radius: 12px; border: 1px solid #e0e0e0;">
+            <MudPaper Elevation="2" Class="dzd-header-card pa-6" Style="border-radius: 12px; border: 1px solid #e0e0e0;">
                 <MudGrid Spacing="4" Style="align-items: center;">
                     <MudItem xs="12" sm="4" md="2" Class="d-flex justify-center align-center">
-                        <MudAvatar Class="elevation-2" Size="Size.Large" Style="width:118px; height:118px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 3px solid #fff;">
-                            @if (!string.IsNullOrEmpty(_avatarDataUrl))
-                            {
-                                <MudImage Src="@_avatarDataUrl" Alt="Avatar" Style="border-radius:50%;" />
-                            }
-                            else
-                            {
-                                @_initials
-                            }
-                        </MudAvatar>    
+                        @if (SelfService)
+                        {
+                            <MudTooltip Text="Click to change photo">
+                                <InitialsAvatar FullName="@_fullName"
+                                                ImageSrc="@(string.IsNullOrEmpty(_avatarDataUrl) ? null : _avatarDataUrl)"
+                                                ColorIndex="@_profile.AvatarColorIndex"
+                                                Size="118" Class="employee-header-avatar clickable" @onclick="OpenAvatarUploadDialog" />
+                            </MudTooltip>
+                        }
+                        else
+                        {
+                            <InitialsAvatar FullName="@_fullName"
+                                            ImageSrc="@(string.IsNullOrEmpty(_avatarDataUrl) ? null : _avatarDataUrl)"
+                                            ColorIndex="@_profile.AvatarColorIndex"
+                                            Size="118" Class="employee-header-avatar" />
+                        }
                     </MudItem>
                     <MudItem xs="12" sm="8" md="10">
                         <MudStack Spacing="2">
@@ -87,7 +96,7 @@
                                 </MudItem>
                             </MudGrid>
 
-                            <MudGrid Spacing="2">
+                            <MudGrid Spacing="2" Class="mt-4">
                                 <MudItem xs="6" sm="4" md="3">
                                     <MudStack Spacing="1">
                                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
@@ -115,31 +124,39 @@
         </div>
 
         <div class="employee-card-tabs-scope">
-            <div class="view-tabs-shell active-@_activeViewIndex view-tabs-3" role="tablist" aria-label="Employee card views">
+            <div class="view-tabs-shell active-@_activeViewIndex view-tabs-4" role="tablist" aria-label="@(SelfService ? "My profile views" : "Employee page views")">
                 <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 0 ? "true" : "false")" @onclick="() => SetView(0)">Overview</button>
                 <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 1 ? "true" : "false")" @onclick="() => SetView(1)">Personal Info</button>
                 <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 2 ? "true" : "false")" @onclick="() => SetView(2)">Career</button>
+                <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 3 ? "true" : "false")" @onclick="() => SetView(3)">Payments</button>
             </div>
 
             @if (_activeViewIndex == 0)
             {
                 <MudGrid Class="mt-3 mb-3" Spacing="3">
-                    <InfoCard Label="Position Start Date"
-                              Value="@AppFormatter.FormatDate(_profile.PositionStartDate)"
-                              Icon="@DzdIcons.Calendar" />
-                    <InfoCard Label="Job Start Date"
-                              Value="@AppFormatter.FormatDate(_profile.UserStartDate)"
-                              Icon="@DzdIcons.CalendarDays"
-                              IconBg="#E3F0EE" IconColor="#70A37F" />
-                    <InfoCard Label="Employment Duration"
-                              Value="@(_employmentDuration ?? "-")"
-                              Icon="@DzdIcons.ChartLine"
-                              IconColor="#193CB8" />
+                    <MudItem xs="12" sm="6" md="4">
+                        <InfoCard Label="Position Start Date"
+                                  Value="@AppFormatter.FormatDate(_profile.PositionStartDate)"
+                                  Icon="@DzdIcons.Calendar"
+                                  Accent="InfoCard.AccentColor.Blue" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="4">
+                        <InfoCard Label="Job Start Date"
+                                  Value="@AppFormatter.FormatDate(_profile.UserStartDate)"
+                                  Icon="@DzdIcons.CalendarDays"
+                                  Accent="InfoCard.AccentColor.Green" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="4">
+                        <InfoCard Label="Employment Duration"
+                                  Value="@(_employmentDuration ?? "-")"
+                                  Icon="@DzdIcons.ChartLine"
+                                  Accent="InfoCard.AccentColor.Orange" />
+                    </MudItem>
                 </MudGrid>
 
                 <MudGrid Class="mt-3 mb-3" Spacing="3">
                     <MudItem xs="12" md="6">
-                        <MudPaper Elevation="0" Class="pa-4" Style="border-radius: 12px; border: 1px solid var(--dzd-bg-input); background-color: var(--dzd-surface-primary);">
+                        <MudPaper Elevation="2" Class="pa-4" Style="border-radius: 12px; border: 1px solid var(--dzd-bg-input); background-color: var(--dzd-surface-primary);">
                             <MudStack Spacing="3">
                                 <MudText Typo="Typo.subtitle1" Style="font-weight: 500; color: var(--dzd-text-primary);">Contact Information</MudText>
                                 <MudStack Spacing="2">
@@ -171,7 +188,7 @@
                     </MudItem>
 
                     <MudItem xs="12" md="6">
-                        <MudPaper Elevation="0" Class="pa-4" Style="border-radius: 12px; border: 1px solid var(--dzd-bg-input); background-color: var(--dzd-surface-primary);">
+                        <MudPaper Elevation="2" Class="pa-4" Style="border-radius: 12px; border: 1px solid var(--dzd-bg-input); background-color: var(--dzd-surface-primary);">
                             <MudStack Spacing="3">
                                 <MudText Typo="Typo.subtitle1" Style="font-weight: 500; color: var(--dzd-text-primary);">Work Information</MudText>
                                 <MudGrid Spacing="2">
@@ -205,7 +222,7 @@
                                         <MudPaper Elevation="0" Class="pa-3" Style="border-radius: 10px; background-color: var(--dzd-surface-primary); border: 1px solid var(--dzd-bg-input);">
                                             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                                                 <div Style="width: 40px; height: 40px; background-color: #E3F0EE; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                                    <MudIcon Icon="@DzdIcons.History" Style="color: #70A37F; font-size: 20px;" />
+                                                    <MudIcon Icon="@DzdIcons.Briefcase" Style="color: #70A37F; font-size: 20px;" />
                                                 </div>
                                                 <MudStack Spacing="0" Style="flex-grow: 1;">
                                                     <MudText Typo="Typo.caption" Style="color: var(--dzd-text-secondary); font-weight: 500;">Work Type</MudText>
@@ -233,9 +250,68 @@
                     </MudItem>
                 </MudGrid>
             }
+            else if (_activeViewIndex == 2 && SelfService)
+            {
+                <MudStack Spacing="4" Class="mt-4">
+                    <MudPaper Elevation="0" Class="pa-4" Style="border-radius:12px; border:1px solid var(--dzd-bg-input);">
+                        <MudStack Spacing="3">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <div Style="width:36px;height:36px;background:#E8EBFF;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                                    <MudIcon Icon="@DzdIcons.Building2" Style="color:#2B38F5;font-size:18px;" />
+                                </div>
+                                <MudText Typo="Typo.subtitle1" Style="font-weight:600;">Organization Placement</MudText>
+                            </MudStack>
+                            <MudDivider />
+                            <MudGrid Spacing="2">
+                                <MudItem xs="12" Class="mb-3">
+                                    <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.UserRound" Size="Size.Small" /> Manager</div>
+                                    <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@GetManagerDisplayName()</MudText>
+                                </MudItem>
+                                <MudItem xs="12" sm="4">
+                                    <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Building2" Size="Size.Small" /> Company</div>
+                                    <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_profile.CompanyName ?? "-")</MudText>
+                                </MudItem>
+                                <MudItem xs="12" sm="4">
+                                    <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Building" Size="Size.Small" /> Department</div>
+                                    <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_profile.Department?.Name ?? "-")</MudText>
+                                </MudItem>
+                                <MudItem xs="12" sm="4">
+                                    <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Users" Size="Size.Small" /> Team</div>
+                                    <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_profile.Team?.Name ?? "-")</MudText>
+                                </MudItem>
+                            </MudGrid>
+                        </MudStack>
+                    </MudPaper>
+
+                    <MudPaper Elevation="0" Class="pa-4" Style="border-radius:12px; border:1px solid var(--dzd-bg-input);">
+                        <MudStack Spacing="3">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <div Style="width:36px;height:36px;background:#E3F0EE;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                                    <MudIcon Icon="@DzdIcons.Route" Style="color:#70A37F;font-size:18px;" />
+                                </div>
+                                <MudText Typo="Typo.subtitle1" Style="font-weight:600;">Career Path Assignment</MudText>
+                            </MudStack>
+                            <MudDivider />
+                            <MudGrid Spacing="2">
+                                <MudItem xs="12" sm="4">
+                                    <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Route" Size="Size.Small" /> Career Path</div>
+                                    <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_profile.CareerPathName ?? "-")</MudText>
+                                </MudItem>
+                                <MudItem xs="12" sm="4">
+                                    <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Briefcase" Size="Size.Small" /> Job Title</div>
+                                    <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_profile.Job?.Name ?? "-")</MudText>
+                                </MudItem>
+                                <MudItem xs="12" sm="4">
+                                    <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.BadgeCheck" Size="Size.Small" /> Grade Level</div>
+                                    <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_profile.Grade?.ToString() ?? "-")</MudText>
+                                </MudItem>
+                            </MudGrid>
+                        </MudStack>
+                    </MudPaper>
+                </MudStack>
+            }
             else if (_activeViewIndex == 2)
             {
-                <!-- ===== Career Tab ===== -->
                 @if (!_career.IsLoaded)
                 {
                     <MudStack AlignItems="AlignItems.Center" Class="py-8">
@@ -246,170 +322,282 @@
                 {
                 <MudStack Spacing="4" Class="mt-4">
 
-                    <!-- Organization Placement -->
                     <MudPaper Elevation="0" Class="pa-4" Style="border-radius:12px; border:1px solid var(--dzd-bg-input);">
-                        <MudStack Spacing="3">
-                            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                    <div Style="width:36px;height:36px;background:#E8EBFF;border-radius:8px;display:flex;align-items:center;justify-content:center;">
-                                        <MudIcon Icon="@DzdIcons.Building2" Style="color:#2B38F5;font-size:18px;" />
-                                    </div>
-                                    <MudText Typo="Typo.subtitle1" Style="font-weight:600;">Organization Placement</MudText>
-                                </MudStack>
-                                @if (!_career.IsEditing)
+                        @{
+                            var currentPos = _positionHistory.FirstOrDefault(x => x.IsCurrent);
+                        }
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.subtitle1" Style="font-weight:600;">Career History</MudText>
+                            </MudStack>
+                            @if (!SelfService && currentPos is null)
+                            {
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                                           StartIcon="@DzdIcons.Plus" OnClick="@(() => OpenCareerAssignmentDialogAsync(null))">Assign Position</MudButton>
+                            }
+                        </MudStack>
+
+                        @if (_positionHistory.Count == 0)
+                        {
+                            <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">
+                                No position assigned yet. Use “Assign Position” to set the employee's company, team, career path and grade.
+                            </MudText>
+                        }
+                        else
+                        {
+                            <MudStack Spacing="3">
+                                @foreach (var p in _positionHistory)
                                 {
-                                    <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary"
-                                                   OnClick="() => _career.BeginEdit()" />
+                                    <MudPaper Elevation="0" Class="pa-3"
+                                              Style="@($"border-radius:12px; border:1px solid {(p.IsCurrent ? "#2B38F5" : "var(--dzd-bg-input)")};")">
+                                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Spacing="2">
+                                            <MudStack Spacing="2">
+                                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Wrap="Wrap.Wrap">
+                                                    <MudText Typo="Typo.subtitle2" Style="font-weight:600;">@(p.JobTitle ?? "-")</MudText>
+                                                    @if (p.IsCurrent)
+                                                    {
+                                                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">Current</MudChip>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(p.ChangeType))
+                                                    {
+                                                        <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Outlined">@p.ChangeType</MudChip>
+                                                    }
+                                                    @if (p.Grade.HasValue)
+                                                    {
+                                                        <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Outlined">Grade @p.Grade</MudChip>
+                                                    }
+                                                </MudStack>
+                                                <MudStack Row="true" Spacing="4" Wrap="Wrap.Wrap">
+                                                    <span style="color:var(--dzd-text-secondary);font-size:13px;display:inline-flex;align-items:center;gap:4px;">
+                                                        <MudIcon Icon="@DzdIcons.Building2" Size="Size.Small" /> @(p.DepartmentName ?? p.CompanyName ?? "-")
+                                                    </span>
+                                                    @if (!string.IsNullOrEmpty(p.TeamName))
+                                                    {
+                                                        <span style="color:var(--dzd-text-secondary);font-size:13px;display:inline-flex;align-items:center;gap:4px;">
+                                                            <MudIcon Icon="@DzdIcons.Users" Size="Size.Small" /> @p.TeamName
+                                                        </span>
+                                                    }
+                                                    <span style="color:var(--dzd-text-secondary);font-size:13px;display:inline-flex;align-items:center;gap:4px;">
+                                                        <MudIcon Icon="@DzdIcons.CalendarDays" Size="Size.Small" /> @FormatPositionRange(p)
+                                                    </span>
+                                                </MudStack>
+                                            </MudStack>
+                                            @if (!SelfService && p.IsCurrent)
+                                            {
+                                                <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center" Style="align-self:center;">
+                                                    <MudButton Variant="Variant.Filled" Size="Size.Small"
+                                                               StartIcon="@DzdIcons.TrendingUp" OnClick="OpenPromotionDialogAsync"
+                                                               Style="background-color:#FEA82F;color:#fff;">Promote</MudButton>
+                                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                                                               StartIcon="@DzdIcons.Pencil" OnClick="@(() => OpenCareerAssignmentDialogAsync(p))">Edit</MudButton>
+                                                </MudStack>
+                                            }
+                                        </MudStack>
+                                    </MudPaper>
                                 }
                             </MudStack>
-                            <MudDivider />
-
-                            @if (_career.IsEditing)
-                            {
-                                <MudGrid Spacing="3">
-                                    <MudItem xs="12" sm="4">
-                                        <MudSelect T="string" Label="Company"
-                                                   Value="_career.CompanyName"
-                                                   ValueChanged="OnCareerCompanyChanged"
-                                                   Variant="Variant.Outlined" Margin="Margin.Dense">
-                                            <MudSelectItem T="string" Value="@("")">� None �</MudSelectItem>
-                                            @foreach (var c in _career.Companies)
-                                            {
-                                                <MudSelectItem T="string" Value="@c.Name">@c.Name</MudSelectItem>
-                                            }
-                                        </MudSelect>
-                                    </MudItem>
-                                    <MudItem xs="12" sm="4">
-                                        <MudSelect T="int?" Label="Department"
-                                                   Value="_career.DeptId"
-                                                   ValueChanged="OnCareerDeptChanged"
-                                                   Variant="Variant.Outlined" Margin="Margin.Dense"
-                                                   Disabled="@string.IsNullOrEmpty(_career.CompanyName)">
-                                            <MudSelectItem T="int?" Value="@((int?)null)">� None �</MudSelectItem>
-                                            @foreach (var d in _career.FilteredDepts)
-                                            {
-                                                <MudSelectItem T="int?" Value="@((int?)d.Id)">@d.Name</MudSelectItem>
-                                            }
-                                        </MudSelect>
-                                    </MudItem>
-                                    <MudItem xs="12" sm="4">
-                                        <MudSelect T="int?" Label="Team" @bind-Value="_career.TeamId"
-                                                   Variant="Variant.Outlined" Margin="Margin.Dense"
-                                                   Disabled="@(_career.DeptId == null)">
-                                            <MudSelectItem T="int?" Value="@((int?)null)">� None �</MudSelectItem>
-                                            @foreach (var t in _career.FilteredTeams)
-                                            {
-                                                <MudSelectItem T="int?" Value="@((int?)t.Id)">@t.Name</MudSelectItem>
-                                            }
-                                        </MudSelect>
-                                    </MudItem>
-                                </MudGrid>
-                            }
-                            else
-                            {
-                                <MudGrid Spacing="2">
-                                    <MudItem xs="12" sm="4">
-                                        <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Building2" Size="Size.Small" /> Company</div>
-                                        <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_career.CompanyName ?? "-")</MudText>
-                                    </MudItem>
-                                    <MudItem xs="12" sm="4">
-                                        <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Building" Size="Size.Small" /> Department</div>
-                                        <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_career.DeptId.HasValue ? _career.DeptName : "-")</MudText>
-                                    </MudItem>
-                                    <MudItem xs="12" sm="4">
-                                        <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Users" Size="Size.Small" /> Team</div>
-                                        <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_career.TeamId.HasValue ? _career.TeamName : "-")</MudText>
-                                    </MudItem>
-                                </MudGrid>
-                            }
-                        </MudStack>
+                        }
                     </MudPaper>
 
-                    <!-- Career Path Assignment -->
-                    <MudPaper Elevation="0" Class="pa-4" Style="border-radius:12px; border:1px solid var(--dzd-bg-input);">
-                        <MudStack Spacing="3">
-                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                <div Style="width:36px;height:36px;background:#E3F0EE;border-radius:8px;display:flex;align-items:center;justify-content:center;">
-                                    <MudIcon Icon="@DzdIcons.Route" Style="color:#70A37F;font-size:18px;" />
+                    <MudPaper Elevation="0" Class="pa-6 clp-card" Style="border-radius:14px; border:1px solid var(--dzd-bg-input);">
+                        <div class="clp-head">
+                            <div>
+                                <MudText Typo="Typo.h6" Style="font-weight:600;">Career Level Progress</MudText>
+                                <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">Track your grade progression</MudText>
+                            </div>
+                            @if (_profile?.Grade is int g)
+                            {
+                                <div class="clp-grade-badge">
+                                    <MudIcon Icon="@DzdIcons.Award" Size="Size.Small" />
+                                    <span>Grade @g</span>
                                 </div>
-                                <MudText Typo="Typo.subtitle1" Style="font-weight:600;">Career Path Assignment</MudText>
-                            </MudStack>
-                            <MudDivider />
+                            }
+                        </div>
 
-                            @if (_career.IsEditing)
+                        @{
+                            var rules = PathRulesOrdered();
+                        }
+                        @if (rules.Count == 0)
+                        {
+                            <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);" Class="mt-3">
+                                Assign a career path to see the grade progression and next-level requirements.
+                            </MudText>
+                        }
+                        else
+                        {
+                            <div class="clp-stepper">
+                                @for (var i = 0; i < rules.Count; i++)
+                                {
+                                    var r        = rules[i];
+                                    var done     = _profile?.Grade is int cg && r.Grade < cg;
+                                    var current  = _profile?.Grade == r.Grade;
+                                    var state    = current ? "current" : done ? "done" : "next";
+                                    var lineDone = _profile?.Grade is int lg && r.Grade <= lg;
+                                    <div class="clp-step clp-step--@state">
+                                        @if (i > 0)
+                                        {
+                                            <span class="clp-line @(lineDone ? "clp-line--done" : "")"></span>
+                                        }
+                                        <div class="clp-node">
+                                            @if (done)
+                                            {
+                                                <MudIcon Icon="@DzdIcons.Check" Size="Size.Small" />
+                                            }
+                                            else
+                                            {
+                                                <span>@r.Grade</span>
+                                            }
+                                        </div>
+                                        <span class="clp-step-label">
+                                            @if (current)
+                                            {
+                                                <span class="clp-dot"></span>
+                                            }
+                                            @(current ? "Now" : done ? "Done" : "Next")
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+
+                            @if (NextGradeRule() is { } next)
                             {
-                                <MudGrid Spacing="3">
-                                    <MudItem xs="12" sm="4">
-                                        <MudSelect T="int?" Label="Career Path"
-                                                   Value="_career.PathId"
-                                                   ValueChanged="OnCareerPathChanged"
-                                                   Variant="Variant.Outlined" Margin="Margin.Dense">
-                                            <MudSelectItem T="int?" Value="@((int?)null)">� None �</MudSelectItem>
-                                            @foreach (var p in _career.CareerPaths)
-                                            {
-                                                <MudSelectItem T="int?" Value="@((int?)p.Id)">@p.Name (@p.UserGroupName)</MudSelectItem>
-                                            }
-                                        </MudSelect>
-                                    </MudItem>
-                                    <MudItem xs="12" sm="4">
-                                        <MudSelect T="int?" Label="Job Title"
-                                                   Value="_career.JobId"
-                                                   ValueChanged="OnCareerJobChanged"
-                                                   Variant="Variant.Outlined" Margin="Margin.Dense"
-                                                   Disabled="@(_career.PathId == null)">
-                                            <MudSelectItem T="int?" Value="@((int?)null)">� None �</MudSelectItem>
-                                            @foreach (var j in _career.PathJobs)
-                                            {
-                                                <MudSelectItem T="int?" Value="@((int?)j.Id)">@j.Name</MudSelectItem>
-                                            }
-                                        </MudSelect>
-                                    </MudItem>
-                                    <MudItem xs="12" sm="4">
-                                        <MudSelect T="int?" Label="Grade Level" @bind-Value="_career.Grade"
-                                                   Variant="Variant.Outlined" Margin="Margin.Dense"
-                                                   Disabled="@(_career.JobId == null)">
-                                            <MudSelectItem T="int?" Value="@((int?)null)">� None �</MudSelectItem>
-                                            @foreach (var g in _career.JobGrades)
-                                            {
-                                                <MudSelectItem T="int?" Value="@((int?)g)">@g</MudSelectItem>
-                                            }
-                                        </MudSelect>
-                                    </MudItem>
-                                </MudGrid>
+                                var reqs  = NextGradeRequirements();
+                                var total = reqs.Count;
+                                var met   = reqs.Count(x => x.Status == ReqStatus.Completed);
+                                var pct   = total == 0 ? 0 : (int)Math.Round(met * 100.0 / total);
+
+                                <div class="clp-req-box">
+                                    <MudText Typo="Typo.subtitle1" Style="font-weight:600;">Next Grade Requirements</MudText>
+                                    <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">Requirements to advance to Grade @next.Grade</MudText>
+
+                                    <div class="clp-overall-head">
+                                        <span>@met of @total met</span>
+                                        <span>@pct%</span>
+                                    </div>
+                                    <div class="clp-overall-track">
+                                        <div class="clp-overall-fill" style="@($"width:{pct}%;")"></div>
+                                    </div>
+
+                                    @if (total > 0)
+                                    {
+                                        <table class="clp-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Requirement</th>
+                                                    <th>Required</th>
+                                                    <th>Current Status</th>
+                                                    <th>Progress</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var req in reqs)
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            <div class="clp-req-name">
+                                                                <span class="clp-req-icon" style="@($"background:{req.IconBg};color:{req.IconColor};")">
+                                                                    <MudIcon Icon="@req.Icon" Size="Size.Small" />
+                                                                </span>
+                                                                <span>@req.Name</span>
+                                                            </div>
+                                                        </td>
+                                                        <td class="clp-muted">@req.Required</td>
+                                                        <td>@req.CurrentStatus</td>
+                                                        <td>
+                                                            <div class="clp-progress-cell">
+                                                                <div class="clp-row-track">
+                                                                    <div class="clp-row-fill clp-row-fill--@req.Status.ToString().ToLower()" style="@($"width:{req.Progress}%;")"></div>
+                                                                </div>
+                                                                <span class="clp-row-pct">@req.Progress%</span>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            @switch (req.Status)
+                                                            {
+                                                                case ReqStatus.Completed:
+                                                                    <span class="clp-chip clp-chip--done"><MudIcon Icon="@DzdIcons.CircleCheck" Size="Size.Small" /> Completed</span>
+                                                                    break;
+                                                                case ReqStatus.InProgress:
+                                                                    <span class="clp-chip clp-chip--progress"><MudIcon Icon="@DzdIcons.Loader" Size="Size.Small" /> In Progress</span>
+                                                                    break;
+                                                                default:
+                                                                    <span class="clp-chip clp-chip--pending"><MudIcon Icon="@DzdIcons.Clock" Size="Size.Small" /> Pending</span>
+                                                                    break;
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    }
+                                </div>
                             }
-                            else
-                            {
-                                <MudGrid Spacing="2">
-                                    <MudItem xs="12" sm="4">
-                                        <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Route" Size="Size.Small" /> Career Path</div>
-                                        <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_career.PathId.HasValue ? _career.PathName : "-")</MudText>
-                                    </MudItem>
-                                    <MudItem xs="12" sm="4">
-                                        <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Briefcase" Size="Size.Small" /> Job Title</div>
-                                        <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_career.JobId.HasValue ? _career.JobName : "-")</MudText>
-                                    </MudItem>
-                                    <MudItem xs="12" sm="4">
-                                        <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.BadgeCheck" Size="Size.Small" /> Grade Level</div>
-                                        <MudText Typo="Typo.body1" Style="font-weight:500; color:var(--dzd-text-primary);">@(_career.Grade?.ToString() ?? "-")</MudText>
-                                    </MudItem>
-                                </MudGrid>
-                            }
-                        </MudStack>
+                        }
                     </MudPaper>
 
-                    @if (_career.IsEditing)
-                    {
-                        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
-                            <MudButton Variant="Variant.Outlined" OnClick="CancelCareerEdit">Cancel</MudButton>
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveCareerAssignmentAsync"
-                                       Disabled="@_careerSaving">Save</MudButton>
+                    <MudPaper Elevation="0" Class="pa-4" Style="border-radius:12px; border:1px solid var(--dzd-bg-input);">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-1">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <MudIcon Icon="@DzdIcons.FileText" Style="color:#2B38F5;" />
+                                <MudText Typo="Typo.subtitle1" Style="font-weight:600;">CV / Resume Management</MudText>
+                            </MudStack>
+                            @if (!SelfService)
+                            {
+                                <MudFileUpload T="IBrowserFile" Accept="@CvAcceptList" MaximumFileCount="1" OnFilesChanged="OnCvFileSelected">
+                                    <ActivatorContent>
+                                        <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                                                   StartIcon="@DzdIcons.Upload" Disabled="@_cvUploading">Upload New CV</MudButton>
+                                    </ActivatorContent>
+                                </MudFileUpload>
+                            }
                         </MudStack>
-                    }
+
+                        @if (_cvUploading)
+                        {
+                            <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="my-2" />
+                        }
+
+                        @if (_cvDocuments.Count == 0)
+                        {
+                            <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">No documents uploaded yet.</MudText>
+                        }
+                        else
+                        {
+                            <MudStack Spacing="2">
+                                @foreach (var doc in _cvDocuments)
+                                {
+                                    <MudPaper Elevation="0" Class="pa-3" Style="border-radius:10px; border:1px solid var(--dzd-bg-input);">
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Spacing="2">
+                                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                                                <MudIcon Icon="@DzdIcons.FileText" Style="color:#E5484D;" />
+                                                <MudStack Spacing="0">
+                                                    <MudText Typo="Typo.body2" Style="font-weight:600;">@doc.FileName</MudText>
+                                                    <MudText Typo="Typo.caption" Style="color:var(--dzd-text-secondary);">
+                                                        @(doc.UploadedAt is { } u ? $"Uploaded: {u:MMM d, yyyy}" : "") · @FormatFileSize(doc.SizeBytes)
+                                                    </MudText>
+                                                </MudStack>
+                                            </MudStack>
+                                            <MudStack Row="true" Spacing="1">
+                                                <MudIconButton Icon="@DzdIcons.Download" Size="Size.Small" Color="Color.Primary"
+                                                               OnClick="@(() => DownloadDocumentAsync(doc))" />
+                                                @if (!SelfService)
+                                                {
+                                                    <MudIconButton Icon="@DzdIcons.Trash2" Size="Size.Small" Color="Color.Error"
+                                                                   OnClick="@(() => DeleteDocumentAsync(doc))" />
+                                                }
+                                            </MudStack>
+                                        </MudStack>
+                                    </MudPaper>
+                                }
+                            </MudStack>
+                        }
+                    </MudPaper>
 
                 </MudStack>
                 }
             }
-            else
+            else if (_activeViewIndex == 1)
             {
                 @if (_profile is null)
                 {
@@ -420,9 +608,9 @@
                     <div class="dzd-personal-info-bg pa-0">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
                             <div class="dzd-section-title" style="margin:0;">
-                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:2px;vertical-align:middle;" aria-hidden="true"></span> Employee Details
+                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-blue-500);margin-left:4px;margin-right:2px;vertical-align:middle;" aria-hidden="true"></span> Employee Details
                             </div>
-                            @if (!_basicInfoEdit.IsEditing)
+                            @if (!SelfService && !_basicInfoEdit.IsEditing)
                             {
                                 <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" OnClick="StartBasicInfoEdit" />
                             }
@@ -508,7 +696,7 @@
                                 </MudItem>
 
                                 <MudItem xs="12" md="6">
-                                    <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Calendar" Size="Size.Small" /> Contract End Date</div>
+                                    <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.CalendarX" Size="Size.Small" /> Contract End Date</div>
                                     @if (_basicInfoEdit.IsEditing)
                                     {
                                         <MudDatePicker AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" Date="@_profile.ContractEndDate" DateChanged="@(d => _profile.ContractEndDate = d)" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  />
@@ -520,7 +708,7 @@
                                 </MudItem>
 
                                 <MudItem xs="12" md="6">
-                                    <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.History" Size="Size.Small" /> Work Type</div>
+                                    <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Briefcase" Size="Size.Small" /> Work Type</div>
                                     @if (_basicInfoEdit.IsEditing)
                                     {
                                         <MudSelect T="string" @bind-Value="_profile!.WorkModel" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  AnchorOrigin="Origin.BottomLeft">
@@ -568,7 +756,7 @@
                         <MudDivider Class="my-4" />
                         
                         <div class="dzd-section-title">
-                            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Manager Information
+                            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-blue-500);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Manager Information
                         </div>
                         <MudPaper Elevation="1" Class="dzd-card pa-6">
                             <MudGrid Spacing="4">
@@ -587,7 +775,7 @@
 
                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
                             <div class="dzd-section-title" style="margin:0;">
-                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Contact Information
+                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-blue-500);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Contact Information
                             </div>
                             @if (!_contactsEdit.IsEditing)
                             {
@@ -601,7 +789,7 @@
                                     <MudStack Spacing="3">
                                         <div>
                                             <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Mail" Size="Size.Small" /> Work Email</div>
-                                            @if (_contactsEdit.IsEditing)
+                                            @if (_contactsEdit.IsEditing && !SelfService)
                                             {
                                                 <MudTextField @bind-Value="_profile!.Email" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  Immediate="true" />
                                             }
@@ -683,9 +871,9 @@
 
                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
                             <div class="dzd-section-title" style="margin:0;">
-                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Citizenship Information
+                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-blue-500);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Citizenship Information
                             </div>
-                            @if (!_citizenshipEdit.IsEditing)
+                            @if (!SelfService && !_citizenshipEdit.IsEditing)
                             {
                                 <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" OnClick="StartCitizenshipInfoEdit" />
                             }
@@ -773,7 +961,7 @@
 
                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
                             <div class="dzd-section-title" style="margin:0;">
-                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Emergency Contacts
+                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-blue-500);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Emergency Contacts
                             </div>
                             @if (!_emergencyEdit.IsEditing)
                             {
@@ -864,7 +1052,7 @@
                          
                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2 mt-4">
                             <div class="dzd-section-title" style="margin:0;">
-                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Family Information
+                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-blue-500);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Family Information
                             </div>
                             @if (!_familyEdit.IsEditing)
                             {
@@ -962,9 +1150,9 @@
 
                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3 mt-4">
                             <div class="dzd-section-title" style="margin:0;">
-                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Address Information
+                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-blue-500);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Address Information
                             </div>
-                            @if (!_addressEdit.IsEditing)
+                            @if (!SelfService && !_addressEdit.IsEditing)
                             {
                                 <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" OnClick="StartAddressInfoEdit" />
                             }
@@ -974,7 +1162,7 @@
                                 <MudPaper Elevation="1" Class="dzd-card pa-6 h-100">
                                     <MudStack Spacing="4">
                                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                            <MudIcon Icon="@DzdIcons.House" Size="Size.Small" Style="color: var(--dzd-brand-primary); font-size: 18px;" />
+                                            <MudIcon Icon="@DzdIcons.House" Size="Size.Small" Style="color: var(--dzd-blue-500); font-size: 18px;" />
                                             <MudText Typo="Typo.subtitle2" Style="font-weight: 600; color: var(--dzd-text-secondary); margin: 0;">Registered Address</MudText>
                                         </MudStack>
                                         <MudDivider Class="my-0" />
@@ -982,7 +1170,7 @@
                                         <MudStack Spacing="3">
                                             <div>
                                                 <MudText Typo="Typo.caption" Style="color: var(--dzd-text-secondary); font-weight: 500; margin-bottom: 6px; display: block;">
-                                                    <MudIcon Icon="@DzdIcons.House" Size="Size.Small" Style="margin-right: 4px; vertical-align: middle;" /> Address
+                                                    <MudIcon Icon="@DzdIcons.MapPin" Size="Size.Small" Style="margin-right: 4px; vertical-align: middle;" /> Address
                                                 </MudText>
                                                 @if (_addressEdit.IsEditing)
                                                 {
@@ -993,18 +1181,42 @@
                                                     <MudText Typo="Typo.body2" Style="font-weight:500; color:var(--dzd-text-primary);">@(_profile.LegalAddress ?? "-")</MudText>
                                                 }
                                             </div>
+                                            <div>
+                                                <MudText Typo="Typo.caption" Style="color: var(--dzd-text-secondary); font-weight: 500; margin-bottom: 6px; display: block;">
+                                                    <MudIcon Icon="@DzdIcons.Building" Size="Size.Small" Style="margin-right: 4px; vertical-align: middle;" /> City
+                                                </MudText>
+                                                @if (_addressEdit.IsEditing)
+                                                {
+                                                    <MudTextField @bind-Value="_profile!.LegalAddressCity" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input" Placeholder="Enter city" />
+                                                }
+                                                else
+                                                {
+                                                    <MudText Typo="Typo.body2" Style="font-weight:500; color:var(--dzd-text-primary);">@(_profile.LegalAddressCity ?? "-")</MudText>
+                                                }
+                                            </div>
+                                            <div>
+                                                <MudText Typo="Typo.caption" Style="color: var(--dzd-text-secondary); font-weight: 500; margin-bottom: 6px; display: block;">
+                                                    <MudIcon Icon="@DzdIcons.Globe" Size="Size.Small" Style="margin-right: 4px; vertical-align: middle;" /> Country
+                                                </MudText>
+                                                @if (_addressEdit.IsEditing)
+                                                {
+                                                    <MudTextField @bind-Value="_profile!.LegalAddressCountry" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input" Placeholder="Enter country" />
+                                                }
+                                                else
+                                                {
+                                                    <MudText Typo="Typo.body2" Style="font-weight:500; color:var(--dzd-text-primary);">@(_profile.LegalAddressCountry ?? "-")</MudText>
+                                                }
+                                            </div>
                                         </MudStack>
                                     </MudStack>
                                 </MudPaper>
                             </MudItem>
 
-                            @* City and Country belong to the current/living address; they are not duplicated here.
-                               The domain model has a single City/Country field — see User.PersonalInfo.cs. *@
                             <MudItem xs="12" md="6">
                                 <MudPaper Elevation="1" Class="dzd-card pa-6 h-100">
                                     <MudStack Spacing="4">
                                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                            <MudIcon Icon="@DzdIcons.MapPin" Size="Size.Small" Style="color: var(--dzd-brand-primary); font-size: 18px;" />
+                                            <MudIcon Icon="@DzdIcons.MapPin" Size="Size.Small" Style="color: var(--dzd-blue-500); font-size: 18px;" />
                                             <MudText Typo="Typo.subtitle2" Style="font-weight: 600; color: var(--dzd-text-secondary); margin: 0;">Current Address</MudText>
                                         </MudStack>
                                         <MudDivider Class="my-0" />
@@ -1066,9 +1278,9 @@
 
                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2 mt-4">
                             <div class="dzd-section-title" style="margin:0;">
-                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-brand-primary);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Education Information
+                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:var(--dzd-blue-500);margin-left:4px;margin-right:5px;vertical-align:middle;" aria-hidden="true"></span> Education Information
                             </div>
-                            @if (!_educationEdit.IsEditing)
+                            @if (!SelfService && !_educationEdit.IsEditing)
                             {
                                 <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" OnClick="StartEducationInfoEdit" />
                             }
@@ -1147,9 +1359,65 @@
                             </MudStack>
                         }
 
-                        <MudDivider Class="my-4" />
-                        <PaymentSection UserId="@EmployeeId" />
                     </div>
+                }
+            }
+            else if (_activeViewIndex == 3)
+            {
+                @if (SelfService)
+                {
+                    <MudPaper Elevation="1" Class="dzd-card pa-6 mt-4">
+                        <MudStack Spacing="1" Class="mb-4">
+                            <MudText Typo="Typo.subtitle1" Style="font-weight:600; color:var(--dzd-text-primary);">My Salary &amp; Pension (BES)</MudText>
+                            <MudText Typo="Typo.caption" Style="color:var(--dzd-text-secondary);">View-only — salary and BES updates are managed by HR.</MudText>
+                        </MudStack>
+
+                        @if (_myPaymentSummaryLoading)
+                        {
+                            <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+                        }
+                        else if (_myPaymentSummary is null)
+                        {
+                            <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">Could not load payment information.</MudText>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.subtitle2" GutterBottom="true">Active Salary</MudText>
+                            @if (_myPaymentSummary.ActiveSalary is { } salary)
+                            {
+                                <MudPaper Class="pa-3 mb-4" Elevation="0" Outlined="true" Style="border-radius:8px;max-width:420px;">
+                                    <MudText Typo="Typo.h6">@($"{salary.NetAmount:N2} {salary.Currency}") <MudText Typo="Typo.caption" Style="color:var(--dzd-text-secondary);" Inline="true">/ @salary.Period</MudText></MudText>
+                                    <MudText Typo="Typo.body2">Effective since @AppFormatter.FormatDate(salary.StartDate)</MudText>
+                                </MudPaper>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.body2" Class="mb-4" Style="color:var(--dzd-text-secondary);">No active salary record found.</MudText>
+                            }
+
+                            <MudText Typo="Typo.subtitle2" GutterBottom="true">Active BES (Private Pension)</MudText>
+                            @if (_myPaymentSummary.PensionBenefits.Count == 0)
+                            {
+                                <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">No active BES benefit found.</MudText>
+                            }
+                            else
+                            {
+                                <MudStack Spacing="2">
+                                    @foreach (var benefit in _myPaymentSummary.PensionBenefits)
+                                    {
+                                        <MudPaper Class="pa-3" Elevation="0" Outlined="true" Style="border-radius:8px;max-width:420px;">
+                                            <MudText Typo="Typo.h6">@($"{benefit.Amount:N2} {benefit.Currency}") <MudText Typo="Typo.caption" Style="color:var(--dzd-text-secondary);" Inline="true">/ @benefit.Period</MudText></MudText>
+                                            <MudText Typo="Typo.body2">Effective since @AppFormatter.FormatDate(benefit.StartDate)</MudText>
+                                        </MudPaper>
+                                    }
+                                </MudStack>
+                            }
+                        }
+                    </MudPaper>
+                }
+                else
+                {
+                    <PaymentSection UserId="@_userId" />
                 }
             }
         </div>

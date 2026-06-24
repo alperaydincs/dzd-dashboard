@@ -2,7 +2,6 @@ using DZDDashboard.Common.DTOs;
 
 namespace DZDDashboard.Services;
 
-/// <summary>Manages career paths and career map rules for grade progression.</summary>
 public interface ICareerPathService
 {
     Task<List<CareerPathDto>> GetCareerPathsAsync(CancellationToken cancellationToken = default);

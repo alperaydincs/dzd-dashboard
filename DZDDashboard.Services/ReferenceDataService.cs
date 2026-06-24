@@ -8,21 +8,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DZDDashboard.Services;
 
-// Interface is in Abstractions/IReferenceDataService.cs
 
-/// <summary>
-/// Manages flat reference / lookup data: work types, jobs, grades,
-/// payroll locations, and user groups.
-/// <para>
-/// Previously inherited <c>GenericCrudService&lt;WorkType, WorkTypeDto&gt;</c>, which gave
-/// DRY CRUD only for <c>WorkType</c> while the other four entities duplicated the same
-/// four-method pattern (C# single-inheritance limitation). Refactored to a flat class with
-/// private generic helpers so all five entity groups share the same implementation.
-/// </para>
-/// </summary>
 public class ReferenceDataService(AppDbContext context, IMapper mapper) : IReferenceDataService
 {
-    // ── Generic CRUD helpers ──────────────────────────────────────────────────
 
     private async Task<List<TDto>> GetAllRefAsync<TEntity, TDto>(CancellationToken ct) where TEntity : class
         => mapper.Map<List<TDto>>(await context.Set<TEntity>().AsNoTracking().ToListAsync(ct));
@@ -50,7 +38,6 @@ public class ReferenceDataService(AppDbContext context, IMapper mapper) : IRefer
         await context.SaveChangesAsync(ct);
     }
 
-    // ── Work Types ────────────────────────────────────────────────────────────
 
     public Task<List<WorkTypeDto>> GetWorkTypesAsync(CancellationToken cancellationToken = default)
         => GetAllRefAsync<WorkType, WorkTypeDto>(cancellationToken);
@@ -64,7 +51,6 @@ public class ReferenceDataService(AppDbContext context, IMapper mapper) : IRefer
     public Task DeleteWorkTypeAsync(int id, CancellationToken cancellationToken = default)
         => DeleteRefAsync<WorkType>(id, nameof(WorkType), cancellationToken);
 
-    // ── Jobs ──────────────────────────────────────────────────────────────────
 
     public Task<List<JobDto>> GetJobsAsync(CancellationToken cancellationToken = default)
         => GetAllRefAsync<Job, JobDto>(cancellationToken);
@@ -78,7 +64,6 @@ public class ReferenceDataService(AppDbContext context, IMapper mapper) : IRefer
     public Task DeleteJobAsync(int id, CancellationToken cancellationToken = default)
         => DeleteRefAsync<Job>(id, nameof(Job), cancellationToken);
 
-    // ── Grades ────────────────────────────────────────────────────────────────
 
     public Task<List<GradeDto>> GetGradesAsync(CancellationToken cancellationToken = default)
         => GetAllRefAsync<Grade, GradeDto>(cancellationToken);
@@ -92,8 +77,6 @@ public class ReferenceDataService(AppDbContext context, IMapper mapper) : IRefer
     public Task DeleteGradeAsync(int id, CancellationToken cancellationToken = default)
         => DeleteRefAsync<Grade>(id, nameof(Grade), cancellationToken);
 
-    // ── Payroll Locations ─────────────────────────────────────────────────────
-    // Kept via generic helpers — AutoMapper handles Name↔Location field renaming transparently.
 
     public Task<List<PayrollLocationDto>> GetPayrollLocationsAsync(CancellationToken cancellationToken = default)
         => GetAllRefAsync<PayrollLocation, PayrollLocationDto>(cancellationToken);
@@ -107,7 +90,6 @@ public class ReferenceDataService(AppDbContext context, IMapper mapper) : IRefer
     public Task DeletePayrollLocationAsync(int id, CancellationToken cancellationToken = default)
         => DeleteRefAsync<PayrollLocation>(id, nameof(PayrollLocation), cancellationToken);
 
-    // ── User Groups ───────────────────────────────────────────────────────────
 
     public Task<List<UserGroupDto>> GetUserGroupsAsync(CancellationToken cancellationToken = default)
         => GetAllRefAsync<UserGroup, UserGroupDto>(cancellationToken);

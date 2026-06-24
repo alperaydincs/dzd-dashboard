@@ -1,7 +1,5 @@
 namespace DZDDashboard.Common.DTOs;
 
-// FluentValidation (UpdateEducationInfoDtoValidator) is the single enforcement point —
-// no [MaxLength] annotations here to avoid dual-validation and value mismatches.
 public record EducationHistoryDto
 {
     public int Id { get; set; }

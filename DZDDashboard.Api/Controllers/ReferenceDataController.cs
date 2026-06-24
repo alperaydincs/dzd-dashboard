@@ -6,14 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DZDDashboard.Api.Controllers;
 
-/// <summary>
-/// Manages flat reference / lookup data: work types, jobs, grades, payroll locations, user groups.
-/// Route kept at <c>api/organization</c> for backward compatibility with existing API clients.
-/// </summary>
 [Route("api/organization")]
 public class ReferenceDataController(IReferenceDataService refDataService) : BaseController
 {
-    // ── Work Types ─────────────────────────────────────────────────────────────
 
     [HttpGet("worktypes")]
     public async Task<ActionResult<List<WorkTypeDto>>> GetWorkTypes(CancellationToken cancellationToken)
@@ -44,7 +39,6 @@ public class ReferenceDataController(IReferenceDataService refDataService) : Bas
         return NoContent();
     }
 
-    // ── Jobs ───────────────────────────────────────────────────────────────────
 
     [HttpGet("jobs")]
     public async Task<ActionResult<List<JobDto>>> GetJobs(CancellationToken cancellationToken)
@@ -75,7 +69,6 @@ public class ReferenceDataController(IReferenceDataService refDataService) : Bas
         return NoContent();
     }
 
-    // ── Grades ─────────────────────────────────────────────────────────────────
 
     [HttpGet("grades")]
     public async Task<ActionResult<List<GradeDto>>> GetGrades(CancellationToken cancellationToken)
@@ -106,7 +99,6 @@ public class ReferenceDataController(IReferenceDataService refDataService) : Bas
         return NoContent();
     }
 
-    // ── Payroll Locations ──────────────────────────────────────────────────────
 
     [HttpGet("payrolllocations")]
     public async Task<ActionResult<List<PayrollLocationDto>>> GetPayrollLocations(CancellationToken cancellationToken)
@@ -137,7 +129,6 @@ public class ReferenceDataController(IReferenceDataService refDataService) : Bas
         return NoContent();
     }
 
-    // ── User Groups ────────────────────────────────────────────────────────────
 
     [HttpGet("usergroups")]
     public async Task<ActionResult<List<UserGroupDto>>> GetUserGroups(CancellationToken cancellationToken)
@@ -168,10 +159,7 @@ public class ReferenceDataController(IReferenceDataService refDataService) : Bas
         return NoContent();
     }
 
-    /// <summary>Returns a single user group by id. Throws EntityNotFoundException (→ 404) if not found.</summary>
     [HttpGet("usergroups/{id}")]
     public async Task<ActionResult<UserGroupDto>> GetUserGroupById(int id, CancellationToken cancellationToken)
-        // GetUserGroupByIdAsync always throws EntityNotFoundException when not found (never returns null).
-        // ApiExceptionFilter maps that to 404 — no null-check needed here.
         => Ok(await refDataService.GetUserGroupByIdAsync(id, cancellationToken));
 }

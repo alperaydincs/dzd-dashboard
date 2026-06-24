@@ -8,7 +8,6 @@ public class CompanyDtoValidator : AbstractValidator<CompanyDto>
 {
     public CompanyDtoValidator()
     {
-        // NotEmpty rejects null, empty, and whitespace-only strings (IsNullOrWhiteSpace)
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Company name is required.")
             .MaximumLength(ValidationConstants.MaxStandardLength).WithMessage($"Company name cannot exceed {ValidationConstants.MaxStandardLength} characters.");

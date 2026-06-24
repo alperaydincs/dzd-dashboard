@@ -1,7 +1,5 @@
 namespace DZDDashboard.Common.DTOs;
 
-// Validation handled exclusively by UpdateOrganizationPositionDtoValidator (FluentValidation).
-// Data annotation removed to be consistent with the rest of the DTO layer.
 public record UpdateOrganizationPositionDto
 {
     public int    Id       { get; init; }

@@ -9,17 +9,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DZDDashboard.Services;
 
-// Interface is in Abstractions/IPaymentService.cs
 
-/// <summary>
-/// Implements the Employee Profile → Payment screen (Salary / Benefits / Additional Payments).
-/// FluentValidation (<c>PaymentValidators.cs</c>) covers input shape — required fields, lengths,
-/// allowed-value-set membership. This service covers the BR-PAY-* business rules that need
-/// database state: overlap checks, dependent caps/ranges and OneTime date requirements.
-/// </summary>
 public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentService
 {
-    // ── Reads ────────────────────────────────────────────────────────────────
 
     public async Task<EmployeePaymentDto> GetEmployeePaymentAsync(int userId, CancellationToken cancellationToken = default)
     {
@@ -48,13 +40,20 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
             .OrderByDescending(p => p.StartDate ?? p.PaymentDate ?? DateTime.MinValue)
             .ToListAsync(cancellationToken);
 
+        var deductions = await context.Deductions.AsNoTracking()
+            .Include(d => d.ModifiedBy)
+            .Where(d => d.UserId == userId)
+            .OrderByDescending(d => d.StartDate)
+            .ToListAsync(cancellationToken);
+
         return new EmployeePaymentDto
         {
             EmployeeId         = userId,
             SalaryHistory      = mapper.Map<List<SalaryRecordDto>>(salaryHistory),
             Benefits           = mapper.Map<List<BenefitRecordDto>>(benefits),
             AdditionalPayments = mapper.Map<List<AdditionalPaymentDto>>(additionalPayments),
-            Summary            = BuildSummary(salaryHistory, benefits, additionalPayments)
+            Deductions         = mapper.Map<List<DeductionDto>>(deductions),
+            Summary            = BuildSummary(salaryHistory, benefits, additionalPayments, deductions)
         };
     }
 
@@ -74,9 +73,6 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
             .OrderBy(b => b.Payer)
             .ToListAsync(cancellationToken);
 
-        // Self-service is read-only and PII-light: project only the fields the employee needs to
-        // see (amount/currency/period/validity). Audit, source/reference and notes are omitted —
-        // mirrors the EmployeeCardDto PII-trap fix (don't ship fields the viewer shouldn't read).
         return new MyPaymentSummaryDto
         {
             ActiveSalary = activeSalary is null ? null : new SalaryRecordDto
@@ -84,6 +80,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
                 Id          = activeSalary.Id,
                 NetAmount   = activeSalary.NetAmount,
                 GrossAmount = activeSalary.GrossAmount,
+                PayType     = activeSalary.PayType,
                 Currency    = activeSalary.Currency,
                 Period      = activeSalary.Period,
                 StartDate   = activeSalary.StartDate,
@@ -103,7 +100,6 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         };
     }
 
-    // ── Salary ───────────────────────────────────────────────────────────────
 
     public async Task<SalaryRecordDto> CreateSalaryRecordAsync(int userId, SalaryRecordDto dto, CancellationToken cancellationToken = default)
     {
@@ -133,10 +129,33 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
             .Where(s => s.UserId == userId && s.Id != recordId)
             .Select(s => new { s.StartDate, s.EndDate })
             .ToListAsync(cancellationToken);
+        var otherRanges = others.Select(e => (e.StartDate, e.EndDate));
 
-        EnsureNoOverlap(others.Select(e => (e.StartDate, e.EndDate)), dto.StartDate, dto.EndDate, "salary");
+        var opensNewPeriod =
+            entity.StartDate != dto.StartDate || entity.EndDate != dto.EndDate ||
+            entity.NetAmount != dto.NetAmount || entity.Currency != dto.Currency;
 
-        ApplySalaryDto(dto, entity);
+        if (opensNewPeriod)
+        {
+            var closedEndDate = dto.StartDate.AddDays(-1);
+            if (closedEndDate < entity.StartDate)
+                closedEndDate = entity.StartDate;
+
+            EnsureNoOverlap(otherRanges, entity.StartDate, closedEndDate, "salary");
+            EnsureNoOverlap(otherRanges, dto.StartDate, dto.EndDate, "salary");
+
+            entity.EndDate = closedEndDate;
+
+            var newEntity = new SalaryHistory { UserId = userId };
+            ApplySalaryDto(dto, newEntity);
+            context.SalaryHistories.Add(newEntity);
+        }
+        else
+        {
+            EnsureNoOverlap(otherRanges, dto.StartDate, dto.EndDate, "salary");
+            ApplySalaryDto(dto, entity);
+        }
+
         await context.SaveChangesAsync(cancellationToken);
     }
 
@@ -147,7 +166,6 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    // ── Benefits ─────────────────────────────────────────────────────────────
 
     public async Task<BenefitRecordDto> CreateBenefitRecordAsync(int userId, BenefitRecordDto dto, CancellationToken cancellationToken = default)
     {
@@ -156,6 +174,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
 
         var entity = new BenefitRecord { UserId = userId, Source = string.IsNullOrWhiteSpace(dto.Source) ? PaymentSources.Manual : dto.Source };
         ApplyBenefitDto(dto, entity);
+        ReplaceDependents(entity, dto.Dependents);
 
         context.BenefitRecords.Add(entity);
         await context.SaveChangesAsync(cancellationToken);
@@ -177,11 +196,9 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
     public async Task DeleteBenefitRecordAsync(int userId, int recordId, CancellationToken cancellationToken = default)
     {
         var entity = await RequireBenefitRecordAsync(userId, recordId, cancellationToken);
-        context.BenefitRecords.Remove(entity); // cascades to Dependents
-        await context.SaveChangesAsync(cancellationToken);
+        context.BenefitRecords.Remove(entity);        await context.SaveChangesAsync(cancellationToken);
     }
 
-    // ── Additional Payments ──────────────────────────────────────────────────
 
     public async Task<AdditionalPaymentDto> CreateAdditionalPaymentAsync(int userId, AdditionalPaymentDto dto, CancellationToken cancellationToken = default)
     {
@@ -213,7 +230,35 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    // ── Lookups ──────────────────────────────────────────────────────────────
+
+    public async Task<DeductionDto> CreateDeductionAsync(int userId, DeductionDto dto, CancellationToken cancellationToken = default)
+    {
+        await context.Users.FindRequiredAsync(userId, nameof(User), cancellationToken);
+
+        var entity = new Deduction { UserId = userId };
+        ApplyDeductionDto(dto, entity);
+
+        context.Deductions.Add(entity);
+        await context.SaveChangesAsync(cancellationToken);
+
+        return mapper.Map<DeductionDto>(entity);
+    }
+
+    public async Task UpdateDeductionAsync(int userId, int deductionId, DeductionDto dto, CancellationToken cancellationToken = default)
+    {
+        var entity = await RequireDeductionAsync(userId, deductionId, cancellationToken);
+
+        ApplyDeductionDto(dto, entity);
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteDeductionAsync(int userId, int deductionId, CancellationToken cancellationToken = default)
+    {
+        var entity = await RequireDeductionAsync(userId, deductionId, cancellationToken);
+        context.Deductions.Remove(entity);
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
 
     private async Task<SalaryHistory> RequireSalaryRecordAsync(int userId, int recordId, CancellationToken cancellationToken)
         => await context.SalaryHistories.FirstOrDefaultAsync(s => s.Id == recordId && s.UserId == userId, cancellationToken)
@@ -228,12 +273,19 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         => await context.AdditionalPayments.FirstOrDefaultAsync(p => p.Id == paymentId && p.UserId == userId, cancellationToken)
            ?? throw new EntityNotFoundException(nameof(AdditionalPayment), paymentId);
 
-    // ── Apply DTO → entity ───────────────────────────────────────────────────
+    private async Task<Deduction> RequireDeductionAsync(int userId, int deductionId, CancellationToken cancellationToken)
+        => await context.Deductions.FirstOrDefaultAsync(d => d.Id == deductionId && d.UserId == userId, cancellationToken)
+           ?? throw new EntityNotFoundException(nameof(Deduction), deductionId);
+
 
     private static void ApplySalaryDto(SalaryRecordDto dto, SalaryHistory entity)
     {
+        if (entity.Notes != dto.Notes)
+            entity.NotesModifiedAt = DateTime.UtcNow;
+
         entity.NetAmount    = dto.NetAmount;
         entity.GrossAmount  = dto.GrossAmount;
+        entity.PayType      = dto.PayType;
         entity.Currency     = dto.Currency;
         entity.Period       = dto.Period;
         entity.PayrollCycle = dto.PayrollCycle;
@@ -246,6 +298,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
     {
         entity.BenefitType  = dto.BenefitType;
         entity.Payer        = dto.Payer;
+        entity.BenefitName  = dto.BenefitName;
         entity.Amount       = dto.Amount;
         entity.Currency     = dto.Currency;
         entity.Period       = dto.Period;
@@ -254,8 +307,11 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         entity.ReferenceId  = dto.ReferenceId;
         entity.ProviderName = dto.ProviderName;
         entity.Notes        = dto.Notes;
-        // Source is set on creation only — never overwritten on update so an Onboarding-sourced
-        // row keeps its provenance even when HR edits the amount later (BR-PAY-04 traceability).
+
+        var isPension = dto.BenefitType == BenefitTypes.PrivatePension;
+        entity.EmployeeContributionAmount = isPension ? dto.EmployeeContributionAmount : null;
+        entity.EmployerContributionAmount = isPension ? dto.EmployerContributionAmount : null;
+        entity.PolicyNumber               = isPension ? dto.PolicyNumber : null;
     }
 
     private static void ApplyAdditionalPaymentDto(AdditionalPaymentDto dto, AdditionalPayment entity)
@@ -267,15 +323,19 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         entity.PaymentDate  = dto.PaymentDate;
         entity.StartDate    = dto.StartDate;
         entity.EndDate      = dto.EndDate;
-        entity.TaxableFlag  = dto.TaxableFlag;
         entity.Description  = dto.Description;
     }
 
-    /// <summary>
-    /// Replaces a benefit record's dependent rows wholesale (max 5, small list — bulk replace
-    /// is simpler and safer here than a diff/merge) and re-numbers <c>Order</c> 1..N so display
-    /// order always matches array position even after a middle row is removed (BR-PAY-03).
-    /// </summary>
+    private static void ApplyDeductionDto(DeductionDto dto, Deduction entity)
+    {
+        entity.DeductionType = dto.DeductionType;
+        entity.Amount        = dto.Amount;
+        entity.Currency      = dto.Currency;
+        entity.Period        = dto.Period;
+        entity.StartDate     = dto.StartDate;
+        entity.Notes         = dto.Notes;
+    }
+
     private void ReplaceDependents(BenefitRecord entity, List<BenefitDependentDto> dependents)
     {
         if (entity.Dependents.Count > 0)
@@ -285,6 +345,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         {
             BenefitRecordId = entity.Id,
             Order           = index + 1,
+            DependentName   = d.DependentName,
             DependentType   = d.DependentType,
             Amount          = d.Amount,
             StartDate       = d.StartDate,
@@ -292,9 +353,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         })];
     }
 
-    // ── Business-rule validation ─────────────────────────────────────────────
 
-    /// <summary>BR-PAY-01: a user's salary validity periods may not overlap.</summary>
     private static void EnsureNoOverlap(IEnumerable<(DateTime StartDate, DateTime? EndDate)> existingRanges,
         DateTime newStart, DateTime? newEnd, string recordKind)
     {
@@ -312,10 +371,6 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         return startA < endBValue && startB < endAValue;
     }
 
-    /// <summary>
-    /// BR-PAY-03: at most 5 dependents, each with type + amount, and each dependent's validity
-    /// range must fall within the parent benefit record's range.
-    /// </summary>
     private static void EnsureDependentsValid(BenefitRecordDto dto)
     {
         if (dto.Dependents.Count == 0) return;
@@ -333,7 +388,6 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         }
     }
 
-    /// <summary>BR-PAY-06 + range sanity: OneTime needs a payment date; periodic needs a start date.</summary>
     private static void EnsureAdditionalPaymentDatesValid(AdditionalPaymentDto dto)
     {
         if (dto.Period == AdditionalPaymentPeriods.OneTime)
@@ -351,10 +405,9 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         }
     }
 
-    // ── Summary ("Toplamlar") ────────────────────────────────────────────────
 
     private static EmployeePaymentSummaryDto BuildSummary(
-        List<SalaryHistory> salaryHistory, List<BenefitRecord> benefits, List<AdditionalPayment> additionalPayments)
+        List<SalaryHistory> salaryHistory, List<BenefitRecord> benefits, List<AdditionalPayment> additionalPayments, List<Deduction> deductions)
     {
         var today = DateTime.UtcNow.Date;
         var horizon = today.AddDays(30);
@@ -368,6 +421,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
             p.Period == AdditionalPaymentPeriods.OneTime
                 ? p.PaymentDate.HasValue && p.PaymentDate.Value.Year == today.Year && p.PaymentDate.Value.Month == today.Month
                 : p.StartDate.HasValue && IsActive(p.StartDate.Value, p.EndDate)).ToList();
+        var activeDeductions = deductions.Where(d => d.StartDate <= today).ToList();
 
         var monthlyCost = new Dictionary<string, decimal>();
         void AddMonthlyCost(string currency, decimal? amount)
@@ -389,6 +443,10 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         foreach (var benefit in activeBenefits)
             benefitsTotal[benefit.Currency] = benefitsTotal.GetValueOrDefault(benefit.Currency) + benefit.Amount;
 
+        var deductionsTotal = new Dictionary<string, decimal>();
+        foreach (var deduction in activeDeductions)
+            deductionsTotal[deduction.Currency] = deductionsTotal.GetValueOrDefault(deduction.Currency) + deduction.Amount;
+
         var upcomingExpirations =
             salaryHistory.Count(s => ExpiresWithinHorizon(s.EndDate)) +
             benefits.Count(b => ExpiresWithinHorizon(b.EndDate)) +
@@ -398,22 +456,14 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         {
             EstimatedMonthlyCost     = [.. monthlyCost.Select(kv => new CurrencyAmountDto(kv.Key, kv.Value))],
             ActiveBenefitsTotal      = [.. benefitsTotal.Select(kv => new CurrencyAmountDto(kv.Key, kv.Value))],
-            ActiveItemCount          = activeSalary.Count + activeBenefits.Count + activeAdditional.Count,
+            ActiveDeductionsTotal    = [.. deductionsTotal.Select(kv => new CurrencyAmountDto(kv.Key, kv.Value))],
+            ActiveItemCount          = activeSalary.Count + activeBenefits.Count + activeAdditional.Count + activeDeductions.Count,
             UpcomingExpirationCount  = upcomingExpirations
         };
     }
 
-    /// <summary>
-    /// Normalises a recurring amount to its monthly equivalent for the cost-estimate card.
-    /// "Hourly" cannot be normalised without contracted working hours — returns null and the
-    /// amount is excluded from the estimate (BR-PAY-05 / open question: precise FX & normalisation
-    /// rules are still undecided per the analysis doc — this keeps the estimate conservative
-    /// rather than guessing).
-    /// </summary>
     private static decimal? NormalizeToMonthly(decimal amount, string period) => period switch
     {
-        // PaymentPeriods.Monthly/.Weekly share their literal values with AdditionalPaymentPeriods —
-        // a single case covers both DTOs' periodic values.
         PaymentPeriods.Monthly => amount,
         PaymentPeriods.Yearly  => amount / 12m,
         PaymentPeriods.Weekly  => amount * 52m / 12m,

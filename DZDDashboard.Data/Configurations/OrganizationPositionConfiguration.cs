@@ -15,7 +15,6 @@ public class OrganizationPositionConfiguration : IEntityTypeConfiguration<Organi
             .IsRequired()
             .HasMaxLength(ValidationConstants.MaxPositionNameLength);
 
-        // Index on ParentId: used by DeletePositionAsync (WHERE ParentId = @id) and child-loading queries
         builder.HasIndex(x => x.ParentId)
                .HasDatabaseName("IX_OrganizationPositions_ParentId");
 
