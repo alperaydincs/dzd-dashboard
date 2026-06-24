@@ -18,7 +18,7 @@ public class OnboardingProcessConfiguration : IEntityTypeConfiguration<Onboardin
         builder.HasOne(x => x.User)
             .WithOne(u => u.OnboardingProcess)
             .HasForeignKey<OnboardingProcess>(x => x.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(x => x.Manager)
             .WithMany()
@@ -51,7 +51,7 @@ public class OffboardingProcessConfiguration : IEntityTypeConfiguration<Offboard
         builder.HasOne(x => x.User)
             .WithOne(u => u.OffboardingProcess)
             .HasForeignKey<OffboardingProcess>(x => x.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(x => x.ModifiedBy)
             .WithMany()

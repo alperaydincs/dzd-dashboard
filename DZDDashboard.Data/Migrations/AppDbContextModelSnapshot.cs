@@ -3443,7 +3443,7 @@ namespace DZDDashboard.Data.Migrations
                     b.HasOne("DZDDashboard.Data.Entities.User", "User")
                         .WithOne("OffboardingProcess")
                         .HasForeignKey("DZDDashboard.Data.Entities.OffboardingProcess", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("ModifiedBy");
@@ -3466,7 +3466,7 @@ namespace DZDDashboard.Data.Migrations
                     b.HasOne("DZDDashboard.Data.Entities.User", "User")
                         .WithOne("OnboardingProcess")
                         .HasForeignKey("DZDDashboard.Data.Entities.OnboardingProcess", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Manager");

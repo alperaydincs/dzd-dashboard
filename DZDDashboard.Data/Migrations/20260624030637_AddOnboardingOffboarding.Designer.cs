@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DZDDashboard.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260624025512_AddOnboardingOffboarding")]
+    [Migration("20260624030637_AddOnboardingOffboarding")]
     partial class AddOnboardingOffboarding
     {
         /// <inheritdoc />
@@ -3446,7 +3446,7 @@ namespace DZDDashboard.Data.Migrations
                     b.HasOne("DZDDashboard.Data.Entities.User", "User")
                         .WithOne("OffboardingProcess")
                         .HasForeignKey("DZDDashboard.Data.Entities.OffboardingProcess", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("ModifiedBy");
@@ -3469,7 +3469,7 @@ namespace DZDDashboard.Data.Migrations
                     b.HasOne("DZDDashboard.Data.Entities.User", "User")
                         .WithOne("OnboardingProcess")
                         .HasForeignKey("DZDDashboard.Data.Entities.OnboardingProcess", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Manager");
