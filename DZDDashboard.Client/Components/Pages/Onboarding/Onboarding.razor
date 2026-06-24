@@ -9,11 +9,12 @@
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager Nav
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
     <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
-        <MudText Typo="Typo.h5">Onboarding Süreçleri</MudText>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.UserPlus" OnClick="StartOnboarding">Yeni Onboarding Başlat</MudButton>
+        <MudText Typo="Typo.h5">@Loc["onboarding.title"]</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.UserPlus" OnClick="StartOnboarding">@Loc["onboarding.start"]</MudButton>
     </MudStack>
 
     @if (_loading)
@@ -23,17 +24,17 @@
     else if (_items.Count == 0)
     {
         <MudPaper Elevation="0" Class="pa-8 d-flex justify-center">
-            <MudText Typo="Typo.body1" Style="color:var(--dzd-text-secondary);">Henüz onboarding süreci yok.</MudText>
+            <MudText Typo="Typo.body1" Style="color:var(--dzd-text-secondary);">@Loc["onboarding.empty"]</MudText>
         </MudPaper>
     }
     else
     {
         <MudTable Items="_items" Hover="true" Breakpoint="Breakpoint.Sm" OnRowClick="@(args => OpenDetail(args.Item))" T="OnboardingListItemDto">
             <HeaderContent>
-                <MudTh>Çalışan</MudTh>
-                <MudTh>Başlangıç</MudTh>
-                <MudTh>İlerleme</MudTh>
-                <MudTh>Durum</MudTh>
+                <MudTh>@Loc["lifecycle.employee"]</MudTh>
+                <MudTh>@Loc["lifecycle.startDate"]</MudTh>
+                <MudTh>@Loc["lifecycle.progress"]</MudTh>
+                <MudTh>@Loc["lifecycle.status"]</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd DataLabel="Çalışan">@context.EmployeeName</MudTd>

@@ -13,6 +13,7 @@ public static class WebApplicationExtensions
         }
 
         app.UseHttpsRedirection();
+        app.UseRequestLocalization();
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseAntiforgery();

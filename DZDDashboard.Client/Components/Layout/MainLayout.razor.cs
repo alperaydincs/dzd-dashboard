@@ -7,6 +7,7 @@ using DZDDashboard.Common.Utils;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Routing;
+using Microsoft.JSInterop;
 using MudBlazor;
 
 namespace DZDDashboard.Client.Components.Layout;
@@ -36,34 +37,34 @@ public partial class MainLayout : IDisposable
 
     private static readonly IReadOnlyList<NavLink> NavLinks =
     [
-        new(NavSection.Dashboard,       "/",                 DzdIcons.LayoutDashboard,   "Dashboard"),
-        new(NavSection.Employees,       "/employees",        DzdIcons.Users,             "Employees"),
-        new(NavSection.Onboarding,      "/onboarding",       DzdIcons.UserPlus,          "Onboarding",  Roles.AdminOrHr),
-        new(NavSection.Offboarding,     "/offboarding",      DzdIcons.UserMinus,         "Offboarding", Roles.AdminOrHr),
-        new(NavSection.Departments,     "/departments",      DzdIcons.Building2,         "Departments"),
-        new(NavSection.Positions,       "/positions",        DzdIcons.IdCard,            "Positions"),
-        new(NavSection.Attendance,      "/attendance",       DzdIcons.Clock3,            "Attendance"),
-        new(NavSection.LeaveManagement, "/leave-management", DzdIcons.CalendarCheck,     "Leave Management"),
-        new(NavSection.Training,        "/training",         DzdIcons.GraduationCap,     "Training"),
-        new(NavSection.Performance,     "/performance",      DzdIcons.TrendingUp,        "Performance"),
-        new(NavSection.Company,         "/company",          DzdIcons.BriefcaseBusiness, "Company"),
-        new(NavSection.Settings,        "/settings",         DzdIcons.Settings,          "Settings", Roles.AdminOrHr),
+        new(NavSection.Dashboard,       "/",                 DzdIcons.LayoutDashboard,   "nav.dashboard"),
+        new(NavSection.Employees,       "/employees",        DzdIcons.Users,             "nav.employees"),
+        new(NavSection.Onboarding,      "/onboarding",       DzdIcons.UserPlus,          "nav.onboarding",  Roles.AdminOrHr),
+        new(NavSection.Offboarding,     "/offboarding",      DzdIcons.UserMinus,         "nav.offboarding", Roles.AdminOrHr),
+        new(NavSection.Departments,     "/departments",      DzdIcons.Building2,         "nav.departments"),
+        new(NavSection.Positions,       "/positions",        DzdIcons.IdCard,            "nav.positions"),
+        new(NavSection.Attendance,      "/attendance",       DzdIcons.Clock3,            "nav.attendance"),
+        new(NavSection.LeaveManagement, "/leave-management", DzdIcons.CalendarCheck,     "nav.leaveManagement"),
+        new(NavSection.Training,        "/training",         DzdIcons.GraduationCap,     "nav.training"),
+        new(NavSection.Performance,     "/performance",      DzdIcons.TrendingUp,        "nav.performance"),
+        new(NavSection.Company,         "/company",          DzdIcons.BriefcaseBusiness, "nav.company"),
+        new(NavSection.Settings,        "/settings",         DzdIcons.Settings,          "nav.settings", Roles.AdminOrHr),
     ];
 
     private static readonly Dictionary<NavSection, string> SectionTitles = new()
     {
-        [NavSection.Employees]       = "Employees",
-        [NavSection.Onboarding]      = "Onboarding",
-        [NavSection.Offboarding]     = "Offboarding",
-        [NavSection.Departments]     = "Departments",
-        [NavSection.Positions]       = "Positions",
-        [NavSection.Attendance]      = "Attendance",
-        [NavSection.LeaveManagement] = "Leave Management",
-        [NavSection.Training]        = "Training",
-        [NavSection.Performance]     = "Performance",
-        [NavSection.Company]         = "Company",
-        [NavSection.Settings]        = "Settings",
-        [NavSection.MyProfile]       = "My Profile",
+        [NavSection.Employees]       = "nav.employees",
+        [NavSection.Onboarding]      = "nav.onboarding",
+        [NavSection.Offboarding]     = "nav.offboarding",
+        [NavSection.Departments]     = "nav.departments",
+        [NavSection.Positions]       = "nav.positions",
+        [NavSection.Attendance]      = "nav.attendance",
+        [NavSection.LeaveManagement] = "nav.leaveManagement",
+        [NavSection.Training]        = "nav.training",
+        [NavSection.Performance]     = "nav.performance",
+        [NavSection.Company]         = "nav.company",
+        [NavSection.Settings]        = "nav.settings",
+        [NavSection.MyProfile]       = "nav.myProfile",
     };
 
     private sealed record UserHeader(string Name, string? AvatarDataUrl, int? ColorIndex)
@@ -216,6 +217,8 @@ public partial class MainLayout : IDisposable
     private void MarkAllNotificationsAsRead()   => NotificationCenter.MarkAllAsRead();
 
     private void Logout() => Nav.NavigateTo("/MicrosoftIdentity/Account/SignOut", forceLoad: true, replace: true);
+
+    private async Task SetCulture(string culture) => await JS.InvokeVoidAsync("dzdSetCulture", culture);
 
     private void SetActiveSection(string location)
     {

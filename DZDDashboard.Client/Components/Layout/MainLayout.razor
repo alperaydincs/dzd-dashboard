@@ -1,6 +1,8 @@
 @inherits LayoutComponentBase
 @using DZDDashboard.Common.Constants
 @using DZDDashboard.Common.Utils
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
+@inject IJSRuntime JS
 
 <MudThemeProvider Theme="_myTheme" />
 <MudDialogProvider />
@@ -18,9 +20,13 @@
     <MudAppBar Elevation="1">
         <AuthorizeView>
             <Authorized>
-                <MudText Typo="Typo.h5">@PageTitle</MudText>
+                <MudText Typo="Typo.h5">@Loc[PageTitle]</MudText>
                 <MudSpacer />
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="appbar-user-actions" Style="gap:10px;">
+                    <MudButtonGroup Size="Size.Small" Variant="Variant.Outlined" Class="lang-switch">
+                        <MudButton OnClick='@(() => SetCulture("en"))'>EN</MudButton>
+                        <MudButton OnClick='@(() => SetCulture("tr"))'>TR</MudButton>
+                    </MudButtonGroup>
                     <div style="margin-right:8px;">
                         <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Class="notifications-menu">
                             <ActivatorContent>
@@ -31,14 +37,14 @@
                             <ChildContent>
                                 <MudStack Class="notifications-panel">
                                     <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="notifications-header">
-                                        <MudText Typo="Typo.subtitle2">Notifications</MudText>
-                                        <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="MarkAllNotificationsAsRead">Mark all read</MudButton>
+                                        <MudText Typo="Typo.subtitle2">@Loc["appbar.notifications"]</MudText>
+                                        <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="MarkAllNotificationsAsRead">@Loc["appbar.markAllRead"]</MudButton>
                                     </MudStack>
                                     <MudDivider />
 
                                     @if (_notifications.Count == 0)
                                     {
-                                        <MudText Typo="Typo.caption" Class="pa-3">No notifications yet.</MudText>
+                                        <MudText Typo="Typo.caption" Class="pa-3">@Loc["appbar.noNotifications"]</MudText>
                                     }
                                     else
                                     {
@@ -50,7 +56,7 @@
                                                         <MudText Typo="Typo.subtitle2">@notification.Title</MudText>
                                                         @if (!notification.IsRead)
                                                         {
-                                                            <MudChip T="string" Color="Color.Primary" Size="Size.Small" Variant="Variant.Text">New</MudChip>
+                                                            <MudChip T="string" Color="Color.Primary" Size="Size.Small" Variant="Variant.Text">@Loc["appbar.new"]</MudChip>
                                                         }
                                                     </MudStack>
                                                     <MudText Typo="Typo.caption">@notification.Message</MudText>
@@ -72,19 +78,19 @@
                                             Size="40" Class="clickable" />
                         </ActivatorContent>
                         <ChildContent>
-                            <MudMenuItem Href="/my-profile" Icon="@DzdIcons.User">My Profile</MudMenuItem>
+                            <MudMenuItem Href="/my-profile" Icon="@DzdIcons.User">@Loc["appbar.myProfile"]</MudMenuItem>
                             <AuthorizeView Roles="@Roles.AdminOrHr" Context="settingsAuthContext">
                                 <Authorized Context="settingsAuthContext">
-                                    <MudMenuItem Href="/settings" Icon="@DzdIcons.Settings">Settings</MudMenuItem>
+                                    <MudMenuItem Href="/settings" Icon="@DzdIcons.Settings">@Loc["appbar.settings"]</MudMenuItem>
                                 </Authorized>
                             </AuthorizeView>
-                            <MudMenuItem OnClick="Logout" Icon="@DzdIcons.LogOut">Logout</MudMenuItem>
+                            <MudMenuItem OnClick="Logout" Icon="@DzdIcons.LogOut">@Loc["appbar.logout"]</MudMenuItem>
                         </ChildContent>
                     </MudMenu>
                 </MudStack>
             </Authorized>
             <NotAuthorized>
-                <MudButton Href="/MicrosoftIdentity/Account/SignIn" Color="Color.Inherit">Login</MudButton>
+                <MudButton Href="/MicrosoftIdentity/Account/SignIn" Color="Color.Inherit">@Loc["appbar.login"]</MudButton>
             </NotAuthorized>
         </AuthorizeView>
     </MudAppBar>
@@ -105,7 +111,7 @@
                         <AuthorizeView Roles="@link.RequiredRoles" Context="navAuthContext">
                             <a href="@link.Href" class="nav-item @(IsActive(link.Section) ? "nav-item-active" : "")">
                                 <MudIcon Icon="@link.Icon" Class="nav-icon" />
-                                <span class="nav-label">@link.Label</span>
+                                <span class="nav-label">@Loc[link.Label]</span>
                             </a>
                         </AuthorizeView>
                     }

@@ -9,11 +9,12 @@
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager Nav
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
     <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
-        <MudText Typo="Typo.h5">Offboarding Süreçleri</MudText>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.UserMinus" OnClick="StartOffboarding">Yeni Offboarding Başlat</MudButton>
+        <MudText Typo="Typo.h5">@Loc["offboarding.title"]</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.UserMinus" OnClick="StartOffboarding">@Loc["offboarding.start"]</MudButton>
     </MudStack>
 
     @if (_loading)
@@ -23,7 +24,7 @@
     else if (_items.Count == 0)
     {
         <MudPaper Elevation="0" Class="pa-8 d-flex justify-center">
-            <MudText Typo="Typo.body1" Style="color:var(--dzd-text-secondary);">Henüz offboarding süreci yok.</MudText>
+            <MudText Typo="Typo.body1" Style="color:var(--dzd-text-secondary);">@Loc["offboarding.empty"]</MudText>
         </MudPaper>
     }
     else

@@ -20,6 +20,13 @@ public static class ServiceCollectionExtensions
         services.AddRazorComponents()
             .AddInteractiveServerComponents();
 
+        services.Configure<Microsoft.AspNetCore.Builder.RequestLocalizationOptions>(options =>
+        {
+            options.SetDefaultCulture(DZDDashboard.Client.Localization.AppLocalizer.DefaultCulture);
+            options.AddSupportedCultures(DZDDashboard.Client.Localization.AppLocalizer.SupportedCultures);
+            options.AddSupportedUICultures(DZDDashboard.Client.Localization.AppLocalizer.SupportedCultures);
+        });
+
         services.AddMudServices();
         services.RegisterIntlTelInput();
         services.AddAntiforgery();
@@ -85,6 +92,7 @@ public static class ServiceCollectionExtensions
     private static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         services.AddScoped<AuthTokenHandler>();
+        services.AddScoped<DZDDashboard.Client.Localization.AppLocalizer>();
         services.AddScoped<UserService>();
         services.AddScoped<IUserClientService>(sp => sp.GetRequiredService<UserService>());
         services.AddScoped<OrganizationService>();
