@@ -1,0 +1,119 @@
+@page "/offboarding/{Id:int}"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = Roles.AdminOrHrPolicy)]
+@using DZDDashboard.Client.Components.Pages.Lifecycle
+@using DZDDashboard.Client.Services
+@using DZDDashboard.Common.Constants
+@using DZDDashboard.Common.DTOs
+@using DZDDashboard.Common.Utils
+@using Microsoft.AspNetCore.Components.Forms
+@inject IOffboardingClientService OffboardingService
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudButton Variant="Variant.Text" StartIcon="@DzdIcons.ArrowLeft" OnClick="@(() => Nav.NavigateTo("/offboarding"))" Class="mb-2">Offboarding listesine dön</MudButton>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+    else if (_process is null)
+    {
+        <MudAlert Severity="Severity.Error">Süreç bulunamadı.</MudAlert>
+    }
+    else
+    {
+        <MudPaper Elevation="1" Class="pa-4 mb-4">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.h5">@_process.EmployeeName</MudText>
+                    <MudText Typo="Typo.caption" Style="color:var(--dzd-text-secondary);">
+                        @TypeLabel(_process.Type) · Çıkış: @AppFormatter.FormatDate(_process.ExitDate)
+                    </MudText>
+                </MudStack>
+                <MudChip T="string" Color="@StatusColor(_process.Status)" Variant="Variant.Text">@StatusLabel(_process.Status)</MudChip>
+            </MudStack>
+        </MudPaper>
+
+        <ChecklistPanel Items="_process.Items"
+                        OnComplete="HandleComplete"
+                        OnSkip="HandleSkip"
+                        OnReopen="HandleReopen"
+                        OnSaveNote="HandleSaveNote"
+                        OnUploadEvidence="HandleUploadEvidence"
+                        EvidenceUrlFactory="@(itemId => OffboardingService.EvidenceUrl(Id, itemId))" />
+    }
+</MudContainer>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private OffboardingProcessDto? _process;
+    private bool _loading = true;
+
+    protected override async Task OnParametersSetAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _process = await OffboardingService.GetAsync(Id);
+        _loading = false;
+    }
+
+    private async Task HandleComplete((int ItemId, CompleteChecklistItemDto Dto) e)
+    {
+        try { await Apply(await OffboardingService.CompleteItemAsync(Id, e.ItemId, e.Dto), "Adım tamamlandı."); }
+        catch { Snackbar.Add("Adım tamamlanamadı. Önce ön koşul adımlarını tamamlayın.", Severity.Error); await LoadAsync(); }
+    }
+
+    private async Task HandleSkip(int itemId)
+        => await Apply(await OffboardingService.SkipItemAsync(Id, itemId), "Adım atlandı.");
+
+    private async Task HandleReopen(int itemId)
+        => await Apply(await OffboardingService.ReopenItemAsync(Id, itemId), "Adım yeniden açıldı.");
+
+    private async Task HandleSaveNote((int ItemId, string? Note) e)
+    {
+        var response = await OffboardingService.UpdateNoteAsync(Id, e.ItemId, new UpdateChecklistNoteDto { Note = e.Note });
+        if (!response.IsSuccessStatusCode) { Snackbar.Add("Not kaydedilemedi.", Severity.Error); return; }
+        await LoadAsync();
+    }
+
+    private async Task HandleUploadEvidence((int ItemId, IBrowserFile File) e)
+    {
+        await using var stream = e.File.OpenReadStream(DocumentConstants.MaxFileSizeBytes);
+        var response = await OffboardingService.UploadEvidenceAsync(Id, e.ItemId, e.File.Name, e.File.ContentType, stream);
+        if (!response.IsSuccessStatusCode)
+        {
+            var detail = await DZDDashboard.Client.Services.ApiServiceBase.TryReadProblemDetailAsync(response);
+            Snackbar.Add(detail ?? "Kanıt yüklenemedi.", Severity.Error);
+            return;
+        }
+        Snackbar.Add("Kanıt yüklendi.", Severity.Success);
+        await LoadAsync();
+    }
+
+    private async Task Apply(OffboardingProcessDto? result, string successMessage)
+    {
+        if (result is null) { Snackbar.Add("İşlem başarısız.", Severity.Error); await LoadAsync(); return; }
+        _process = result;
+        Snackbar.Add(successMessage, Severity.Success);
+        StateHasChanged();
+    }
+
+    private static string TypeLabel(string type) => type == OffboardingTypes.Termination ? "İşten Çıkarma" : "İstifa";
+
+    private static Color StatusColor(string status) => status switch
+    {
+        ProcessStatuses.Completed => Color.Success,
+        ProcessStatuses.Cancelled => Color.Error,
+        _                         => Color.Info
+    };
+
+    private static string StatusLabel(string status) => status switch
+    {
+        ProcessStatuses.Completed => "Tamamlandı",
+        ProcessStatuses.Cancelled => "İptal",
+        _                         => "Devam ediyor"
+    };
+}

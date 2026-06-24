@@ -69,6 +69,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.IsActive).HasDefaultValue(true);
 
+        builder.Property(u => u.LifecycleStatus)
+               .IsRequired()
+               .HasMaxLength(ValidationConstants.MaxShortNameLength)
+               .HasDefaultValue(DZDDashboard.Common.Constants.UserLifecycleStatuses.Active);
+
         builder.HasOne(u => u.Team)
                .WithMany(t => t.Users)
                .HasForeignKey(u => u.TeamId)

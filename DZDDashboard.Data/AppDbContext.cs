@@ -58,6 +58,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, IAuditProvider
     public DbSet<AdditionalPayment> AdditionalPayments { get; set; }
     public DbSet<Deduction> Deductions { get; set; }
     public DbSet<OrganizationPosition> OrganizationPositions { get; set; }
+    public DbSet<OnboardingProcess> OnboardingProcesses { get; set; }
+    public DbSet<OffboardingProcess> OffboardingProcesses { get; set; }
+    public DbSet<ChecklistItem> ChecklistItems { get; set; }
+    public DbSet<ChecklistItemDependent> ChecklistItemDependents { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

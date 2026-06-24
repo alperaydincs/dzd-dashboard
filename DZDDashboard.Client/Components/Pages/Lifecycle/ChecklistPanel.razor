@@ -1,0 +1,147 @@
+@using DZDDashboard.Client.Components.Pages.Lifecycle.Dialogs
+@using DZDDashboard.Common.Constants
+@using DZDDashboard.Common.DTOs
+@using DZDDashboard.Common.Utils
+@using Microsoft.AspNetCore.Components.Forms
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudStack Spacing="3">
+    @foreach (var item in Items)
+    {
+        <MudPaper Elevation="1" Class="pa-4">
+            <MudStack Row="true" AlignItems="AlignItems.Start" Justify="Justify.SpaceBetween" Spacing="2">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                    <MudIcon Icon="@StatusIcon(item.Status)" Color="@StatusColor(item.Status)" />
+                    <MudStack Spacing="0">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                            <MudText Typo="Typo.subtitle1">@item.Sequence. @item.Title</MudText>
+                            @if (item.IsGate)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Text">Gate</MudChip>
+                            }
+                            @if (!item.IsRequired)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Text">Opsiyonel</MudChip>
+                            }
+                            @if (item.BenefitKind != ChecklistBenefitKinds.None)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">Payment'a yansır</MudChip>
+                            }
+                        </MudStack>
+                        @if (item.Status == ChecklistItemStatuses.Completed && item.CompletedAt.HasValue)
+                        {
+                            <MudText Typo="Typo.caption" Style="color:var(--dzd-text-secondary);">
+                                Tamamlandı @AppFormatter.FormatDate(item.CompletedAt.Value)
+                                @(string.IsNullOrWhiteSpace(item.CompletedByName) ? "" : $"· {item.CompletedByName}")
+                            </MudText>
+                        }
+                    </MudStack>
+                </MudStack>
+
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                    @if (item.Status == ChecklistItemStatuses.Pending)
+                    {
+                        <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary"
+                                   StartIcon="@DzdIcons.Check" Disabled="@(!item.IsActionable)"
+                                   OnClick="@(() => CompleteAsync(item))">Tamamla</MudButton>
+                        @if (!item.IsRequired)
+                        {
+                            <MudButton Size="Size.Small" Variant="Variant.Text" OnClick="@(() => OnSkip.InvokeAsync(item.Id))">Atla</MudButton>
+                        }
+                    }
+                    else
+                    {
+                        <MudButton Size="Size.Small" Variant="Variant.Outlined" StartIcon="@DzdIcons.RotateCcw"
+                                   OnClick="@(() => OnReopen.InvokeAsync(item.Id))">Yeniden Aç</MudButton>
+                    }
+                </MudStack>
+            </MudStack>
+
+            @if (item.Status == ChecklistItemStatuses.Pending && !item.IsActionable && !string.IsNullOrWhiteSpace(item.BlockedReason))
+            {
+                <MudAlert Severity="Severity.Warning" Dense="true" Variant="Variant.Outlined" Class="mt-2">@item.BlockedReason</MudAlert>
+            }
+
+            @if (item.BenefitKind != ChecklistBenefitKinds.None && item.Status == ChecklistItemStatuses.Completed)
+            {
+                <MudText Typo="Typo.caption" Class="mt-2" Style="color:var(--dzd-text-secondary);">
+                    @item.ProviderName
+                    @if (item.EmployerAmount.HasValue) { <span>· İşveren: @item.EmployerAmount.Value.ToString("N2") @item.Currency</span> }
+                    @if (item.EmployeeAmount.HasValue) { <span>· Çalışan: @item.EmployeeAmount.Value.ToString("N2") @item.Currency</span> }
+                    @if (item.Dependents.Count > 0) { <span>· @item.Dependents.Count bağımlı</span> }
+                </MudText>
+            }
+
+            <MudGrid Class="mt-1" Spacing="2">
+                <MudItem xs="12" sm="8">
+                    <MudTextField T="string" Label="Not" Value="@item.Note"
+                                  ValueChanged="@(v => OnSaveNote.InvokeAsync((item.Id, v)))"
+                                  Variant="Variant.Outlined" Margin="Margin.Dense" Lines="1" Immediate="false" />
+                </MudItem>
+                <MudItem xs="12" sm="4" Class="d-flex align-center gap-2">
+                    @if (item.HasEvidence)
+                    {
+                        <MudLink Href="@EvidenceUrlFactory(item.Id)" Target="_blank" Class="d-flex align-center gap-1">
+                            <MudIcon Icon="@DzdIcons.Paperclip" Size="Size.Small" /> @item.EvidenceFileName
+                        </MudLink>
+                    }
+                    <MudFileUpload T="IBrowserFile" FilesChanged="@(f => OnFileSelected(item.Id, f))" MaximumFileCount="1">
+                        <ActivatorContent>
+                            <MudButton Size="Size.Small" Variant="Variant.Outlined" StartIcon="@DzdIcons.Upload">Kanıt</MudButton>
+                        </ActivatorContent>
+                    </MudFileUpload>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    }
+</MudStack>
+
+@code {
+    [Parameter] public IReadOnlyList<ChecklistItemDto> Items { get; set; } = [];
+    [Parameter] public EventCallback<(int ItemId, CompleteChecklistItemDto Dto)> OnComplete { get; set; }
+    [Parameter] public EventCallback<int> OnSkip { get; set; }
+    [Parameter] public EventCallback<int> OnReopen { get; set; }
+    [Parameter] public EventCallback<(int ItemId, string? Note)> OnSaveNote { get; set; }
+    [Parameter] public EventCallback<(int ItemId, IBrowserFile File)> OnUploadEvidence { get; set; }
+    [Parameter] public Func<int, string> EvidenceUrlFactory { get; set; } = _ => string.Empty;
+
+    private async Task CompleteAsync(ChecklistItemDto item)
+    {
+        var parameters = new DialogParameters<CompleteStepDialog> { { x => x.Item, item } };
+        var dialog = await DialogService.ShowAsync<CompleteStepDialog>("Adımı Tamamla", parameters);
+        var result = await dialog.Result;
+        if (result is { Canceled: false, Data: CompleteChecklistItemDto dto })
+            await OnComplete.InvokeAsync((item.Id, dto));
+    }
+
+    private async Task OnFileSelected(int itemId, IBrowserFile? file)
+    {
+        if (file is null) return;
+        if (!DocumentConstants.AllowedMimeTypes.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
+        {
+            Snackbar.Add($"Desteklenmeyen dosya tipi: {file.ContentType}", Severity.Warning);
+            return;
+        }
+        if (file.Size > DocumentConstants.MaxFileSizeBytes)
+        {
+            Snackbar.Add($"Dosya {DocumentConstants.MaxFileSizeBytes / 1024 / 1024} MB sınırını aşıyor.", Severity.Warning);
+            return;
+        }
+        await OnUploadEvidence.InvokeAsync((itemId, file));
+    }
+
+    private static string StatusIcon(string status) => status switch
+    {
+        ChecklistItemStatuses.Completed => DzdIcons.CircleCheck,
+        ChecklistItemStatuses.Skipped   => DzdIcons.CircleSlash,
+        _                               => DzdIcons.Circle
+    };
+
+    private static Color StatusColor(string status) => status switch
+    {
+        ChecklistItemStatuses.Completed => Color.Success,
+        ChecklistItemStatuses.Skipped   => Color.Default,
+        _                               => Color.Warning
+    };
+}

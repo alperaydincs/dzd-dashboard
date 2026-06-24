@@ -24,7 +24,7 @@ public partial class MainLayout : IDisposable
 
     private enum NavSection
     {
-        None, Dashboard, Employees, Departments, Positions,
+        None, Dashboard, Employees, Onboarding, Offboarding, Departments, Positions,
         Attendance, LeaveManagement, Training, Performance, Company, Settings, MyProfile
     }
 
@@ -34,6 +34,8 @@ public partial class MainLayout : IDisposable
     [
         new(NavSection.Dashboard,       "/",                 DzdIcons.LayoutDashboard,   "Dashboard"),
         new(NavSection.Employees,       "/employees",        DzdIcons.Users,             "Employees"),
+        new(NavSection.Onboarding,      "/onboarding",       DzdIcons.UserPlus,          "Onboarding",  Roles.AdminOrHr),
+        new(NavSection.Offboarding,     "/offboarding",      DzdIcons.UserMinus,         "Offboarding", Roles.AdminOrHr),
         new(NavSection.Departments,     "/departments",      DzdIcons.Building2,         "Departments"),
         new(NavSection.Positions,       "/positions",        DzdIcons.IdCard,            "Positions"),
         new(NavSection.Attendance,      "/attendance",       DzdIcons.Clock3,            "Attendance"),
@@ -47,6 +49,8 @@ public partial class MainLayout : IDisposable
     private static readonly Dictionary<NavSection, string> SectionTitles = new()
     {
         [NavSection.Employees]       = "Employees",
+        [NavSection.Onboarding]      = "Onboarding",
+        [NavSection.Offboarding]     = "Offboarding",
         [NavSection.Departments]     = "Departments",
         [NavSection.Positions]       = "Positions",
         [NavSection.Attendance]      = "Attendance",
@@ -192,6 +196,8 @@ public partial class MainLayout : IDisposable
         _activeSection = true switch
         {
             _ when string.IsNullOrEmpty(path)                                    => NavSection.Dashboard,
+            _ when Seg(path, "onboarding")                                       => NavSection.Onboarding,
+            _ when Seg(path, "offboarding")                                      => NavSection.Offboarding,
             _ when Seg(path, "employees") || Seg(path, "employee")               => NavSection.Employees,
             _ when Seg(path, "departments")                                      => NavSection.Departments,
             _ when Seg(path, "positions")                                        => NavSection.Positions,

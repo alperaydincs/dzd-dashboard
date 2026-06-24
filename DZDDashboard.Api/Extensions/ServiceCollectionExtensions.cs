@@ -150,6 +150,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IFileStorageService, DbFileStorageService>();
         services.AddScoped<IUserDocumentService, UserDocumentService>();
+        services.AddScoped<ChecklistEngine>();
+        services.AddScoped<IOnboardingService, OnboardingService>();
+        services.AddScoped<IOffboardingService, OffboardingService>();
         return services;
     }
 }

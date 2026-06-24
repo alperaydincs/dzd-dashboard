@@ -72,4 +72,28 @@ public static class ApiRoutes
         public static string CareerPath(int id) => $"{CareerPaths}/{id}";
         public static string CareerMapRule(int id)    => $"{CareerMapRules}/{id}";
     }
+
+    public static class Onboarding
+    {
+        public const string Base = "api/onboarding";
+
+        public static string Process(int id)                 => $"{Base}/{id}";
+        public static string ItemComplete(int id, int itemId) => $"{Base}/{id}/items/{itemId}/complete";
+        public static string ItemSkip(int id, int itemId)     => $"{Base}/{id}/items/{itemId}/skip";
+        public static string ItemReopen(int id, int itemId)   => $"{Base}/{id}/items/{itemId}/reopen";
+        public static string ItemNote(int id, int itemId)     => $"{Base}/{id}/items/{itemId}/note";
+        public static string ItemEvidence(int id, int itemId) => $"{Base}/{id}/items/{itemId}/evidence";
+    }
+
+    public static class Offboarding
+    {
+        public const string Base = "api/offboarding";
+
+        public static string Process(int id)                 => $"{Base}/{id}";
+        public static string ItemComplete(int id, int itemId) => $"{Base}/{id}/items/{itemId}/complete";
+        public static string ItemSkip(int id, int itemId)     => $"{Base}/{id}/items/{itemId}/skip";
+        public static string ItemReopen(int id, int itemId)   => $"{Base}/{id}/items/{itemId}/reopen";
+        public static string ItemNote(int id, int itemId)     => $"{Base}/{id}/items/{itemId}/note";
+        public static string ItemEvidence(int id, int itemId) => $"{Base}/{id}/items/{itemId}/evidence";
+    }
 }
