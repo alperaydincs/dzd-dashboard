@@ -12,7 +12,6 @@ public class DeductionConfiguration : IEntityTypeConfiguration<Deduction>
         builder.ToTable("UserDeductions");
         builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.DeductionType).IsRequired().HasMaxLength(ValidationConstants.MaxShortNameLength);
         builder.Property(x => x.Currency).IsRequired().HasMaxLength(ValidationConstants.MaxCurrencyCodeLength);
         builder.Property(x => x.Period).IsRequired().HasMaxLength(ValidationConstants.MaxShortNameLength);
         builder.Property(x => x.Notes).HasMaxLength(ValidationConstants.MaxNotesLength);
@@ -30,5 +29,10 @@ public class DeductionConfiguration : IEntityTypeConfiguration<Deduction>
             .WithMany()
             .HasForeignKey(x => x.ModifiedById)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(x => x.DeductionTypeRef)
+            .WithMany()
+            .HasForeignKey(x => x.DeductionTypeId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

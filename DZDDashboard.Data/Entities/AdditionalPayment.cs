@@ -4,7 +4,8 @@ public class AdditionalPayment : AuditableEntity
 {
     public int Id { get; set; }
 
-    public string PaymentType { get; set; } = string.Empty;
+    public int? PaymentTypeId { get; set; }
+    public AdditionalPaymentTypeEntity? PaymentTypeRef { get; set; }
 
     public decimal Amount   { get; set; }
     public string  Currency { get; set; } = string.Empty;

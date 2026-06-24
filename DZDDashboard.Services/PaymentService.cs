@@ -36,12 +36,14 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
 
         var additionalPayments = await context.AdditionalPayments.AsNoTracking()
             .Include(p => p.ModifiedBy)
+            .Include(p => p.PaymentTypeRef)
             .Where(p => p.UserId == userId)
             .OrderByDescending(p => p.StartDate ?? p.PaymentDate ?? DateTime.MinValue)
             .ToListAsync(cancellationToken);
 
         var deductions = await context.Deductions.AsNoTracking()
             .Include(d => d.ModifiedBy)
+            .Include(d => d.DeductionTypeRef)
             .Where(d => d.UserId == userId)
             .OrderByDescending(d => d.StartDate)
             .ToListAsync(cancellationToken);
@@ -207,6 +209,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
 
         var entity = new AdditionalPayment { UserId = userId };
         ApplyAdditionalPaymentDto(dto, entity);
+        entity.PaymentTypeId = await ResolveTypeIdAsync(context.AdditionalPaymentTypes, dto.PaymentType, cancellationToken);
 
         context.AdditionalPayments.Add(entity);
         await context.SaveChangesAsync(cancellationToken);
@@ -220,6 +223,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         EnsureAdditionalPaymentDatesValid(dto);
 
         ApplyAdditionalPaymentDto(dto, entity);
+        entity.PaymentTypeId = await ResolveTypeIdAsync(context.AdditionalPaymentTypes, dto.PaymentType, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 
@@ -237,6 +241,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
 
         var entity = new Deduction { UserId = userId };
         ApplyDeductionDto(dto, entity);
+        entity.DeductionTypeId = await ResolveTypeIdAsync(context.DeductionTypes, dto.DeductionType, cancellationToken);
 
         context.Deductions.Add(entity);
         await context.SaveChangesAsync(cancellationToken);
@@ -249,6 +254,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         var entity = await RequireDeductionAsync(userId, deductionId, cancellationToken);
 
         ApplyDeductionDto(dto, entity);
+        entity.DeductionTypeId = await ResolveTypeIdAsync(context.DeductionTypes, dto.DeductionType, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 
@@ -316,7 +322,6 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
 
     private static void ApplyAdditionalPaymentDto(AdditionalPaymentDto dto, AdditionalPayment entity)
     {
-        entity.PaymentType  = dto.PaymentType;
         entity.Amount       = dto.Amount;
         entity.Currency     = dto.Currency;
         entity.Period       = dto.Period;
@@ -328,7 +333,6 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
 
     private static void ApplyDeductionDto(DeductionDto dto, Deduction entity)
     {
-        entity.DeductionType = dto.DeductionType;
         entity.Amount        = dto.Amount;
         entity.Currency      = dto.Currency;
         entity.Period        = dto.Period;
@@ -461,6 +465,12 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
             UpcomingExpirationCount  = upcomingExpirations
         };
     }
+
+    private static async Task<int?> ResolveTypeIdAsync<T>(Microsoft.EntityFrameworkCore.DbSet<T> set, string? name, CancellationToken ct)
+        where T : DZDDashboard.Data.Entities.NamedTypeEntity
+        => string.IsNullOrWhiteSpace(name)
+            ? null
+            : await set.Where(t => t.Name == name).Select(t => (int?)t.Id).FirstOrDefaultAsync(ct);
 
     private static decimal? NormalizeToMonthly(decimal amount, string period) => period switch
     {
