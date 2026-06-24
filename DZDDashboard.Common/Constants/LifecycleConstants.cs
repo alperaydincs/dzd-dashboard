@@ -30,6 +30,15 @@ public static class ChecklistItemStatuses
     public static readonly IReadOnlyList<string> All = [Pending, Completed, Skipped];
 }
 
+public static class DocumentReviewStatuses
+{
+    public const string Pending        = "Pending";
+    public const string Approved       = "Approved";
+    public const string NeedsCorrection = "NeedsCorrection";
+
+    public static readonly IReadOnlyList<string> All = [Pending, Approved, NeedsCorrection];
+}
+
 public static class OffboardingTypes
 {
     public const string Resignation = "Resignation";

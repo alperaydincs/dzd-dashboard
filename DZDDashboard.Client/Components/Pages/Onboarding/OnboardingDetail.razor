@@ -1,14 +1,18 @@
 @page "/onboarding/{Id:int}"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = Roles.AdminOrHrPolicy)]
 @using DZDDashboard.Client.Components.Pages.Lifecycle
+@using DZDDashboard.Client.Components.Pages.Onboarding.Dialogs
 @using DZDDashboard.Client.Services
 @using DZDDashboard.Common.Constants
 @using DZDDashboard.Common.DTOs
 @using DZDDashboard.Common.Utils
 @using Microsoft.AspNetCore.Components.Forms
 @inject IOnboardingClientService OnboardingService
+@inject IUserClientService UserService
+@inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
     <MudButton Variant="Variant.Text" StartIcon="@DzdIcons.ArrowLeft" OnClick="@(() => Nav.NavigateTo("/onboarding"))" Class="mb-2">Onboarding listesine dön</MudButton>
@@ -24,22 +28,76 @@
     else
     {
         <MudPaper Elevation="1" Class="pa-4 mb-4">
-            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-                <MudStack Spacing="0">
-                    <MudText Typo="Typo.h5">@_process.EmployeeName</MudText>
-                    <MudText Typo="Typo.caption" Style="color:var(--dzd-text-secondary);">
-                        Başlangıç: @AppFormatter.FormatDate(_process.StartDate)
-                        @(string.IsNullOrWhiteSpace(_process.ManagerName) ? "" : $" · Yönetici: {_process.ManagerName}")
-                    </MudText>
-                </MudStack>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
+                <MudText Typo="Typo.h5">@_process.EmployeeName</MudText>
                 <MudChip T="string" Color="@StatusColor(_process.Status)" Variant="Variant.Text">@StatusLabel(_process.Status)</MudChip>
             </MudStack>
-            @if (_process.Status == ProcessStatuses.Completed && !string.IsNullOrWhiteSpace(_process.EmployeeSlug))
-            {
-                <MudButton Variant="Variant.Outlined" Class="mt-3" StartIcon="@DzdIcons.User"
-                           OnClick="@(() => Nav.NavigateTo($"/employee/{_process.EmployeeSlug}"))">Çalışan profilini aç</MudButton>
-            }
+
+            <MudGrid Spacing="3" AlignItems="Center">
+                <MudItem xs="12" sm="5">
+                    <MudDatePicker Label="İşe Başlama Tarihi (Day-0)" Date="@_startDate" DateChanged="@(d => _startDate = d)"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="5">
+                    <MudAutocomplete T="UserSearchResultDto" Label="Yönetici" @bind-Value="_manager"
+                                     SearchFunc="SearchUsers" ToStringFunc="@(u => u is null ? string.Empty : AppFormatter.BuildFullName(u.FirstName, u.LastName))"
+                                     Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" />
+                </MudItem>
+                <MudItem xs="12" sm="2">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true" OnClick="SaveHeader" Disabled="@(_process.Status != ProcessStatuses.InProgress)">Kaydet</MudButton>
+                </MudItem>
+            </MudGrid>
         </MudPaper>
+
+        <MudExpansionPanels Elevation="1" Class="mb-4">
+            <MudExpansionPanel Expanded="true">
+                <TitleContent>
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <MudIcon Icon="@DzdIcons.FileText" Size="Size.Small" />
+                        <MudText Typo="Typo.subtitle1">İşçi Belgeleri (@_documents.Count)</MudText>
+                        @if (_documents.Any(d => d.ReviewStatus == DocumentReviewStatuses.Pending))
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">İnceleme bekliyor</MudChip>
+                        }
+                    </MudStack>
+                </TitleContent>
+                <ChildContent>
+                    @if (_documents.Count == 0)
+                    {
+                        <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">İşçi henüz belge yüklemedi.</MudText>
+                    }
+                    else
+                    {
+                        <MudStack Spacing="2">
+                            @foreach (var doc in _documents)
+                            {
+                                <MudPaper Elevation="0" Class="pa-3" Style="border:1px solid var(--mud-palette-lines-default);">
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                            <MudIcon Icon="@DzdIcons.Paperclip" Size="Size.Small" />
+                                            <MudText Typo="Typo.body2">@doc.FileName</MudText>
+                                            <MudChip T="string" Size="Size.Small" Color="@ReviewColor(doc.ReviewStatus)" Variant="Variant.Text">@ReviewLabel(doc.ReviewStatus)</MudChip>
+                                        </MudStack>
+                                        <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                                            <MudButton Size="Size.Small" Variant="Variant.Text" Color="Color.Success"
+                                                       OnClick="@(() => ApproveDoc(doc))" Disabled="@(doc.ReviewStatus == DocumentReviewStatuses.Approved)">Onayla</MudButton>
+                                            <MudButton Size="Size.Small" Variant="Variant.Text" Color="Color.Warning"
+                                                       OnClick="@(() => RequestCorrection(doc))">Düzeltme İste</MudButton>
+                                            <MudIconButton Icon="@DzdIcons.Download" Size="Size.Small" OnClick="@(() => DownloadDoc(doc))" />
+                                            <MudIconButton Icon="@DzdIcons.Trash2" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteDoc(doc))" />
+                                        </MudStack>
+                                    </MudStack>
+                                    @if (doc.ReviewStatus == DocumentReviewStatuses.NeedsCorrection && !string.IsNullOrWhiteSpace(doc.ReviewNote))
+                                    {
+                                        <MudText Typo="Typo.caption" Class="mt-1" Style="color:var(--mud-palette-warning);">Gerekçe: @doc.ReviewNote</MudText>
+                                    }
+                                </MudPaper>
+                            }
+                        </MudStack>
+                    }
+                </ChildContent>
+            </MudExpansionPanel>
+        </MudExpansionPanels>
 
         <ChecklistPanel Items="_process.Items"
                         OnComplete="HandleComplete"
@@ -47,7 +105,15 @@
                         OnReopen="HandleReopen"
                         OnSaveNote="HandleSaveNote"
                         OnUploadEvidence="HandleUploadEvidence"
-                        EvidenceUrlFactory="@(itemId => OnboardingService.EvidenceUrl(Id, itemId))" />
+                        OnDeleteEvidence="HandleDeleteEvidence"
+                        OnDownloadEvidence="HandleDownloadEvidence" />
+
+        <MudStack Row="true" Justify="Justify.SpaceBetween" Class="mt-6">
+            <MudButton Variant="Variant.Outlined" Color="Color.Error" StartIcon="@DzdIcons.Trash2"
+                       OnClick="CancelOnboarding" Disabled="@(_process.Status == ProcessStatuses.Completed)">Onboarding'i İptal Et</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Success" StartIcon="@DzdIcons.CircleCheck"
+                       OnClick="CompleteOnboarding" Disabled="@(!_process.CanComplete)">İşe Alımı Tamamla</MudButton>
+        </MudStack>
     }
 </MudContainer>
 
@@ -55,7 +121,11 @@
     [Parameter] public int Id { get; set; }
 
     private OnboardingProcessDto? _process;
+    private List<UserDocumentDto> _documents = [];
     private bool _loading = true;
+
+    private DateTime? _startDate;
+    private UserSearchResultDto? _manager;
 
     protected override async Task OnParametersSetAsync() => await LoadAsync();
 
@@ -63,7 +133,71 @@
     {
         _loading = true;
         _process = await OnboardingService.GetAsync(Id);
+        if (_process is not null)
+        {
+            _startDate = _process.StartDate;
+            _manager = _process.ManagerId is { } mid
+                ? new UserSearchResultDto { Id = mid, FirstName = _process.ManagerName }
+                : null;
+            _documents = await UserService.GetUserDocumentsAsync(_process.UserId);
+        }
         _loading = false;
+    }
+
+    private async Task ReloadDocsAsync()
+    {
+        if (_process is not null)
+            _documents = await UserService.GetUserDocumentsAsync(_process.UserId);
+    }
+
+    private async Task<IEnumerable<UserSearchResultDto>> SearchUsers(string value, CancellationToken token)
+        => await UserService.SearchUsersAsync(value) ?? [];
+
+    private async Task SaveHeader()
+    {
+        if (_process is null || _startDate is null) return;
+        var result = await OnboardingService.UpdateProcessAsync(Id, new UpdateOnboardingProcessDto { StartDate = _startDate.Value, ManagerId = _manager?.Id });
+        if (result is null) { Snackbar.Add("Kaydedilemedi.", Severity.Error); return; }
+        _process = result;
+        Snackbar.Add("Bilgiler güncellendi.", Severity.Success);
+    }
+
+    private async Task ApproveDoc(UserDocumentDto doc)
+    {
+        if (_process is null) return;
+        var resp = await UserService.ReviewUserDocumentAsync(_process.UserId, doc.Id, new ReviewDocumentDto { Status = DocumentReviewStatuses.Approved });
+        if (!resp.IsSuccessStatusCode) { Snackbar.Add("Onaylanamadı.", Severity.Error); return; }
+        await ReloadDocsAsync();
+    }
+
+    private async Task RequestCorrection(UserDocumentDto doc)
+    {
+        if (_process is null) return;
+        var parameters = new DialogParameters<RequestCorrectionDialog> { { x => x.FileName, doc.FileName } };
+        var dialog = await DialogService.ShowAsync<RequestCorrectionDialog>("Düzeltme İste", parameters);
+        var result = await dialog.Result;
+        if (result is { Canceled: false, Data: string note })
+        {
+            var resp = await UserService.ReviewUserDocumentAsync(_process.UserId, doc.Id, new ReviewDocumentDto { Status = DocumentReviewStatuses.NeedsCorrection, Note = note });
+            if (!resp.IsSuccessStatusCode) { Snackbar.Add("İşlem başarısız.", Severity.Error); return; }
+            await ReloadDocsAsync();
+        }
+    }
+
+    private async Task DownloadDoc(UserDocumentDto doc)
+    {
+        if (_process is null) return;
+        var bytes = await UserService.DownloadUserDocumentAsync(_process.UserId, doc.Id);
+        if (bytes is null) { Snackbar.Add("İndirilemedi.", Severity.Error); return; }
+        await JS.InvokeVoidAsync("dzdDownloadFile", doc.FileName, Convert.ToBase64String(bytes), doc.ContentType);
+    }
+
+    private async Task DeleteDoc(UserDocumentDto doc)
+    {
+        if (_process is null) return;
+        var resp = await UserService.DeleteUserDocumentAsync(_process.UserId, doc.Id);
+        if (!resp.IsSuccessStatusCode) { Snackbar.Add("Silinemedi.", Severity.Error); return; }
+        await ReloadDocsAsync();
     }
 
     private async Task HandleComplete((int ItemId, CompleteChecklistItemDto Dto) e)
@@ -88,12 +222,57 @@
         var response = await OnboardingService.UploadEvidenceAsync(Id, e.ItemId, e.File.Name, e.File.ContentType, stream);
         if (!response.IsSuccessStatusCode)
         {
-            var detail = await DZDDashboard.Client.Services.ApiServiceBase.TryReadProblemDetailAsync(response);
+            var detail = await ApiServiceBase.TryReadProblemDetailAsync(response);
             Snackbar.Add(detail ?? "Kanıt yüklenemedi.", Severity.Error);
             return;
         }
         Snackbar.Add("Kanıt yüklendi.", Severity.Success);
         await LoadAsync();
+    }
+
+    private async Task HandleDeleteEvidence(int itemId)
+        => await Apply(await OnboardingService.DeleteEvidenceAsync(Id, itemId), "Kanıt silindi.");
+
+    private async Task HandleDownloadEvidence(int itemId)
+    {
+        var item = _process?.Items.FirstOrDefault(i => i.Id == itemId);
+        var bytes = await OnboardingService.DownloadEvidenceAsync(Id, itemId);
+        if (bytes is null) { Snackbar.Add("İndirilemedi.", Severity.Error); return; }
+        await JS.InvokeVoidAsync("dzdDownloadFile", item?.EvidenceFileName ?? "kanit", Convert.ToBase64String(bytes), "application/octet-stream");
+    }
+
+    private async Task CompleteOnboarding()
+    {
+        if (_process is null) return;
+        var parameters = new DialogParameters<CompleteOnboardingDialog> { { x => x.Process, _process } };
+        var dialog = await DialogService.ShowAsync<CompleteOnboardingDialog>("İşe Alımı Tamamla", parameters);
+        var result = await dialog.Result;
+        if (result is { Canceled: false })
+        {
+            try
+            {
+                var done = await OnboardingService.CompleteProcessAsync(Id);
+                if (done is null) { Snackbar.Add("Tamamlanamadı.", Severity.Error); return; }
+                _process = done;
+                Snackbar.Add("İşe alım tamamlandı.", Severity.Success);
+            }
+            catch { Snackbar.Add("Tamamlanamadı. Tüm zorunlu adımlar bitmeli.", Severity.Error); }
+        }
+    }
+
+    private async Task CancelOnboarding()
+    {
+        var confirmed = await DialogService.ShowMessageBox(
+            "Onboarding'i İptal Et",
+            "Bu işlem süreci iptal eder ve bu işçi için yüklenen TÜM belgeleri kalıcı olarak siler. Emin misin?",
+            yesText: "Evet, İptal Et", cancelText: "Vazgeç");
+        if (confirmed == true)
+        {
+            var resp = await OnboardingService.CancelAsync(Id);
+            if (!resp.IsSuccessStatusCode) { Snackbar.Add("İptal edilemedi.", Severity.Error); return; }
+            Snackbar.Add("Onboarding iptal edildi.", Severity.Success);
+            Nav.NavigateTo("/onboarding");
+        }
     }
 
     private async Task Apply(OnboardingProcessDto? result, string successMessage)
@@ -116,5 +295,19 @@
         ProcessStatuses.Completed => "Tamamlandı",
         ProcessStatuses.Cancelled => "İptal",
         _                         => "Devam ediyor"
+    };
+
+    private static Color ReviewColor(string status) => status switch
+    {
+        DocumentReviewStatuses.Approved        => Color.Success,
+        DocumentReviewStatuses.NeedsCorrection => Color.Warning,
+        _                                      => Color.Default
+    };
+
+    private static string ReviewLabel(string status) => status switch
+    {
+        DocumentReviewStatuses.Approved        => "Onaylandı",
+        DocumentReviewStatuses.NeedsCorrection => "Düzeltme isteniyor",
+        _                                      => "İncelemede"
     };
 }

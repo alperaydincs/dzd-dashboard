@@ -5,11 +5,17 @@ using DZDDashboard.Common.Utils;
 using DZDDashboard.Data;
 using DZDDashboard.Data.Abstractions;
 using DZDDashboard.Data.Entities;
+using DZDDashboard.Data.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace DZDDashboard.Services;
 
-public class OnboardingService(AppDbContext context, IAuditProvider audit, ChecklistEngine engine) : IOnboardingService
+public class OnboardingService(
+    AppDbContext context,
+    IAuditProvider audit,
+    ChecklistEngine engine,
+    IFileStorageService fileStorage,
+    IUserDocumentService documents) : IOnboardingService
 {
     public async Task<List<OnboardingListItemDto>> GetAllAsync(CancellationToken cancellationToken = default)
         => await context.OnboardingProcesses.AsNoTracking()
@@ -113,6 +119,13 @@ public class OnboardingService(AppDbContext context, IAuditProvider audit, Check
         return await GetAsync(processId, cancellationToken);
     }
 
+    public async Task<OnboardingProcessDto> DeleteEvidenceAsync(int processId, int itemId, CancellationToken cancellationToken = default)
+    {
+        var process = await LoadAsync(processId, cancellationToken);
+        await engine.DeleteEvidenceAsync(RequireItem(process, itemId), cancellationToken);
+        return await GetAsync(processId, cancellationToken);
+    }
+
     public async Task<(byte[] Content, string? ContentType, string FileName)?> GetEvidenceAsync(int processId, int itemId, CancellationToken cancellationToken = default)
     {
         var process = await LoadAsync(processId, cancellationToken);
@@ -135,21 +148,9 @@ public class OnboardingService(AppDbContext context, IAuditProvider audit, Check
 
     private async Task RecomputeAsync(OnboardingProcess process, CancellationToken cancellationToken)
     {
-        var allRequiredDone = process.Items.Where(i => i.IsRequired).All(i => i.Status == ChecklistItemStatuses.Completed);
+        var allRequiredDone = AllRequiredDone(process);
 
-        if (allRequiredDone && process.Status != ProcessStatuses.Completed)
-        {
-            process.Status      = ProcessStatuses.Completed;
-            process.CompletedAt = audit.GetNow();
-            if (process.User is { } u)
-            {
-                u.LifecycleStatus = UserLifecycleStatuses.Active;
-                u.IsActive        = true;
-                u.UserStartDate ??= process.StartDate;
-            }
-            await context.SaveChangesAsync(cancellationToken);
-        }
-        else if (!allRequiredDone && process.Status == ProcessStatuses.Completed)
+        if (!allRequiredDone && process.Status == ProcessStatuses.Completed)
         {
             process.Status      = ProcessStatuses.InProgress;
             process.CompletedAt = null;
@@ -160,6 +161,98 @@ public class OnboardingService(AppDbContext context, IAuditProvider audit, Check
             }
             await context.SaveChangesAsync(cancellationToken);
         }
+    }
+
+    private static bool AllRequiredDone(OnboardingProcess process)
+        => process.Items.Where(i => i.IsRequired).All(i => i.Status == ChecklistItemStatuses.Completed);
+
+    public async Task<OnboardingProcessDto> UpdateProcessAsync(int processId, UpdateOnboardingProcessDto dto, CancellationToken cancellationToken = default)
+    {
+        var process = await LoadAsync(processId, cancellationToken);
+        process.StartDate = dto.StartDate;
+        process.ManagerId = dto.ManagerId;
+        await context.SaveChangesAsync(cancellationToken);
+        return await GetAsync(processId, cancellationToken);
+    }
+
+    public async Task<OnboardingProcessDto> CompleteProcessAsync(int processId, CancellationToken cancellationToken = default)
+    {
+        var process = await LoadAsync(processId, cancellationToken);
+
+        if (process.Status == ProcessStatuses.Cancelled)
+            throw new DomainConflictException("İptal edilmiş onboarding tamamlanamaz.");
+        if (!AllRequiredDone(process))
+            throw new DomainConflictException("Tüm zorunlu adımlar tamamlanmadan işe alım tamamlanamaz.");
+
+        process.Status      = ProcessStatuses.Completed;
+        process.CompletedAt = audit.GetNow();
+        if (process.User is { } u)
+        {
+            u.LifecycleStatus = UserLifecycleStatuses.Active;
+            u.IsActive        = true;
+            u.UserStartDate ??= process.StartDate;
+        }
+        await context.SaveChangesAsync(cancellationToken);
+        return await GetAsync(processId, cancellationToken);
+    }
+
+    public async Task CancelAsync(int processId, CancellationToken cancellationToken = default)
+    {
+        var process = await LoadAsync(processId, cancellationToken);
+
+        foreach (var item in process.Items.Where(i => i.EvidenceStoredFileId.HasValue))
+            await fileStorage.DeleteAsync(item.EvidenceStoredFileId!.Value, cancellationToken);
+
+        var userDocs = await context.UserDocuments
+            .Where(d => d.UserId == process.UserId)
+            .Select(d => d.Id)
+            .ToListAsync(cancellationToken);
+        foreach (var docId in userDocs)
+            await documents.DeleteAsync(process.UserId, docId, cancellationToken);
+
+        process.Status      = ProcessStatuses.Cancelled;
+        process.CompletedAt = null;
+        if (process.User is { } u)
+        {
+            u.LifecycleStatus = UserLifecycleStatuses.Active;
+            u.IsActive        = false;
+        }
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<MyOnboardingStateDto> GetOrStartMyAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        var user = await context.Users.FindRequiredAsync(userId, nameof(User), cancellationToken);
+
+        if (user.LifecycleStatus != UserLifecycleStatuses.Onboarding && user.LifecycleStatus != UserLifecycleStatuses.Candidate)
+            return new MyOnboardingStateDto { LifecycleStatus = user.LifecycleStatus, ProcessId = null };
+
+        var process = await context.OnboardingProcesses
+            .FirstOrDefaultAsync(p => p.UserId == userId && p.Status != ProcessStatuses.Cancelled, cancellationToken);
+
+        if (process is null)
+        {
+            process = new OnboardingProcess
+            {
+                UserId    = userId,
+                StartDate = DateTime.UtcNow.Date,
+                Status    = ProcessStatuses.InProgress,
+                Items     = [.. OnboardingStepCatalog.Steps.Select(s => new ChecklistItem
+                {
+                    StepKey     = s.Key,
+                    Title       = s.Title,
+                    Sequence    = s.Sequence,
+                    IsRequired  = s.IsRequired,
+                    IsGate      = s.IsGate,
+                    BenefitKind = s.BenefitKind,
+                    Status      = ChecklistItemStatuses.Pending
+                })]
+            };
+            context.OnboardingProcesses.Add(process);
+            await context.SaveChangesAsync(cancellationToken);
+        }
+
+        return new MyOnboardingStateDto { LifecycleStatus = user.LifecycleStatus, ProcessId = process.Id };
     }
 
     private async Task<string> GenerateUniqueSlugAsync(string first, string last, CancellationToken cancellationToken)
@@ -186,6 +279,7 @@ public class OnboardingService(AppDbContext context, IAuditProvider audit, Check
             ManagerName  = p.Manager != null ? AppFormatter.BuildFullName(p.Manager.FirstName, p.Manager.LastName) : null,
             Status       = p.Status,
             CompletedAt  = p.CompletedAt,
+            CanComplete  = p.Status == ProcessStatuses.InProgress && AllRequiredDone(p),
             Items        = [.. ordered.Select(i => ChecklistEngine.Map(i, ordered))]
         };
     }

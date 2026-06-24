@@ -66,6 +66,10 @@ public class OffboardingController(IOffboardingService offboarding) : BaseContro
         return Ok(await offboarding.UploadEvidenceAsync(id, itemId, fileName, file.ContentType, bytes, cancellationToken));
     }
 
+    [HttpDelete("{id:int}/items/{itemId:int}/evidence")]
+    public async Task<ActionResult<OffboardingProcessDto>> DeleteEvidence(int id, int itemId, CancellationToken cancellationToken)
+        => Ok(await offboarding.DeleteEvidenceAsync(id, itemId, cancellationToken));
+
     [HttpGet("{id:int}/items/{itemId:int}/evidence")]
     public async Task<IActionResult> DownloadEvidence(int id, int itemId, CancellationToken cancellationToken)
     {

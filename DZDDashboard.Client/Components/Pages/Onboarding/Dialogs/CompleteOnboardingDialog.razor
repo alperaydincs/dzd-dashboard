@@ -1,0 +1,37 @@
+@using DZDDashboard.Common.Constants
+@using DZDDashboard.Common.DTOs
+
+<MudDialog>
+    <TitleContent>
+        <div class="d-flex align-center gap-2">
+            <MudIcon Icon="@DzdIcons.CircleCheck" Color="Color.Success" Size="Size.Small" />
+            <MudText Typo="Typo.h6">İşe Alımı Tamamla</MudText>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <MudText Typo="Typo.body2" Class="mb-3">
+            <b>@Process.EmployeeName</b> için işe alım sürecini tamamlamak üzeresin. Çalışan aktif hale gelecek ve dashboard'a erişebilecek.
+        </MudText>
+        <MudList T="string" Dense="true">
+            @foreach (var item in Process.Items)
+            {
+                <MudListItem T="string" Icon="@(item.Status == ChecklistItemStatuses.Completed ? DzdIcons.CircleCheck : DzdIcons.Circle)"
+                             IconColor="@(item.Status == ChecklistItemStatuses.Completed ? Color.Success : Color.Default)">
+                    @item.Title
+                </MudListItem>
+            }
+        </MudList>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Outlined" OnClick="Cancel">Hayır</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Submit">Evet, Tamamla</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public OnboardingProcessDto Process { get; set; } = default!;
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+    private void Cancel() => MudDialog.Cancel();
+}

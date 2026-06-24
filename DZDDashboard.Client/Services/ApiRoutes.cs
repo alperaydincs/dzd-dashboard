@@ -30,6 +30,7 @@ public static class ApiRoutes
         public static string Documents(int userId)               => $"api/users/{userId}/documents";
         public static string Document(int userId, int docId)     => $"api/users/{userId}/documents/{docId}";
         public static string DocumentContent(int userId, int docId) => $"api/users/{userId}/documents/{docId}/content";
+        public static string DocumentReview(int userId, int docId)  => $"api/users/{userId}/documents/{docId}/review";
         public static string Career(int userId)                  => $"api/users/{userId}/career";
         public static string OrganizationPosition(int userId)    => $"api/users/{userId}/organization-position";
         public static string EmergencyContacts(int userId)       => $"api/users/{userId}/emergency-contacts";
@@ -78,11 +79,21 @@ public static class ApiRoutes
         public const string Base = "api/onboarding";
 
         public static string Process(int id)                 => $"{Base}/{id}";
+        public static string Complete(int id)                => $"{Base}/{id}/complete";
+        public static string Cancel(int id)                  => $"{Base}/{id}/cancel";
         public static string ItemComplete(int id, int itemId) => $"{Base}/{id}/items/{itemId}/complete";
         public static string ItemSkip(int id, int itemId)     => $"{Base}/{id}/items/{itemId}/skip";
         public static string ItemReopen(int id, int itemId)   => $"{Base}/{id}/items/{itemId}/reopen";
         public static string ItemNote(int id, int itemId)     => $"{Base}/{id}/items/{itemId}/note";
         public static string ItemEvidence(int id, int itemId) => $"{Base}/{id}/items/{itemId}/evidence";
+    }
+
+    public static class MyOnboarding
+    {
+        public const string State          = "api/my-onboarding/state";
+        public const string Documents      = "api/my-onboarding/documents";
+        public static string Document(int docId)        => $"{Documents}/{docId}";
+        public static string DocumentContent(int docId) => $"{Documents}/{docId}/content";
     }
 
     public static class Offboarding

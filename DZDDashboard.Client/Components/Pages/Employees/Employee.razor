@@ -51,7 +51,7 @@
                         <MudStack Spacing="2">
                             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mt-2">
                                 <MudText Typo="Typo.h5" Style="font-weight: 600; color: var(--dzd-text-primary);">@_fullName</MudText>
-                                <MudChip T="string" Color="@(_profile.IsActive ? Color.Success : Color.Warning)" Variant="Variant.Text" Size="Size.Small">@(_profile.IsActive ? "Active" : "On Leave")</MudChip>
+                                <MudChip T="string" Color="@LifecycleColor(_profile.LifecycleStatus, _profile.IsActive)" Variant="Variant.Text" Size="Size.Small">@LifecycleLabel(_profile.LifecycleStatus, _profile.IsActive)</MudChip>
                                 <MudSpacer />
                                 <MudChip T="string" Variant="Variant.Text" Size="Size.Small" Style="background-color:var(--dzd-bg-input); color:var(--dzd-text-secondary);">@(_profile.CompanyName ?? "-")</MudChip>
                             </MudStack>

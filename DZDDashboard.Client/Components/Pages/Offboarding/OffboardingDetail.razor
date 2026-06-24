@@ -9,6 +9,7 @@
 @inject IOffboardingClientService OffboardingService
 @inject ISnackbar Snackbar
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
     <MudButton Variant="Variant.Text" StartIcon="@DzdIcons.ArrowLeft" OnClick="@(() => Nav.NavigateTo("/offboarding"))" Class="mb-2">Offboarding listesine dön</MudButton>
@@ -41,7 +42,8 @@
                         OnReopen="HandleReopen"
                         OnSaveNote="HandleSaveNote"
                         OnUploadEvidence="HandleUploadEvidence"
-                        EvidenceUrlFactory="@(itemId => OffboardingService.EvidenceUrl(Id, itemId))" />
+                        OnDeleteEvidence="HandleDeleteEvidence"
+                        OnDownloadEvidence="HandleDownloadEvidence" />
     }
 </MudContainer>
 
@@ -91,6 +93,17 @@
         }
         Snackbar.Add("Kanıt yüklendi.", Severity.Success);
         await LoadAsync();
+    }
+
+    private async Task HandleDeleteEvidence(int itemId)
+        => await Apply(await OffboardingService.DeleteEvidenceAsync(Id, itemId), "Kanıt silindi.");
+
+    private async Task HandleDownloadEvidence(int itemId)
+    {
+        var item = _process?.Items.FirstOrDefault(i => i.Id == itemId);
+        var bytes = await OffboardingService.DownloadEvidenceAsync(Id, itemId);
+        if (bytes is null) { Snackbar.Add("İndirilemedi.", Severity.Error); return; }
+        await JS.InvokeVoidAsync("dzdDownloadFile", item?.EvidenceFileName ?? "kanit", Convert.ToBase64String(bytes), "application/octet-stream");
     }
 
     private async Task Apply(OffboardingProcessDto? result, string successMessage)

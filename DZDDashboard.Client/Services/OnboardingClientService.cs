@@ -15,6 +15,24 @@ public class OnboardingClientService(IHttpClientFactory httpClientFactory, Navig
     public async Task<OnboardingProcessDto?> StartAsync(StartOnboardingDto dto)
         => await PostAsync<OnboardingProcessDto>(ApiRoutes.Onboarding.Base, dto);
 
+    public async Task<OnboardingProcessDto?> UpdateProcessAsync(int id, UpdateOnboardingProcessDto dto)
+    {
+        var response = await PutAsync(ApiRoutes.Onboarding.Process(id), dto);
+        return response.IsSuccessStatusCode ? await GetAsync(id) : null;
+    }
+
+    public async Task<OnboardingProcessDto?> CompleteProcessAsync(int id)
+        => await PostAsync<OnboardingProcessDto>(ApiRoutes.Onboarding.Complete(id), new { });
+
+    public async Task<HttpResponseMessage> CancelAsync(int id)
+        => await PostAsync(ApiRoutes.Onboarding.Cancel(id), new { });
+
+    public async Task<OnboardingProcessDto?> DeleteEvidenceAsync(int id, int itemId)
+    {
+        var response = await DeleteAsync(ApiRoutes.Onboarding.ItemEvidence(id, itemId));
+        return response.IsSuccessStatusCode ? await GetAsync(id) : null;
+    }
+
     public async Task<OnboardingProcessDto?> CompleteItemAsync(int id, int itemId, CompleteChecklistItemDto dto)
         => await PostAsync<OnboardingProcessDto>(ApiRoutes.Onboarding.ItemComplete(id, itemId), dto);
 
@@ -36,7 +54,39 @@ public class OnboardingClientService(IHttpClientFactory httpClientFactory, Navig
         return await PostMultipartAsync(ApiRoutes.Onboarding.ItemEvidence(id, itemId), form);
     }
 
-    public string EvidenceUrl(int id, int itemId) => ApiRoutes.Onboarding.ItemEvidence(id, itemId);
+    public async Task<byte[]?> DownloadEvidenceAsync(int id, int itemId)
+    {
+        var resp = await ApiClient.GetAsync(ApiRoutes.Onboarding.ItemEvidence(id, itemId));
+        return resp.IsSuccessStatusCode ? await resp.Content.ReadAsByteArrayAsync() : null;
+    }
+}
+
+public class MyOnboardingClientService(IHttpClientFactory httpClientFactory, NavigationManager navigationManager)
+    : ApiServiceBase(httpClientFactory, navigationManager), IMyOnboardingClientService
+{
+    public async Task<MyOnboardingStateDto?> GetStateAsync()
+        => await GetAsync<MyOnboardingStateDto>(ApiRoutes.MyOnboarding.State);
+
+    public async Task<List<UserDocumentDto>?> GetDocumentsAsync()
+        => await GetAsync<List<UserDocumentDto>>(ApiRoutes.MyOnboarding.Documents);
+
+    public async Task<HttpResponseMessage> UploadDocumentAsync(string fileName, string contentType, Stream content)
+    {
+        using var form = new MultipartFormDataContent();
+        var streamContent = new StreamContent(content);
+        streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
+        form.Add(streamContent, "file", fileName);
+        return await PostMultipartAsync(ApiRoutes.MyOnboarding.Documents, form);
+    }
+
+    public async Task<HttpResponseMessage> DeleteDocumentAsync(int docId)
+        => await DeleteAsync(ApiRoutes.MyOnboarding.Document(docId));
+
+    public async Task<byte[]?> DownloadDocumentAsync(int docId)
+    {
+        var resp = await ApiClient.GetAsync(ApiRoutes.MyOnboarding.DocumentContent(docId));
+        return resp.IsSuccessStatusCode ? await resp.Content.ReadAsByteArrayAsync() : null;
+    }
 }
 
 public class OffboardingClientService(IHttpClientFactory httpClientFactory, NavigationManager navigationManager)
@@ -72,5 +122,15 @@ public class OffboardingClientService(IHttpClientFactory httpClientFactory, Navi
         return await PostMultipartAsync(ApiRoutes.Offboarding.ItemEvidence(id, itemId), form);
     }
 
-    public string EvidenceUrl(int id, int itemId) => ApiRoutes.Offboarding.ItemEvidence(id, itemId);
+    public async Task<OffboardingProcessDto?> DeleteEvidenceAsync(int id, int itemId)
+    {
+        var response = await DeleteAsync(ApiRoutes.Offboarding.ItemEvidence(id, itemId));
+        return response.IsSuccessStatusCode ? await GetAsync(id) : null;
+    }
+
+    public async Task<byte[]?> DownloadEvidenceAsync(int id, int itemId)
+    {
+        var resp = await ApiClient.GetAsync(ApiRoutes.Offboarding.ItemEvidence(id, itemId));
+        return resp.IsSuccessStatusCode ? await resp.Content.ReadAsByteArrayAsync() : null;
+    }
 }

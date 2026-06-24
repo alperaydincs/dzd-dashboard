@@ -107,6 +107,7 @@ public static class ServiceCollectionExtensions
 
         services.Configure<ApiOptions>(configuration.GetSection("Api"));
         services.Configure<MiddlewareOptions>(configuration.GetSection("Middleware"));
+        services.Configure<OnboardingOptions>(configuration.GetSection(OnboardingOptions.SectionName));
 
         services.AddApplicationServices();
         services.AddHttpContextAccessor();

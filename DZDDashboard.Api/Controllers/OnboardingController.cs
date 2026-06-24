@@ -27,6 +27,25 @@ public class OnboardingController(IOnboardingService onboarding) : BaseControlle
         return CreatedAtAction(nameof(Get), new { id = result.Id }, result);
     }
 
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult<OnboardingProcessDto>> UpdateProcess(int id, [FromBody] UpdateOnboardingProcessDto dto, CancellationToken cancellationToken)
+        => Ok(await onboarding.UpdateProcessAsync(id, dto, cancellationToken));
+
+    [HttpPost("{id:int}/complete")]
+    public async Task<ActionResult<OnboardingProcessDto>> CompleteProcess(int id, CancellationToken cancellationToken)
+        => Ok(await onboarding.CompleteProcessAsync(id, cancellationToken));
+
+    [HttpPost("{id:int}/cancel")]
+    public async Task<IActionResult> Cancel(int id, CancellationToken cancellationToken)
+    {
+        await onboarding.CancelAsync(id, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpDelete("{id:int}/items/{itemId:int}/evidence")]
+    public async Task<ActionResult<OnboardingProcessDto>> DeleteEvidence(int id, int itemId, CancellationToken cancellationToken)
+        => Ok(await onboarding.DeleteEvidenceAsync(id, itemId, cancellationToken));
+
     [HttpPost("{id:int}/items/{itemId:int}/complete")]
     public async Task<ActionResult<OnboardingProcessDto>> Complete(int id, int itemId, [FromBody] CompleteChecklistItemDto dto, CancellationToken cancellationToken)
         => Ok(await onboarding.CompleteItemAsync(id, itemId, dto, cancellationToken));

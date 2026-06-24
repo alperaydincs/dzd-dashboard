@@ -1,0 +1,35 @@
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <div class="d-flex align-center gap-2">
+            <MudIcon Icon="@DzdIcons.TriangleAlert" Color="Color.Warning" Size="Size.Small" />
+            <MudText Typo="Typo.h6">Düzeltme İste: @FileName</MudText>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <MudText Typo="Typo.body2" Class="mb-2" Style="color:var(--dzd-text-secondary);">
+            İşçiye gösterilecek düzeltme gerekçesini yaz.
+        </MudText>
+        <MudTextField T="string" Label="Gerekçe" @bind-Value="_note" Variant="Variant.Outlined" Lines="3" Required="true" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Outlined" OnClick="Cancel">Vazgeç</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="Submit">Düzeltme İste</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public string? FileName { get; set; }
+
+    private string? _note;
+
+    private void Submit()
+    {
+        if (string.IsNullOrWhiteSpace(_note)) { Snackbar.Add("Gerekçe zorunludur.", Severity.Warning); return; }
+        MudDialog.Close(DialogResult.Ok(_note));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

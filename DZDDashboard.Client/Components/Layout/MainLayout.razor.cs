@@ -18,6 +18,10 @@ public partial class MainLayout : IDisposable
     [Inject] private IUserClientService           UserService        { get; set; } = default!;
     [Inject] private INotificationCenterService   NotificationCenter { get; set; } = default!;
     [Inject] private IUserAvatarState             AvatarState        { get; set; } = default!;
+    [Inject] private IMyOnboardingClientService   MyOnboarding       { get; set; } = default!;
+
+    private const string OnboardingPath = "my-onboarding";
+    private bool _onboardingMode;
 
     private const string DefaultTitle = "DZD Dashboard";
     private const string LoadingText  = "Loading…";
@@ -114,12 +118,35 @@ public partial class MainLayout : IDisposable
         try
         {
             _header = await LoadHeaderAsync(user);
+            await RefreshOnboardingModeAsync();
         }
         finally
         {
             _ready = true;
             await InvokeAsync(StateHasChanged);
         }
+    }
+
+    private async Task RefreshOnboardingModeAsync()
+    {
+        try
+        {
+            var state = await MyOnboarding.GetStateAsync();
+            _onboardingMode = state?.LifecycleStatus == UserLifecycleStatuses.Onboarding
+                           || state?.LifecycleStatus == UserLifecycleStatuses.Candidate;
+            if (_onboardingMode) EnsureOnboardingRoute();
+        }
+        catch
+        {
+            _onboardingMode = false;
+        }
+    }
+
+    private void EnsureOnboardingRoute()
+    {
+        var path = Nav.ToBaseRelativePath(Nav.Uri).Split('?')[0];
+        if (!path.Equals(OnboardingPath, StringComparison.OrdinalIgnoreCase))
+            Nav.NavigateTo("/" + OnboardingPath, forceLoad: false, replace: true);
     }
 
     private async Task<UserHeader> LoadHeaderAsync(ClaimsPrincipal user)
@@ -158,6 +185,7 @@ public partial class MainLayout : IDisposable
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
         SetActiveSection(e.Location);
+        if (_onboardingMode) EnsureOnboardingRoute();
         _ = InvokeAsync(StateHasChanged);
     }
 

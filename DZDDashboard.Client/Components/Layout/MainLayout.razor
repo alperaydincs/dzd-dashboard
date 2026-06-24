@@ -91,6 +91,8 @@
 
     <AuthorizeView>
         <Authorized>
+            @if (!_onboardingMode)
+            {
             <MudDrawer @bind-Open="_drawerOpen" Elevation="0" Variant="DrawerVariant.Mini" Width="240px" MiniWidth="104px" ClipMode="DrawerClipMode.Never" Class="custom-sidebar">
                 <div class="sidebar-logo @(_drawerOpen ? "" : "sidebar-collapsed")" @onclick="DrawerToggle" title="Toggle menu">
                     <img src="@(_drawerOpen ? "/images/dzd_logo.svg" : "/images/dzd_logo_small.svg")" alt="Company Logo" class="sidebar-logo-image" />
@@ -109,6 +111,7 @@
                     }
                 </nav>
             </MudDrawer>
+            }
         </Authorized>
     </AuthorizeView>
     <MudMainContent Class="pt-16 px-4">

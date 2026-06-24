@@ -1328,4 +1328,24 @@ public partial class Employee
         public DateTime? GraduationDate { get; set; }
         public string?   Status         { get; set; }
     }
+
+    private static Color LifecycleColor(string? status, bool isActive) => status switch
+    {
+        UserLifecycleStatuses.Active      => Color.Success,
+        UserLifecycleStatuses.Onboarding  => Color.Info,
+        UserLifecycleStatuses.Candidate   => Color.Info,
+        UserLifecycleStatuses.Offboarding => Color.Warning,
+        UserLifecycleStatuses.Exited      => Color.Error,
+        _                                 => isActive ? Color.Success : Color.Default
+    };
+
+    private static string LifecycleLabel(string? status, bool isActive) => status switch
+    {
+        UserLifecycleStatuses.Active      => "Aktif",
+        UserLifecycleStatuses.Onboarding  => "İşe Alımda",
+        UserLifecycleStatuses.Candidate   => "Aday",
+        UserLifecycleStatuses.Offboarding => "İşten Çıkışta",
+        UserLifecycleStatuses.Exited      => "İşten Ayrıldı",
+        _                                 => isActive ? "Aktif" : "Pasif"
+    };
 }

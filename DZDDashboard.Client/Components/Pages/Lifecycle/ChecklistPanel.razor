@@ -82,9 +82,9 @@
                 <MudItem xs="12" sm="4" Class="d-flex align-center gap-2">
                     @if (item.HasEvidence)
                     {
-                        <MudLink Href="@EvidenceUrlFactory(item.Id)" Target="_blank" Class="d-flex align-center gap-1">
-                            <MudIcon Icon="@DzdIcons.Paperclip" Size="Size.Small" /> @item.EvidenceFileName
-                        </MudLink>
+                        <MudButton Variant="Variant.Text" Size="Size.Small" StartIcon="@DzdIcons.Paperclip"
+                                   OnClick="@(() => OnDownloadEvidence.InvokeAsync(item.Id))">@item.EvidenceFileName</MudButton>
+                        <MudIconButton Icon="@DzdIcons.Trash2" Color="Color.Error" Size="Size.Small" OnClick="@(() => OnDeleteEvidence.InvokeAsync(item.Id))" />
                     }
                     <MudFileUpload T="IBrowserFile" FilesChanged="@(f => OnFileSelected(item.Id, f))" MaximumFileCount="1">
                         <ActivatorContent>
@@ -104,7 +104,8 @@
     [Parameter] public EventCallback<int> OnReopen { get; set; }
     [Parameter] public EventCallback<(int ItemId, string? Note)> OnSaveNote { get; set; }
     [Parameter] public EventCallback<(int ItemId, IBrowserFile File)> OnUploadEvidence { get; set; }
-    [Parameter] public Func<int, string> EvidenceUrlFactory { get; set; } = _ => string.Empty;
+    [Parameter] public EventCallback<int> OnDeleteEvidence { get; set; }
+    [Parameter] public EventCallback<int> OnDownloadEvidence { get; set; }
 
     private async Task CompleteAsync(ChecklistItemDto item)
     {

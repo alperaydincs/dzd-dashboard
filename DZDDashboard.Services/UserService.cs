@@ -1,6 +1,7 @@
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using DZDDashboard.Common.Constants;
 using DZDDashboard.Common.DTOs;
 using DZDDashboard.Common.Exceptions;
@@ -17,6 +18,7 @@ public class UserService(
     IMapper mapper,
     AppDbContext context,
     IReportsToCalculator reportsToCalculator,
+    IOptions<OnboardingOptions> onboardingOptions,
     ILogger<UserService> logger)
     : IUserService, IUserReadService, IUserWriteService, IUserSyncService
 {
@@ -353,7 +355,7 @@ public class UserService(
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<int> SyncEntraUserAsync(string objectId, string? email, string? firstName, string? lastName, CancellationToken cancellationToken = default)
+    public async Task<int> SyncEntraUserAsync(string objectId, string? email, string? firstName, string? lastName, bool hasElevatedRole = false, CancellationToken cancellationToken = default)
     {
         var existing = await context.Users
             .AsNoTracking()
@@ -361,15 +363,39 @@ public class UserService(
 
         if (existing is not null) return existing.Id;
 
+        var normalizedEmail = string.IsNullOrWhiteSpace(email) ? null : email.ToUpperInvariant();
+
+        if (normalizedEmail is not null)
+        {
+            var byEmail = await context.Users
+                .FirstOrDefaultAsync(u => u.EntraObjectId == null && u.NormalizedEmail == normalizedEmail, cancellationToken);
+
+            if (byEmail is not null)
+            {
+                byEmail.EntraObjectId = objectId;
+                if (string.IsNullOrWhiteSpace(byEmail.FirstName)) byEmail.FirstName = firstName;
+                if (string.IsNullOrWhiteSpace(byEmail.LastName))  byEmail.LastName  = lastName;
+                await context.SaveChangesAsync(cancellationToken);
+                return byEmail.Id;
+            }
+        }
+
+        var options    = onboardingOptions.Value;
+        var isFirstUser = !await context.Users.AnyAsync(cancellationToken);
+        var isBypassed  = normalizedEmail is not null
+                          && options.BypassEmails.Any(e => string.Equals(e?.Trim(), email?.Trim(), StringComparison.OrdinalIgnoreCase));
+        var startAsActive = isFirstUser || isBypassed || hasElevatedRole || !options.AutoStartEnabled;
+
         var newUser = new User
         {
             EntraObjectId   = objectId,
             Email           = email,
-            NormalizedEmail = string.IsNullOrWhiteSpace(email) ? null : email.ToUpperInvariant(),
+            NormalizedEmail = normalizedEmail,
             FirstName       = firstName,
             LastName        = lastName,
             Slug            = await GenerateUniqueSlugAsync(firstName, lastName, cancellationToken),
-            IsActive        = true
+            IsActive        = startAsActive,
+            LifecycleStatus = startAsActive ? UserLifecycleStatuses.Active : UserLifecycleStatuses.Onboarding
         };
 
         context.Users.Add(newUser);

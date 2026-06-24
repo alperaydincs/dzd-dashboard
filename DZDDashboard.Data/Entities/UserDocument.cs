@@ -14,4 +14,7 @@ public class UserDocument : AuditableEntity
 
     public int? StoredFileId { get; set; }
     public StoredFile? StoredFile { get; set; }
+
+    public string  ReviewStatus { get; set; } = DZDDashboard.Common.Constants.DocumentReviewStatuses.Pending;
+    public string? ReviewNote   { get; set; }
 }

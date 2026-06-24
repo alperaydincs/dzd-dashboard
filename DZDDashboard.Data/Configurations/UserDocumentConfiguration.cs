@@ -24,6 +24,14 @@ public class UserDocumentConfiguration : IEntityTypeConfiguration<UserDocument>
         builder.Property(ud => ud.IsActive)
                .HasDefaultValue(true);
 
+        builder.Property(ud => ud.ReviewStatus)
+               .IsRequired()
+               .HasMaxLength(ValidationConstants.MaxShortNameLength)
+               .HasDefaultValue(DZDDashboard.Common.Constants.DocumentReviewStatuses.Pending);
+
+        builder.Property(ud => ud.ReviewNote)
+               .HasMaxLength(ValidationConstants.MaxNotesLength);
+
         builder.HasIndex(ud => new { ud.UserId, ud.FileName }).IsUnique();
 
         builder.HasOne(ud => ud.User)

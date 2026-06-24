@@ -23,8 +23,21 @@ public record OnboardingProcessDto
     public string?  ManagerName  { get; set; }
     public string   Status       { get; set; } = string.Empty;
     public DateTime? CompletedAt { get; set; }
+    public bool     CanComplete  { get; set; }
 
     public List<ChecklistItemDto> Items { get; set; } = [];
+}
+
+public record UpdateOnboardingProcessDto
+{
+    public DateTime StartDate { get; set; }
+    public int?     ManagerId { get; set; }
+}
+
+public record MyOnboardingStateDto
+{
+    public string LifecycleStatus { get; set; } = string.Empty;
+    public int?   ProcessId       { get; set; }
 }
 
 public record OffboardingListItemDto

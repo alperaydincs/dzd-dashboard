@@ -108,6 +108,13 @@ public class OffboardingService(AppDbContext context, IAuditProvider audit, Chec
         return await GetAsync(processId, cancellationToken);
     }
 
+    public async Task<OffboardingProcessDto> DeleteEvidenceAsync(int processId, int itemId, CancellationToken cancellationToken = default)
+    {
+        var process = await LoadAsync(processId, cancellationToken);
+        await engine.DeleteEvidenceAsync(RequireItem(process, itemId), cancellationToken);
+        return await GetAsync(processId, cancellationToken);
+    }
+
     public async Task<(byte[] Content, string? ContentType, string FileName)?> GetEvidenceAsync(int processId, int itemId, CancellationToken cancellationToken = default)
     {
         var process = await LoadAsync(processId, cancellationToken);

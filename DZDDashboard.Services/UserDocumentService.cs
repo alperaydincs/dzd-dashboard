@@ -14,13 +14,29 @@ public class UserDocumentService(AppDbContext context, IFileStorageService stora
             .OrderByDescending(d => d.CreatedAt)
             .Select(d => new UserDocumentDto
             {
-                Id          = d.Id,
-                FileName    = d.FileName,
-                ContentType = d.ContentType,
-                SizeBytes   = d.SizeBytes,
-                UploadedAt  = d.CreatedAt
+                Id           = d.Id,
+                FileName     = d.FileName,
+                ContentType  = d.ContentType,
+                SizeBytes    = d.SizeBytes,
+                UploadedAt   = d.CreatedAt,
+                ReviewStatus = d.ReviewStatus,
+                ReviewNote   = d.ReviewNote
             })
             .ToListAsync(cancellationToken);
+
+    public async Task ReviewAsync(int userId, int documentId, string status, string? note, CancellationToken cancellationToken = default)
+    {
+        if (!DZDDashboard.Common.Constants.DocumentReviewStatuses.All.Contains(status))
+            throw new DomainValidationException("Geçersiz belge inceleme durumu.");
+
+        var doc = await context.UserDocuments
+            .FirstOrDefaultAsync(d => d.Id == documentId && d.UserId == userId && d.IsActive, cancellationToken)
+            ?? throw new EntityNotFoundException("UserDocument", documentId);
+
+        doc.ReviewStatus = status;
+        doc.ReviewNote   = status == DZDDashboard.Common.Constants.DocumentReviewStatuses.NeedsCorrection ? note : null;
+        await context.SaveChangesAsync(cancellationToken);
+    }
 
     public async Task<UserDocumentDto> UploadAsync(int userId, string fileName, string contentType, byte[] content, CancellationToken cancellationToken = default)
     {

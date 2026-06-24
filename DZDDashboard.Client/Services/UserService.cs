@@ -99,4 +99,7 @@ public class UserService : ApiServiceBase, IUserClientService
 
     public async Task<HttpResponseMessage> DeleteUserDocumentAsync(int userId, int documentId)
         => await DeleteAsync(ApiRoutes.Users.Document(userId, documentId));
+
+    public async Task<HttpResponseMessage> ReviewUserDocumentAsync(int userId, int documentId, ReviewDocumentDto dto)
+        => await PutAsync(ApiRoutes.Users.DocumentReview(userId, documentId), dto);
 }

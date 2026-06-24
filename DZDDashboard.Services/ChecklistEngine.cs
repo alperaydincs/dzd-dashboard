@@ -83,6 +83,16 @@ public class ChecklistEngine(
         await context.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task DeleteEvidenceAsync(ChecklistItem item, CancellationToken cancellationToken)
+    {
+        if (item.EvidenceStoredFileId is not { } storageId) return;
+        await fileStorage.DeleteAsync(storageId, cancellationToken);
+        item.EvidenceStoredFileId = null;
+        item.EvidenceFileName     = null;
+        item.EvidenceContentType  = null;
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<(byte[] Content, string? ContentType, string FileName)?> GetEvidenceAsync(ChecklistItem item, CancellationToken cancellationToken)
     {
         if (item.EvidenceStoredFileId is not { } storageId) return null;

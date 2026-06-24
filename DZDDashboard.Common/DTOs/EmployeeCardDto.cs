@@ -4,6 +4,7 @@ public class EmployeeCardDto
 {
     public int  Id       { get; set; }
     public bool IsActive { get; set; }
+    public string LifecycleStatus { get; set; } = string.Empty;
 
     public string? Slug { get; set; }
     public string? FullName { get; set; }
