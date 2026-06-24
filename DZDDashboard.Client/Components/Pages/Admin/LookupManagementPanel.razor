@@ -195,7 +195,7 @@
 
     private async Task DeleteAsync(LookupValueDto v)
     {
-        var resp = await Lookups.DeleteAsync(v.Id);
+        var resp = await Lookups.DeleteAsync(v.Category, v.Id);
         if (!resp.IsSuccessStatusCode) { Snackbar.Add("Silinemedi.", Severity.Error); return; }
         if (_data.TryGetValue(v.Category, out var list)) list.Remove(v);
     }

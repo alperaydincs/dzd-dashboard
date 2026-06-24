@@ -29,9 +29,9 @@ public class LookupsController(ILookupService lookups) : BaseController
 
     [HttpDelete("{id:int}")]
     [Authorize(Roles = Roles.AdminOrHr)]
-    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(int id, [FromQuery] string category, CancellationToken cancellationToken)
     {
-        await lookups.DeleteAsync(id, cancellationToken);
+        await lookups.DeleteAsync(category, id, cancellationToken);
         return NoContent();
     }
 }

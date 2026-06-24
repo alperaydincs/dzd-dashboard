@@ -63,7 +63,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, IAuditProvider
     public DbSet<ChecklistItem> ChecklistItems { get; set; }
     public DbSet<ChecklistItemDependent> ChecklistItemDependents { get; set; }
     public DbSet<ChecklistStepTemplate> ChecklistStepTemplates { get; set; }
-    public DbSet<LookupValue> LookupValues { get; set; }
+    public DbSet<AdditionalPaymentTypeEntity> AdditionalPaymentTypes { get; set; }
+    public DbSet<DeductionTypeEntity> DeductionTypes { get; set; }
+    public DbSet<ContractTypeEntity> ContractTypes { get; set; }
+    public DbSet<WorkModelEntity> WorkModels { get; set; }
+    public DbSet<EducationLevelEntity> EducationLevels { get; set; }
+    public DbSet<DependentTypeEntity> DependentTypes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

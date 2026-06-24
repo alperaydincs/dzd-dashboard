@@ -94,6 +94,7 @@ public static class ApiRoutes
         public static string List(string category)
             => $"{Base}?category={Uri.EscapeDataString(category)}";
         public static string Item(int id) => $"{Base}/{id}";
+        public static string Item(int id, string category) => $"{Base}/{id}?category={Uri.EscapeDataString(category)}";
     }
 
     public static class ChecklistTemplates

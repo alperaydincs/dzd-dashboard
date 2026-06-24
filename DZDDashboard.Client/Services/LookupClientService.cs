@@ -9,7 +9,7 @@ public interface ILookupClientService
     Task<List<LookupValueDto>?> GetAllAsync(string category);
     Task<LookupValueDto?> CreateAsync(LookupValueDto dto);
     Task<HttpResponseMessage> UpdateAsync(int id, LookupValueDto dto);
-    Task<HttpResponseMessage> DeleteAsync(int id);
+    Task<HttpResponseMessage> DeleteAsync(string category, int id);
 }
 
 public class LookupClientService(IHttpClientFactory httpClientFactory, NavigationManager navigationManager)
@@ -30,6 +30,6 @@ public class LookupClientService(IHttpClientFactory httpClientFactory, Navigatio
     public async Task<HttpResponseMessage> UpdateAsync(int id, LookupValueDto dto)
         => await PutAsync(ApiRoutes.Lookups.Item(id), dto);
 
-    public async Task<HttpResponseMessage> DeleteAsync(int id)
-        => await DeleteAsync(ApiRoutes.Lookups.Item(id));
+    public async Task<HttpResponseMessage> DeleteAsync(string category, int id)
+        => await DeleteAsync(ApiRoutes.Lookups.Item(id, category));
 }
