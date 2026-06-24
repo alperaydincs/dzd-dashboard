@@ -39,15 +39,6 @@ public partial class MainLayout : IDisposable
     [
         new(NavSection.Dashboard,       "/",                 DzdIcons.LayoutDashboard,   "nav.dashboard"),
         new(NavSection.Employees,       "/employees",        DzdIcons.Users,             "nav.employees"),
-        new(NavSection.Onboarding,      "/onboarding",       DzdIcons.UserPlus,          "nav.onboarding",  Roles.AdminOrHr),
-        new(NavSection.Offboarding,     "/offboarding",      DzdIcons.UserMinus,         "nav.offboarding", Roles.AdminOrHr),
-        new(NavSection.Departments,     "/departments",      DzdIcons.Building2,         "nav.departments"),
-        new(NavSection.Positions,       "/positions",        DzdIcons.IdCard,            "nav.positions"),
-        new(NavSection.Attendance,      "/attendance",       DzdIcons.Clock3,            "nav.attendance"),
-        new(NavSection.LeaveManagement, "/leave-management", DzdIcons.CalendarCheck,     "nav.leaveManagement"),
-        new(NavSection.Training,        "/training",         DzdIcons.GraduationCap,     "nav.training"),
-        new(NavSection.Performance,     "/performance",      DzdIcons.TrendingUp,        "nav.performance"),
-        new(NavSection.Company,         "/company",          DzdIcons.BriefcaseBusiness, "nav.company"),
         new(NavSection.Settings,        "/settings",         DzdIcons.Settings,          "nav.settings", Roles.AdminOrHr),
     ];
 

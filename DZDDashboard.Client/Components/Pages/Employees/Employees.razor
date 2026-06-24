@@ -8,6 +8,7 @@
 @inject NavigationManager Nav
 @inject IOrganizationClientService OrgService
 @inject IUserClientService UserService
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <div class="employees-scope">
 <MudContainer MaxWidth="MaxWidth.False" Class="employees-page mt-4">
@@ -109,10 +110,21 @@
                 </MudGrid>
             </MudPaper>
 
-            <div class="@($"view-tabs-shell active-{_activeViewIndex}")" role="tablist" aria-label="Employees views">
-                <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 0 ? "true" : "false")" @onclick="() => SetView(0)">Table View</button>
-                <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 1 ? "true" : "false")" @onclick="() => SetView(1)">Card View</button>
-                <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 2 ? "true" : "false")" @onclick="() => SetView(2)">Org Chart View</button>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                <div class="@($"view-tabs-shell active-{_activeViewIndex}")" role="tablist" aria-label="Employees views">
+                    <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 0 ? "true" : "false")" @onclick="() => SetView(0)">@Loc["employees.tableView"]</button>
+                    <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 1 ? "true" : "false")" @onclick="() => SetView(1)">@Loc["employees.cardView"]</button>
+                    <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 2 ? "true" : "false")" @onclick="() => SetView(2)">@Loc["employees.orgView"]</button>
+                </div>
+
+                <AuthorizeView Roles="@Roles.AdminOrHr" Context="lifecycleAuth">
+                    <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@DzdIcons.UserPlus"
+                                   OnClick='@(() => Nav.NavigateTo("/onboarding"))'>@Loc["nav.onboarding"]</MudButton>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@DzdIcons.UserMinus"
+                                   OnClick='@(() => Nav.NavigateTo("/offboarding"))'>@Loc["nav.offboarding"]</MudButton>
+                    </MudStack>
+                </AuthorizeView>
             </div>
 
             @if (_activeViewIndex == 0)

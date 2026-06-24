@@ -39,6 +39,10 @@ public static class AppStrings
             ["common.active"]  = "Active",
             ["common.inactive"] = "Inactive",
 
+            ["employees.tableView"]    = "Table View",
+            ["employees.cardView"]     = "Card View",
+            ["employees.orgView"]      = "Org Chart View",
+
             ["onboarding.title"]       = "Onboarding Processes",
             ["onboarding.start"]       = "Start New Onboarding",
             ["onboarding.empty"]       = "No onboarding processes yet.",
@@ -87,6 +91,10 @@ public static class AppStrings
             ["common.no"]      = "Hayır",
             ["common.active"]  = "Aktif",
             ["common.inactive"] = "Pasif",
+
+            ["employees.tableView"]    = "Tablo Görünümü",
+            ["employees.cardView"]     = "Kart Görünümü",
+            ["employees.orgView"]      = "Organizasyon Şeması",
 
             ["onboarding.title"]       = "İşe Alım Süreçleri",
             ["onboarding.start"]       = "Yeni İşe Alım Başlat",
