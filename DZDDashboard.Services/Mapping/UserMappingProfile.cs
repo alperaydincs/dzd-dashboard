@@ -24,10 +24,16 @@ public class UserMappingProfile : Profile
 
         CreateMap<UserAvatar, UserAvatarDto>();
         CreateMap<User, UserProfileReportsToDto>();
-        CreateMap<User, UserProfileDto>();
+        CreateMap<User, UserProfileDto>()
+            .ForMember(dest => dest.ContractType, opt => opt.MapFrom(src => src.ContractTypeRef != null ? src.ContractTypeRef.Name : null))
+            .ForMember(dest => dest.WorkModel, opt => opt.MapFrom(src => src.WorkModelRef != null ? src.WorkModelRef.Name : null));
         CreateMap<EmergencyContact, EmergencyContactDto>()
             .ReverseMap()
-            .ForMember(dest => dest.UserId, opt => opt.Ignore());        CreateMap<EducationHistory, EducationHistoryDto>().ReverseMap();
+            .ForMember(dest => dest.UserId, opt => opt.Ignore());        CreateMap<EducationHistory, EducationHistoryDto>()
+            .ForMember(dest => dest.Level, opt => opt.MapFrom(src => src.EducationLevelRef != null ? src.EducationLevelRef.Name : null))
+            .ReverseMap()
+            .ForMember(dest => dest.EducationLevelRef, opt => opt.Ignore())
+            .ForMember(dest => dest.EducationLevelId, opt => opt.Ignore());
 
         CreateMap<PositionHistory, PositionHistoryDto>()
             .ForMember(dest => dest.DepartmentName,
@@ -36,6 +42,10 @@ public class UserMappingProfile : Profile
                 opt => opt.MapFrom(src => src.Team != null ? src.Team.Name : null));
 
         CreateMap<User, EmployeeCardDto>()
+            .ForMember(dest => dest.ContractType,
+                opt => opt.MapFrom(src => src.ContractTypeRef != null ? src.ContractTypeRef.Name : null))
+            .ForMember(dest => dest.WorkModel,
+                opt => opt.MapFrom(src => src.WorkModelRef != null ? src.WorkModelRef.Name : null))
             .ForMember(dest => dest.OrganizationPositionName,
                 opt => opt.MapFrom(src => src.OrganizationPosition != null ? src.OrganizationPosition.Name : null))
             .ForMember(dest => dest.FullName,

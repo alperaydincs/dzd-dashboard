@@ -25,7 +25,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
 
         var benefits = await context.BenefitRecords.AsNoTracking()
             .AsSplitQuery()
-            .Include(b => b.Dependents)
+            .Include(b => b.Dependents).ThenInclude(d => d.DependentTypeRef)
             .Include(b => b.ModifiedBy)
             .Where(b => b.UserId == userId)
             .OrderByDescending(b => b.StartDate)
@@ -176,7 +176,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
 
         var entity = new BenefitRecord { UserId = userId, Source = string.IsNullOrWhiteSpace(dto.Source) ? PaymentSources.Manual : dto.Source };
         ApplyBenefitDto(dto, entity);
-        ReplaceDependents(entity, dto.Dependents);
+        await ReplaceDependentsAsync(entity, dto.Dependents, cancellationToken);
 
         context.BenefitRecords.Add(entity);
         await context.SaveChangesAsync(cancellationToken);
@@ -190,7 +190,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         EnsureDependentsValid(dto);
 
         ApplyBenefitDto(dto, entity);
-        ReplaceDependents(entity, dto.Dependents);
+        await ReplaceDependentsAsync(entity, dto.Dependents, cancellationToken);
 
         await context.SaveChangesAsync(cancellationToken);
     }
@@ -340,17 +340,19 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         entity.Notes         = dto.Notes;
     }
 
-    private void ReplaceDependents(BenefitRecord entity, List<BenefitDependentDto> dependents)
+    private async Task ReplaceDependentsAsync(BenefitRecord entity, List<BenefitDependentDto> dependents, CancellationToken ct)
     {
         if (entity.Dependents.Count > 0)
             context.BenefitDependents.RemoveRange(entity.Dependents);
+
+        var typeMap = await context.DependentTypes.AsNoTracking().ToDictionaryAsync(t => t.Name, t => t.Id, ct);
 
         entity.Dependents = [.. dependents.Select((d, index) => new BenefitDependent
         {
             BenefitRecordId = entity.Id,
             Order           = index + 1,
             DependentName   = d.DependentName,
-            DependentType   = d.DependentType,
+            DependentTypeId = d.DependentType is not null && typeMap.TryGetValue(d.DependentType, out var tid) ? tid : null,
             Amount          = d.Amount,
             StartDate       = d.StartDate,
             EndDate         = d.EndDate

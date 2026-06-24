@@ -9,7 +9,8 @@ public class ChecklistItemDependent
 
     public int Order { get; set; }
 
-    public string  DependentType { get; set; } = string.Empty;
+    public int? DependentTypeId { get; set; }
+    public DependentTypeEntity? DependentTypeRef { get; set; }
     public string? DependentName { get; set; }
     public decimal Amount        { get; set; }
 }

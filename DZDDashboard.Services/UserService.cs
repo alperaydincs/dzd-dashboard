@@ -37,9 +37,9 @@ public class UserService(
         user.RegistrationNumber  = dto.RegistrationNumber;
         user.UserStartDate       = dto.UserStartDate;
         user.PositionStartDate   = dto.PositionStartDate;
-        user.ContractType        = dto.ContractType;
+        user.ContractTypeId      = await ResolveTypeIdAsync(context.ContractTypes, dto.ContractType, cancellationToken);
         user.ContractEndDate     = dto.ContractEndDate;
-        user.WorkModel           = dto.WorkModel;
+        user.WorkModelId         = await ResolveTypeIdAsync(context.WorkModels, dto.WorkModel, cancellationToken);
         user.PayrollLocationId   = dto.PayrollLocationId;
 
         if (nameChanged)
@@ -96,12 +96,15 @@ public class UserService(
         if (user.EducationHistories?.Count > 0)
             context.EducationHistories.RemoveRange(user.EducationHistories);
 
+        var levelMap = await context.EducationLevels.AsNoTracking()
+            .ToDictionaryAsync(l => l.Name, l => l.Id, cancellationToken);
+
         user.EducationHistories = (dto.EducationHistories ?? [])
             .Where(x => !string.IsNullOrWhiteSpace(x.Level) && !string.IsNullOrWhiteSpace(x.Institution))
             .Select(x => new EducationHistory
             {
                 UserId          = userId,
-                Level           = x.Level,
+                EducationLevelId = x.Level is not null && levelMap.TryGetValue(x.Level, out var lid) ? lid : null,
                 Institution     = x.Institution,
                 Program         = x.Program,
                 GraduationDate  = x.GraduationDate,
@@ -420,6 +423,12 @@ public class UserService(
             return winningId.Value;
         }
     }
+
+    private static async Task<int?> ResolveTypeIdAsync<T>(Microsoft.EntityFrameworkCore.DbSet<T> set, string? name, CancellationToken ct)
+        where T : NamedTypeEntity
+        => string.IsNullOrWhiteSpace(name)
+            ? null
+            : await set.Where(t => t.Name == name).Select(t => (int?)t.Id).FirstOrDefaultAsync(ct);
 
     private static bool IsUniqueConstraintViolation(DbUpdateException ex)
         => ex.InnerException is Microsoft.Data.SqlClient.SqlException sqlEx

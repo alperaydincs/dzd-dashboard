@@ -57,7 +57,7 @@ public class ChecklistEngine(
             throw new DomainValidationException("Bu adım tamamlanmadan önce bir belge yüklenmelidir.");
 
         if (item.BenefitKind != ChecklistBenefitKinds.None)
-            ApplyBenefitInput(item, dto);
+            await ApplyBenefitInputAsync(item, dto, cancellationToken);
 
         if (dto.Note is not null) item.Note = dto.Note;
 
@@ -69,7 +69,7 @@ public class ChecklistEngine(
 
         if (item.BenefitKind != ChecklistBenefitKinds.None && item.ReflectedBenefitRecordId is null)
         {
-            var created = await paymentService.CreateBenefitRecordAsync(userId, BuildBenefitDto(item, processStartDate), cancellationToken);
+            var created = await paymentService.CreateBenefitRecordAsync(userId, BuildBenefitDto(item, dto, processStartDate), cancellationToken);
             item.ReflectedBenefitRecordId = created.Id;
             await context.SaveChangesAsync(cancellationToken);
         }
@@ -145,7 +145,7 @@ public class ChecklistEngine(
             throw new DomainConflictException("Tüm işlemler tamamlanmadan ve zimmet teslim alınmadan ödeme adımı tamamlanamaz.");
     }
 
-    private void ApplyBenefitInput(ChecklistItem item, CompleteChecklistItemDto dto)
+    private async Task ApplyBenefitInputAsync(ChecklistItem item, CompleteChecklistItemDto dto, CancellationToken ct)
     {
         item.ProviderName   = dto.ProviderName;
         item.Currency       = string.IsNullOrWhiteSpace(dto.Currency) ? Currencies.Try : dto.Currency;
@@ -168,17 +168,19 @@ public class ChecklistEngine(
         if (item.Dependents.Count > 0)
             context.ChecklistItemDependents.RemoveRange(item.Dependents);
 
+        var typeMap = await context.DependentTypes.AsNoTracking().ToDictionaryAsync(t => t.Name, t => t.Id, ct);
+
         item.Dependents = [.. dto.Dependents.Select((d, index) => new ChecklistItemDependent
         {
             ChecklistItemId = item.Id,
             Order           = index + 1,
-            DependentType   = d.DependentType,
+            DependentTypeId = d.DependentType is not null && typeMap.TryGetValue(d.DependentType, out var tid) ? tid : null,
             DependentName   = d.DependentName,
             Amount          = d.Amount
         })];
     }
 
-    private static BenefitRecordDto BuildBenefitDto(ChecklistItem item, DateTime startDate)
+    private static BenefitRecordDto BuildBenefitDto(ChecklistItem item, CompleteChecklistItemDto dto, DateTime startDate)
     {
         if (item.BenefitKind == ChecklistBenefitKinds.Bes)
         {
@@ -203,13 +205,13 @@ public class ChecklistEngine(
             BenefitType  = BenefitTypes.PrivateHealthInsurance,
             Payer        = BenefitPayers.Employer,
             BenefitName  = "ÖSS",
-            Amount       = (item.EmployeeAmount ?? 0m) + item.Dependents.Sum(d => d.Amount),
+            Amount       = (item.EmployeeAmount ?? 0m) + dto.Dependents.Sum(d => d.Amount),
             Currency     = item.Currency ?? Currencies.Try,
             Period       = PaymentPeriods.Monthly,
             StartDate    = startDate,
             Source       = PaymentSources.Onboarding,
             ProviderName = item.ProviderName,
-            Dependents   = [.. item.Dependents.OrderBy(d => d.Order).Select((d, index) => new BenefitDependentDto
+            Dependents   = [.. dto.Dependents.Select((d, index) => new BenefitDependentDto
             {
                 Order         = index + 1,
                 DependentType = d.DependentType,
@@ -249,7 +251,7 @@ public class ChecklistEngine(
             EmployerAmount   = item.EmployerAmount,
             Dependents       = [.. item.Dependents.OrderBy(d => d.Order).Select(d => new ChecklistItemDependentInputDto
             {
-                Order = d.Order, DependentType = d.DependentType, DependentName = d.DependentName, Amount = d.Amount
+                Order = d.Order, DependentType = d.DependentTypeRef != null ? d.DependentTypeRef.Name : string.Empty, DependentName = d.DependentName, Amount = d.Amount
             })],
             IsActionable  = item.Status == ChecklistItemStatuses.Pending && !gateBlocked,
             BlockedReason = gateBlocked ? "Tüm işlemler ve zimmet iadesi tamamlanmadan bu adım aktifleşmez." : null

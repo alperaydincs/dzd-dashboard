@@ -8,7 +8,8 @@ public class BenefitDependent : AuditableEntity
 
     public string? DependentName { get; set; }
 
-    public string DependentType { get; set; } = string.Empty;
+    public int? DependentTypeId { get; set; }
+    public DependentTypeEntity? DependentTypeRef { get; set; }
 
     public decimal Amount { get; set; }
 

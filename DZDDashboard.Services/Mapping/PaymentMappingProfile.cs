@@ -19,9 +19,13 @@ public class PaymentMappingProfile : Profile
             .ForMember(d => d.ModifiedAt, o => o.Ignore())
             .ForMember(d => d.NotesModifiedAt, o => o.Ignore());
 
-        CreateMap<BenefitDependent, BenefitDependentDto>().ReverseMap()
+        CreateMap<BenefitDependent, BenefitDependentDto>()
+            .ForMember(d => d.DependentType, o => o.MapFrom(s => s.DependentTypeRef != null ? s.DependentTypeRef.Name : null))
+            .ReverseMap()
             .ForMember(d => d.BenefitRecord, o => o.Ignore())
             .ForMember(d => d.BenefitRecordId, o => o.Ignore())
+            .ForMember(d => d.DependentTypeRef, o => o.Ignore())
+            .ForMember(d => d.DependentTypeId, o => o.Ignore())
             .ForMember(d => d.ModifiedBy, o => o.Ignore())
             .ForMember(d => d.ModifiedById, o => o.Ignore())
             .ForMember(d => d.CreatedAt, o => o.Ignore())
