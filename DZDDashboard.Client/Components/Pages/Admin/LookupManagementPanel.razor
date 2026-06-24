@@ -4,134 +4,199 @@
 @inject ILookupClientService Lookups
 @inject ISnackbar Snackbar
 
-<div class="sacc-paper">
-    <div class="sacc-section-hdr" @onclick="ToggleAsync">
-        <button type="button" class="sacc-toggle-btn" @onclick:stopPropagation="false">
-            <MudIcon Icon="@(_expanded ? DzdIcons.ChevronDown : DzdIcons.ChevronRight)" Size="Size.Small" />
-        </button>
-        <div class="sacc-icon-wrap sacc-blue">
-            <MudIcon Icon="@DzdIcons.SlidersHorizontal" Size="Size.Small" />
-        </div>
-        <div class="sacc-title-group">
-            <span class="sacc-title">Seçim Listeleri (Lookup)</span>
-            <span class="sacc-subtitle">Ödeme tipi, kesinti tipi, sözleşme tipi vb. açılır liste değerleri</span>
-        </div>
-    </div>
+@foreach (var cat in Categories)
+{
+    var catKey = cat.Key;
+    var expanded = _expanded.Contains(catKey);
+    var items = _data.TryGetValue(catKey, out var list) ? list : [];
 
-    @if (_expanded)
-    {
-        <div class="sacc-body">
-            <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pt-4" ActivePanelIndex="_tabIndex" ActivePanelIndexChanged="OnTabChanged">
-                @foreach (var cat in Categories)
+    <div class="sacc-paper">
+        <div class="sacc-section-hdr" @onclick="@(() => ToggleAsync(catKey))">
+            <button type="button" class="sacc-toggle-btn">
+                <MudIcon Icon="@(expanded ? DzdIcons.ChevronDown : DzdIcons.ChevronRight)" Size="Size.Small" />
+            </button>
+            <div class="sacc-icon-wrap sacc-blue">
+                <MudIcon Icon="@DzdIcons.Tag" Size="Size.Small" />
+            </div>
+            <div class="sacc-title-group">
+                <span class="sacc-title">@cat.Label</span>
+                <span class="sacc-subtitle">@items.Count items</span>
+            </div>
+        </div>
+
+        @if (expanded)
+        {
+            <div class="sacc-body">
+                @foreach (var v in items)
                 {
-                    <MudTabPanel Text="@cat.Label" />
-                }
-            </MudTabs>
-
-            @if (_loading)
-            {
-                <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
-            }
-            else
-            {
-                <MudStack Spacing="2" Class="mt-2">
-                    @foreach (var v in _items)
+                    var capture = v;
+                    @if (_editingId == v.Id)
                     {
-                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                            <MudNumericField T="int" @bind-Value="v.Sequence" Variant="Variant.Text" Margin="Margin.Dense" HideSpinButtons="true" Style="width:64px;" />
-                            <MudTextField T="string" @bind-Value="v.Value" Variant="Variant.Text" Margin="Margin.Dense" Class="flex-grow-1" />
-                            <MudSwitch T="bool" @bind-Value="v.IsActive" Color="Color.Primary" Label="Aktif" />
-                            <MudIconButton Icon="@DzdIcons.Check" Color="Color.Success" Size="Size.Small" OnClick="@(() => SaveAsync(v))" />
-                            <MudIconButton Icon="@DzdIcons.Trash2" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteAsync(v))" />
-                        </MudStack>
+                        <div class="sacc-inline-row">
+                            <input class="sacc-inline-input" @bind="_editBuffer" @bind:event="oninput"
+                                   @onkeydown="@(e => OnEditKey(e, capture))" />
+                            <button type="button" class="sacc-inline-confirm" @onclick="@(() => ConfirmEditAsync(capture))">
+                                <MudIcon Icon="@DzdIcons.Check" Size="Size.Small" />
+                            </button>
+                            <button type="button" class="sacc-inline-cancel" @onclick="CancelEdit">
+                                <MudIcon Icon="@DzdIcons.X" Size="Size.Small" />
+                            </button>
+                        </div>
                     }
+                    else
+                    {
+                        <div class="sacc-row sacc-flat-row">
+                            <div class="sacc-icon-wrap sacc-blue">
+                                <MudIcon Icon="@DzdIcons.Tag" Size="Size.Small" />
+                            </div>
+                            <span class="sacc-row-name">@v.Value</span>
+                            <div class="sacc-row-actions">
+                                <button type="button" class="sacc-icon-btn" title="Edit" @onclick="@(() => StartEdit(capture))">
+                                    <MudIcon Icon="@DzdIcons.Pencil" Size="Size.Small" />
+                                </button>
+                                <button type="button" class="sacc-icon-btn sacc-icon-btn-danger" title="Delete" @onclick="@(() => DeleteAsync(capture))">
+                                    <MudIcon Icon="@DzdIcons.Trash2" Size="Size.Small" />
+                                </button>
+                            </div>
+                        </div>
+                    }
+                }
 
-                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mt-2">
-                        <MudTextField T="string" Label="Yeni değer" @bind-Value="_newValue" Variant="Variant.Outlined" Margin="Margin.Dense" Class="flex-grow-1" />
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Plus" OnClick="AddAsync">Ekle</MudButton>
-                    </MudStack>
-                </MudStack>
-            }
-        </div>
-    }
-</div>
+                @if (_addingCategory == catKey)
+                {
+                    <div class="sacc-inline-row sacc-inline-add-row">
+                        <input class="sacc-inline-input" placeholder="Yeni değer" @bind="_addBuffer" @bind:event="oninput"
+                               @onkeydown="@(e => OnAddKey(e, catKey))" />
+                        <button type="button" class="sacc-inline-confirm" @onclick="@(() => ConfirmAddAsync(catKey))">
+                            <MudIcon Icon="@DzdIcons.Check" Size="Size.Small" />
+                        </button>
+                        <button type="button" class="sacc-inline-cancel" @onclick="CancelAdd">
+                            <MudIcon Icon="@DzdIcons.X" Size="Size.Small" />
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <button type="button" class="sacc-add-bottom-btn" @onclick="@(() => StartAdd(catKey))">
+                        <MudIcon Icon="@DzdIcons.Plus" Size="Size.Small" Class="sacc-add-icon" /> @cat.AddLabel
+                    </button>
+                }
+            </div>
+        }
+    </div>
+}
 
 @code {
-    private record Category(string Key, string Label);
+    private record Category(string Key, string Label, string AddLabel);
 
     private static readonly IReadOnlyList<Category> Categories =
     [
-        new(LookupCategories.AdditionalPaymentType, "Ek Ödeme Tipi"),
-        new(LookupCategories.DeductionType,         "Kesinti Tipi"),
-        new(LookupCategories.ContractType,          "Sözleşme Tipi"),
-        new(LookupCategories.WorkModel,             "Çalışma Modeli"),
-        new(LookupCategories.EducationLevel,        "Eğitim Düzeyi"),
-        new(LookupCategories.DependentType,         "Bağımlı Tipi"),
+        new(LookupCategories.AdditionalPaymentType, "Ek Ödeme Tipi",   "Ek Ödeme Tipi Ekle"),
+        new(LookupCategories.DeductionType,         "Kesinti Tipi",    "Kesinti Tipi Ekle"),
+        new(LookupCategories.ContractType,          "Sözleşme Tipi",   "Sözleşme Tipi Ekle"),
+        new(LookupCategories.WorkModel,             "Çalışma Modeli",  "Çalışma Modeli Ekle"),
+        new(LookupCategories.EducationLevel,        "Eğitim Düzeyi",   "Eğitim Düzeyi Ekle"),
+        new(LookupCategories.DependentType,         "Bağımlı Tipi",    "Bağımlı Tipi Ekle"),
     ];
 
-    private bool _expanded;
-    private int _tabIndex;
-    private int _lastTab = -1;
-    private bool _loaded;
-    private bool _loading;
-    private List<LookupValueDto> _items = [];
-    private string _newValue = string.Empty;
+    private readonly HashSet<string> _expanded = [];
+    private readonly Dictionary<string, List<LookupValueDto>> _data = [];
 
-    private string CurrentCategory => Categories[_tabIndex].Key;
+    private int?    _editingId;
+    private string  _editBuffer = string.Empty;
+    private string? _addingCategory;
+    private string  _addBuffer = string.Empty;
 
-    private async Task ToggleAsync()
+    private async Task ToggleAsync(string category)
     {
-        _expanded = !_expanded;
-        if (_expanded && !_loaded)
+        if (!_expanded.Add(category))
         {
-            _loaded = true;
-            _lastTab = _tabIndex;
-            await LoadAsync();
+            _expanded.Remove(category);
+            return;
         }
+        if (!_data.ContainsKey(category))
+            _data[category] = await Lookups.GetAllAsync(category) ?? [];
     }
 
-    private async Task OnTabChanged(int index)
+    private void StartEdit(LookupValueDto v)
     {
-        _tabIndex = index;
-        _lastTab = index;
-        await LoadAsync();
+        CancelAdd();
+        _editingId = v.Id;
+        _editBuffer = v.Value;
     }
 
-    private async Task LoadAsync()
+    private void CancelEdit()
     {
-        _loading = true;
-        _items = await Lookups.GetAllAsync(CurrentCategory) ?? [];
-        _loading = false;
+        _editingId = null;
+        _editBuffer = string.Empty;
     }
 
-    private async Task SaveAsync(LookupValueDto v)
+    private async Task OnEditKey(KeyboardEventArgs e, LookupValueDto v)
     {
-        var resp = await Lookups.UpdateAsync(v.Id, v);
-        if (!resp.IsSuccessStatusCode) { Snackbar.Add("Kaydedilemedi.", Severity.Error); return; }
-        Snackbar.Add("Güncellendi.", Severity.Success);
+        if (e.Key == "Enter") await ConfirmEditAsync(v);
+        else if (e.Key == "Escape") CancelEdit();
+    }
+
+    private async Task ConfirmEditAsync(LookupValueDto v)
+    {
+        var value = _editBuffer.Trim();
+        if (string.IsNullOrWhiteSpace(value)) { Snackbar.Add("Değer boş olamaz.", Severity.Warning); return; }
+
+        var updated = v with { Value = value };
+        var resp = await Lookups.UpdateAsync(v.Id, updated);
+        if (!resp.IsSuccessStatusCode)
+        {
+            var detail = await ApiServiceBase.TryReadProblemDetailAsync(resp);
+            Snackbar.Add(detail ?? "Kaydedilemedi.", Severity.Error);
+            return;
+        }
+        v.Value = value;
+        CancelEdit();
+    }
+
+    private void StartAdd(string category)
+    {
+        CancelEdit();
+        _addingCategory = category;
+        _addBuffer = string.Empty;
+    }
+
+    private void CancelAdd()
+    {
+        _addingCategory = null;
+        _addBuffer = string.Empty;
+    }
+
+    private async Task OnAddKey(KeyboardEventArgs e, string category)
+    {
+        if (e.Key == "Enter") await ConfirmAddAsync(category);
+        else if (e.Key == "Escape") CancelAdd();
+    }
+
+    private async Task ConfirmAddAsync(string category)
+    {
+        var value = _addBuffer.Trim();
+        if (string.IsNullOrWhiteSpace(value)) { Snackbar.Add("Değer boş olamaz.", Severity.Warning); return; }
+
+        var list = _data.TryGetValue(category, out var existing) ? existing : [];
+        var dto = new LookupValueDto
+        {
+            Category = category,
+            Value    = value,
+            Sequence = (list.Count == 0 ? 0 : list.Max(i => i.Sequence)) + 1
+        };
+        var created = await Lookups.CreateAsync(dto);
+        if (created is null) { Snackbar.Add("Eklenemedi (aynı değer olabilir).", Severity.Error); return; }
+
+        if (!_data.ContainsKey(category)) _data[category] = [];
+        _data[category].Add(created);
+        CancelAdd();
     }
 
     private async Task DeleteAsync(LookupValueDto v)
     {
         var resp = await Lookups.DeleteAsync(v.Id);
         if (!resp.IsSuccessStatusCode) { Snackbar.Add("Silinemedi.", Severity.Error); return; }
-        _items.Remove(v);
-    }
-
-    private async Task AddAsync()
-    {
-        if (string.IsNullOrWhiteSpace(_newValue)) { Snackbar.Add("Değer zorunludur.", Severity.Warning); return; }
-        var dto = new LookupValueDto
-        {
-            Category = CurrentCategory,
-            Value    = _newValue.Trim(),
-            Sequence = (_items.Count == 0 ? 0 : _items.Max(i => i.Sequence)) + 1,
-            IsActive = true
-        };
-        var created = await Lookups.CreateAsync(dto);
-        if (created is null) { Snackbar.Add("Eklenemedi.", Severity.Error); return; }
-        _items.Add(created);
-        _newValue = string.Empty;
-        Snackbar.Add("Eklendi.", Severity.Success);
+        if (_data.TryGetValue(v.Category, out var list)) list.Remove(v);
     }
 }

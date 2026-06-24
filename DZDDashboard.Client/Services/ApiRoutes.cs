@@ -91,8 +91,8 @@ public static class ApiRoutes
     public static class Lookups
     {
         public const string Base = "api/lookups";
-        public static string List(string category, bool includeInactive = false)
-            => $"{Base}?category={Uri.EscapeDataString(category)}&includeInactive={includeInactive.ToString().ToLowerInvariant()}";
+        public static string List(string category)
+            => $"{Base}?category={Uri.EscapeDataString(category)}";
         public static string Item(int id) => $"{Base}/{id}";
     }
 

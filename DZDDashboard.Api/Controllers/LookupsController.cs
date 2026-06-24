@@ -10,8 +10,8 @@ namespace DZDDashboard.Api.Controllers;
 public class LookupsController(ILookupService lookups) : BaseController
 {
     [HttpGet]
-    public async Task<ActionResult<List<LookupValueDto>>> List([FromQuery] string category, [FromQuery] bool includeInactive, CancellationToken cancellationToken)
-        => Ok(await lookups.GetAsync(category, includeInactive, cancellationToken));
+    public async Task<ActionResult<List<LookupValueDto>>> List([FromQuery] string category, CancellationToken cancellationToken)
+        => Ok(await lookups.GetAsync(category, cancellationToken));
 
     [HttpPost]
     [Authorize(Roles = Roles.AdminOrHr)]

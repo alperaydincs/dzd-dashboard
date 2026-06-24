@@ -22,7 +22,7 @@ public class LookupClientService(IHttpClientFactory httpClientFactory, Navigatio
     }
 
     public async Task<List<LookupValueDto>?> GetAllAsync(string category)
-        => await GetAsync<List<LookupValueDto>>(ApiRoutes.Lookups.List(category, includeInactive: true));
+        => await GetAsync<List<LookupValueDto>>(ApiRoutes.Lookups.List(category));
 
     public async Task<LookupValueDto?> CreateAsync(LookupValueDto dto)
         => await PostAsync<LookupValueDto>(ApiRoutes.Lookups.Base, dto);

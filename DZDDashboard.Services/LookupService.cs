@@ -10,13 +10,13 @@ namespace DZDDashboard.Services;
 
 public class LookupService(AppDbContext context) : ILookupService
 {
-    public async Task<List<LookupValueDto>> GetAsync(string category, bool includeInactive, CancellationToken cancellationToken = default)
+    public async Task<List<LookupValueDto>> GetAsync(string category, CancellationToken cancellationToken = default)
     {
         EnsureValidCategory(category);
-        var query = context.LookupValues.AsNoTracking().Where(x => x.Category == category);
-        if (!includeInactive) query = query.Where(x => x.IsActive);
-
-        var rows = await query.OrderBy(x => x.Sequence).ThenBy(x => x.Value).ToListAsync(cancellationToken);
+        var rows = await context.LookupValues.AsNoTracking()
+            .Where(x => x.Category == category)
+            .OrderBy(x => x.Sequence).ThenBy(x => x.Value)
+            .ToListAsync(cancellationToken);
         return [.. rows.Select(Map)];
     }
 
@@ -33,8 +33,7 @@ public class LookupService(AppDbContext context) : ILookupService
         {
             Category = dto.Category,
             Value    = value,
-            Sequence = dto.Sequence,
-            IsActive = dto.IsActive
+            Sequence = dto.Sequence
         };
         context.LookupValues.Add(entity);
         await context.SaveChangesAsync(cancellationToken);
@@ -52,7 +51,6 @@ public class LookupService(AppDbContext context) : ILookupService
 
         entity.Value    = value;
         entity.Sequence = dto.Sequence;
-        entity.IsActive = dto.IsActive;
         await context.SaveChangesAsync(cancellationToken);
     }
 
@@ -71,6 +69,6 @@ public class LookupService(AppDbContext context) : ILookupService
 
     private static LookupValueDto Map(LookupValue x) => new()
     {
-        Id = x.Id, Category = x.Category, Value = x.Value, Sequence = x.Sequence, IsActive = x.IsActive
+        Id = x.Id, Category = x.Category, Value = x.Value, Sequence = x.Sequence
     };
 }

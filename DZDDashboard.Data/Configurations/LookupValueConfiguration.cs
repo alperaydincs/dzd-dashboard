@@ -42,7 +42,6 @@ public class LookupValueConfiguration : IEntityTypeConfiguration<LookupValue>
                     Category  = category,
                     Value     = value,
                     Sequence  = seq++,
-                    IsActive  = true,
                     CreatedAt = SeedTimestamp
                 });
         }
