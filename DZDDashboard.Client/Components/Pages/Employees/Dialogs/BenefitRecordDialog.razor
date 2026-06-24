@@ -1,7 +1,9 @@
 @using DZDDashboard.Common.Constants
 @using DZDDashboard.Common.DTOs
 @using DZDDashboard.Common.Validation
+@using DZDDashboard.Client.Services
 @inject ISnackbar Snackbar
+@inject ILookupClientService Lookups
 
 <MudDialog>
     <TitleContent>
@@ -78,7 +80,7 @@
                             <MudItem xs="6" sm="2">
                                 <div class="dzd-dialog-label">Relation</div>
                                 <MudSelect T="string" @bind-Value="dependent.DependentType" Variant="Variant.Outlined" Margin="Margin.Dense">
-                                    @foreach (var option in DependentTypes.All)
+                                    @foreach (var option in _dependentTypeOptions)
                                     {
                                         <MudSelectItem Value="@option">@option</MudSelectItem>
                                     }
@@ -148,6 +150,14 @@
 </MudDialog>
 
 @code {
+    private List<string> _dependentTypeOptions = [.. DependentTypes.All];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var values = await Lookups.GetValuesAsync(LookupCategories.DependentType);
+        if (values.Count > 0) _dependentTypeOptions = values;
+    }
+
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter] public BenefitRecordDto? InitialModel { get; set; }

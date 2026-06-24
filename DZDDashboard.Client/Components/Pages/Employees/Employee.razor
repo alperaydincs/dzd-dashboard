@@ -683,7 +683,7 @@
                                     @if (_basicInfoEdit.IsEditing)
                                     {
                                         <MudSelect T="string" @bind-Value="_profile!.ContractType" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  AnchorOrigin="Origin.BottomLeft">
-                                            @foreach (var ct in ContractTypes.All)
+                                            @foreach (var ct in _contractTypeOptions)
                                             {
                                                 <MudSelectItem Value="@ct">@ct</MudSelectItem>
                                             }
@@ -712,7 +712,7 @@
                                     @if (_basicInfoEdit.IsEditing)
                                     {
                                         <MudSelect T="string" @bind-Value="_profile!.WorkModel" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input"  AnchorOrigin="Origin.BottomLeft">
-                                            @foreach (var wm in WorkModels.All)
+                                            @foreach (var wm in _workModelOptions)
                                             {
                                                 <MudSelectItem Value="@wm">@wm</MudSelectItem>
                                             }

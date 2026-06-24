@@ -155,6 +155,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOnboardingService, OnboardingService>();
         services.AddScoped<IOffboardingService, OffboardingService>();
         services.AddScoped<IChecklistTemplateService, ChecklistTemplateService>();
+        services.AddScoped<ILookupService, LookupService>();
         return services;
     }
 }

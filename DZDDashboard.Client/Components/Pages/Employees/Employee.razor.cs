@@ -33,6 +33,10 @@ public partial class Employee
     [Inject] private IPaymentClientService PaymentService { get; set; } = default!;
     [Inject] private IUserAvatarState AvatarState { get; set; } = default!;
     [Inject] private IJSRuntime JS { get; set; } = default!;
+    [Inject] private ILookupClientService Lookups { get; set; } = default!;
+
+    private List<string> _contractTypeOptions = [.. ContractTypes.All];
+    private List<string> _workModelOptions    = [.. WorkModels.All];
 
     private MyPaymentSummaryDto? _myPaymentSummary;
     private bool _myPaymentSummaryLoading;
@@ -66,8 +70,18 @@ public partial class Employee
     private bool _cvUploading;
     private const string CvAcceptList = ".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg";
 
+    private async Task LoadLookupsAsync()
+    {
+        var contracts = await Lookups.GetValuesAsync(LookupCategories.ContractType);
+        if (contracts.Count > 0) _contractTypeOptions = contracts;
+        var workModels = await Lookups.GetValuesAsync(LookupCategories.WorkModel);
+        if (workModels.Count > 0) _workModelOptions = workModels;
+    }
+
     protected override async Task OnInitializedAsync()
     {
+        await LoadLookupsAsync();
+
         if (SelfService)
         {
             await LoadSelfData();

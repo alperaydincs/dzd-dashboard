@@ -88,6 +88,14 @@ public static class ApiRoutes
         public static string ItemDocument(int id, int itemId) => $"{Base}/{id}/items/{itemId}/document";
     }
 
+    public static class Lookups
+    {
+        public const string Base = "api/lookups";
+        public static string List(string category, bool includeInactive = false)
+            => $"{Base}?category={Uri.EscapeDataString(category)}&includeInactive={includeInactive.ToString().ToLowerInvariant()}";
+        public static string Item(int id) => $"{Base}/{id}";
+    }
+
     public static class ChecklistTemplates
     {
         public const string Base = "api/checklist-templates";

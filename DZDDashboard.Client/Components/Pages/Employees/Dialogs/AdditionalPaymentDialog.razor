@@ -1,6 +1,8 @@
 @using DZDDashboard.Common.Constants
 @using DZDDashboard.Common.DTOs
+@using DZDDashboard.Client.Services
 @inject ISnackbar Snackbar
+@inject ILookupClientService Lookups
 
 <MudDialog>
     <TitleContent>
@@ -16,7 +18,7 @@
                     <div class="dzd-dialog-label">Payment Type <span class="dzd-required">*</span></div>
                     <MudSelect T="string" @bind-Value="_model.PaymentType" Variant="Variant.Outlined" Margin="Margin.Dense"
                                Required="true" Placeholder="Select payment type">
-                        @foreach (var option in AdditionalPaymentTypes.All)
+                        @foreach (var option in _typeOptions)
                         {
                             <MudSelectItem Value="@option">@option</MudSelectItem>
                         }
@@ -88,6 +90,14 @@
 </MudDialog>
 
 @code {
+    private List<string> _typeOptions = [.. AdditionalPaymentTypes.All];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var values = await Lookups.GetValuesAsync(LookupCategories.AdditionalPaymentType);
+        if (values.Count > 0) _typeOptions = values;
+    }
+
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter] public AdditionalPaymentDto? InitialModel { get; set; }

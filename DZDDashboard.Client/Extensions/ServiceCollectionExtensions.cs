@@ -99,6 +99,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMyOnboardingClientService>(sp => sp.GetRequiredService<MyOnboardingClientService>());
         services.AddScoped<ChecklistTemplateClientService>();
         services.AddScoped<IChecklistTemplateClientService>(sp => sp.GetRequiredService<ChecklistTemplateClientService>());
+        services.AddScoped<LookupClientService>();
+        services.AddScoped<ILookupClientService>(sp => sp.GetRequiredService<LookupClientService>());
         services.AddScoped<NotificationCenterService>();
         services.AddScoped<INotificationCenterService>(sp => sp.GetRequiredService<NotificationCenterService>());
         services.AddScoped<IUserAvatarState, UserAvatarState>();

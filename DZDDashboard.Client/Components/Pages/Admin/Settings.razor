@@ -31,7 +31,7 @@
                     </button>
                     <button type="button" class="settings-tab-segment" role="tab" aria-selected="@(_activeSettingsTabIndex == 2 ? "true" : "false")" @onclick="() => SetSettingsTab(2)">
                         <MudIcon Icon="@DzdIcons.SlidersHorizontal" Size="Size.Small" Class="settings-tab-icon" />
-                        More Settings
+                        Onboarding/Offboarding
                     </button>
                 </div>
 
@@ -411,11 +411,9 @@
                             }
                         </MudPaper>
 
+                        <LookupManagementPanel />
+
                     </MudStack>
-                }
-                else
-                {
-                    <MudAlert Severity="Severity.Info">Additional settings will be added here.</MudAlert>
                 }
             </MudStack>
         }

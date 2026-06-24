@@ -63,6 +63,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, IAuditProvider
     public DbSet<ChecklistItem> ChecklistItems { get; set; }
     public DbSet<ChecklistItemDependent> ChecklistItemDependents { get; set; }
     public DbSet<ChecklistStepTemplate> ChecklistStepTemplates { get; set; }
+    public DbSet<LookupValue> LookupValues { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
