@@ -23,7 +23,7 @@ internal static class ValidationMessages
     internal const string BenefitPayerInvalid            = "Payer must be either Employer or Employee.";
     internal const string BenefitAmountInvalid           = "Benefit amount must be greater than zero.";
     internal const string BenefitStartDateRequired       = "Benefit start date is required.";
-    internal const string DependentTypeRequired          = "Dependent type is required.";
+    internal const string RelationTypeRequired           = "Relation type is required.";
     internal const string DependentAmountInvalid         = "Dependent amount must be greater than zero.";
     internal const string AdditionalPaymentTypeInvalid   = "Additional payment type is not recognised.";
     internal const string AdditionalPaymentAmountInvalid = "Additional payment amount must be greater than zero.";

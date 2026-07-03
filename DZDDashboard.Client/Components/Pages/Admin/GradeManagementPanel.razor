@@ -17,13 +17,13 @@ else
 
         <div class="gm-header">
             <div>
-                <MudText Typo="Typo.h5" Class="gm-title">Career Path Settings</MudText>
-                <MudText Typo="Typo.body2" Class="gm-subtitle">Define career paths per employee group, then add grade levels and assign job titles to each grade</MudText>
+                <MudText Typo="Typo.h5" Class="gm-title">@Loc["gradeManagement.careerPathSettings"]</MudText>
+                <MudText Typo="Typo.body2" Class="gm-subtitle">@Loc["gradeManagement.careerPathSettingsSubtitle"]</MudText>
             </div>
             <MudButton Variant="Variant.Filled" Color="Color.Primary"
                        StartIcon="@DzdIcons.Plus" Disabled="@(_editPathId is not null)"
                        OnClick="OpenAddCareerPathDialog">
-                Add Career Path
+                @Loc["careerPathDialog.addTitle"]
             </MudButton>
         </div>
 
@@ -47,10 +47,10 @@ else
                     @if (isEditing)
                     {
                         <div class="gm-edit-hdr-fields">
-                            <MudTextField @bind-Value="_editPathName" Placeholder="Career path name"
+                            <MudTextField @bind-Value="_editPathName" Placeholder="@Loc["gradeManagement.careerPathNamePlaceholder"]"
                                           Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true"
                                           Class="gm-hdr-name" />
-                            <MudSelect T="int" @bind-Value="_editPathGroupId" Placeholder="Employee group"
+                            <MudSelect T="int" @bind-Value="_editPathGroupId" Placeholder="@Loc["gradeManagement.employeeGroupPlaceholder"]"
                                        Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
                                        Class="gm-hdr-group">
                                 @foreach (var g in _userGroups)
@@ -61,9 +61,9 @@ else
                         </div>
                         <div class="gm-job-actions">
                             <MudIconButton Icon="@DzdIcons.Check" Color="Color.Success" Size="Size.Small"
-                                           title="Save" Disabled="@(!CanSavePath)" OnClick="SavePathEdit" />
+                                           title="@Loc["common.save"]" Disabled="@(!CanSavePath)" OnClick="SavePathEdit" />
                             <MudIconButton Icon="@DzdIcons.X" Color="Color.Error" Size="Size.Small"
-                                           title="Cancel" Disabled="@_saving" OnClick="CancelPathEdit" />
+                                           title="@Loc["common.cancel"]" Disabled="@_saving" OnClick="CancelPathEdit" />
                         </div>
                     }
                     else
@@ -73,13 +73,13 @@ else
                             <span class="gm-job-meta">
                                 @path.UserGroupName
                                 <span class="gm-meta-sep">·</span>
-                                @path.Rules.Count grade levels
+                                @string.Format(Loc["gradeManagement.gradeLevelsCount"], path.Rules.Count)
                             </span>
                         </div>
                         <div class="gm-job-actions">
-                            <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" title="Edit"
+                            <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" title="@Loc["common.edit"]"
                                            Disabled="@(_editPathId is not null)" OnClick="() => BeginEditPath(pathCapture)" />
-                            <MudIconButton Icon="@DzdIcons.Trash2" Color="Color.Error" Size="Size.Small" title="Delete"
+                            <MudIconButton Icon="@DzdIcons.Trash2" Color="Color.Error" Size="Size.Small" title="@Loc["payment.delete"]"
                                            Disabled="@(_editPathId is not null)" OnClick="() => DeleteCareerPath(pathCapture)" />
                         </div>
                     }
@@ -92,36 +92,36 @@ else
                         <MudTable Items="_editRules.OrderBy(r => r.Grade)" Hover="true" Bordered="true"
                                   Dense="true" Elevation="0" Class="gm-table" Breakpoint="Breakpoint.None">
                             <HeaderContent>
-                                <MudTh Class="gm-th-grade">Grade</MudTh>
-                                <MudTh Class="gm-th-pos">Job Titles</MudTh>
-                                <MudTh Class="gm-th-dur">Min. Time in Role</MudTh>
-                                <MudTh Class="gm-th-dur">Min. Experience</MudTh>
-                                <MudTh Class="gm-th-check">Manager Performance Eval.</MudTh>
-                                <MudTh Class="gm-th-check">Assessment Center</MudTh>
-                                <MudTh Class="gm-th-check">Technical Interview</MudTh>
-                                <MudTh Class="gm-th-check">Case Study</MudTh>
-                                <MudTh Class="gm-th-check">English Proficiency</MudTh>
-                                <MudTh Class="gm-th-check">Committee Approval</MudTh>
-                                <MudTh>Project Target</MudTh>
+                                <MudTh Class="gm-th-grade">@Loc["gradeManagement.colGrade"]</MudTh>
+                                <MudTh Class="gm-th-pos">@Loc["gradeManagement.colJobTitles"]</MudTh>
+                                <MudTh Class="gm-th-dur">@Loc["gradeManagement.colMinTimeInRole"]</MudTh>
+                                <MudTh Class="gm-th-dur">@Loc["gradeManagement.colMinExperience"]</MudTh>
+                                <MudTh Class="gm-th-check">@Loc["gradeManagement.colManagerEval"]</MudTh>
+                                <MudTh Class="gm-th-check">@Loc["gradeManagement.colAssessmentCenter"]</MudTh>
+                                <MudTh Class="gm-th-check">@Loc["gradeManagement.colTechnicalInterview"]</MudTh>
+                                <MudTh Class="gm-th-check">@Loc["gradeManagement.colCaseStudy"]</MudTh>
+                                <MudTh Class="gm-th-check">@Loc["gradeManagement.colEnglishProficiency"]</MudTh>
+                                <MudTh Class="gm-th-check">@Loc["gradeManagement.colCommitteeApproval"]</MudTh>
+                                <MudTh>@Loc["gradeManagement.colProjectTarget"]</MudTh>
                                 <MudTh Class="gm-th-actions"></MudTh>
                             </HeaderContent>
                             <RowTemplate>
-                                <MudTd DataLabel="Grade" Class="gm-cell-center">
+                                <MudTd DataLabel="@Loc["gradeManagement.colGrade"]" Class="gm-cell-center">
                                     <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text" Class="gm-grade-badge">G@(context.Grade)</MudChip>
                                 </MudTd>
-                                <MudTd DataLabel="Job Titles">
+                                <MudTd DataLabel="@Loc["gradeManagement.colJobTitles"]">
                                     <JobTitleSelector AllJobs="_allJobs" SelectedIds="context.JobIds" OnChanged="StateHasChanged" />
                                 </MudTd>
-                                <MudTd DataLabel="Min. Time in Role">
+                                <MudTd DataLabel="@Loc["gradeManagement.colMinTimeInRole"]">
                                     <div class="gm-edit-duration">
-                                        <MudNumericField T="int?" @bind-Value="context.RetYears"  Min="0" Placeholder="Yr" Variant="Variant.Outlined" Margin="Margin.Dense" Class="gm-cell-dur" />
-                                        <MudNumericField T="int?" @bind-Value="context.RetMonths" Min="0" Placeholder="Mo" Variant="Variant.Outlined" Margin="Margin.Dense" Class="gm-cell-dur" />
+                                        <MudNumericField T="int?" @bind-Value="context.RetYears"  Min="0" Placeholder="@Loc["gradeManagement.yearPlaceholder"]" Variant="Variant.Outlined" Margin="Margin.Dense" Class="gm-cell-dur" />
+                                        <MudNumericField T="int?" @bind-Value="context.RetMonths" Min="0" Placeholder="@Loc["gradeManagement.monthPlaceholder"]" Variant="Variant.Outlined" Margin="Margin.Dense" Class="gm-cell-dur" />
                                     </div>
                                 </MudTd>
-                                <MudTd DataLabel="Min. Experience">
+                                <MudTd DataLabel="@Loc["gradeManagement.colMinExperience"]">
                                     <div class="gm-edit-duration">
-                                        <MudNumericField T="int?" @bind-Value="context.ExpYears"  Min="0" Placeholder="Yr" Variant="Variant.Outlined" Margin="Margin.Dense" Class="gm-cell-dur" />
-                                        <MudNumericField T="int?" @bind-Value="context.ExpMonths" Min="0" Placeholder="Mo" Variant="Variant.Outlined" Margin="Margin.Dense" Class="gm-cell-dur" />
+                                        <MudNumericField T="int?" @bind-Value="context.ExpYears"  Min="0" Placeholder="@Loc["gradeManagement.yearPlaceholder"]" Variant="Variant.Outlined" Margin="Margin.Dense" Class="gm-cell-dur" />
+                                        <MudNumericField T="int?" @bind-Value="context.ExpMonths" Min="0" Placeholder="@Loc["gradeManagement.monthPlaceholder"]" Variant="Variant.Outlined" Margin="Margin.Dense" Class="gm-cell-dur" />
                                     </div>
                                 </MudTd>
                                 <MudTd Class="gm-cell-center"><MudCheckBox T="bool" @bind-Value="context.Manager"   Dense="true" /></MudTd>
@@ -130,14 +130,14 @@ else
                                 <MudTd Class="gm-cell-center"><MudCheckBox T="bool" @bind-Value="context.Case"      Dense="true" /></MudTd>
                                 <MudTd Class="gm-cell-center"><MudCheckBox T="bool" @bind-Value="context.English"   Dense="true" /></MudTd>
                                 <MudTd Class="gm-cell-center"><MudCheckBox T="bool" @bind-Value="context.Committee" Dense="true" /></MudTd>
-                                <MudTd DataLabel="Project Target">
+                                <MudTd DataLabel="@Loc["gradeManagement.colProjectTarget"]">
                                     <MudNumericField T="int?" @bind-Value="context.ProjectTarget" Min="0" Variant="Variant.Outlined" Margin="Margin.Dense" Class="gm-cell-target" />
                                 </MudTd>
                                 <MudTd Class="gm-cell-center">
                                     @if (IsLastRule(context))
                                     {
                                         <MudIconButton Icon="@DzdIcons.Trash2" Color="Color.Error" Size="Size.Small"
-                                                       title="Delete last grade" Disabled="@_saving" OnClick="RemoveLastRuleRow" />
+                                                       title="@Loc["gradeManagement.deleteLastGrade"]" Disabled="@_saving" OnClick="RemoveLastRuleRow" />
                                     }
                                 </MudTd>
                             </RowTemplate>
@@ -147,13 +147,13 @@ else
                         <div class="gm-add-grade-row">
                             <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
                                        StartIcon="@DzdIcons.Plus" OnClick="AddRuleRow" Class="gm-add-grade-btn">
-                                Add Grade Level
+                                @Loc["gradeManagement.addGradeLevel"]
                             </MudButton>
                         </div>
                     }
                     else if (path.Rules.Count == 0)
                     {
-                        <div class="gm-no-grades">No grade levels yet. Click the edit icon to add some.</div>
+                        <div class="gm-no-grades">@Loc["gradeManagement.noGradesYet"]</div>
                     }
                     else
                     {
@@ -161,23 +161,23 @@ else
                         <MudTable Items="path.Rules.OrderBy(r => r.Grade)" Hover="true" Bordered="true"
                                   Dense="true" Elevation="0" Class="gm-table" Breakpoint="Breakpoint.None">
                             <HeaderContent>
-                                <MudTh Class="gm-th-grade">Grade</MudTh>
-                                <MudTh Class="gm-th-pos">Job Titles</MudTh>
-                                <MudTh Class="gm-th-dur">Min. Time in Role</MudTh>
-                                <MudTh Class="gm-th-dur">Min. Experience</MudTh>
-                                <MudTh Class="gm-th-check">Manager Performance Eval.</MudTh>
-                                <MudTh Class="gm-th-check">Assessment Center</MudTh>
-                                <MudTh Class="gm-th-check">Technical Interview</MudTh>
-                                <MudTh Class="gm-th-check">Case Study</MudTh>
-                                <MudTh Class="gm-th-check">English Proficiency</MudTh>
-                                <MudTh Class="gm-th-check">Committee Approval</MudTh>
-                                <MudTh>Project Target</MudTh>
+                                <MudTh Class="gm-th-grade">@Loc["gradeManagement.colGrade"]</MudTh>
+                                <MudTh Class="gm-th-pos">@Loc["gradeManagement.colJobTitles"]</MudTh>
+                                <MudTh Class="gm-th-dur">@Loc["gradeManagement.colMinTimeInRole"]</MudTh>
+                                <MudTh Class="gm-th-dur">@Loc["gradeManagement.colMinExperience"]</MudTh>
+                                <MudTh Class="gm-th-check">@Loc["gradeManagement.colManagerEval"]</MudTh>
+                                <MudTh Class="gm-th-check">@Loc["gradeManagement.colAssessmentCenter"]</MudTh>
+                                <MudTh Class="gm-th-check">@Loc["gradeManagement.colTechnicalInterview"]</MudTh>
+                                <MudTh Class="gm-th-check">@Loc["gradeManagement.colCaseStudy"]</MudTh>
+                                <MudTh Class="gm-th-check">@Loc["gradeManagement.colEnglishProficiency"]</MudTh>
+                                <MudTh Class="gm-th-check">@Loc["gradeManagement.colCommitteeApproval"]</MudTh>
+                                <MudTh>@Loc["gradeManagement.colProjectTarget"]</MudTh>
                             </HeaderContent>
                             <RowTemplate>
-                                <MudTd DataLabel="Grade" Class="gm-cell-center">
+                                <MudTd DataLabel="@Loc["gradeManagement.colGrade"]" Class="gm-cell-center">
                                     <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text" Class="gm-grade-badge">G@(context.Grade)</MudChip>
                                 </MudTd>
-                                <MudTd DataLabel="Job Titles">
+                                <MudTd DataLabel="@Loc["gradeManagement.colJobTitles"]">
                                     @if (context.PositionJobs.Count > 0)
                                     {
                                         <div class="gm-pos-chips">
@@ -192,15 +192,15 @@ else
                                         <span class="gm-empty-dash">—</span>
                                     }
                                 </MudTd>
-                                <MudTd DataLabel="Min. Time in Role" Class="gm-cell-center">@FormatRetention(context)</MudTd>
-                                <MudTd DataLabel="Min. Experience" Class="gm-cell-center">@FormatMinExperience(context)</MudTd>
+                                <MudTd DataLabel="@Loc["gradeManagement.colMinTimeInRole"]" Class="gm-cell-center">@FormatRetention(context)</MudTd>
+                                <MudTd DataLabel="@Loc["gradeManagement.colMinExperience"]" Class="gm-cell-center">@FormatMinExperience(context)</MudTd>
                                 <MudTd Class="gm-cell-center">@CheckIcon(context.ManagerPerformanceEvaluation)</MudTd>
                                 <MudTd Class="gm-cell-center">@CheckIcon(context.AssessmentCenterApplication)</MudTd>
                                 <MudTd Class="gm-cell-center">@CheckIcon(context.TechnicalInterview)</MudTd>
                                 <MudTd Class="gm-cell-center">@CheckIcon(context.CaseStudy)</MudTd>
                                 <MudTd Class="gm-cell-center">@CheckIcon(context.EnglishProficiency)</MudTd>
                                 <MudTd Class="gm-cell-center">@CheckIcon(context.CommitteeApproval)</MudTd>
-                                <MudTd DataLabel="Project Target" Class="gm-cell-center">@(context.ProjectObjective?.ToString() ?? "—")</MudTd>
+                                <MudTd DataLabel="@Loc["gradeManagement.colProjectTarget"]" Class="gm-cell-center">@(context.ProjectObjective?.ToString() ?? "—")</MudTd>
                             </RowTemplate>
                         </MudTable>
                         </div>
@@ -213,8 +213,8 @@ else
         {
             <MudPaper Elevation="0" Outlined="true" Class="gm-empty-state">
                 <MudIcon Icon="@DzdIcons.Route" Size="Size.Large" Class="gm-empty-icon" />
-                <MudText Typo="Typo.subtitle1" Class="gm-empty-text">No career paths defined yet.</MudText>
-                <MudText Typo="Typo.body2" Class="gm-empty-sub">Click "+ Add Career Path" to get started.</MudText>
+                <MudText Typo="Typo.subtitle1" Class="gm-empty-text">@Loc["gradeManagement.noCareerPaths"]</MudText>
+                <MudText Typo="Typo.body2" Class="gm-empty-sub">@Loc["gradeManagement.clickToAddCareerPath"]</MudText>
             </MudPaper>
         }
 

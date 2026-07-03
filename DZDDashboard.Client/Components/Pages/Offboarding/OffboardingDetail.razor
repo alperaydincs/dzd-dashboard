@@ -10,9 +10,10 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager Nav
 @inject IJSRuntime JS
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
-    <MudButton Variant="Variant.Text" StartIcon="@DzdIcons.ArrowLeft" OnClick="@(() => Nav.NavigateTo("/offboarding"))" Class="mb-2">Offboarding listesine dön</MudButton>
+    <MudButton Variant="Variant.Text" StartIcon="@DzdIcons.ArrowLeft" OnClick="@(() => Nav.NavigateTo("/offboarding"))" Class="mb-2">@Loc["offboardingDetail.backToList"]</MudButton>
 
     @if (_loading)
     {
@@ -20,7 +21,7 @@
     }
     else if (_process is null)
     {
-        <MudAlert Severity="Severity.Error">Süreç bulunamadı.</MudAlert>
+        <MudAlert Severity="Severity.Error">@Loc["onboardingDetail.notFound"]</MudAlert>
     }
     else
     {
@@ -29,7 +30,7 @@
                 <MudStack Spacing="0">
                     <MudText Typo="Typo.h5">@_process.EmployeeName</MudText>
                     <MudText Typo="Typo.caption" Style="color:var(--dzd-text-secondary);">
-                        @TypeLabel(_process.Type) · Çıkış: @AppFormatter.FormatDate(_process.ExitDate)
+                        @string.Format(Loc["offboardingDetail.typeExitLine"], TypeLabel(_process.Type), AppFormatter.FormatDate(_process.ExitDate))
                     </MudText>
                 </MudStack>
                 <MudChip T="string" Color="@StatusColor(_process.Status)" Variant="Variant.Text">@StatusLabel(_process.Status)</MudChip>
@@ -64,20 +65,20 @@
 
     private async Task HandleComplete((int ItemId, CompleteChecklistItemDto Dto) e)
     {
-        try { await Apply(await OffboardingService.CompleteItemAsync(Id, e.ItemId, e.Dto), "Adım tamamlandı."); }
-        catch { Snackbar.Add("Adım tamamlanamadı. Önce ön koşul adımlarını tamamlayın.", Severity.Error); await LoadAsync(); }
+        try { await Apply(await OffboardingService.CompleteItemAsync(Id, e.ItemId, e.Dto), Loc["onboardingDetail.stepCompleted"]); }
+        catch { Snackbar.Add(Loc["offboardingDetail.stepFailedPrereq"], Severity.Error); await LoadAsync(); }
     }
 
     private async Task HandleSkip(int itemId)
-        => await Apply(await OffboardingService.SkipItemAsync(Id, itemId), "Adım atlandı.");
+        => await Apply(await OffboardingService.SkipItemAsync(Id, itemId), Loc["onboardingDetail.stepSkipped"]);
 
     private async Task HandleReopen(int itemId)
-        => await Apply(await OffboardingService.ReopenItemAsync(Id, itemId), "Adım yeniden açıldı.");
+        => await Apply(await OffboardingService.ReopenItemAsync(Id, itemId), Loc["onboardingDetail.stepReopened"]);
 
     private async Task HandleSaveNote((int ItemId, string? Note) e)
     {
         var response = await OffboardingService.UpdateNoteAsync(Id, e.ItemId, new UpdateChecklistNoteDto { Note = e.Note });
-        if (!response.IsSuccessStatusCode) { Snackbar.Add("Not kaydedilemedi.", Severity.Error); return; }
+        if (!response.IsSuccessStatusCode) { Snackbar.Add(Loc["onboardingDetail.noteSaveFailed"], Severity.Error); return; }
         await LoadAsync();
     }
 
@@ -88,33 +89,33 @@
         if (!response.IsSuccessStatusCode)
         {
             var detail = await DZDDashboard.Client.Services.ApiServiceBase.TryReadProblemDetailAsync(response);
-            Snackbar.Add(detail ?? "Belge yüklenemedi.", Severity.Error);
+            Snackbar.Add(detail ?? Loc["onboardingDetail.documentUploadFailed"], Severity.Error);
             return;
         }
-        Snackbar.Add("Belge yüklendi.", Severity.Success);
+        Snackbar.Add(Loc["onboardingDetail.documentUploaded"], Severity.Success);
         await LoadAsync();
     }
 
     private async Task HandleDeleteDocument(int itemId)
-        => await Apply(await OffboardingService.DeleteDocumentAsync(Id, itemId), "Belge silindi.");
+        => await Apply(await OffboardingService.DeleteDocumentAsync(Id, itemId), Loc["onboardingDetail.documentDeleted"]);
 
     private async Task HandleDownloadDocument(int itemId)
     {
         var item = _process?.Items.FirstOrDefault(i => i.Id == itemId);
         var bytes = await OffboardingService.DownloadDocumentAsync(Id, itemId);
-        if (bytes is null) { Snackbar.Add("İndirilemedi.", Severity.Error); return; }
-        await JS.InvokeVoidAsync("dzdDownloadFile", item?.DocumentFileName ?? "kanit", Convert.ToBase64String(bytes), "application/octet-stream");
+        if (bytes is null) { Snackbar.Add(Loc["onboardingDetail.downloadFailed"], Severity.Error); return; }
+        await JS.InvokeVoidAsync("dzdDownloadFile", item?.DocumentFileName ?? Loc["onboardingDetail.evidenceFallbackName"], Convert.ToBase64String(bytes), "application/octet-stream");
     }
 
     private async Task Apply(OffboardingProcessDto? result, string successMessage)
     {
-        if (result is null) { Snackbar.Add("İşlem başarısız.", Severity.Error); await LoadAsync(); return; }
+        if (result is null) { Snackbar.Add(Loc["onboardingDetail.actionFailed"], Severity.Error); await LoadAsync(); return; }
         _process = result;
         Snackbar.Add(successMessage, Severity.Success);
         StateHasChanged();
     }
 
-    private static string TypeLabel(string type) => type == OffboardingTypes.Termination ? "İşten Çıkarma" : "İstifa";
+    private string TypeLabel(string type) => type == OffboardingTypes.Termination ? Loc["offboarding.typeTermination"] : Loc["offboarding.typeResignation"];
 
     private static Color StatusColor(string status) => status switch
     {
@@ -123,10 +124,10 @@
         _                         => Color.Info
     };
 
-    private static string StatusLabel(string status) => status switch
+    private string StatusLabel(string status) => status switch
     {
-        ProcessStatuses.Completed => "Tamamlandı",
-        ProcessStatuses.Cancelled => "İptal",
-        _                         => "Devam ediyor"
+        ProcessStatuses.Completed => Loc["lifecycle.completed"],
+        ProcessStatuses.Cancelled => Loc["lifecycle.cancelled"],
+        _                         => Loc["lifecycle.inProgress"]
     };
 }

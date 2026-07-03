@@ -21,9 +21,6 @@ public class BenefitDependentConfiguration : IEntityTypeConfiguration<BenefitDep
             .HasForeignKey(x => x.ModifiedById)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(x => x.DependentTypeRef)
-            .WithMany()
-            .HasForeignKey(x => x.DependentTypeId)
-            .OnDelete(DeleteBehavior.SetNull);
+        builder.Property(x => x.RelationType).HasMaxLength(ValidationConstants.MaxStandardLength);
     }
 }

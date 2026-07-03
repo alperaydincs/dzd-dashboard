@@ -9,15 +9,16 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager Nav
 @inject IJSRuntime JS
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
     <MudPaper Elevation="2" Class="pa-6 mb-4">
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
             <MudIcon Icon="@DzdIcons.UserPlus" Color="Color.Primary" Size="Size.Large" />
             <MudStack Spacing="0">
-                <MudText Typo="Typo.h5">İşe Başlama Sürecin</MudText>
+                <MudText Typo="Typo.h5">@Loc["myOnboarding.heroTitle"]</MudText>
                 <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">
-                    Aşağıdaki evrakları yükle. İK ekibi belgelerini inceleyip sürecini tamamlayacak.
+                    @Loc["myOnboarding.heroSubtitle"]
                 </MudText>
             </MudStack>
         </MudStack>
@@ -26,22 +27,22 @@
     @if (_allApproved && _documents.Count > 0)
     {
         <MudAlert Severity="Severity.Success" Variant="Variant.Filled" Class="mb-4">
-            Tüm evrakların yüklendi ve onaylandı. Sürecin İK onayında — kısa sürede aktifleştirileceksin.
+            @Loc["myOnboarding.allApproved"]
         </MudAlert>
     }
     else if (_needsCorrectionCount > 0)
     {
         <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Class="mb-4">
-            @_needsCorrectionCount belgen için düzeltme isteniyor. İlgili belgenin altındaki gerekçeye göre yeniden yükle.
+            @string.Format(Loc["myOnboarding.needsCorrection"], _needsCorrectionCount)
         </MudAlert>
     }
 
     <MudPaper Elevation="1" Class="pa-4">
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
-            <MudText Typo="Typo.h6">Evraklarım</MudText>
+            <MudText Typo="Typo.h6">@Loc["myOnboarding.myDocuments"]</MudText>
             <MudFileUpload T="IBrowserFile" FilesChanged="OnFileSelected" MaximumFileCount="1">
                 <ActivatorContent>
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Upload" Disabled="@_uploading">Belge Yükle</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Upload" Disabled="@_uploading">@Loc["myOnboarding.uploadDocument"]</MudButton>
                 </ActivatorContent>
             </MudFileUpload>
         </MudStack>
@@ -52,7 +53,7 @@
         }
         else if (_documents.Count == 0)
         {
-            <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">Henüz belge yüklemedin.</MudText>
+            <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">@Loc["myOnboarding.noDocuments"]</MudText>
         }
         else
         {
@@ -74,7 +75,7 @@
                         @if (doc.ReviewStatus == DocumentReviewStatuses.NeedsCorrection && !string.IsNullOrWhiteSpace(doc.ReviewNote))
                         {
                             <MudAlert Severity="Severity.Warning" Dense="true" Variant="Variant.Outlined" Class="mt-2">
-                                Düzeltme gerekçesi: @doc.ReviewNote
+                                @string.Format(Loc["myOnboarding.correctionReason"], doc.ReviewNote)
                             </MudAlert>
                         }
                     </MudPaper>
@@ -84,7 +85,7 @@
     </MudPaper>
 
     <MudStack Row="true" Justify="Justify.Center" Class="mt-6">
-        <MudButton Variant="Variant.Outlined" StartIcon="@DzdIcons.LogOut" OnClick="Logout">Çıkış Yap</MudButton>
+        <MudButton Variant="Variant.Outlined" StartIcon="@DzdIcons.LogOut" OnClick="Logout">@Loc["myOnboarding.logout"]</MudButton>
     </MudStack>
 </MudContainer>
 
@@ -116,12 +117,12 @@
         if (file is null) return;
         if (!DocumentConstants.AllowedMimeTypes.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
         {
-            Snackbar.Add($"Desteklenmeyen dosya tipi: {file.ContentType}", Severity.Warning);
+            Snackbar.Add(string.Format(Loc["myOnboarding.unsupportedFileType"], file.ContentType), Severity.Warning);
             return;
         }
         if (file.Size > DocumentConstants.MaxFileSizeBytes)
         {
-            Snackbar.Add($"Dosya {DocumentConstants.MaxFileSizeBytes / 1024 / 1024} MB sınırını aşıyor.", Severity.Warning);
+            Snackbar.Add(string.Format(Loc["myOnboarding.fileTooLarge"], DocumentConstants.MaxFileSizeBytes / 1024 / 1024), Severity.Warning);
             return;
         }
 
@@ -133,10 +134,10 @@
             if (!response.IsSuccessStatusCode)
             {
                 var detail = await ApiServiceBase.TryReadProblemDetailAsync(response);
-                Snackbar.Add(detail ?? "Belge yüklenemedi.", Severity.Error);
+                Snackbar.Add(detail ?? Loc["onboardingDetail.documentUploadFailed"], Severity.Error);
                 return;
             }
-            Snackbar.Add("Belge yüklendi.", Severity.Success);
+            Snackbar.Add(Loc["onboardingDetail.documentUploaded"], Severity.Success);
             await LoadAsync();
         }
         finally { _uploading = false; }
@@ -145,15 +146,15 @@
     private async Task DownloadDoc(UserDocumentDto doc)
     {
         var bytes = await MyOnboardingSvc.DownloadDocumentAsync(doc.Id);
-        if (bytes is null) { Snackbar.Add("İndirilemedi.", Severity.Error); return; }
+        if (bytes is null) { Snackbar.Add(Loc["onboardingDetail.downloadFailed"], Severity.Error); return; }
         await JS.InvokeVoidAsync("dzdDownloadFile", doc.FileName, Convert.ToBase64String(bytes), doc.ContentType);
     }
 
     private async Task DeleteDoc(int docId)
     {
         var response = await MyOnboardingSvc.DeleteDocumentAsync(docId);
-        if (!response.IsSuccessStatusCode) { Snackbar.Add("Belge silinemedi.", Severity.Error); return; }
-        Snackbar.Add("Belge silindi.", Severity.Success);
+        if (!response.IsSuccessStatusCode) { Snackbar.Add(Loc["myOnboarding.documentDeleteFailed"], Severity.Error); return; }
+        Snackbar.Add(Loc["onboardingDetail.documentDeleted"], Severity.Success);
         await LoadAsync();
     }
 
@@ -166,10 +167,10 @@
         _                                      => Color.Default
     };
 
-    private static string ReviewLabel(string status) => status switch
+    private string ReviewLabel(string status) => status switch
     {
-        DocumentReviewStatuses.Approved        => "Onaylandı",
-        DocumentReviewStatuses.NeedsCorrection => "Düzeltme isteniyor",
-        _                                      => "İncelemede"
+        DocumentReviewStatuses.Approved        => Loc["review.approved"],
+        DocumentReviewStatuses.NeedsCorrection => Loc["review.needsCorrection"],
+        _                                      => Loc["review.pending"]
     };
 }

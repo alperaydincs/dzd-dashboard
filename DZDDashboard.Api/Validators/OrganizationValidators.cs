@@ -48,16 +48,6 @@ public class JobDtoValidator : AbstractValidator<JobDto>
     }
 }
 
-public class WorkTypeDtoValidator : AbstractValidator<WorkTypeDto>
-{
-    public WorkTypeDtoValidator()
-    {
-        RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Work type name is required.")
-            .MaximumLength(ValidationConstants.MaxNameLength).WithMessage($"Work type name cannot exceed {ValidationConstants.MaxNameLength} characters.");
-    }
-}
-
 public class GradeDtoValidator : AbstractValidator<GradeDto>
 {
     public GradeDtoValidator()

@@ -2,13 +2,13 @@ using DZDDashboard.Common.DTOs;
 
 namespace DZDDashboard.Services;
 
+/// <summary>
+/// CRUD for the richer reference types that carry more than a single name
+/// (Job, Grade, PayrollLocation, UserGroup). Simple fixed value lists are
+/// embedded in code (see <c>DomainOptionCatalog</c>) instead of the database.
+/// </summary>
 public interface IReferenceDataService
 {
-    Task<List<WorkTypeDto>>        GetWorkTypesAsync(CancellationToken cancellationToken = default);
-    Task<WorkTypeDto>              CreateWorkTypeAsync(WorkTypeDto dto, CancellationToken cancellationToken = default);
-    Task                           UpdateWorkTypeAsync(WorkTypeDto dto, CancellationToken cancellationToken = default);
-    Task                           DeleteWorkTypeAsync(int id, CancellationToken cancellationToken = default);
-
     Task<List<JobDto>>             GetJobsAsync(CancellationToken cancellationToken = default);
     Task<JobDto>                   CreateJobAsync(JobDto dto, CancellationToken cancellationToken = default);
     Task                           UpdateJobAsync(JobDto dto, CancellationToken cancellationToken = default);

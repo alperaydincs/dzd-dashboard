@@ -37,15 +37,15 @@
                 <MudTh>@Loc["lifecycle.status"]</MudTh>
             </HeaderContent>
             <RowTemplate>
-                <MudTd DataLabel="Çalışan">@context.EmployeeName</MudTd>
-                <MudTd DataLabel="Başlangıç">@AppFormatter.FormatDate(context.StartDate)</MudTd>
-                <MudTd DataLabel="İlerleme">
+                <MudTd DataLabel="@Loc["lifecycle.employee"]">@context.EmployeeName</MudTd>
+                <MudTd DataLabel="@Loc["lifecycle.startDate"]">@AppFormatter.FormatDate(context.StartDate)</MudTd>
+                <MudTd DataLabel="@Loc["lifecycle.progress"]">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="min-width:160px;">
                         <MudProgressLinear Value="@Percent(context)" Color="Color.Primary" Style="flex:1;" Rounded="true" />
                         <MudText Typo="Typo.caption">@context.CompletedCount/@context.TotalCount</MudText>
                     </MudStack>
                 </MudTd>
-                <MudTd DataLabel="Durum">
+                <MudTd DataLabel="@Loc["lifecycle.status"]">
                     <MudChip T="string" Size="Size.Small" Color="@StatusColor(context.Status)" Variant="Variant.Text">@StatusLabel(context.Status)</MudChip>
                 </MudTd>
             </RowTemplate>
@@ -68,13 +68,13 @@
 
     private async Task StartOnboarding()
     {
-        var dialog = await DialogService.ShowAsync<StartOnboardingDialog>("Yeni Onboarding");
+        var dialog = await DialogService.ShowAsync<StartOnboardingDialog>(Loc["onboarding.dialogTitle"]);
         var result = await dialog.Result;
         if (result is { Canceled: false, Data: StartOnboardingDto dto })
         {
             var created = await OnboardingService.StartAsync(dto);
-            if (created is null) { Snackbar.Add("Onboarding başlatılamadı.", Severity.Error); return; }
-            Snackbar.Add("Onboarding başlatıldı.", Severity.Success);
+            if (created is null) { Snackbar.Add(Loc["onboarding.startFailed"], Severity.Error); return; }
+            Snackbar.Add(Loc["onboarding.startSuccess"], Severity.Success);
             Nav.NavigateTo($"/onboarding/{created.Id}");
         }
     }
@@ -93,10 +93,10 @@
         _                         => Color.Info
     };
 
-    private static string StatusLabel(string status) => status switch
+    private string StatusLabel(string status) => status switch
     {
-        ProcessStatuses.Completed => "Tamamlandı",
-        ProcessStatuses.Cancelled => "İptal",
-        _                         => "Devam ediyor"
+        ProcessStatuses.Completed => Loc["lifecycle.completed"],
+        ProcessStatuses.Cancelled => Loc["lifecycle.cancelled"],
+        _                         => Loc["lifecycle.inProgress"]
     };
 }

@@ -28,15 +28,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.Slug).IsUnique().HasDatabaseName("IX_Users_Slug");
         builder.Property(u => u.CompanyName).HasMaxLength(ValidationConstants.MaxStandardLength);
 
-        builder.HasOne(u => u.ContractTypeRef)
-               .WithMany()
-               .HasForeignKey(u => u.ContractTypeId)
-               .OnDelete(DeleteBehavior.SetNull);
-
-        builder.HasOne(u => u.WorkModelRef)
-               .WithMany()
-               .HasForeignKey(u => u.WorkModelId)
-               .OnDelete(DeleteBehavior.SetNull);
+        builder.Property(u => u.ContractType).HasMaxLength(ValidationConstants.MaxStandardLength);
+        builder.Property(u => u.WorkModel).HasMaxLength(ValidationConstants.MaxStandardLength);
 
         builder.Property(u => u.ApprovalProcessUnit).HasMaxLength(ValidationConstants.MaxEntityNameLength);
 

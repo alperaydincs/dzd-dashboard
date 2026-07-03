@@ -30,9 +30,6 @@ public class DeductionConfiguration : IEntityTypeConfiguration<Deduction>
             .HasForeignKey(x => x.ModifiedById)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(x => x.DeductionTypeRef)
-            .WithMany()
-            .HasForeignKey(x => x.DeductionTypeId)
-            .OnDelete(DeleteBehavior.SetNull);
+        builder.Property(x => x.DeductionType).HasMaxLength(ValidationConstants.MaxStandardLength);
     }
 }

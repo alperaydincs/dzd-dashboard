@@ -115,7 +115,7 @@ public class OffboardingService(AppDbContext context, IAuditProvider audit, Chec
     private async Task<OffboardingProcess> LoadAsync(int processId, CancellationToken cancellationToken)
         => await context.OffboardingProcesses
             .Include(p => p.User)
-            .Include(p => p.Items).ThenInclude(i => i.Dependents).ThenInclude(d => d.DependentTypeRef)
+            .Include(p => p.Items).ThenInclude(i => i.Dependents)
             .Include(p => p.Items).ThenInclude(i => i.CompletedBy)
             .AsSplitQuery()
             .FirstOrDefaultAsync(p => p.Id == processId, cancellationToken)

@@ -53,7 +53,6 @@ public static class ApiRoutes
         public const string Companies      = "api/organization/companies";
         public const string Departments    = "api/organization/departments";
         public const string Teams          = "api/organization/teams";
-        public const string WorkTypes      = "api/organization/worktypes";
         public const string Jobs           = "api/organization/jobs";
         public const string Grades         = "api/organization/grades";
         public const string PayrollLocations = "api/organization/payrolllocations";
@@ -65,7 +64,6 @@ public static class ApiRoutes
         public static string Company(int id)          => $"{Companies}/{id}";
         public static string Department(int id)       => $"{Departments}/{id}";
         public static string Team(int id)             => $"{Teams}/{id}";
-        public static string WorkType(int id)         => $"{WorkTypes}/{id}";
         public static string Job(int id)              => $"{Jobs}/{id}";
         public static string Grade(int id)            => $"{Grades}/{id}";
         public static string PayrollLocation(int id)  => $"{PayrollLocations}/{id}";
@@ -88,15 +86,6 @@ public static class ApiRoutes
         public static string ItemDocument(int id, int itemId) => $"{Base}/{id}/items/{itemId}/document";
     }
 
-    public static class Lookups
-    {
-        public const string Base = "api/lookups";
-        public static string List(string category)
-            => $"{Base}?category={Uri.EscapeDataString(category)}";
-        public static string Item(int id) => $"{Base}/{id}";
-        public static string Item(int id, string category) => $"{Base}/{id}?category={Uri.EscapeDataString(category)}";
-    }
-
     public static class ChecklistTemplates
     {
         public const string Base = "api/checklist-templates";
@@ -110,6 +99,12 @@ public static class ApiRoutes
         public const string Documents      = "api/my-onboarding/documents";
         public static string Document(int docId)        => $"{Documents}/{docId}";
         public static string DocumentContent(int docId) => $"{Documents}/{docId}/content";
+    }
+
+    public static class Trainings
+    {
+        public const string MyProgress = "api/trainings/my-progress";
+        public static string UserProgress(int userId) => $"api/trainings/users/{userId}/progress";
     }
 
     public static class Offboarding

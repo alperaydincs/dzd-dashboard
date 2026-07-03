@@ -23,7 +23,6 @@ public class OrganizationMappingProfile : Profile
             .ReverseMap()
             .ForMember(dest => dest.Department, opt => opt.Ignore());
 
-        CreateMap<WorkType, WorkTypeDto>().ReverseMap();
         CreateMap<Grade, GradeDto>();
         CreateMap<GradeDto, Grade>()
             .ForMember(dest => dest.NextStep, opt => opt.Ignore());

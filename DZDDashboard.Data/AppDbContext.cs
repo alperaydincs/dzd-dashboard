@@ -15,7 +15,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, IAuditProvider
     public DbSet<Bid> Bids { get; set; }
     public DbSet<ProjectDocument> ProjectDocuments { get; set; }
     public DbSet<Company> Companies { get; set; }
-    public DbSet<WorkType> WorkTypes { get; set; }
     public DbSet<CareerPath> CareerPaths { get; set; }
     public DbSet<CareerMapRule> CareerMapRules { get; set; }
     public DbSet<CareerMapRulePosition> CareerMapRulePositions { get; set; }
@@ -63,12 +62,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, IAuditProvider
     public DbSet<ChecklistItem> ChecklistItems { get; set; }
     public DbSet<ChecklistItemDependent> ChecklistItemDependents { get; set; }
     public DbSet<ChecklistStepTemplate> ChecklistStepTemplates { get; set; }
-    public DbSet<AdditionalPaymentTypeEntity> AdditionalPaymentTypes { get; set; }
-    public DbSet<DeductionTypeEntity> DeductionTypes { get; set; }
-    public DbSet<ContractTypeEntity> ContractTypes { get; set; }
-    public DbSet<WorkModelEntity> WorkModels { get; set; }
-    public DbSet<EducationLevelEntity> EducationLevels { get; set; }
-    public DbSet<DependentTypeEntity> DependentTypes { get; set; }
+    public DbSet<UdemyCourseActivity> UdemyCourseActivities { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

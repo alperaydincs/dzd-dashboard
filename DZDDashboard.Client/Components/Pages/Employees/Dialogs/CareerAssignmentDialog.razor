@@ -4,19 +4,20 @@
 @using DZDDashboard.Client.Services
 @inject ISnackbar Snackbar
 @inject IUserClientService UserService
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <MudDialog>
     <DialogContent>
         <MudStack Spacing="3" Style="min-width:520px;">
 
-            <MudAutocomplete T="UserSearchResultDto" Label="Manager"
+            <MudAutocomplete T="UserSearchResultDto" Label="@Loc["employeeProfile.manager"]"
                              Value="_manager" ValueChanged="OnManagerSelected"
                              SearchFunc="SearchManagersAsync"
                              ToStringFunc="@(u => u is null ? string.Empty : AppFormatter.BuildFullName(u.FirstName, u.LastName))"
                              Variant="Variant.Outlined" Margin="Margin.Dense"
                              Clearable="true" ResetValueOnEmptyText="false"
                              MinCharacters="0" DebounceInterval="250"
-                             Placeholder="Search by name or email">
+                             Placeholder="@Loc["careerAssignmentDialog.searchByNameOrEmail"]">
                 <ItemTemplate Context="u">
                     <div class="d-flex align-center gap-3">
                         <InitialsAvatar FullName="@AppFormatter.BuildFullName(u.FirstName, u.LastName)"
@@ -31,9 +32,9 @@
 
             <MudGrid Spacing="2">
                 <MudItem xs="12" sm="4">
-                    <MudSelect T="string" Label="Company" Value="_m.CompanyName" ValueChanged="OnCompanyChanged"
+                    <MudSelect T="string" Label="@Loc["employeeProfile.company"]" Value="_m.CompanyName" ValueChanged="OnCompanyChanged"
                                Variant="Variant.Outlined" Margin="Margin.Dense">
-                        <MudSelectItem T="string" Value="@("")">None</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("")">@Loc["careerAssignmentDialog.none"]</MudSelectItem>
                         @foreach (var c in Companies)
                         {
                             <MudSelectItem T="string" Value="@c.Name">@c.Name</MudSelectItem>
@@ -41,11 +42,11 @@
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12" sm="4">
-                    <MudSelect T="int?" Label="Department" Value="_m.DepartmentId" ValueChanged="OnDeptChanged"
+                    <MudSelect T="int?" Label="@Loc["employeeProfile.department"]" Value="_m.DepartmentId" ValueChanged="OnDeptChanged"
                                ToStringFunc="@(id => AllDepts.FirstOrDefault(d => d.Id == id)?.Name ?? string.Empty)"
                                Variant="Variant.Outlined" Margin="Margin.Dense"
                                Disabled="@string.IsNullOrEmpty(_m.CompanyName)">
-                        <MudSelectItem T="int?" Value="@((int?)null)">None</MudSelectItem>
+                        <MudSelectItem T="int?" Value="@((int?)null)">@Loc["careerAssignmentDialog.none"]</MudSelectItem>
                         @foreach (var d in _depts)
                         {
                             <MudSelectItem T="int?" Value="@((int?)d.Id)">@d.Name</MudSelectItem>
@@ -53,11 +54,11 @@
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12" sm="4">
-                    <MudSelect T="int?" Label="Team" @bind-Value="_m.TeamId"
+                    <MudSelect T="int?" Label="@Loc["employeeProfile.team"]" @bind-Value="_m.TeamId"
                                ToStringFunc="@(id => AllTeams.FirstOrDefault(t => t.Id == id)?.Name ?? string.Empty)"
                                Variant="Variant.Outlined" Margin="Margin.Dense"
                                Disabled="@(_m.DepartmentId == null)">
-                        <MudSelectItem T="int?" Value="@((int?)null)">None</MudSelectItem>
+                        <MudSelectItem T="int?" Value="@((int?)null)">@Loc["careerAssignmentDialog.none"]</MudSelectItem>
                         @foreach (var t in _teams)
                         {
                             <MudSelectItem T="int?" Value="@((int?)t.Id)">@t.Name</MudSelectItem>
@@ -66,9 +67,9 @@
                 </MudItem>
 
                 <MudItem xs="12" sm="4">
-                    <MudSelect T="int?" Label="Career Path" Value="_m.PathId" ValueChanged="OnPathChanged"
+                    <MudSelect T="int?" Label="@Loc["employeeProfile.careerPath"]" Value="_m.PathId" ValueChanged="OnPathChanged"
                                Variant="Variant.Outlined" Margin="Margin.Dense">
-                        <MudSelectItem T="int?" Value="@((int?)null)">None</MudSelectItem>
+                        <MudSelectItem T="int?" Value="@((int?)null)">@Loc["careerAssignmentDialog.none"]</MudSelectItem>
                         @foreach (var p in CareerPaths)
                         {
                             <MudSelectItem T="int?" Value="@((int?)p.Id)">@p.Name (@p.UserGroupName)</MudSelectItem>
@@ -76,9 +77,9 @@
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12" sm="4">
-                    <MudSelect T="int?" Label="Job Title" Value="_m.JobId" ValueChanged="OnJobChanged"
+                    <MudSelect T="int?" Label="@Loc["employeeProfile.jobTitle"]" Value="_m.JobId" ValueChanged="OnJobChanged"
                                Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(_m.PathId == null)">
-                        <MudSelectItem T="int?" Value="@((int?)null)">None</MudSelectItem>
+                        <MudSelectItem T="int?" Value="@((int?)null)">@Loc["careerAssignmentDialog.none"]</MudSelectItem>
                         @foreach (var j in _pathJobs)
                         {
                             <MudSelectItem T="int?" Value="@((int?)j.Id)">@j.Name</MudSelectItem>
@@ -86,9 +87,9 @@
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12" sm="4">
-                    <MudSelect T="int?" Label="Grade" @bind-Value="_m.Grade"
+                    <MudSelect T="int?" Label="@Loc["employeeProfile.grade"]" @bind-Value="_m.Grade"
                                Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(_m.JobId == null)">
-                        <MudSelectItem T="int?" Value="@((int?)null)">None</MudSelectItem>
+                        <MudSelectItem T="int?" Value="@((int?)null)">@Loc["careerAssignmentDialog.none"]</MudSelectItem>
                         @foreach (var g in _jobGrades)
                         {
                             <MudSelectItem T="int?" Value="@((int?)g)">@g</MudSelectItem>
@@ -97,15 +98,15 @@
                 </MudItem>
 
                 <MudItem xs="12" sm="6">
-                    <MudDatePicker Label="Position Start Date" Date="@_m.StartDate" DateChanged="@(d => _m.StartDate = d)"
+                    <MudDatePicker Label="@Loc["employeeProfile.positionStartDate"]" Date="@_m.StartDate" DateChanged="@(d => _m.StartDate = d)"
                                    Variant="Variant.Outlined" Margin="Margin.Dense"
                                    AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter"
                                    OverflowBehavior="OverflowBehavior.FlipNever" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudDatePicker Label="Position End Date" Date="@_m.EndDate" DateChanged="@(d => _m.EndDate = d)"
+                    <MudDatePicker Label="@Loc["careerAssignmentDialog.positionEndDate"]" Date="@_m.EndDate" DateChanged="@(d => _m.EndDate = d)"
                                    Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" Editable="true"
-                                   HelperText="Leave empty for the current position"
+                                   HelperText="@Loc["careerAssignmentDialog.leaveEmptyForCurrent"]"
                                    AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter"
                                    OverflowBehavior="OverflowBehavior.FlipNever" />
                 </MudItem>
@@ -113,8 +114,8 @@
         </MudStack>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_submitted">Save</MudButton>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">@Loc["common.cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_submitted">@Loc["common.save"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -250,12 +251,12 @@
         if (_submitted) return;
         if (_m.StartDate is null)
         {
-            Snackbar.Add("Position start date is required.", Severity.Warning);
+            Snackbar.Add(Loc["careerAssignmentDialog.startDateRequired"], Severity.Warning);
             return;
         }
         if (_m.EndDate is { } end && end < _m.StartDate)
         {
-            Snackbar.Add("End date cannot be earlier than start date.", Severity.Warning);
+            Snackbar.Add(Loc["careerAssignmentDialog.endDateEarlier"], Severity.Warning);
             return;
         }
         _submitted = true;

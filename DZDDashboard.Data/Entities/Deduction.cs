@@ -4,8 +4,7 @@ public class Deduction : AuditableEntity
 {
     public int Id { get; set; }
 
-    public int? DeductionTypeId { get; set; }
-    public DeductionTypeEntity? DeductionTypeRef { get; set; }
+    public string? DeductionType { get; set; }
 
     public decimal Amount   { get; set; }
     public string  Currency { get; set; } = string.Empty;

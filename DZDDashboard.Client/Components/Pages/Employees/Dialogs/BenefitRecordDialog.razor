@@ -3,7 +3,8 @@
 @using DZDDashboard.Common.Validation
 @using DZDDashboard.Client.Services
 @inject ISnackbar Snackbar
-@inject ILookupClientService Lookups
+@inject DZDDashboard.Client.Localization.DomainLocalizer Domain
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <MudDialog>
     <TitleContent>
@@ -16,9 +17,9 @@
         <MudStack Spacing="3">
             <MudGrid Spacing="3">
                 <MudItem xs="6">
-                    <div class="dzd-dialog-label">Benefit Type</div>
+                    <div class="dzd-dialog-label">@Loc["payment.benefitType"]</div>
                     <MudSelect T="string" @bind-Value="_model.BenefitType" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true"
-                               Placeholder="Select benefit type">
+                               Placeholder="@Loc["benefitDialog.selectBenefitType"]">
                         @foreach (var option in BenefitTypes.All)
                         {
                             <MudSelectItem Value="@option">@option</MudSelectItem>
@@ -26,16 +27,16 @@
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="6">
-                    <div class="dzd-dialog-label">Benefit Name</div>
+                    <div class="dzd-dialog-label">@Loc["benefitDialog.benefitName"]</div>
                     <MudTextField T="string" @bind-Value="_model.BenefitName" Variant="Variant.Outlined" Margin="Margin.Dense"
-                                  MaxLength="ValidationConstants.MaxBenefitNameLength" Placeholder="Enter benefit name" />
+                                  MaxLength="ValidationConstants.MaxBenefitNameLength" Placeholder="@Loc["benefitDialog.enterBenefitName"]" />
                 </MudItem>
                 <MudItem xs="6">
-                    <div class="dzd-dialog-label">Amount (₺)</div>
+                    <div class="dzd-dialog-label">@Loc["dialogField.amountTl"]</div>
                     <MudNumericField T="decimal" @bind-Value="_model.Amount" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Min="0.01m" Format="N2" />
                 </MudItem>
                 <MudItem xs="6">
-                    <div class="dzd-dialog-label">Frequency</div>
+                    <div class="dzd-dialog-label">@Loc["payment.frequency"]</div>
                     <MudSelect T="string" @bind-Value="_model.Period" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
                         @foreach (var option in PaymentPeriods.All)
                         {
@@ -44,13 +45,13 @@
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="6">
-                    <div class="dzd-dialog-label">Start Date</div>
+                    <div class="dzd-dialog-label">@Loc["payment.startDate"]</div>
                     <MudDatePicker Date="@_model.StartDate" DateChanged="@(d => _model.StartDate = d ?? _model.StartDate)"
                                    Variant="Variant.Outlined" Margin="Margin.Dense" Required="true"
                                    AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
                 </MudItem>
                 <MudItem xs="6">
-                    <div class="dzd-dialog-label">End Date (Optional)</div>
+                    <div class="dzd-dialog-label">@Loc["salaryDialog.endDateOptional"]</div>
                     <MudDatePicker Date="@_model.EndDate" DateChanged="@(d => _model.EndDate = d)"
                                    Variant="Variant.Outlined" Margin="Margin.Dense"
                                    AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
@@ -62,10 +63,10 @@
                 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mt-1">
                     <div class="d-flex align-center" style="gap:8px;">
                         <MudIcon Icon="@DzdIcons.Users" Size="Size.Small" Style="color:var(--dzd-text-secondary); font-size:16px;" />
-                        <MudText Typo="Typo.subtitle2">Dependents (@_model.Dependents.Count/@ValidationConstants.MaxBenefitDependents)</MudText>
+                        <MudText Typo="Typo.subtitle2">@string.Format(Loc["benefitDialog.dependentsCount"], _model.Dependents.Count, ValidationConstants.MaxBenefitDependents)</MudText>
                     </div>
                     <MudButton Variant="Variant.Text" Size="Size.Small" StartIcon="@DzdIcons.Plus" OnClick="AddDependent"
-                               Disabled="@(_model.Dependents.Count >= ValidationConstants.MaxBenefitDependents)">Add Dependent</MudButton>
+                               Disabled="@(_model.Dependents.Count >= ValidationConstants.MaxBenefitDependents)">@Loc["completeStepDialog.addDependent"]</MudButton>
                 </MudStack>
 
                 @foreach (var dependent in _model.Dependents)
@@ -73,31 +74,31 @@
                     <MudPaper Class="pa-3" Elevation="0" Outlined="true" Style="border-radius:8px;">
                         <MudGrid Spacing="2">
                             <MudItem xs="6" sm="3">
-                                <div class="dzd-dialog-label">Name</div>
+                                <div class="dzd-dialog-label">@Loc["dialogField.name"]</div>
                                 <MudTextField T="string" @bind-Value="dependent.DependentName" Variant="Variant.Outlined" Margin="Margin.Dense"
-                                              MaxLength="ValidationConstants.MaxShortNameLength" Placeholder="Enter name" />
+                                              MaxLength="ValidationConstants.MaxShortNameLength" Placeholder="@Loc["benefitDialog.enterName"]" />
                             </MudItem>
                             <MudItem xs="6" sm="2">
-                                <div class="dzd-dialog-label">Relation</div>
-                                <MudSelect T="string" @bind-Value="dependent.DependentType" Variant="Variant.Outlined" Margin="Margin.Dense">
-                                    @foreach (var option in _dependentTypeOptions)
+                                <div class="dzd-dialog-label">@Loc["dialogField.relation"]</div>
+                                <MudSelect T="string" @bind-Value="dependent.RelationType" Variant="Variant.Outlined" Margin="Margin.Dense">
+                                    @foreach (var option in Domain.Options(DomainCategories.RelationType))
                                     {
-                                        <MudSelectItem Value="@option">@option</MudSelectItem>
+                                        <MudSelectItem Value="@option.Code">@option.Label</MudSelectItem>
                                     }
                                 </MudSelect>
                             </MudItem>
                             <MudItem xs="6" sm="2">
-                                <div class="dzd-dialog-label">Amount (₺)</div>
+                                <div class="dzd-dialog-label">@Loc["dialogField.amountTl"]</div>
                                 <MudNumericField T="decimal" @bind-Value="dependent.Amount" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0.01m" Format="N2" />
                             </MudItem>
                             <MudItem xs="6" sm="2">
-                                <div class="dzd-dialog-label">Start Date</div>
+                                <div class="dzd-dialog-label">@Loc["payment.startDate"]</div>
                                 <MudDatePicker Date="@dependent.StartDate" DateChanged="@(d => dependent.StartDate = d ?? dependent.StartDate)"
                                                Variant="Variant.Outlined" Margin="Margin.Dense"
                                                AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
                             </MudItem>
                             <MudItem xs="6" sm="2">
-                                <div class="dzd-dialog-label">End Date</div>
+                                <div class="dzd-dialog-label">@Loc["benefitDialog.endDate"]</div>
                                 <MudDatePicker Date="@dependent.EndDate" DateChanged="@(d => dependent.EndDate = d)"
                                                Variant="Variant.Outlined" Margin="Margin.Dense"
                                                AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
@@ -113,51 +114,43 @@
             @if (_model.BenefitType == BenefitTypes.PrivatePension)
             {
                 <div class="mt-1">
-                    <MudText Typo="Typo.subtitle2">BES Details</MudText>
+                    <MudText Typo="Typo.subtitle2">@Loc["payment.besDetails"]</MudText>
                     <MudText Typo="Typo.caption" Style="color:var(--dzd-text-secondary);">
-                        (Max based on grade: Grade 1-5: 3,000 | Grade 6-10: 5,500 | Grade 10+: 8,000)
+                        @Loc["benefitDialog.besMaxByGrade"]
                     </MudText>
                 </div>
                 <MudGrid Spacing="3">
                     <MudItem xs="6">
-                        <div class="dzd-dialog-label">Employee Contribution (₺)</div>
+                        <div class="dzd-dialog-label">@Loc["benefitDialog.employeeContribution"]</div>
                         <MudNumericField T="decimal?" @bind-Value="_model.EmployeeContributionAmount"
                                          Variant="Variant.Outlined" Margin="Margin.Dense" Min="0m" Format="N2" Placeholder="0" />
                     </MudItem>
                     <MudItem xs="6">
-                        <div class="dzd-dialog-label">Employer Contribution (₺)</div>
+                        <div class="dzd-dialog-label">@Loc["benefitDialog.employerContribution"]</div>
                         <MudNumericField T="decimal?" @bind-Value="_model.EmployerContributionAmount"
                                          Variant="Variant.Outlined" Margin="Margin.Dense" Min="0m" Format="N2" Placeholder="0" />
                     </MudItem>
                     <MudItem xs="6">
-                        <div class="dzd-dialog-label">Provider</div>
+                        <div class="dzd-dialog-label">@Loc["payment.provider"]</div>
                         <MudTextField T="string" @bind-Value="_model.ProviderName" Variant="Variant.Outlined" Margin="Margin.Dense"
-                                      MaxLength="ValidationConstants.MaxProviderNameLength" Placeholder="e.g. Agesa" />
+                                      MaxLength="ValidationConstants.MaxProviderNameLength" Placeholder="@Loc["benefitDialog.providerExample"]" />
                     </MudItem>
                     <MudItem xs="6">
-                        <div class="dzd-dialog-label">Policy Number</div>
+                        <div class="dzd-dialog-label">@Loc["payment.policyNumber"]</div>
                         <MudTextField T="string" @bind-Value="_model.PolicyNumber" Variant="Variant.Outlined" Margin="Margin.Dense"
-                                      MaxLength="ValidationConstants.MaxPolicyNumberLength" Placeholder="Policy number" />
+                                      MaxLength="ValidationConstants.MaxPolicyNumberLength" Placeholder="@Loc["benefitDialog.policyNumberPlaceholder"]" />
                     </MudItem>
                 </MudGrid>
             }
         </MudStack>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Outlined" OnClick="Cancel">@Loc["common.cancel"]</MudButton>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_submitted">@ConfirmButtonText</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    private List<string> _dependentTypeOptions = [.. DependentTypes.All];
-
-    protected override async Task OnInitializedAsync()
-    {
-        var values = await Lookups.GetValuesAsync(LookupCategories.DependentType);
-        if (values.Count > 0) _dependentTypeOptions = values;
-    }
-
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter] public BenefitRecordDto? InitialModel { get; set; }
@@ -190,9 +183,9 @@
 
         _model.Dependents.Add(new BenefitDependentDto
         {
-            Order         = _model.Dependents.Count + 1,
-            DependentType = DependentTypes.Spouse,
-            StartDate     = DateTime.Today
+            Order           = _model.Dependents.Count + 1,
+            RelationType    = RelationTypes.Spouse,
+            StartDate       = DateTime.Today
         });
     }
 
@@ -209,32 +202,32 @@
 
         if (string.IsNullOrWhiteSpace(_model.BenefitType))
         {
-            Snackbar.Add("Benefit type is required.", Severity.Warning);
+            Snackbar.Add(Loc["benefitDialog.benefitTypeRequired"], Severity.Warning);
             return;
         }
         if (_model.Amount <= 0)
         {
-            Snackbar.Add("Benefit amount must be greater than zero.", Severity.Warning);
+            Snackbar.Add(Loc["benefitDialog.amountRequired"], Severity.Warning);
             return;
         }
         if (_model.StartDate == default)
         {
-            Snackbar.Add("Start date is required.", Severity.Warning);
+            Snackbar.Add(Loc["salaryDialog.startDateRequired"], Severity.Warning);
             return;
         }
         if (_model.EndDate.HasValue && _model.EndDate < _model.StartDate)
         {
-            Snackbar.Add("End date cannot be before start date.", Severity.Warning);
+            Snackbar.Add(Loc["salaryDialog.endDateBeforeStart"], Severity.Warning);
             return;
         }
         if (_model.Dependents.Any(d => d.Amount <= 0))
         {
-            Snackbar.Add("Each dependent amount must be greater than zero.", Severity.Warning);
+            Snackbar.Add(Loc["benefitDialog.dependentAmountRequired"], Severity.Warning);
             return;
         }
         if (_model.EmployeeContributionAmount is < 0 || _model.EmployerContributionAmount is < 0)
         {
-            Snackbar.Add("Contribution amounts cannot be negative.", Severity.Warning);
+            Snackbar.Add(Loc["benefitDialog.contributionNegative"], Severity.Warning);
             return;
         }
 

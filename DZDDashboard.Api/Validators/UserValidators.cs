@@ -84,12 +84,11 @@ public class UpdateBasicInfoDtoValidator : AbstractValidator<UpdateBasicInfoDto>
             .WithMessage("Position start date must be on or before contract end date.");
 
         RuleFor(x => x.ContractType)
-            .Must(v => v is null || ContractTypes.All.Contains(v))
-            .WithMessage($"Contract type must be one of: {string.Join(", ", ContractTypes.All)}.");
-
+            .Must(c => DomainOptionCatalog.IsValid(DomainCategories.ContractType, c))
+            .When(x => !string.IsNullOrEmpty(x.ContractType));
         RuleFor(x => x.WorkModel)
-            .Must(v => v is null || WorkModels.All.Contains(v))
-            .WithMessage($"Work model must be one of: {string.Join(", ", WorkModels.All)}.");
+            .Must(c => DomainOptionCatalog.IsValid(DomainCategories.WorkModel, c))
+            .When(x => !string.IsNullOrEmpty(x.WorkModel));
     }
 }
 

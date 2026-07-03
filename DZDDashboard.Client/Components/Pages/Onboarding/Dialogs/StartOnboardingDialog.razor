@@ -3,45 +3,46 @@
 @using DZDDashboard.Client.Services
 @inject ISnackbar Snackbar
 @inject IUserClientService UserService
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <MudDialog>
     <TitleContent>
         <div class="d-flex align-center gap-2">
             <MudIcon Icon="@DzdIcons.UserPlus" Color="Color.Primary" Size="Size.Small" />
-            <MudText Typo="Typo.h6">Yeni Onboarding Başlat</MudText>
+            <MudText Typo="Typo.h6">@Loc["startOnboardingDialog.title"]</MudText>
         </div>
     </TitleContent>
     <DialogContent>
         <MudGrid Spacing="3">
             <MudItem xs="12" sm="6">
-                <MudTextField T="string" Label="Ad" @bind-Value="_dto.FirstName" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                <MudTextField T="string" Label="@Loc["startOnboardingDialog.firstName"]" @bind-Value="_dto.FirstName" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudTextField T="string" Label="Soyad" @bind-Value="_dto.LastName" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                <MudTextField T="string" Label="@Loc["startOnboardingDialog.lastName"]" @bind-Value="_dto.LastName" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudTextField T="string" Label="Kurumsal E-posta" @bind-Value="_dto.Email" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                <MudTextField T="string" Label="@Loc["startOnboardingDialog.workEmail"]" @bind-Value="_dto.Email" Variant="Variant.Outlined" Margin="Margin.Dense" />
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudTextField T="string" Label="Kişisel E-posta" @bind-Value="_dto.PersonalEmail" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                <MudTextField T="string" Label="@Loc["startOnboardingDialog.personalEmail"]" @bind-Value="_dto.PersonalEmail" Variant="Variant.Outlined" Margin="Margin.Dense" />
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudTextField T="string" Label="Telefon" @bind-Value="_dto.PhoneNumber" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                <MudTextField T="string" Label="@Loc["startOnboardingDialog.phone"]" @bind-Value="_dto.PhoneNumber" Variant="Variant.Outlined" Margin="Margin.Dense" />
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudDatePicker Label="İşe Başlama Tarihi (Day-0)" Date="@_startDate" DateChanged="@(d => _startDate = d)"
+                <MudDatePicker Label="@Loc["onboardingDetail.startDateLabel"]" Date="@_startDate" DateChanged="@(d => _startDate = d)"
                                Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
             </MudItem>
             <MudItem xs="12">
-                <MudAutocomplete T="UserSearchResultDto" Label="Yönetici (ops.)" @bind-Value="_manager"
+                <MudAutocomplete T="UserSearchResultDto" Label="@Loc["startOnboardingDialog.managerOptional"]" @bind-Value="_manager"
                                  SearchFunc="SearchUsers" ToStringFunc="@(u => u is null ? string.Empty : AppFormatter.BuildFullName(u.FirstName, u.LastName))"
                                  Variant="Variant.Outlined" Margin="Margin.Dense" ResetValueOnEmptyText="true" Clearable="true" />
             </MudItem>
         </MudGrid>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Outlined" OnClick="Cancel">Vazgeç</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Başlat</MudButton>
+        <MudButton Variant="Variant.Outlined" OnClick="Cancel">@Loc["common.cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">@Loc["startOnboardingDialog.start"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -59,12 +60,12 @@
     {
         if (string.IsNullOrWhiteSpace(_dto.FirstName) || string.IsNullOrWhiteSpace(_dto.LastName))
         {
-            Snackbar.Add("Ad ve soyad zorunludur.", Severity.Warning);
+            Snackbar.Add(Loc["startOnboardingDialog.nameRequired"], Severity.Warning);
             return;
         }
         if (_startDate is null)
         {
-            Snackbar.Add("İşe başlama tarihi zorunludur.", Severity.Warning);
+            Snackbar.Add(Loc["startOnboardingDialog.startDateRequired"], Severity.Warning);
             return;
         }
 

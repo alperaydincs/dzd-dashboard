@@ -4,7 +4,7 @@ public record AdditionalPaymentDto
 {
     public int Id { get; set; }
 
-    public string PaymentType { get; set; } = string.Empty;
+    public string? PaymentType { get; set; }
 
     public decimal Amount   { get; set; }
     public string  Currency { get; set; } = string.Empty;

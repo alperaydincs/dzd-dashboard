@@ -32,9 +32,6 @@ public class EducationHistoryConfiguration : IEntityTypeConfiguration<EducationH
             .HasForeignKey(x => x.ModifiedById)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(x => x.EducationLevelRef)
-            .WithMany()
-            .HasForeignKey(x => x.EducationLevelId)
-            .OnDelete(DeleteBehavior.SetNull);
+        builder.Property(x => x.EducationLevel).HasMaxLength(ValidationConstants.MaxStandardLength);
     }
 }

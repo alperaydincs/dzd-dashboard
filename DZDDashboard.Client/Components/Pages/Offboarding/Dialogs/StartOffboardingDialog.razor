@@ -4,23 +4,24 @@
 @using DZDDashboard.Client.Services
 @inject ISnackbar Snackbar
 @inject IUserClientService UserService
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <MudDialog>
     <TitleContent>
         <div class="d-flex align-center gap-2">
             <MudIcon Icon="@DzdIcons.UserMinus" Color="Color.Primary" Size="Size.Small" />
-            <MudText Typo="Typo.h6">Yeni Offboarding Başlat</MudText>
+            <MudText Typo="Typo.h6">@Loc["startOffboardingDialog.title"]</MudText>
         </div>
     </TitleContent>
     <DialogContent>
         <MudGrid Spacing="3">
             <MudItem xs="12">
-                <MudAutocomplete T="UserSearchResultDto" Label="Çalışan" @bind-Value="_user"
+                <MudAutocomplete T="UserSearchResultDto" Label="@Loc["startOffboardingDialog.employee"]" @bind-Value="_user"
                                  SearchFunc="SearchUsers" ToStringFunc="@(u => u is null ? string.Empty : AppFormatter.BuildFullName(u.FirstName, u.LastName))"
                                  Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Clearable="true" />
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudSelect T="string" Label="Senaryo" @bind-Value="_type" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
+                <MudSelect T="string" Label="@Loc["offboarding.scenario"]" @bind-Value="_type" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
                     @foreach (var t in OffboardingTypes.All)
                     {
                         <MudSelectItem Value="@t">@TypeLabel(t)</MudSelectItem>
@@ -28,14 +29,14 @@
                 </MudSelect>
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudDatePicker Label="Çıkış Tarihi (Day-Exit)" Date="@_exitDate" DateChanged="@(d => _exitDate = d)"
+                <MudDatePicker Label="@Loc["startOffboardingDialog.exitDateLabel"]" Date="@_exitDate" DateChanged="@(d => _exitDate = d)"
                                Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
             </MudItem>
         </MudGrid>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Outlined" OnClick="Cancel">Vazgeç</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Başlat</MudButton>
+        <MudButton Variant="Variant.Outlined" OnClick="Cancel">@Loc["common.cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">@Loc["startOnboardingDialog.start"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -51,8 +52,8 @@
 
     private void Submit()
     {
-        if (_user is null) { Snackbar.Add("Çalışan seçilmelidir.", Severity.Warning); return; }
-        if (_exitDate is null) { Snackbar.Add("Çıkış tarihi zorunludur.", Severity.Warning); return; }
+        if (_user is null) { Snackbar.Add(Loc["startOffboardingDialog.employeeRequired"], Severity.Warning); return; }
+        if (_exitDate is null) { Snackbar.Add(Loc["startOffboardingDialog.exitDateRequired"], Severity.Warning); return; }
 
         MudDialog.Close(DialogResult.Ok(new StartOffboardingDto
         {
@@ -64,5 +65,5 @@
 
     private void Cancel() => MudDialog.Cancel();
 
-    private static string TypeLabel(string type) => type == OffboardingTypes.Termination ? "İşten Çıkarma" : "İstifa";
+    private string TypeLabel(string type) => type == OffboardingTypes.Termination ? Loc["offboarding.typeTermination"] : Loc["offboarding.typeResignation"];
 }

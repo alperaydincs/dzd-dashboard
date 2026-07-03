@@ -39,18 +39,6 @@ public class ReferenceDataService(AppDbContext context, IMapper mapper) : IRefer
     }
 
 
-    public Task<List<WorkTypeDto>> GetWorkTypesAsync(CancellationToken cancellationToken = default)
-        => GetAllRefAsync<WorkType, WorkTypeDto>(cancellationToken);
-
-    public Task<WorkTypeDto> CreateWorkTypeAsync(WorkTypeDto dto, CancellationToken cancellationToken = default)
-        => CreateRefAsync<WorkType, WorkTypeDto>(dto, cancellationToken);
-
-    public Task UpdateWorkTypeAsync(WorkTypeDto dto, CancellationToken cancellationToken = default)
-        => UpdateRefAsync<WorkType, WorkTypeDto>(dto.Id, dto, nameof(WorkType), cancellationToken);
-
-    public Task DeleteWorkTypeAsync(int id, CancellationToken cancellationToken = default)
-        => DeleteRefAsync<WorkType>(id, nameof(WorkType), cancellationToken);
-
 
     public Task<List<JobDto>> GetJobsAsync(CancellationToken cancellationToken = default)
         => GetAllRefAsync<Job, JobDto>(cancellationToken);

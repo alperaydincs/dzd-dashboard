@@ -18,25 +18,25 @@
     {
             <MudGrid Class="mt-4 mb-6" Spacing="4">
                 <MudItem xs="12" sm="6" md="3">
-                    <InfoCard Label="Current Salary"
+                    <InfoCard Label="@Loc["payment.currentSalary"]"
                               Value="@(CurrentSalary is not null ? FormatMoney(CurrentSalary.NetAmount, CurrentSalary.Currency) : "0,00")"
                               Icon="@DzdIcons.Briefcase"
                               Accent="InfoCard.AccentColor.Blue" />
                 </MudItem>
                 <MudItem xs="12" sm="6" md="3">
-                    <InfoCard Label="Total Benefits"
+                    <InfoCard Label="@Loc["payment.totalBenefits"]"
                               Value="@(_payment.Summary.ActiveBenefitsTotal.Count > 0 ? FormatMoney(_payment.Summary.ActiveBenefitsTotal[0].Amount, _payment.Summary.ActiveBenefitsTotal[0].Currency) : "0,00")"
                               Icon="@DzdIcons.Gift"
                               Accent="InfoCard.AccentColor.Orange" />
                 </MudItem>
                 <MudItem xs="12" sm="6" md="3">
-                    <InfoCard Label="Additional Payments"
+                    <InfoCard Label="@Loc["payment.additionalPayments"]"
                               Value="@(AdditionalPaymentsTotal.Count > 0 ? FormatMoney(AdditionalPaymentsTotal[0].Amount, AdditionalPaymentsTotal[0].Currency) : "0,00")"
                               Icon="@DzdIcons.Award"
                               Accent="InfoCard.AccentColor.Green" />
                 </MudItem>
                 <MudItem xs="12" sm="6" md="3">
-                    <InfoCard Label="Total Deductions"
+                    <InfoCard Label="@Loc["payment.totalDeductions"]"
                               Value="@(_payment.Summary.ActiveDeductionsTotal.Count > 0 ? FormatMoney(_payment.Summary.ActiveDeductionsTotal[0].Amount, _payment.Summary.ActiveDeductionsTotal[0].Currency) : "0,00")"
                               Icon="@DzdIcons.MinusCircle"
                               Accent="InfoCard.AccentColor.Red" />
@@ -45,16 +45,16 @@
 
             <div class="dzd-payment-tabs active-@_activeTab">
                 <button type="button" class="dzd-payment-tab @(_activeTab == 0 ? "active" : "")" @onclick="@(() => _activeTab = 0)">
-                    <MudIcon Icon="@DzdIcons.Briefcase" Size="Size.Small" /> <span>Salary</span>
+                    <MudIcon Icon="@DzdIcons.Briefcase" Size="Size.Small" /> <span>@Loc["payment.tabSalary"]</span>
                 </button>
                 <button type="button" class="dzd-payment-tab @(_activeTab == 1 ? "active" : "")" @onclick="@(() => _activeTab = 1)">
-                    <MudIcon Icon="@DzdIcons.Gift" Size="Size.Small" /> <span>Benefits</span>
+                    <MudIcon Icon="@DzdIcons.Gift" Size="Size.Small" /> <span>@Loc["payment.tabBenefits"]</span>
                 </button>
                 <button type="button" class="dzd-payment-tab @(_activeTab == 2 ? "active" : "")" @onclick="@(() => _activeTab = 2)">
-                    <MudIcon Icon="@DzdIcons.Award" Size="Size.Small" /> <span>Additional Payments</span>
+                    <MudIcon Icon="@DzdIcons.Award" Size="Size.Small" /> <span>@Loc["payment.tabAdditionalPayments"]</span>
                 </button>
                 <button type="button" class="dzd-payment-tab @(_activeTab == 3 ? "active" : "")" @onclick="@(() => _activeTab = 3)">
-                    <MudIcon Icon="@DzdIcons.MinusCircle" Size="Size.Small" /> <span>Deductions</span>
+                    <MudIcon Icon="@DzdIcons.MinusCircle" Size="Size.Small" /> <span>@Loc["payment.tabDeductions"]</span>
                 </button>
             </div>
 
@@ -68,15 +68,15 @@
                     <MudPaper Class="dzd-card pa-6 mb-6" Elevation="0">
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-5">
                             <div class="dzd-section-title">
-                                <MudIcon Icon="@DzdIcons.Banknote" Size="Size.Small" Style="color:#193CB8;" /> <span>Salary Information</span>
+                                <MudIcon Icon="@DzdIcons.Banknote" Size="Size.Small" Style="color:#193CB8;" /> <span>@Loc["payment.salaryInformation"]</span>
                             </div>
                             @if (currentSalary is not null)
                             {
-                                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Pencil" OnClick="@(() => OpenEditSalaryDialogAsync(currentSalary))">Edit</MudButton>
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Pencil" OnClick="@(() => OpenEditSalaryDialogAsync(currentSalary))">@Loc["common.edit"]</MudButton>
                             }
                             else
                             {
-                                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Plus" OnClick="OpenAddSalaryDialogAsync">Add</MudButton>
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Plus" OnClick="OpenAddSalaryDialogAsync">@Loc["common.add"]</MudButton>
                             }
                         </MudStack>
 
@@ -85,38 +85,38 @@
                             <MudGrid Spacing="4">
                                 <MudItem xs="12">
                                     <div class="dzd-field-box">
-                                        <div class="dzd-field-label">Current Salary</div>
+                                        <div class="dzd-field-label">@Loc["payment.currentSalary"]</div>
                                         <span class="dzd-amount-net">@FormatMoney(currentSalary.NetAmount, currentSalary.Currency)</span>
                                         <span class="dzd-amount-suffix">@currentSalary.PayType.ToLowerInvariant()</span>
                                     </div>
                                 </MudItem>
                                 <MudItem xs="12" sm="6" md="3">
                                     <div class="dzd-field-box">
-                                        <div class="dzd-field-label">Currency</div>
+                                        <div class="dzd-field-label">@Loc["payment.currency"]</div>
                                         <MudText Typo="Typo.body1">@currentSalary.Currency</MudText>
                                     </div>
                                 </MudItem>
                                 <MudItem xs="12" sm="6" md="3">
                                     <div class="dzd-field-box">
-                                        <div class="dzd-field-label">Payment Period</div>
+                                        <div class="dzd-field-label">@Loc["payment.paymentPeriod"]</div>
                                         <MudText Typo="Typo.body1">@currentSalary.Period</MudText>
                                     </div>
                                 </MudItem>
                                 <MudItem xs="12" sm="6" md="3">
                                     <div class="dzd-field-box">
-                                        <div class="dzd-field-label">Start Date</div>
+                                        <div class="dzd-field-label">@Loc["payment.startDate"]</div>
                                         <MudText Typo="Typo.body1">@AppFormatter.FormatDate(currentSalary.StartDate)</MudText>
                                     </div>
                                 </MudItem>
                                 <MudItem xs="12" sm="6" md="3">
                                     <div class="dzd-field-box">
-                                        <div class="dzd-field-label">End Date</div>
-                                        <MudText Typo="Typo.body1">@(currentSalary.EndDate.HasValue ? AppFormatter.FormatDate(currentSalary.EndDate) : "Ongoing")</MudText>
+                                        <div class="dzd-field-label">@Loc["payment.endDate"]</div>
+                                        <MudText Typo="Typo.body1">@(currentSalary.EndDate.HasValue ? AppFormatter.FormatDate(currentSalary.EndDate) : Loc["payment.ongoing"])</MudText>
                                     </div>
                                 </MudItem>
                                 <MudItem xs="12" sm="6" md="6">
                                     <div class="dzd-field-box">
-                                        <div class="dzd-field-label">Payroll Cycle</div>
+                                        <div class="dzd-field-label">@Loc["payment.payrollCycle"]</div>
                                         <MudText Typo="Typo.body1">@(currentSalary.PayrollCycle ?? "—")</MudText>
                                     </div>
                                 </MudItem>
@@ -126,7 +126,7 @@
                                         {
                                             <div class="dzd-notes-date">@AppFormatter.FormatDateLocal(currentSalary.NotesModifiedAt)</div>
                                         }
-                                        <div class="dzd-field-label">Notes</div>
+                                        <div class="dzd-field-label">@Loc["payment.notes"]</div>
                                         <MudText Typo="Typo.body1">@(currentSalary.Notes ?? "—")</MudText>
                                     </div>
                                 </MudItem>
@@ -137,13 +137,13 @@
                     <MudPaper Class="dzd-card pa-6" Elevation="0">
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-5">
                             <div class="dzd-section-title">
-                                <MudIcon Icon="@DzdIcons.History" Size="Size.Small" Style="color:#193CB8;" /> <span>Salary History</span>
+                                <MudIcon Icon="@DzdIcons.History" Size="Size.Small" Style="color:#193CB8;" /> <span>@Loc["payment.salaryHistory"]</span>
                             </div>
                         </MudStack>
 
                         @if (_payment.SalaryHistory.Count == 0)
                         {
-                            <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">No salary records added yet.</MudText>
+                            <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">@Loc["payment.noSalaryRecords"]</MudText>
                         }
                         else
                         {
@@ -152,27 +152,27 @@
                                 {
                                     <div class="dzd-history-item">
                                         <div class="dzd-history-field">
-                                            <div class="dzd-history-label">Start Date</div>
+                                            <div class="dzd-history-label">@Loc["payment.startDate"]</div>
                                             <div class="dzd-history-value">@AppFormatter.FormatDate(record.StartDate)</div>
                                         </div>
                                         <div class="dzd-history-field">
-                                            <div class="dzd-history-label">End Date</div>
-                                            <div class="dzd-history-value">@(record.EndDate.HasValue ? AppFormatter.FormatDate(record.EndDate) : "Ongoing")</div>
+                                            <div class="dzd-history-label">@Loc["payment.endDate"]</div>
+                                            <div class="dzd-history-value">@(record.EndDate.HasValue ? AppFormatter.FormatDate(record.EndDate) : Loc["payment.ongoing"])</div>
                                         </div>
                                         <div class="dzd-history-field">
-                                            <div class="dzd-history-label">Net Salary</div>
+                                            <div class="dzd-history-label">@Loc["payment.netSalary"]</div>
                                             <div class="dzd-history-amount">@FormatMoney(record.NetAmount, record.Currency)</div>
                                         </div>
                                         <div class="dzd-history-field">
-                                            <div class="dzd-history-label">Currency</div>
+                                            <div class="dzd-history-label">@Loc["payment.currency"]</div>
                                             <div class="dzd-history-value">@record.Currency</div>
                                         </div>
                                         <div class="dzd-history-field">
-                                            <div class="dzd-history-label">Modified By</div>
+                                            <div class="dzd-history-label">@Loc["payment.modifiedBy"]</div>
                                             <div class="dzd-history-value">@(record.ModifiedByName ?? "—")</div>
                                         </div>
                                         <div class="dzd-history-field">
-                                            <div class="dzd-history-label">Modify Date</div>
+                                            <div class="dzd-history-label">@Loc["payment.modifyDate"]</div>
                                             <div class="dzd-history-value">@(record.ModifiedAt.HasValue ? AppFormatter.FormatDateLocal(record.ModifiedAt) : "—")</div>
                                         </div>
                                     </div>
@@ -190,14 +190,14 @@
                     <MudPaper Class="dzd-card pa-6" Elevation="0">
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-5">
                             <div class="dzd-section-title dzd-title-benefits">
-                                <MudIcon Icon="@DzdIcons.Gift" Size="Size.Small" Style="color:#FEA82F;" /> <span>Employee Benefits</span>
+                                <MudIcon Icon="@DzdIcons.Gift" Size="Size.Small" Style="color:#FEA82F;" /> <span>@Loc["payment.employeeBenefits"]</span>
                             </div>
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Plus" OnClick="OpenAddBenefitDialogAsync">Add Benefit</MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Plus" OnClick="OpenAddBenefitDialogAsync">@Loc["payment.addBenefit"]</MudButton>
                         </MudStack>
 
                         @if (_payment.Benefits.Count == 0)
                         {
-                            <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">No benefit records added yet.</MudText>
+                            <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">@Loc["payment.noBenefitRecords"]</MudText>
                         }
                         else
                         {
@@ -209,25 +209,25 @@
                                             <div class="dzd-benefit-field dzd-benefit-type-field">
                                                 <div class="dzd-icon-badge @BenefitBadgeClass(record.BenefitType)"><MudIcon Icon="@BenefitIcon(record.BenefitType)" Size="Size.Small" /></div>
                                                 <div>
-                                                    <div class="dzd-field-label">Benefit Type</div>
+                                                    <div class="dzd-field-label">@Loc["payment.benefitType"]</div>
                                                     <div class="dzd-benefit-name">@(string.IsNullOrWhiteSpace(record.BenefitName) ? record.BenefitType : record.BenefitName)</div>
                                                 </div>
                                             </div>
                                             <div class="dzd-benefit-field">
-                                                <div class="dzd-field-label">Amount</div>
+                                                <div class="dzd-field-label">@Loc["payment.amount"]</div>
                                                 <div class="dzd-benefit-value dzd-benefit-amount">@FormatMoney(record.Amount, record.Currency)</div>
                                             </div>
                                             <div class="dzd-benefit-field">
-                                                <div class="dzd-field-label">Frequency</div>
+                                                <div class="dzd-field-label">@Loc["payment.frequency"]</div>
                                                 <div class="dzd-benefit-value">@record.Period</div>
                                             </div>
                                             <div class="dzd-benefit-field">
-                                                <div class="dzd-field-label">Start Date</div>
+                                                <div class="dzd-field-label">@Loc["payment.startDate"]</div>
                                                 <div class="dzd-benefit-value">@AppFormatter.FormatDate(record.StartDate)</div>
                                             </div>
                                             <div class="dzd-benefit-field">
-                                                <div class="dzd-field-label">End Date</div>
-                                                <div class="dzd-benefit-value">@(record.EndDate.HasValue ? AppFormatter.FormatDate(record.EndDate) : "Ongoing")</div>
+                                                <div class="dzd-field-label">@Loc["payment.endDate"]</div>
+                                                <div class="dzd-benefit-value">@(record.EndDate.HasValue ? AppFormatter.FormatDate(record.EndDate) : Loc["payment.ongoing"])</div>
                                             </div>
                                             <div class="dzd-benefit-actions">
                                                 <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" OnClick="@(() => OpenEditBenefitDialogAsync(record))" />
@@ -239,7 +239,7 @@
                                         {
                                             <div class="dzd-benefit-sub">
                                                 <div class="dzd-benefit-sub-title">
-                                                    <MudIcon Icon="@DzdIcons.Users" Size="Size.Small" /> <span>Dependents (@record.Dependents.Count/@ValidationConstants.MaxBenefitDependents)</span>
+                                                    <MudIcon Icon="@DzdIcons.Users" Size="Size.Small" /> <span>@string.Format(Loc["payment.dependentsCount2"], record.Dependents.Count, ValidationConstants.MaxBenefitDependents)</span>
                                                 </div>
                                                 <div class="dzd-dependent-grid">
                                                     @foreach (var dependent in record.Dependents.OrderBy(d => d.Order))
@@ -249,18 +249,18 @@
                                                             {
                                                                 <div class="dzd-dependent-name">@dependent.DependentName</div>
                                                             }
-                                                            <div class="dzd-dependent-type">@dependent.DependentType</div>
+                                                            <div class="dzd-dependent-type">@GetRelationTypeName(dependent.RelationType)</div>
                                                             <div class="dzd-dependent-amount">@FormatMoney(dependent.Amount, record.Currency)</div>
                                                             <div class="dzd-dependent-dates">
-                                                                <div>Start: @AppFormatter.FormatDate(dependent.StartDate)</div>
-                                                                <div>End: @(dependent.EndDate.HasValue ? AppFormatter.FormatDate(dependent.EndDate) : "Ongoing")</div>
+                                                                <div>@string.Format(Loc["payment.startLabel"], AppFormatter.FormatDate(dependent.StartDate))</div>
+                                                                <div>@string.Format(Loc["payment.endLabel"], dependent.EndDate.HasValue ? AppFormatter.FormatDate(dependent.EndDate) : Loc["payment.ongoing"])</div>
                                                             </div>
                                                         </div>
                                                     }
                                                     @if (record.Dependents.Count < ValidationConstants.MaxBenefitDependents)
                                                     {
                                                         <button type="button" class="dzd-add-dependent" @onclick="@(() => OpenAddDependentDialogAsync(record))">
-                                                            <MudIcon Icon="@DzdIcons.Plus" Size="Size.Small" /> <span>Add Dependent</span>
+                                                            <MudIcon Icon="@DzdIcons.Plus" Size="Size.Small" /> <span>@Loc["payment.addDependent"]</span>
                                                         </button>
                                                     }
                                                 </div>
@@ -270,22 +270,22 @@
                                         @if (record.BenefitType == BenefitTypes.PrivatePension && HasBesDetails(record))
                                         {
                                             <div class="dzd-benefit-sub dzd-bes-box">
-                                                <div class="dzd-bes-title">BES Details</div>
+                                                <div class="dzd-bes-title">@Loc["payment.besDetails"]</div>
                                                 <div class="dzd-bes-grid">
                                                     <div>
-                                                        <div class="dzd-field-label">Employee Contribution</div>
+                                                        <div class="dzd-field-label">@Loc["payment.employeeContribution"]</div>
                                                         <div class="dzd-benefit-value dzd-benefit-amount">@(record.EmployeeContributionAmount.HasValue ? FormatMoney(record.EmployeeContributionAmount.Value, record.Currency) : "—")</div>
                                                     </div>
                                                     <div>
-                                                        <div class="dzd-field-label">Employer Contribution</div>
+                                                        <div class="dzd-field-label">@Loc["payment.employerContribution"]</div>
                                                         <div class="dzd-benefit-value dzd-benefit-amount">@(record.EmployerContributionAmount.HasValue ? FormatMoney(record.EmployerContributionAmount.Value, record.Currency) : "—")</div>
                                                     </div>
                                                     <div>
-                                                        <div class="dzd-field-label">Provider</div>
+                                                        <div class="dzd-field-label">@Loc["payment.provider"]</div>
                                                         <div class="dzd-benefit-value">@(record.ProviderName ?? "—")</div>
                                                     </div>
                                                     <div>
-                                                        <div class="dzd-field-label">Policy Number</div>
+                                                        <div class="dzd-field-label">@Loc["payment.policyNumber"]</div>
                                                         <div class="dzd-benefit-value dzd-benefit-policy">@(record.PolicyNumber ?? "—")</div>
                                                     </div>
                                                 </div>
@@ -306,14 +306,14 @@
                     <MudPaper Class="dzd-card pa-6" Elevation="0">
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-5">
                             <div class="dzd-section-title dzd-title-additional">
-                                <MudIcon Icon="@DzdIcons.Award" Size="Size.Small" Style="color:#70A37F;" /> <span>Additional Payments</span>
+                                <MudIcon Icon="@DzdIcons.Award" Size="Size.Small" Style="color:#70A37F;" /> <span>@Loc["payment.additionalPayments"]</span>
                             </div>
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Plus" OnClick="OpenAddAdditionalPaymentDialogAsync">Add Payment</MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Plus" OnClick="OpenAddAdditionalPaymentDialogAsync">@Loc["payment.addPayment"]</MudButton>
                         </MudStack>
 
                         @if (_payment.AdditionalPayments.Count == 0)
                         {
-                            <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">No additional payments added yet.</MudText>
+                            <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">@Loc["payment.noAdditionalPayments"]</MudText>
                         }
                         else
                         {
@@ -321,27 +321,27 @@
                                 <table class="dzd-payment-table">
                                     <thead>
                                         <tr>
-                                            <th>Payment Type</th>
-                                            <th>Amount</th>
-                                            <th>Currency</th>
-                                            <th>Period</th>
-                                            <th>Payment Date</th>
-                                            <th>Description</th>
-                                            <th class="dzd-col-actions">Actions</th>
+                                            <th>@Loc["payment.colPaymentType"]</th>
+                                            <th>@Loc["payment.colAmount"]</th>
+                                            <th>@Loc["payment.colCurrency"]</th>
+                                            <th>@Loc["payment.colPeriod"]</th>
+                                            <th>@Loc["payment.colPaymentDate"]</th>
+                                            <th>@Loc["payment.colDescription"]</th>
+                                            <th class="dzd-col-actions">@Loc["payment.colActions"]</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @foreach (var record in _payment.AdditionalPayments)
                                         {
                                             <tr>
-                                                <td>@record.PaymentType</td>
+                                                <td>@GetAdditionalPaymentTypeName(record.PaymentType)</td>
                                                 <td class="dzd-cell-amount">@record.Amount.ToString("N3")</td>
                                                 <td>@record.Currency</td>
                                                 <td>@record.Period</td>
                                                 <td>
                                                     @(record.Period == AdditionalPaymentPeriods.OneTime
                                                         ? AppFormatter.FormatDate(record.PaymentDate)
-                                                        : $"{AppFormatter.FormatDate(record.StartDate)} — {(record.EndDate.HasValue ? AppFormatter.FormatDate(record.EndDate) : "present")}")
+                                                        : $"{AppFormatter.FormatDate(record.StartDate)} — {(record.EndDate.HasValue ? AppFormatter.FormatDate(record.EndDate) : Loc["payment.present"])}")
                                                 </td>
                                                 <td class="dzd-cell-desc">@(string.IsNullOrWhiteSpace(record.Description) ? "—" : record.Description)</td>
                                                 <td class="dzd-col-actions">
@@ -367,14 +367,14 @@
                     <MudPaper Class="dzd-card pa-6" Elevation="0">
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-5">
                             <div class="dzd-section-title dzd-title-deductions">
-                                <MudIcon Icon="@DzdIcons.MinusCircle" Size="Size.Small" Style="color:#F46036;" /> <span>Deductions</span>
+                                <MudIcon Icon="@DzdIcons.MinusCircle" Size="Size.Small" Style="color:#F46036;" /> <span>@Loc["payment.deductionsTitle"]</span>
                             </div>
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Plus" OnClick="OpenAddDeductionDialogAsync">Add Deduction</MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Plus" OnClick="OpenAddDeductionDialogAsync">@Loc["payment.addDeduction"]</MudButton>
                         </MudStack>
 
                         @if (_payment.Deductions.Count == 0)
                         {
-                            <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">No deductions added yet.</MudText>
+                            <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">@Loc["payment.noDeductions"]</MudText>
                         }
                         else
                         {
@@ -382,20 +382,20 @@
                                 <table class="dzd-payment-table">
                                     <thead>
                                         <tr>
-                                            <th>Deduction Type</th>
-                                            <th>Amount</th>
-                                            <th>Currency</th>
-                                            <th>Period</th>
-                                            <th>Payment Date</th>
-                                            <th>Description</th>
-                                            <th class="dzd-col-actions">Actions</th>
+                                            <th>@Loc["payment.colDeductionType"]</th>
+                                            <th>@Loc["payment.colAmount"]</th>
+                                            <th>@Loc["payment.colCurrency"]</th>
+                                            <th>@Loc["payment.colPeriod"]</th>
+                                            <th>@Loc["payment.colPaymentDate"]</th>
+                                            <th>@Loc["payment.colDescription"]</th>
+                                            <th class="dzd-col-actions">@Loc["payment.colActions"]</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @foreach (var record in _payment.Deductions)
                                         {
                                             <tr>
-                                                <td>@record.DeductionType</td>
+                                                <td>@GetDeductionTypeName(record.DeductionType)</td>
                                                 <td class="dzd-cell-amount">@record.Amount.ToString("N3")</td>
                                                 <td>@record.Currency</td>
                                                 <td>@record.Period</td>

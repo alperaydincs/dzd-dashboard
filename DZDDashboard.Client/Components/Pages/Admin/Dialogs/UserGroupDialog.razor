@@ -8,14 +8,14 @@
 <MudDialog>
     <DialogContent>
         <MudTextField @bind-Value="UserGroup.GroupName"
-                      Label="Group Name"
+                      Label="@Loc["dialogField.groupName"]"
                       Variant="Variant.Outlined"
                       Required="true"
                       FullWidth="true" />
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">Save</MudButton>
+        <MudButton OnClick="Cancel">@Loc["common.cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">@Loc["common.save"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -28,12 +28,12 @@
         UserGroup.Id,
         () => OrgService.CreateUserGroupAsync(UserGroup),
         () => OrgService.UpdateUserGroupAsync(UserGroup),
-        "employee group",
+        Loc["settings.employeeGroupSingular"],
         () =>
         {
             if (!IsFormValid)
             {
-                Snackbar.Add("Group name is required", Severity.Warning);
+                Snackbar.Add(Loc["settings.groupNameRequired"], Severity.Warning);
                 return false;
             }
             return true;

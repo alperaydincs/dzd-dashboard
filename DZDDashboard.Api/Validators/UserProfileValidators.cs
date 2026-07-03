@@ -85,13 +85,16 @@ public class UpdateEducationInfoDtoValidator : AbstractValidator<UpdateEducation
     {
         RuleForEach(x => x.EducationHistories).ChildRules(edu =>
         {
-            edu.RuleFor(e => e.Level)
-                .NotEmpty().WithMessage(ValidationMessages.EducationLevelRequired)
-                .MaximumLength(ValidationConstants.MaxEducationLevelLength);
+            edu.RuleFor(e => e.EducationLevel)
+                .Must(l => DomainOptionCatalog.IsValid(DomainCategories.EducationLevel, l))
+                .WithMessage(ValidationMessages.EducationLevelRequired);
 
             edu.RuleFor(e => e.Institution)
                 .NotEmpty().WithMessage(ValidationMessages.EducationInstitutionRequired)
                 .MaximumLength(ValidationConstants.MaxInstitutionLength);
+
+            edu.RuleFor(e => e.Program)
+                .MaximumLength(ValidationConstants.MaxStandardLength);
 
             edu.RuleFor(e => e.Status)
                 .Must(s => s is null || EducationStatuses.All.Contains(s))

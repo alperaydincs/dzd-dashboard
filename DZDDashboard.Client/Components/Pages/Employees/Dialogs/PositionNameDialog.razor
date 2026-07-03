@@ -1,18 +1,19 @@
 @using DZDDashboard.Common.Validation
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <MudDialog>
     <TitleContent>
         <div class="d-flex align-center gap-2">
             <MudIcon Icon="@DzdIcons.Network" Color="Color.Primary" Size="Size.Small" />
-            <MudText Typo="Typo.h6">New Position</MudText>
+            <MudText Typo="Typo.h6">@Loc["employeeProfile.newPosition"]</MudText>
         </div>
     </TitleContent>
     <DialogContent>
         <MudText Typo="Typo.body2" Class="mb-3" Style="color:var(--dzd-text-secondary);">
-            A new node will be created under @ManagerName. Name the employee's position.
+            @string.Format(Loc["positionNameDialog.description"], ManagerName)
         </MudText>
         <MudTextField @bind-Value="_name"
-                      Label="Position name"
+                      Label="@Loc["positionNameDialog.positionNameLabel"]"
                       Variant="Variant.Outlined"
                       Margin="Margin.Dense"
                       MaxLength="ValidationConstants.MaxPositionNameLength"
@@ -20,8 +21,8 @@
                       AutoFocus="true" />
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Confirm" Disabled="@string.IsNullOrWhiteSpace(_name)">Create &amp; Assign</MudButton>
+        <MudButton Variant="Variant.Outlined" OnClick="Cancel">@Loc["common.cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Confirm" Disabled="@string.IsNullOrWhiteSpace(_name)">@Loc["positionNameDialog.createAndAssign"]</MudButton>
     </DialogActions>
 </MudDialog>
 

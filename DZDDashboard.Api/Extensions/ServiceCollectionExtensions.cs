@@ -108,7 +108,9 @@ public static class ServiceCollectionExtensions
         services.Configure<ApiOptions>(configuration.GetSection("Api"));
         services.Configure<MiddlewareOptions>(configuration.GetSection("Middleware"));
         services.Configure<OnboardingOptions>(configuration.GetSection(OnboardingOptions.SectionName));
+        services.AddUdemyIntegration(configuration);
 
+        services.AddMemoryCache();
         services.AddApplicationServices();
         services.AddHttpContextAccessor();
         services.AddScoped<IAuditProvider, HttpContextAuditProvider>();
@@ -155,7 +157,28 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOnboardingService, OnboardingService>();
         services.AddScoped<IOffboardingService, OffboardingService>();
         services.AddScoped<IChecklistTemplateService, ChecklistTemplateService>();
-        services.AddScoped<ILookupService, LookupService>();
+        services.AddScoped<ITrainingProgressService, TrainingProgressService>();
+        return services;
+    }
+
+    private static IServiceCollection AddUdemyIntegration(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<DZDDashboard.Api.Udemy.UdemyOptions>(
+            configuration.GetSection(DZDDashboard.Api.Udemy.UdemyOptions.SectionName));
+
+        var udemy = configuration.GetSection(DZDDashboard.Api.Udemy.UdemyOptions.SectionName)
+            .Get<DZDDashboard.Api.Udemy.UdemyOptions>() ?? new DZDDashboard.Api.Udemy.UdemyOptions();
+
+        services.AddHttpClient<DZDDashboard.Api.Udemy.IUdemyApiClient, DZDDashboard.Api.Udemy.UdemyApiClient>(client =>
+        {
+            if (!string.IsNullOrWhiteSpace(udemy.BaseUrl))
+                client.BaseAddress = new Uri(udemy.BaseUrl);
+            client.Timeout = TimeSpan.FromMinutes(2);
+        });
+
+        if (udemy.IsConfigured)
+            services.AddHostedService<DZDDashboard.Api.Udemy.UdemySyncBackgroundService>();
+
         return services;
     }
 }

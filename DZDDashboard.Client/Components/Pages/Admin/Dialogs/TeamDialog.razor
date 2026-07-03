@@ -8,9 +8,9 @@
 <MudDialog>
     <DialogContent>
         <MudStack Spacing="4">
-            <MudTextField @bind-Value="Team.Name" Label="Name" Variant="Variant.Outlined" Required="true" />
+            <MudTextField @bind-Value="Team.Name" Label="@Loc["dialogField.name"]" Variant="Variant.Outlined" Required="true" />
 
-            <MudSelect T="int?" Label="Company" @bind-Value="_selectedCompanyId" Variant="Variant.Outlined" Required="true">
+            <MudSelect T="int?" Label="@Loc["employeeProfile.company"]" @bind-Value="_selectedCompanyId" Variant="Variant.Outlined" Required="true">
                 @foreach (var company in Companies)
                 {
                     <MudSelectItem Value="@((int?)company.Id)">@company.Name</MudSelectItem>
@@ -19,7 +19,7 @@
 
             @if (_selectedCompanyId != null)
             {
-                <MudSelect T="int?" Label="Department" @bind-Value="Team.DepartmentId" Variant="Variant.Outlined" Required="true">
+                <MudSelect T="int?" Label="@Loc["employeeProfile.department"]" @bind-Value="Team.DepartmentId" Variant="Variant.Outlined" Required="true">
                     @foreach (var dept in FilteredDepartments)
                     {
                         <MudSelectItem Value="@((int?)dept.Id)">@dept.Name</MudSelectItem>
@@ -29,8 +29,8 @@
         </MudStack>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">Save</MudButton>
+        <MudButton OnClick="Cancel">@Loc["common.cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">@Loc["common.save"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -65,12 +65,12 @@
         Team.Id,
         () => OrgService.CreateTeamAsync(Team),
         () => OrgService.UpdateTeamAsync(Team),
-        "team",
+        Loc["settings.team"],
         () =>
         {
             if (!IsFormValid)
             {
-                Snackbar.Add("Name and Department are required", Severity.Warning);
+                Snackbar.Add(Loc["settings.nameDeptRequired"], Severity.Warning);
                 return false;
             }
             return true;

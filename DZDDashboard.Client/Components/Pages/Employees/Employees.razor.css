@@ -4,6 +4,16 @@
 
 ::deep .employees-header {
     padding: 6px 0 2px;
+    margin-bottom: -14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+::deep .employees-header-actions {
+    flex-shrink: 0;
 }
 
 ::deep .employees-title {
@@ -49,6 +59,10 @@
 
 ::deep .stat-avatar-blue {
     color: #2b38f5;
+}
+
+::deep .stat-avatar-black {
+    color: #000000;
 }
 
 ::deep .stat-avatar-green {

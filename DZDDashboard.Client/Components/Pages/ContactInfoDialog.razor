@@ -1,23 +1,24 @@
 @using DZDDashboard.Common.DTOs
 @using DZDDashboard.Common.Utils
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <MudDialog>
     <DialogContent>
         <MudForm Model="@Model">
-            <MudText Typo="Typo.body2" Class="mb-4">Update your contact information below.</MudText>
+            <MudText Typo="Typo.body2" Class="mb-4">@Loc["contactInfoDialog.updateInfo"]</MudText>
 
-            <MudTextField Label="Work Email" Value="@WorkEmail" ReadOnly="true" Variant="Variant.Outlined" Class="mb-3" HelperText="Contact admin to change work email" />
+            <MudTextField Label="@Loc["startOnboardingDialog.workEmail"]" Value="@WorkEmail" ReadOnly="true" Variant="Variant.Outlined" Class="mb-3" HelperText="@Loc["contactInfoDialog.workEmailHelper"]" />
 
-            <MudTextField @bind-Value="Model.WorkPhoneNumber" Label="Work Phone" Variant="Variant.Outlined" Class="mb-3" />
+            <MudTextField @bind-Value="Model.WorkPhoneNumber" Label="@Loc["employeeProfile.workPhone"]" Variant="Variant.Outlined" Class="mb-3" />
 
-            <MudTextField @bind-Value="Model.PersonalEmail" Label="Personal Email" Variant="Variant.Outlined" Class="mb-3" InputType="InputType.Email" />
+            <MudTextField @bind-Value="Model.PersonalEmail" Label="@Loc["startOnboardingDialog.personalEmail"]" Variant="Variant.Outlined" Class="mb-3" InputType="InputType.Email" />
 
-            <MudTextField @bind-Value="Model.PersonalPhoneNumber" Label="Personal Phone" Variant="Variant.Outlined" Class="mb-3" />
+            <MudTextField @bind-Value="Model.PersonalPhoneNumber" Label="@Loc["employeeProfile.personalPhone"]" Variant="Variant.Outlined" Class="mb-3" />
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled" Disabled="@(!IsFormValid)">Save</MudButton>
+        <MudButton OnClick="Cancel">@Loc["common.cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled" Disabled="@(!IsFormValid)">@Loc["common.save"]</MudButton>
     </DialogActions>
 </MudDialog>
 

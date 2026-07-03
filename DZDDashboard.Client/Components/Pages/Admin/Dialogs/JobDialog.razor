@@ -7,11 +7,11 @@
 
 <MudDialog>
     <DialogContent>
-        <MudTextField @bind-Value="Job.Name" Label="Title" Required="true" />
+        <MudTextField @bind-Value="Job.Name" Label="@Loc["dialogField.title"]" Required="true" />
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">Save</MudButton>
+        <MudButton OnClick="Cancel">@Loc["common.cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">@Loc["common.save"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -24,5 +24,5 @@
         Job.Id,
         () => OrgService.CreateJobAsync(Job),
         () => OrgService.UpdateJobAsync(Job),
-        "job title");
+        Loc["settings.jobTitle"]);
 }

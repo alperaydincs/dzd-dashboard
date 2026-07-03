@@ -61,9 +61,6 @@ public class ChecklistItemDependentConfiguration : IEntityTypeConfiguration<Chec
         builder.Property(x => x.DependentName).HasMaxLength(ValidationConstants.MaxFullNameLength);
         builder.Property(x => x.Amount).HasPrecision(18, 2);
 
-        builder.HasOne(x => x.DependentTypeRef)
-            .WithMany()
-            .HasForeignKey(x => x.DependentTypeId)
-            .OnDelete(DeleteBehavior.SetNull);
+        builder.Property(x => x.RelationType).HasMaxLength(ValidationConstants.MaxStandardLength);
     }
 }

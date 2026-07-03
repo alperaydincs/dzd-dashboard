@@ -1,5 +1,6 @@
 @using DZDDashboard.Common.DTOs
 @using MudBlazor
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <div class="jts-root">
 <MudMenu AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft"
@@ -11,11 +12,11 @@
     </ActivatorContent>
     <ChildContent>
         <div class="jts-pop-inner" @onclick:stopPropagation>
-            <div class="jts-section-title">Selected Positions</div>
+            <div class="jts-section-title">@Loc["jobTitleSelector.selectedPositions"]</div>
             <div class="jts-chips">
                 @if (SelectedIds.Count == 0)
                 {
-                    <span class="jts-empty">None selected</span>
+                    <span class="jts-empty">@Loc["jobTitleSelector.noneSelected"]</span>
                 }
                 else
                 {
@@ -30,8 +31,8 @@
                 }
             </div>
 
-            <div class="jts-section-title">Add Position</div>
-            <MudTextField @bind-Value="_search" Placeholder="Search positions..."
+            <div class="jts-section-title">@Loc["jobTitleSelector.addPosition"]</div>
+            <MudTextField @bind-Value="_search" Placeholder="@Loc["jobTitleSelector.searchPositions"]"
                           Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true"
                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
                           Class="jts-search" />
@@ -49,7 +50,7 @@
                 }
                 @if (Filtered.Count == 0)
                 {
-                    <div class="jts-no-results">No positions found.</div>
+                    <div class="jts-no-results">@Loc["jobTitleSelector.noPositionsFound"]</div>
                 }
             </div>
         </div>
@@ -80,9 +81,9 @@
             var ordered = OrderedSelected.ToList();
             return ordered.Count switch
             {
-                0 => "Select positions",
+                0 => Loc["jobTitleSelector.selectPositions"],
                 1 => NameOf(ordered[0]),
-                _ => $"{NameOf(ordered[0])} +{ordered.Count - 1} more"
+                _ => $"{NameOf(ordered[0])} {string.Format(Loc["jobTitleSelector.moreCount"], ordered.Count - 1)}"
             };
         }
     }

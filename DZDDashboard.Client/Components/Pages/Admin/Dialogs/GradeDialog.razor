@@ -7,12 +7,12 @@
 
 <MudDialog>
     <DialogContent>
-        <MudTextField @bind-Value="Grade.Level" Label="Level" Required="true" />
-        <MudNumericField @bind-Value="Grade.MinSalary" Label="Min Salary" Required="true" Format="N2" />
-        <MudNumericField @bind-Value="Grade.MaxSalary" Label="Max Salary" Required="true" Format="N2" />
-        <MudTextField @bind-Value="Grade.Currency" Label="Currency" Required="true" />
-        <MudSelect T="int?" Label="Next Step" @bind-Value="Grade.NextStepId">
-            <MudSelectItem T="int?" Value="null">None</MudSelectItem>
+        <MudTextField @bind-Value="Grade.Level" Label="@Loc["gradeDialog.level"]" Required="true" />
+        <MudNumericField @bind-Value="Grade.MinSalary" Label="@Loc["gradeDialog.minSalary"]" Required="true" Format="N2" />
+        <MudNumericField @bind-Value="Grade.MaxSalary" Label="@Loc["gradeDialog.maxSalary"]" Required="true" Format="N2" />
+        <MudTextField @bind-Value="Grade.Currency" Label="@Loc["payment.currency"]" Required="true" />
+        <MudSelect T="int?" Label="@Loc["gradeDialog.nextStep"]" @bind-Value="Grade.NextStepId">
+            <MudSelectItem T="int?" Value="null">@Loc["careerAssignmentDialog.none"]</MudSelectItem>
             @foreach (var g in Grades)
             {
                 if (g.Id != Grade.Id)
@@ -23,8 +23,8 @@
         </MudSelect>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">Save</MudButton>
+        <MudButton OnClick="Cancel">@Loc["common.cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">@Loc["common.save"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -42,5 +42,5 @@
         Grade.Id,
         () => OrgService.CreateGradeAsync(Grade),
         () => OrgService.UpdateGradeAsync(Grade),
-        "grade");
+        Loc["employeeProfile.grade"]);
 }

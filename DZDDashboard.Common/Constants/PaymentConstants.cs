@@ -59,7 +59,7 @@ public static class PaymentSources
     public static readonly IReadOnlyList<string> All = [Manual, Onboarding];
 }
 
-public static class DependentTypes
+public static class RelationTypes
 {
     public const string Spouse = "Spouse";
     public const string Child  = "Child";

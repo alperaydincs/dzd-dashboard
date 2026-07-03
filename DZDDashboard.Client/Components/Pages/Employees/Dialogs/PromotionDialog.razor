@@ -1,10 +1,11 @@
 @using DZDDashboard.Common.DTOs
 @inject ISnackbar Snackbar
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <MudDialog>
     <DialogContent>
         <MudStack Spacing="3" Style="min-width:380px;">
-            <MudSelect T="int?" Label="Title" Value="_jobId" ValueChanged="OnJobChanged"
+            <MudSelect T="int?" Label="@Loc["promotionDialog.titleLabel"]" Value="_jobId" ValueChanged="OnJobChanged"
                        Variant="Variant.Outlined" Margin="Margin.Dense"
                        ToStringFunc="@(id => _jobs.FirstOrDefault(j => j.Id == id)?.Name ?? string.Empty)">
                 @foreach (var j in _jobs)
@@ -13,20 +14,20 @@
                 }
             </MudSelect>
 
-            <MudSelect T="int?" Label="Grade" @bind-Value="_grade" Variant="Variant.Outlined" Margin="Margin.Dense"
-                       ToStringFunc="@(g => g is null ? string.Empty : $"Grade {g}")"
+            <MudSelect T="int?" Label="@Loc["employeeProfile.grade"]" @bind-Value="_grade" Variant="Variant.Outlined" Margin="Margin.Dense"
+                       ToStringFunc="@(g => g is null ? string.Empty : string.Format(Loc["promotionDialog.gradeChip"], g))"
                        Disabled="@(_jobId == null)">
                 @foreach (var g in _grades)
                 {
-                    <MudSelectItem T="int?" Value="@((int?)g)">Grade @g</MudSelectItem>
+                    <MudSelectItem T="int?" Value="@((int?)g)">@string.Format(Loc["promotionDialog.gradeChip"], g)</MudSelectItem>
                 }
             </MudSelect>
         </MudStack>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">@Loc["common.cancel"]</MudButton>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.TrendingUp"
-                   OnClick="Save" Disabled="@_submitted">Promote</MudButton>
+                   OnClick="Save" Disabled="@_submitted">@Loc["employeeProfile.promote"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -73,7 +74,7 @@
         if (_submitted) return;
         if (_jobId is null || _grade is null)
         {
-            Snackbar.Add("Select a title and grade.", Severity.Warning);
+            Snackbar.Add(Loc["promotionDialog.selectTitleAndGrade"], Severity.Warning);
             return;
         }
         _submitted = true;

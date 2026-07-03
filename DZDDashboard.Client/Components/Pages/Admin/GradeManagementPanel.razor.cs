@@ -11,6 +11,7 @@ public partial class GradeManagementPanel
     [Inject] private IDialogService            DialogServiceRef { get; set; } = default!;
     [Inject] private ISnackbar                 Snackbar         { get; set; } = default!;
     [Inject] private IOrganizationClientService OrgService      { get; set; } = default!;
+    [Inject] private DZDDashboard.Client.Localization.AppLocalizer Loc          { get; set; } = default!;
 
     private bool                  _loading     = true;
     private string?               _loadError;
@@ -54,7 +55,7 @@ public partial class GradeManagementPanel
         }
         catch (Exception)
         {
-            _loadError = "Failed to load career paths. Please refresh the page.";
+            _loadError = Loc["gradeManagement.loadFailed"];
             Snackbar.Add(_loadError, Severity.Error);
         }
         finally
@@ -72,11 +73,11 @@ public partial class GradeManagementPanel
     {
         if (_userGroups.Count == 0)
         {
-            Snackbar.Add("No employee groups found. Create one in Settings → Organization first.", Severity.Warning);
+            Snackbar.Add(Loc["gradeManagement.noUserGroups"], Severity.Warning);
             return;
         }
 
-        var dialog = await DialogServiceRef.ShowAsync<CareerPathDialog>("Add Career Path",
+        var dialog = await DialogServiceRef.ShowAsync<CareerPathDialog>(Loc["careerPathDialog.addTitle"],
             new() { ["UserGroups"] = _userGroups }, SmallDialog);
         var result = await dialog.Result;
 
@@ -88,21 +89,21 @@ public partial class GradeManagementPanel
                 await LoadData();
                 var created = _careerPaths.FirstOrDefault(p => p.Name == dto.Name && p.UserGroupId == dto.UserGroupId);
                 if (created != null) _expandedIds.Add(created.Id);
-                Snackbar.Add("Career path created.", Severity.Success);
+                Snackbar.Add(Loc["gradeManagement.careerPathCreated"], Severity.Success);
             }
-            else Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? "Failed to create career path.", Severity.Error);
+            else Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? Loc["gradeManagement.careerPathCreateFailed"], Severity.Error);
         }
     }
 
     private async Task DeleteCareerPath(CareerPathDto path)
     {
-        if (await DialogServiceRef.ShowMessageBox("Delete Career Path",
-            $"Delete \"{path.Name}\" and all its grade levels?",
-            yesText: "Delete", cancelText: "Cancel") != true) return;
+        if (await DialogServiceRef.ShowMessageBox(Loc["gradeManagement.deleteCareerPathTitle"],
+            string.Format(Loc["gradeManagement.deleteCareerPathConfirm"], path.Name),
+            yesText: Loc["payment.delete"], cancelText: Loc["common.cancel"]) != true) return;
 
         var resp = await OrgService.DeleteCareerPathAsync(path.Id);
-        if (resp.IsSuccessStatusCode) { await LoadData(); Snackbar.Add("Career path deleted.", Severity.Success); }
-        else Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? "Failed to delete career path.", Severity.Error);
+        if (resp.IsSuccessStatusCode) { await LoadData(); Snackbar.Add(Loc["gradeManagement.careerPathDeleted"], Severity.Success); }
+        else Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? Loc["gradeManagement.careerPathDeleteFailed"], Severity.Error);
     }
 
 
@@ -183,7 +184,7 @@ public partial class GradeManagementPanel
             });
             if (!pathResp.IsSuccessStatusCode)
             {
-                Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(pathResp) ?? "Failed to update career path.", Severity.Error);
+                Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(pathResp) ?? Loc["gradeManagement.careerPathUpdateFailed"], Severity.Error);
                 return;
             }
 
@@ -193,7 +194,7 @@ public partial class GradeManagementPanel
                 var delResp = await OrgService.DeleteCareerMapRuleAsync(removedId);
                 if (!delResp.IsSuccessStatusCode)
                 {
-                    Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(delResp) ?? "Failed to delete a grade level.", Severity.Error);
+                    Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(delResp) ?? Loc["gradeManagement.gradeDeleteFailed"], Severity.Error);
                     return;
                 }
             }
@@ -206,14 +207,14 @@ public partial class GradeManagementPanel
                     : await OrgService.UpdateCareerMapRuleAsync(dto);
                 if (!resp.IsSuccessStatusCode)
                 {
-                    Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? "Failed to save a grade level.", Severity.Error);
+                    Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(resp) ?? Loc["gradeManagement.gradeSaveFailed"], Severity.Error);
                     return;
                 }
             }
 
             CancelPathEdit();
             await LoadData();
-            Snackbar.Add("Career path saved.", Severity.Success);
+            Snackbar.Add(Loc["gradeManagement.careerPathSaved"], Severity.Success);
         }
         finally
         {

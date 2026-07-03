@@ -30,9 +30,6 @@ public class AdditionalPaymentConfiguration : IEntityTypeConfiguration<Additiona
             .HasForeignKey(x => x.ModifiedById)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(x => x.PaymentTypeRef)
-            .WithMany()
-            .HasForeignKey(x => x.PaymentTypeId)
-            .OnDelete(DeleteBehavior.SetNull);
+        builder.Property(x => x.PaymentType).HasMaxLength(ValidationConstants.MaxStandardLength);
     }
 }

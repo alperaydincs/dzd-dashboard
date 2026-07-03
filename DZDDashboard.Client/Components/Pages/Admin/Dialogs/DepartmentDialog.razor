@@ -7,8 +7,8 @@
 
 <MudDialog>
     <DialogContent>
-        <MudTextField @bind-Value="Department.Name" Label="Name" Required="true" Variant="Variant.Outlined"/>
-        <MudSelect T="int?" Label="Company" @bind-Value="Department.CompanyId" Class="mt-3" Variant="Variant.Outlined">
+        <MudTextField @bind-Value="Department.Name" Label="@Loc["dialogField.name"]" Required="true" Variant="Variant.Outlined"/>
+        <MudSelect T="int?" Label="@Loc["employeeProfile.company"]" @bind-Value="Department.CompanyId" Class="mt-3" Variant="Variant.Outlined">
             @foreach (var company in Companies)
             {
                 <MudSelectItem Value="@((int?)company.Id)">@company.Name</MudSelectItem>
@@ -16,8 +16,8 @@
         </MudSelect>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">Save</MudButton>
+        <MudButton OnClick="Cancel">@Loc["common.cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">@Loc["common.save"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -33,12 +33,12 @@
         Department.Id,
         () => OrgService.CreateDepartmentAsync(Department),
         () => OrgService.UpdateDepartmentAsync(Department),
-        "department",
+        Loc["employeeProfile.department"],
         () =>
         {
             if (!IsFormValid)
             {
-                Snackbar.Add("Name and Company are required", Severity.Warning);
+                Snackbar.Add(Loc["settings.nameCompanyRequired"], Severity.Warning);
                 return false;
             }
             return true;

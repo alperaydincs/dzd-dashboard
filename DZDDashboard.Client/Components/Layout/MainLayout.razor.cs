@@ -170,7 +170,8 @@ public partial class MainLayout : IDisposable
 
     private async Task HandleAuthStateChangedAsync(Task<AuthenticationState> task)
     {
-        try { await task; } catch { }
+        // The auth-state task may fault on sign-out/refresh races; we re-read state below regardless.
+        try { await task; } catch (Exception) { /* intentionally ignored — state is re-fetched next */ }
         await RefreshSessionAsync();
     }
 

@@ -14,15 +14,32 @@
 <MudContainer MaxWidth="MaxWidth.False" Class="employees-page mt-4">
     @{
         <MudStack Spacing="5">
+            <div class="employees-header">
+                <div class="employees-header-titles">
+                    <MudText Typo="Typo.h4" Class="employees-title">@Loc["employees.pageTitle"]</MudText>
+                    <MudText Typo="Typo.body2" Class="employees-subtitle">@Loc["employees.pageSubtitle"]</MudText>
+                </div>
+                <AuthorizeView Roles="@Roles.AdminOrHr" Context="headerAuth">
+                    <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center" Class="employees-header-actions">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Default" StartIcon="@DzdIcons.Upload"
+                                   OnClick="ImportEmployees">@Loc["employees.import"]</MudButton>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Default" StartIcon="@DzdIcons.Download"
+                                   OnClick="ExportEmployees">@Loc["employees.export"]</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Dark" StartIcon="@DzdIcons.Plus"
+                                   OnClick="AddEmployee">@Loc["employees.addEmployee"]</MudButton>
+                    </MudStack>
+                </AuthorizeView>
+            </div>
+
             <MudGrid Class="employees-stats-grid">
                 <MudItem xs="12" sm="6" md="3">
                     <MudPaper Elevation="3" Class="stat-card pa-4">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                             <MudStack Spacing="0">
-                                <MudText Typo="Typo.caption" Class="stat-label">Total Employees</MudText>
+                                <MudText Typo="Typo.caption" Class="stat-label">@Loc["employees.totalEmployees"]</MudText>
                                 <MudText Typo="Typo.h4" Class="stat-value">@_totalEmployeeCount</MudText>
                             </MudStack>
-                            <MudAvatar Size="Size.Large" Class="stat-avatar stat-avatar-blue" Variant="Variant.Text">
+                            <MudAvatar Size="Size.Large" Class="stat-avatar stat-avatar-black" Variant="Variant.Text">
                                 <MudIcon Icon="@DzdIcons.Users" Size="Size.Large" />
                             </MudAvatar>
                         </MudStack>
@@ -33,7 +50,7 @@
                     <MudPaper Elevation="3" Class="stat-card pa-4">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                             <MudStack Spacing="0">
-                                <MudText Typo="Typo.caption" Class="stat-label">Active</MudText>
+                                <MudText Typo="Typo.caption" Class="stat-label">@Loc["employees.active"]</MudText>
                                 <MudText Typo="Typo.h4" Class="stat-value">@_activeEmployees</MudText>
                             </MudStack>
                             <MudAvatar Size="Size.Large" Class="stat-avatar stat-avatar-green" Variant="Variant.Text">
@@ -47,7 +64,7 @@
                     <MudPaper Elevation="3" Class="stat-card pa-4">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                             <MudStack Spacing="0">
-                                <MudText Typo="Typo.caption" Class="stat-label">On Leave</MudText>
+                                <MudText Typo="Typo.caption" Class="stat-label">@Loc["employees.onLeave"]</MudText>
                                 <MudText Typo="Typo.h4" Class="stat-value">@_inactiveEmployees</MudText>
                             </MudStack>
                             <MudAvatar Size="Size.Large" Class="stat-avatar stat-avatar-orange" Variant="Variant.Text">
@@ -61,7 +78,7 @@
                     <MudPaper Elevation="3" Class="stat-card pa-4">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                             <MudStack Spacing="0">
-                                <MudText Typo="Typo.caption" Class="stat-label">Departments</MudText>
+                                <MudText Typo="Typo.caption" Class="stat-label">@Loc["employees.departments"]</MudText>
                                 <MudText Typo="Typo.h4" Class="stat-value">@_totalDepartments</MudText>
                             </MudStack>
                             <MudAvatar Size="Size.Large" Class="stat-avatar stat-avatar-red" Variant="Variant.Text">
@@ -75,7 +92,7 @@
             @if (_totalEmployeeCount > _users.Count)
             {
                 <MudAlert Severity="Severity.Info" Dense="true" Class="mb-2">
-                    Showing @_users.Count of @_totalEmployeeCount employees. Active/Inactive counts and search reflect this page only.
+                    @string.Format(Loc["employees.showingOf"], _users.Count, _totalEmployeeCount)
                 </MudAlert>
             }
 
@@ -84,7 +101,7 @@
                     <MudItem xs="12" md="7">
                         <MudTextField @bind-Value="_search"
                                       Variant="Variant.Outlined"
-                                      Placeholder="Search employees..."
+                                      Placeholder="@Loc["employees.searchPlaceholder"]"
                                       Immediate="true"
                                       Clearable="true"
                                       Class="filter-field"
@@ -93,14 +110,14 @@
                     </MudItem>
                     <MudItem xs="6" md="2">
                         <MudSelect T="string" @bind-Value="_statusFilter" Variant="Variant.Outlined" Class="filter-field">
-                            <MudSelectItem Value=@("All")>All</MudSelectItem>
-                            <MudSelectItem Value=@("Active")>Active</MudSelectItem>
-                            <MudSelectItem Value=@("OnLeave")>On Leave</MudSelectItem>
+                            <MudSelectItem Value=@("All")>@Loc["employees.all"]</MudSelectItem>
+                            <MudSelectItem Value=@("Active")>@Loc["employees.active"]</MudSelectItem>
+                            <MudSelectItem Value=@("OnLeave")>@Loc["employees.onLeave"]</MudSelectItem>
                         </MudSelect>
                     </MudItem>
                     <MudItem xs="6" md="3">
                         <MudSelect T="string" @bind-Value="_roleFilter" Variant="Variant.Outlined" Class="filter-field">
-                            <MudSelectItem Value=@("All")>All</MudSelectItem>
+                            <MudSelectItem Value=@("All")>@Loc["employees.all"]</MudSelectItem>
                             @foreach (var department in _departmentOptions)
                             {
                                 <MudSelectItem Value="@department">@department</MudSelectItem>
@@ -111,20 +128,11 @@
             </MudPaper>
 
             <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-                <div class="@($"view-tabs-shell active-{_activeViewIndex}")" role="tablist" aria-label="Employees views">
+                <div class="@($"view-tabs-shell active-{_activeViewIndex}")" role="tablist" aria-label="@Loc["employees.viewsAriaLabel"]">
                     <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 0 ? "true" : "false")" @onclick="() => SetView(0)">@Loc["employees.tableView"]</button>
                     <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 1 ? "true" : "false")" @onclick="() => SetView(1)">@Loc["employees.cardView"]</button>
                     <button type="button" class="tab-segment" role="tab" aria-selected="@(_activeViewIndex == 2 ? "true" : "false")" @onclick="() => SetView(2)">@Loc["employees.orgView"]</button>
                 </div>
-
-                <AuthorizeView Roles="@Roles.AdminOrHr" Context="lifecycleAuth">
-                    <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
-                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@DzdIcons.UserPlus"
-                                   OnClick='@(() => Nav.NavigateTo("/onboarding"))'>@Loc["nav.onboarding"]</MudButton>
-                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@DzdIcons.UserMinus"
-                                   OnClick='@(() => Nav.NavigateTo("/offboarding"))'>@Loc["nav.offboarding"]</MudButton>
-                    </MudStack>
-                </AuthorizeView>
             </div>
 
             @if (_activeViewIndex == 0)
@@ -137,14 +145,14 @@
                     <MudPaper Elevation="3" Class="employees-table-shell">
                         <MudTable Items="_filteredUsers" Dense="true" Hover="true" Loading="@_loading" LoadingProgressColor="Color.Primary" OnRowClick="@((TableRowClickEventArgs<UserSummaryDto> e) => View(e.Item!))" Class="clickable-table">
                             <HeaderContent>
-                                <MudTh style="min-width:280px">Employee</MudTh>
-                                <MudTh>Department</MudTh>
-                                <MudTh>Position</MudTh>
-                                <MudTh>Status</MudTh>
-                                <MudTh>Join Date</MudTh>
+                                <MudTh style="min-width:280px">@Loc["employees.colEmployee"]</MudTh>
+                                <MudTh>@Loc["employees.colDepartment"]</MudTh>
+                                <MudTh>@Loc["employees.colPosition"]</MudTh>
+                                <MudTh>@Loc["employees.colStatus"]</MudTh>
+                                <MudTh>@Loc["employees.colJoinDate"]</MudTh>
                             </HeaderContent>
                             <RowTemplate>
-                                <MudTd DataLabel="Employee">
+                                <MudTd DataLabel="@Loc["employees.colEmployee"]">
                                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                                         <InitialsAvatar FullName="@AppFormatter.BuildFullName(context.FirstName, context.LastName)" ColorIndex="@context.AvatarColorIndex" Size="48" Class="employee-avatar" />
                                         <MudStack Spacing="0">
@@ -154,16 +162,16 @@
                                     </MudStack>
                                 </MudTd>
 
-                                <MudTd DataLabel="Department">@(context.Department?.Name ?? "-")</MudTd>
-                                <MudTd DataLabel="Position">@(context.Job?.Name ?? "-")</MudTd>
+                                <MudTd DataLabel="@Loc["employees.colDepartment"]">@(context.Department?.Name ?? Loc["common.notAvailable"])</MudTd>
+                                <MudTd DataLabel="@Loc["employees.colPosition"]">@(context.Job?.Name ?? Loc["common.notAvailable"])</MudTd>
 
-                                <MudTd DataLabel="Status">
+                                <MudTd DataLabel="@Loc["employees.colStatus"]">
                                     <MudChip T="string" Class="@GetStatusChipClass(context.IsActive)" Variant="Variant.Text" Size="Size.Small">
-                                        @(context.IsActive ? "Active" : "On Leave")
+                                        @(context.IsActive ? Loc["employees.active"] : Loc["employees.onLeave"])
                                     </MudChip>
                                 </MudTd>
 
-                                <MudTd DataLabel="Join Date">@AppFormatter.FormatDate(context.UserStartDate, "dd.MM.yyyy")</MudTd>
+                                <MudTd DataLabel="@Loc["employees.colJoinDate"]">@AppFormatter.FormatDate(context.UserStartDate, "dd.MM.yyyy")</MudTd>
                             </RowTemplate>
                         </MudTable>
                     </MudPaper>
@@ -181,18 +189,18 @@
                                         <InitialsAvatar FullName="@AppFormatter.BuildFullName(user.FirstName, user.LastName)" ColorIndex="@user.AvatarColorIndex" Size="72" Class="employee-avatar employee-card-avatar" />
                                         <div class="employee-card-titles">
                                             <MudText Typo="Typo.subtitle1" Class="employee-card-name">@AppFormatter.BuildFullName(user.FirstName, user.LastName)</MudText>
-                                            <MudText Typo="Typo.body2" Class="employee-card-role">@(user.Job?.Name ?? "-")</MudText>
+                                            <MudText Typo="Typo.body2" Class="employee-card-role">@(user.Job?.Name ?? Loc["common.notAvailable"])</MudText>
                                         </div>
                                     </div>
                                     <MudChip T="string" Class="@GetCardStatusChipClass(user.IsActive)" Variant="Variant.Text" Size="Size.Small">
-                                        @(user.IsActive ? "Active" : "On Leave")
+                                        @(user.IsActive ? Loc["employees.active"] : Loc["employees.onLeave"])
                                     </MudChip>
                                 </div>
 
                                 <div class="employee-card-meta">
                                     <div class="employee-card-meta-row">
                                         <MudIcon Icon="@DzdIcons.Building2" Class="employee-card-meta-icon" Size="Size.Small" />
-                                        <span>@(user.Department?.Name ?? "-")</span>
+                                        <span>@(user.Department?.Name ?? Loc["common.notAvailable"])</span>
                                     </div>
                                     <div class="employee-card-meta-row">
                                         <MudIcon Icon="@GetCardContactIcon(user)" Class="employee-card-meta-icon" Size="Size.Small" />
@@ -200,7 +208,7 @@
                                     </div>
                                     <div class="employee-card-meta-row">
                                         <MudIcon Icon="@DzdIcons.MapPin" Class="employee-card-meta-icon" Size="Size.Small" />
-                                        <span>@(string.IsNullOrWhiteSpace(user.City) ? "-" : user.City)</span>
+                                        <span>@(string.IsNullOrWhiteSpace(user.City) ? Loc["common.notAvailable"] : user.City)</span>
                                     </div>
                                 </div>
                             </MudPaper>
@@ -278,7 +286,7 @@
         }
         catch (Exception)
         {
-            _error = "Failed to load data.";
+            _error = Loc["employees.loadFailed"];
             Snackbar.Add(_error, Severity.Error);
         }
         finally
@@ -323,10 +331,10 @@
         return $"{GetStatusChipClass(isActive)} employee-card-status";
     }
 
-    private static string GetCardContact(UserSummaryDto u)
+    private string GetCardContact(UserSummaryDto u)
         => !string.IsNullOrWhiteSpace(u.PhoneNumber) ? u.PhoneNumber
          : !string.IsNullOrWhiteSpace(u.Email)       ? u.Email
-         : "-";
+         : Loc["common.notAvailable"];
 
     private static string GetCardContactIcon(UserSummaryDto u)
         => !string.IsNullOrWhiteSpace(u.PhoneNumber) ? DzdIcons.Phone : DzdIcons.Mail;
@@ -335,6 +343,10 @@
     {
         _activeViewIndex = index;
     }
+
+    private void ImportEmployees() => Snackbar.Add(Loc["employees.featureComingSoon"], Severity.Info);
+    private void ExportEmployees() => Snackbar.Add(Loc["employees.featureComingSoon"], Severity.Info);
+    private void AddEmployee()     => Snackbar.Add(Loc["employees.featureComingSoon"], Severity.Info);
 
     private void View(UserSummaryDto user)
     {

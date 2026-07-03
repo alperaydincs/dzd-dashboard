@@ -72,10 +72,15 @@
 
                     <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Class="profile-menu">
                         <ActivatorContent>
-                            <InitialsAvatar FullName="@_header.Name"
-                                            ImageSrc="@_header.AvatarDataUrl"
-                                            ColorIndex="@_header.ColorIndex"
-                                            Size="40" Class="clickable" />
+                            <span class="profile-avatar-trigger">
+                                <InitialsAvatar FullName="@_header.Name"
+                                                ImageSrc="@_header.AvatarDataUrl"
+                                                ColorIndex="@_header.ColorIndex"
+                                                Size="40" Class="clickable" />
+                                <span class="profile-avatar-caret">
+                                    <MudIcon Icon="@DzdIcons.ChevronDown" Size="Size.Small" />
+                                </span>
+                            </span>
                         </ActivatorContent>
                         <ChildContent>
                             <MudMenuItem Href="/my-profile" Icon="@DzdIcons.User">@Loc["appbar.myProfile"]</MudMenuItem>

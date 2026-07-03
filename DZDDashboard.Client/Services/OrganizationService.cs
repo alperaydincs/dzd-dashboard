@@ -58,18 +58,6 @@ public class OrganizationService : ApiServiceBase, IOrganizationClientService
     public async Task<HttpResponseMessage> DeleteTeamAsync(int id)
         => await DeleteAsync(ApiRoutes.Organization.Team(id));
 
-    public async Task<List<WorkTypeDto>> GetWorkTypesAsync()
-        => await GetAsync<List<WorkTypeDto>>(ApiRoutes.Organization.WorkTypes) ?? [];
-
-    public async Task<HttpResponseMessage> CreateWorkTypeAsync(WorkTypeDto dto)
-        => await PostAsync(ApiRoutes.Organization.WorkTypes, dto);
-
-    public async Task<HttpResponseMessage> UpdateWorkTypeAsync(WorkTypeDto dto)
-        => await PutAsync(ApiRoutes.Organization.WorkType(dto.Id), dto);
-
-    public async Task<HttpResponseMessage> DeleteWorkTypeAsync(int id)
-        => await DeleteAsync(ApiRoutes.Organization.WorkType(id));
-
     public async Task<List<JobDto>> GetJobsAsync()
         => await GetAsync<List<JobDto>>(ApiRoutes.Organization.Jobs) ?? [];
 

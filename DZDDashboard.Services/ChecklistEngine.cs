@@ -168,13 +168,11 @@ public class ChecklistEngine(
         if (item.Dependents.Count > 0)
             context.ChecklistItemDependents.RemoveRange(item.Dependents);
 
-        var typeMap = await context.DependentTypes.AsNoTracking().ToDictionaryAsync(t => t.Name, t => t.Id, ct);
-
         item.Dependents = [.. dto.Dependents.Select((d, index) => new ChecklistItemDependent
         {
             ChecklistItemId = item.Id,
             Order           = index + 1,
-            DependentTypeId = d.DependentType is not null && typeMap.TryGetValue(d.DependentType, out var tid) ? tid : null,
+            RelationType    = d.RelationType,
             DependentName   = d.DependentName,
             Amount          = d.Amount
         })];
@@ -213,11 +211,11 @@ public class ChecklistEngine(
             ProviderName = item.ProviderName,
             Dependents   = [.. dto.Dependents.Select((d, index) => new BenefitDependentDto
             {
-                Order         = index + 1,
-                DependentType = d.DependentType,
-                DependentName = d.DependentName,
-                Amount        = d.Amount,
-                StartDate     = startDate
+                Order           = index + 1,
+                RelationType    = d.RelationType,
+                DependentName   = d.DependentName,
+                Amount          = d.Amount,
+                StartDate       = startDate
             })]
         };
     }
@@ -251,7 +249,7 @@ public class ChecklistEngine(
             EmployerAmount   = item.EmployerAmount,
             Dependents       = [.. item.Dependents.OrderBy(d => d.Order).Select(d => new ChecklistItemDependentInputDto
             {
-                Order = d.Order, DependentType = d.DependentTypeRef != null ? d.DependentTypeRef.Name : string.Empty, DependentName = d.DependentName, Amount = d.Amount
+                Order = d.Order, RelationType = d.RelationType, DependentName = d.DependentName, Amount = d.Amount
             })],
             IsActionable  = item.Status == ChecklistItemStatuses.Pending && !gateBlocked,
             BlockedReason = gateBlocked ? "Tüm işlemler ve zimmet iadesi tamamlanmadan bu adım aktifleşmez." : null

@@ -1,5 +1,7 @@
 using DZDDashboard.Client.Services;
 using DZDDashboard.Common.Constants;
+using DZDDashboard.Common.DTOs;
+using System.Net.Http;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
@@ -93,6 +95,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<AuthTokenHandler>();
         services.AddScoped<DZDDashboard.Client.Localization.AppLocalizer>();
+        services.AddScoped<DZDDashboard.Client.Localization.DomainLocalizer>();
         services.AddScoped<UserService>();
         services.AddScoped<IUserClientService>(sp => sp.GetRequiredService<UserService>());
         services.AddScoped<OrganizationService>();
@@ -107,8 +110,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMyOnboardingClientService>(sp => sp.GetRequiredService<MyOnboardingClientService>());
         services.AddScoped<ChecklistTemplateClientService>();
         services.AddScoped<IChecklistTemplateClientService>(sp => sp.GetRequiredService<ChecklistTemplateClientService>());
-        services.AddScoped<LookupClientService>();
-        services.AddScoped<ILookupClientService>(sp => sp.GetRequiredService<LookupClientService>());
+        services.AddScoped<TrainingClientService>();
+        services.AddScoped<ITrainingClientService>(sp => sp.GetRequiredService<TrainingClientService>());
         services.AddScoped<NotificationCenterService>();
         services.AddScoped<INotificationCenterService>(sp => sp.GetRequiredService<NotificationCenterService>());
         services.AddScoped<IUserAvatarState, UserAvatarState>();

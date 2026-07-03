@@ -47,6 +47,13 @@ public static class OffboardingTypes
     public static readonly IReadOnlyList<string> All = [Resignation, Termination];
 }
 
+public static class PositionChangeTypes
+{
+    public const string TitleAndGradeUpgrade = "Title & Grade Upgrade";
+    public const string GradeUpgrade         = "Grade Upgrade";
+    public const string TitleChange          = "Title Change";
+}
+
 public static class ChecklistBenefitKinds
 {
     public const string None = "None";

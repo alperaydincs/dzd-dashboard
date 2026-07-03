@@ -10,36 +10,6 @@ namespace DZDDashboard.Api.Controllers;
 public class ReferenceDataController(IReferenceDataService refDataService) : BaseController
 {
 
-    [HttpGet("worktypes")]
-    public async Task<ActionResult<List<WorkTypeDto>>> GetWorkTypes(CancellationToken cancellationToken)
-        => Ok(await refDataService.GetWorkTypesAsync(cancellationToken));
-
-    [HttpPost("worktypes")]
-    [Authorize(Roles = Roles.Admin)]
-    public async Task<ActionResult<WorkTypeDto>> CreateWorkType([FromBody] WorkTypeDto dto, CancellationToken cancellationToken)
-    {
-        var result = await refDataService.CreateWorkTypeAsync(dto, cancellationToken);
-        return CreatedAtAction(nameof(GetWorkTypes), null, result);
-    }
-
-    [HttpPut("worktypes/{id}")]
-    [Authorize(Roles = Roles.Admin)]
-    public async Task<IActionResult> UpdateWorkType(int id, [FromBody] WorkTypeDto dto, CancellationToken cancellationToken)
-    {
-        if (CheckIdMismatch(id, dto.Id) is { } mismatch) return mismatch;
-        await refDataService.UpdateWorkTypeAsync(dto, cancellationToken);
-        return NoContent();
-    }
-
-    [HttpDelete("worktypes/{id}")]
-    [Authorize(Roles = Roles.Admin)]
-    public async Task<IActionResult> DeleteWorkType(int id, CancellationToken cancellationToken)
-    {
-        await refDataService.DeleteWorkTypeAsync(id, cancellationToken);
-        return NoContent();
-    }
-
-
     [HttpGet("jobs")]
     public async Task<ActionResult<List<JobDto>>> GetJobs(CancellationToken cancellationToken)
         => Ok(await refDataService.GetJobsAsync(cancellationToken));
@@ -162,4 +132,5 @@ public class ReferenceDataController(IReferenceDataService refDataService) : Bas
     [HttpGet("usergroups/{id}")]
     public async Task<ActionResult<UserGroupDto>> GetUserGroupById(int id, CancellationToken cancellationToken)
         => Ok(await refDataService.GetUserGroupByIdAsync(id, cancellationToken));
+
 }

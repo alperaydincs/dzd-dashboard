@@ -2,10 +2,10 @@ namespace DZDDashboard.Common.DTOs;
 
 public record ChecklistItemDependentInputDto
 {
-    public int     Order         { get; set; }
-    public string  DependentType { get; set; } = string.Empty;
-    public string? DependentName { get; set; }
-    public decimal Amount        { get; set; }
+    public int     Order            { get; set; }
+    public string? RelationType     { get; set; }
+    public string? DependentName    { get; set; }
+    public decimal Amount           { get; set; }
 }
 
 public record ChecklistItemDto

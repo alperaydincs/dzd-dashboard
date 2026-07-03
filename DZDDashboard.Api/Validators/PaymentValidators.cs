@@ -47,9 +47,9 @@ public class BenefitDependentDtoValidator : AbstractValidator<BenefitDependentDt
         RuleFor(x => x.DependentName)
             .MaximumLength(ValidationConstants.MaxShortNameLength);
 
-        RuleFor(x => x.DependentType)
-            .NotEmpty().WithMessage(ValidationMessages.DependentTypeRequired)
-            .Must(t => DependentTypes.All.Contains(t)).WithMessage(ValidationMessages.DependentTypeRequired);
+        RuleFor(x => x.RelationType)
+            .Must(c => DomainOptionCatalog.IsValid(DomainCategories.RelationType, c))
+            .WithMessage(ValidationMessages.RelationTypeRequired);
 
         RuleFor(x => x.Amount)
             .GreaterThan(0).WithMessage(ValidationMessages.DependentAmountInvalid);
@@ -116,7 +116,8 @@ public class AdditionalPaymentDtoValidator : AbstractValidator<AdditionalPayment
     public AdditionalPaymentDtoValidator()
     {
         RuleFor(x => x.PaymentType)
-            .Must(t => AdditionalPaymentTypes.All.Contains(t)).WithMessage(ValidationMessages.AdditionalPaymentTypeInvalid);
+            .Must(c => DomainOptionCatalog.IsValid(DomainCategories.AdditionalPaymentType, c))
+            .WithMessage(ValidationMessages.AdditionalPaymentTypeInvalid);
 
         RuleFor(x => x.Amount)
             .GreaterThan(0).WithMessage(ValidationMessages.AdditionalPaymentAmountInvalid);
@@ -137,7 +138,8 @@ public class DeductionDtoValidator : AbstractValidator<DeductionDto>
     public DeductionDtoValidator()
     {
         RuleFor(x => x.DeductionType)
-            .Must(t => DeductionTypes.All.Contains(t)).WithMessage(ValidationMessages.DeductionTypeInvalid);
+            .Must(c => DomainOptionCatalog.IsValid(DomainCategories.DeductionType, c))
+            .WithMessage(ValidationMessages.DeductionTypeInvalid);
 
         RuleFor(x => x.Amount)
             .GreaterThan(0).WithMessage(ValidationMessages.DeductionAmountInvalid);

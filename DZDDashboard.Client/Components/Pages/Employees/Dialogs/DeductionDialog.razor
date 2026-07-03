@@ -2,7 +2,8 @@
 @using DZDDashboard.Common.DTOs
 @using DZDDashboard.Client.Services
 @inject ISnackbar Snackbar
-@inject ILookupClientService Lookups
+@inject DZDDashboard.Client.Localization.DomainLocalizer Domain
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <MudDialog>
     <TitleContent>
@@ -15,22 +16,22 @@
         <MudStack Spacing="3">
             <MudGrid Spacing="3">
                 <MudItem xs="6">
-                    <div class="dzd-dialog-label">Deduction Type <span class="dzd-required">*</span></div>
+                    <div class="dzd-dialog-label">@Loc["payment.colDeductionType"] <span class="dzd-required">*</span></div>
                     <MudSelect T="string" @bind-Value="_model.DeductionType" Variant="Variant.Outlined" Margin="Margin.Dense"
-                               Required="true" Placeholder="Select deduction type">
-                        @foreach (var option in _typeOptions)
+                               Required="true" Placeholder="@Loc["dialogField.selectDeductionType"]">
+                        @foreach (var option in Domain.Options(DomainCategories.DeductionType))
                         {
-                            <MudSelectItem Value="@option">@option</MudSelectItem>
+                            <MudSelectItem Value="@option.Code">@option.Label</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="6">
-                    <div class="dzd-dialog-label">Amount <span class="dzd-required">*</span></div>
+                    <div class="dzd-dialog-label">@Loc["payment.amount"] <span class="dzd-required">*</span></div>
                     <MudNumericField T="decimal" @bind-Value="_model.Amount" Variant="Variant.Outlined" Margin="Margin.Dense"
                                      Required="true" Min="0.01m" Format="N2" Placeholder="0" />
                 </MudItem>
                 <MudItem xs="6">
-                    <div class="dzd-dialog-label">Currency <span class="dzd-required">*</span></div>
+                    <div class="dzd-dialog-label">@Loc["payment.currency"] <span class="dzd-required">*</span></div>
                     <MudSelect T="string" @bind-Value="_model.Currency" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
                         @foreach (var option in Currencies.All)
                         {
@@ -39,7 +40,7 @@
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="6">
-                    <div class="dzd-dialog-label">Period <span class="dzd-required">*</span></div>
+                    <div class="dzd-dialog-label">@Loc["dialogField.period"] <span class="dzd-required">*</span></div>
                     <MudSelect T="string" @bind-Value="_model.Period" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
                         @foreach (var option in PaymentPeriods.All)
                         {
@@ -48,7 +49,7 @@
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12">
-                    <div class="dzd-dialog-label">Payment Date <span class="dzd-required">*</span></div>
+                    <div class="dzd-dialog-label">@Loc["payment.colPaymentDate"] <span class="dzd-required">*</span></div>
                     <MudDatePicker Date="@_model.StartDate" DateChanged="@(d => _model.StartDate = d ?? _model.StartDate)"
                                    Variant="Variant.Outlined" Margin="Margin.Dense" Required="true"
                                    AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
@@ -56,25 +57,22 @@
             </MudGrid>
 
             <div>
-                <div class="dzd-dialog-label">Description</div>
+                <div class="dzd-dialog-label">@Loc["dialogField.description"]</div>
                 <MudTextField T="string" @bind-Value="_model.Notes" Variant="Variant.Outlined" Margin="Margin.Dense"
-                              Lines="2" Placeholder="Enter description" />
+                              Lines="2" Placeholder="@Loc["dialogField.enterDescription"]" />
             </div>
         </MudStack>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Outlined" OnClick="Cancel">@Loc["common.cancel"]</MudButton>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_submitted">@ConfirmButtonText</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    private List<string> _typeOptions = [.. DeductionTypes.All];
-
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        var values = await Lookups.GetValuesAsync(LookupCategories.DeductionType);
-        if (values.Count > 0) _typeOptions = values;
+        _model.DeductionType ??= DeductionTypes.SocialSecurity;
     }
 
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
@@ -84,7 +82,6 @@
 
     private DeductionDto _model = new()
     {
-        DeductionType = DeductionTypes.SocialSecurity,
         Currency      = Currencies.Try,
         Period        = PaymentPeriods.Monthly,
         StartDate     = DateTime.Today
@@ -107,7 +104,7 @@
 
         if (_model.Amount <= 0)
         {
-            Snackbar.Add("Amount must be greater than zero.", Severity.Warning);
+            Snackbar.Add(Loc["dialogField.amountRequired"], Severity.Warning);
             return;
         }
 

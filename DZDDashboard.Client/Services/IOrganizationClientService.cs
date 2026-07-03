@@ -24,11 +24,6 @@ public interface IOrganizationClientService
     Task<HttpResponseMessage> UpdateTeamAsync(TeamDto dto);
     Task<HttpResponseMessage> DeleteTeamAsync(int id);
 
-    Task<List<WorkTypeDto>> GetWorkTypesAsync();
-    Task<HttpResponseMessage> CreateWorkTypeAsync(WorkTypeDto dto);
-    Task<HttpResponseMessage> UpdateWorkTypeAsync(WorkTypeDto dto);
-    Task<HttpResponseMessage> DeleteWorkTypeAsync(int id);
-
     Task<List<JobDto>> GetJobsAsync();
     Task<HttpResponseMessage> CreateJobAsync(JobDto dto);
     Task<HttpResponseMessage> UpdateJobAsync(JobDto dto);

@@ -19,11 +19,9 @@ public partial class User : AuditableEntity
     public DateTime? UserStartDate       { get; set; }
     public DateTime? PositionStartDate   { get; set; }
     public DateTime? PositionUpdateDate  { get; set; }
-    public int?      ContractTypeId      { get; set; }
-    public ContractTypeEntity? ContractTypeRef { get; set; }
+    public string?   ContractType        { get; set; }
     public DateTime? ContractEndDate     { get; set; }
-    public int?      WorkModelId         { get; set; }
-    public WorkModelEntity? WorkModelRef { get; set; }
+    public string?   WorkModel           { get; set; }
     public string?   ApprovalProcessUnit { get; set; }
     public string?   EmployeeGroup       { get; set; }
     public string?   CvFilePath          { get; set; }

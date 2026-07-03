@@ -31,23 +31,23 @@
     {
         <MudTable Items="_items" Hover="true" Breakpoint="Breakpoint.Sm" OnRowClick="@(args => OpenDetail(args.Item))" T="OffboardingListItemDto">
             <HeaderContent>
-                <MudTh>Çalışan</MudTh>
-                <MudTh>Senaryo</MudTh>
-                <MudTh>Çıkış</MudTh>
-                <MudTh>İlerleme</MudTh>
-                <MudTh>Durum</MudTh>
+                <MudTh>@Loc["lifecycle.employee"]</MudTh>
+                <MudTh>@Loc["offboarding.scenario"]</MudTh>
+                <MudTh>@Loc["offboarding.exitDate"]</MudTh>
+                <MudTh>@Loc["lifecycle.progress"]</MudTh>
+                <MudTh>@Loc["lifecycle.status"]</MudTh>
             </HeaderContent>
             <RowTemplate>
-                <MudTd DataLabel="Çalışan">@context.EmployeeName</MudTd>
-                <MudTd DataLabel="Senaryo">@TypeLabel(context.Type)</MudTd>
-                <MudTd DataLabel="Çıkış">@AppFormatter.FormatDate(context.ExitDate)</MudTd>
-                <MudTd DataLabel="İlerleme">
+                <MudTd DataLabel="@Loc["lifecycle.employee"]">@context.EmployeeName</MudTd>
+                <MudTd DataLabel="@Loc["offboarding.scenario"]">@TypeLabel(context.Type)</MudTd>
+                <MudTd DataLabel="@Loc["offboarding.exitDate"]">@AppFormatter.FormatDate(context.ExitDate)</MudTd>
+                <MudTd DataLabel="@Loc["lifecycle.progress"]">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="min-width:160px;">
                         <MudProgressLinear Value="@Percent(context)" Color="Color.Primary" Style="flex:1;" Rounded="true" />
                         <MudText Typo="Typo.caption">@context.CompletedCount/@context.TotalCount</MudText>
                     </MudStack>
                 </MudTd>
-                <MudTd DataLabel="Durum">
+                <MudTd DataLabel="@Loc["lifecycle.status"]">
                     <MudChip T="string" Size="Size.Small" Color="@StatusColor(context.Status)" Variant="Variant.Text">@StatusLabel(context.Status)</MudChip>
                 </MudTd>
             </RowTemplate>
@@ -70,20 +70,20 @@
 
     private async Task StartOffboarding()
     {
-        var dialog = await DialogService.ShowAsync<StartOffboardingDialog>("Yeni Offboarding");
+        var dialog = await DialogService.ShowAsync<StartOffboardingDialog>(Loc["offboarding.dialogTitle"]);
         var result = await dialog.Result;
         if (result is { Canceled: false, Data: StartOffboardingDto dto })
         {
             try
             {
                 var created = await OffboardingService.StartAsync(dto);
-                if (created is null) { Snackbar.Add("Offboarding başlatılamadı.", Severity.Error); return; }
-                Snackbar.Add("Offboarding başlatıldı.", Severity.Success);
+                if (created is null) { Snackbar.Add(Loc["offboarding.startFailed"], Severity.Error); return; }
+                Snackbar.Add(Loc["offboarding.startSuccess"], Severity.Success);
                 Nav.NavigateTo($"/offboarding/{created.Id}");
             }
             catch
             {
-                Snackbar.Add("Offboarding başlatılamadı. Bu çalışan için zaten bir süreç olabilir.", Severity.Error);
+                Snackbar.Add(Loc["offboarding.startFailedDuplicate"], Severity.Error);
             }
         }
     }
@@ -95,7 +95,7 @@
 
     private static double Percent(OffboardingListItemDto i) => i.TotalCount == 0 ? 0 : 100.0 * i.CompletedCount / i.TotalCount;
 
-    private static string TypeLabel(string type) => type == OffboardingTypes.Termination ? "İşten Çıkarma" : "İstifa";
+    private string TypeLabel(string type) => type == OffboardingTypes.Termination ? Loc["offboarding.typeTermination"] : Loc["offboarding.typeResignation"];
 
     private static Color StatusColor(string status) => status switch
     {
@@ -104,10 +104,10 @@
         _                         => Color.Info
     };
 
-    private static string StatusLabel(string status) => status switch
+    private string StatusLabel(string status) => status switch
     {
-        ProcessStatuses.Completed => "Tamamlandı",
-        ProcessStatuses.Cancelled => "İptal",
-        _                         => "Devam ediyor"
+        ProcessStatuses.Completed => Loc["lifecycle.completed"],
+        ProcessStatuses.Cancelled => Loc["lifecycle.cancelled"],
+        _                         => Loc["lifecycle.inProgress"]
     };
 }

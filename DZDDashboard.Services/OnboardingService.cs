@@ -127,7 +127,7 @@ public class OnboardingService(
         => await context.OnboardingProcesses
             .Include(p => p.User)
             .Include(p => p.Manager)
-            .Include(p => p.Items).ThenInclude(i => i.Dependents).ThenInclude(d => d.DependentTypeRef)
+            .Include(p => p.Items).ThenInclude(i => i.Dependents)
             .Include(p => p.Items).ThenInclude(i => i.CompletedBy)
             .AsSplitQuery()
             .FirstOrDefaultAsync(p => p.Id == processId, cancellationToken)
