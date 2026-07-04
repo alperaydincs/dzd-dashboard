@@ -15,6 +15,14 @@ public static partial class SlugGenerator
     public static string FromName(string? first, string? last)
         => Slugify(AppFormatter.BuildFullName(first, last));
 
+    public static string FromEmail(string? email)
+    {
+        if (string.IsNullOrWhiteSpace(email)) return "user";
+        var at = email.IndexOf('@');
+        var localPart = at > 0 ? email[..at] : email;
+        return Slugify(localPart);
+    }
+
     public static string Slugify(string? input)
     {
         if (string.IsNullOrWhiteSpace(input)) return "user";

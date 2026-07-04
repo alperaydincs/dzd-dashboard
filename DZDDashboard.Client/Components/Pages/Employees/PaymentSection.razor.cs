@@ -13,6 +13,7 @@ namespace DZDDashboard.Client.Components.Pages.Employees;
 public partial class PaymentSection
 {
     [Parameter, EditorRequired] public int UserId { get; set; }
+    [Parameter] public bool SelfService { get; set; }
 
     [Inject] private IPaymentClientService                       PaymentService           { get; set; } = default!;
     [Inject] private IDialogService                             DialogService            { get; set; } = default!;
@@ -31,6 +32,11 @@ public partial class PaymentSection
     private string GetRelationTypeName(string? code)          => Domain.Label(DomainCategories.RelationType, code);
     private string GetAdditionalPaymentTypeName(string? code) => Domain.Label(DomainCategories.AdditionalPaymentType, code);
     private string GetDeductionTypeName(string? code)         => Domain.Label(DomainCategories.DeductionType, code);
+    private string GetBenefitTypeName(string? code)           => Domain.Label(DomainCategories.BenefitType, code);
+    private string GetPayTypeName(string? code)                => Domain.Label(DomainCategories.PayType, code);
+    private string GetPaymentPeriodName(string? code)           => Domain.Label(DomainCategories.PaymentPeriod, code);
+    private string GetAdditionalPaymentPeriodName(string? code) => Domain.Label(DomainCategories.AdditionalPaymentPeriod, code);
+    private string GetCurrencyName(string? code)                 => Domain.Label(DomainCategories.Currency, code);
 
     protected override async Task OnInitializedAsync()
     {
@@ -51,7 +57,9 @@ public partial class PaymentSection
         _loadError = null;
         try
         {
-            _payment = await PaymentService.GetEmployeePaymentAsync(UserId);
+            _payment = SelfService
+                ? await PaymentService.GetMyPaymentAsync()
+                : await PaymentService.GetEmployeePaymentAsync(UserId);
             if (_payment is null) _loadError = Loc["payment.loadFailed"];
         }
         catch (Exception)
@@ -64,7 +72,10 @@ public partial class PaymentSection
         }
     }
 
-    private static string FormatMoney(decimal amount, string currency) => $"{amount:N2} {currency}";
+    private static string FormatMoney(decimal amount, string currency) => $"{amount:N2}{Currencies.Symbol(currency)}";
+
+    private static string FormatMoneyTotals(List<CurrencyAmountDto> totals)
+        => totals.Count == 0 ? "0,00" : string.Join(" + ", totals.Select(t => FormatMoney(t.Amount, t.Currency)));
 
     private static string BenefitBadgeClass(string benefitType) => "amber";
 
@@ -122,7 +133,7 @@ public partial class PaymentSection
     private async Task DeleteSalaryRecordAsync(SalaryRecordDto record)
     {
         if (await DialogService.ShowMessageBox(Loc["payment.deleteSalaryDialogTitle"],
-            string.Format(Loc["payment.deleteSalaryConfirm"], FormatMoney(record.NetAmount, record.Currency), record.Period, AppFormatter.FormatDate(record.StartDate)),
+            string.Format(Loc["payment.deleteSalaryConfirm"], FormatMoney(record.NetAmount, record.Currency), GetPaymentPeriodName(record.Period), AppFormatter.FormatDate(record.StartDate)),
             yesText: Loc["payment.delete"], cancelText: Loc["common.cancel"]) != true) return;
 
         var resp = await PaymentService.DeleteSalaryRecordAsync(UserId, record.Id);
@@ -182,7 +193,7 @@ public partial class PaymentSection
     private async Task DeleteBenefitRecordAsync(BenefitRecordDto record)
     {
         if (await DialogService.ShowMessageBox(Loc["payment.deleteBenefitDialogTitle"],
-            string.Format(Loc["payment.deleteBenefitConfirm"], record.BenefitType, FormatMoney(record.Amount, record.Currency), record.Period),
+            string.Format(Loc["payment.deleteBenefitConfirm"], GetBenefitTypeName(record.BenefitType), FormatMoney(record.Amount, record.Currency), GetPaymentPeriodName(record.Period)),
             yesText: Loc["payment.delete"], cancelText: Loc["common.cancel"]) != true) return;
 
         var resp = await PaymentService.DeleteBenefitRecordAsync(UserId, record.Id);
@@ -262,7 +273,7 @@ public partial class PaymentSection
     private async Task DeleteDeductionAsync(DeductionDto record)
     {
         if (await DialogService.ShowMessageBox(Loc["payment.deleteDeductionDialogTitle"],
-            string.Format(Loc["payment.deleteDeductionConfirm"], GetDeductionTypeName(record.DeductionType), FormatMoney(record.Amount, record.Currency), record.Period),
+            string.Format(Loc["payment.deleteDeductionConfirm"], GetDeductionTypeName(record.DeductionType), FormatMoney(record.Amount, record.Currency), GetAdditionalPaymentPeriodName(record.Period)),
             yesText: Loc["payment.delete"], cancelText: Loc["common.cancel"]) != true) return;
 
         var resp = await PaymentService.DeleteDeductionAsync(UserId, record.Id);

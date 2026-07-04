@@ -18,11 +18,11 @@
             <MudGrid Spacing="3">
                 <MudItem xs="6">
                     <div class="dzd-dialog-label">@Loc["payment.benefitType"]</div>
-                    <MudSelect T="string" @bind-Value="_model.BenefitType" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true"
+                    <MudSelect T="string" @bind-Value="_model.BenefitType" @bind-Value:after="UpdateDialogSizeAsync" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true"
                                Placeholder="@Loc["benefitDialog.selectBenefitType"]">
-                        @foreach (var option in BenefitTypes.All)
+                        @foreach (var option in Domain.Options(DomainCategories.BenefitType))
                         {
-                            <MudSelectItem Value="@option">@option</MudSelectItem>
+                            <MudSelectItem Value="@option.Code">@option.Label</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
@@ -36,24 +36,33 @@
                     <MudNumericField T="decimal" @bind-Value="_model.Amount" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Min="0.01m" Format="N2" />
                 </MudItem>
                 <MudItem xs="6">
+                    <div class="dzd-dialog-label">@Loc["payment.currency"] <span class="dzd-required">*</span></div>
+                    <MudSelect T="string" @bind-Value="_model.Currency" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
+                        @foreach (var option in Domain.Options(DomainCategories.Currency))
+                        {
+                            <MudSelectItem Value="@option.Code">@option.Label</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6">
                     <div class="dzd-dialog-label">@Loc["payment.frequency"]</div>
                     <MudSelect T="string" @bind-Value="_model.Period" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
-                        @foreach (var option in PaymentPeriods.All)
+                        @foreach (var option in Domain.Options(DomainCategories.PaymentPeriod))
                         {
-                            <MudSelectItem Value="@option">@option</MudSelectItem>
+                            <MudSelectItem Value="@option.Code">@option.Label</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="6">
                     <div class="dzd-dialog-label">@Loc["payment.startDate"]</div>
                     <MudDatePicker Date="@_model.StartDate" DateChanged="@(d => _model.StartDate = d ?? _model.StartDate)"
-                                   Variant="Variant.Outlined" Margin="Margin.Dense" Required="true"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" DateFormat="dd.MM.yyyy"
                                    AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
                 </MudItem>
                 <MudItem xs="6">
                     <div class="dzd-dialog-label">@Loc["salaryDialog.endDateOptional"]</div>
                     <MudDatePicker Date="@_model.EndDate" DateChanged="@(d => _model.EndDate = d)"
-                                   Variant="Variant.Outlined" Margin="Margin.Dense"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" DateFormat="dd.MM.yyyy"
                                    AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
                 </MudItem>
             </MudGrid>
@@ -94,13 +103,13 @@
                             <MudItem xs="6" sm="2">
                                 <div class="dzd-dialog-label">@Loc["payment.startDate"]</div>
                                 <MudDatePicker Date="@dependent.StartDate" DateChanged="@(d => dependent.StartDate = d ?? dependent.StartDate)"
-                                               Variant="Variant.Outlined" Margin="Margin.Dense"
+                                               Variant="Variant.Outlined" Margin="Margin.Dense" DateFormat="dd.MM.yyyy"
                                                AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
                             </MudItem>
                             <MudItem xs="6" sm="2">
                                 <div class="dzd-dialog-label">@Loc["benefitDialog.endDate"]</div>
                                 <MudDatePicker Date="@dependent.EndDate" DateChanged="@(d => dependent.EndDate = d)"
-                                               Variant="Variant.Outlined" Margin="Margin.Dense"
+                                               Variant="Variant.Outlined" Margin="Margin.Dense" DateFormat="dd.MM.yyyy"
                                                AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
                             </MudItem>
                             <MudItem xs="6" sm="1" Class="d-flex align-center justify-end">
@@ -169,12 +178,21 @@
     private bool _initialized;
     private bool _submitted;
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         if (_initialized || InitialModel is null) return;
         _initialized = true;
 
         _model = InitialModel with { Dependents = InitialModel.Dependents.Select(d => d with { }).ToList() };
+        await UpdateDialogSizeAsync();
+    }
+
+    private Task UpdateDialogSizeAsync()
+    {
+        var options = _model.BenefitType == BenefitTypes.PrivateHealthInsurance
+            ? new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true }
+            : new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true };
+        return MudDialog.SetOptionsAsync(options);
     }
 
     private void AddDependent()

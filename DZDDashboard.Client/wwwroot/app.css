@@ -8,10 +8,15 @@
     --dzd-orange-50: #FFEDD4;
     --dzd-orange-100: #FFD6A7;
     --dzd-orange-500: #F46036;
+    --dzd-orange-icon-bg: rgba(244, 96, 54, 0.1);
 
     --dzd-green-50: #DCFCE7;
-    --dzd-green-100: #89FBCF;
+    --dzd-green-100: #B9F8CF;
     --dzd-green-500: #016630;
+
+    --dzd-cambridge-icon-bg: rgba(112, 163, 127, 0.15);
+
+    --dzd-amber-icon-bg: rgba(254, 168, 47, 0.15);
 
     --dzd-blue-icon-bg: rgba(43, 56, 245, 0.1);
     --dzd-blue-50: #DBEAFE;
@@ -159,12 +164,13 @@ html, body {
     background: linear-gradient(90deg, transparent, var(--dzd-accent, var(--dzd-blue-500)), transparent);
 }
 
-.dzd-info-card.accent-purple { --dzd-accent: var(--dzd-purple-500); --dzd-accent-bg: var(--dzd-purple-50); }
-.dzd-info-card.accent-orange { --dzd-accent: var(--dzd-orange-500); --dzd-accent-bg: var(--dzd-orange-50); }
-.dzd-info-card.accent-green  { --dzd-accent: var(--dzd-green-500);  --dzd-accent-bg: var(--dzd-green-50); }
-.dzd-info-card.accent-red    { --dzd-accent: var(--dzd-red-500);    --dzd-accent-bg: var(--dzd-red-50); }
-.dzd-info-card.accent-blue   { --dzd-accent: var(--dzd-blue-500);   --dzd-accent-bg: var(--dzd-blue-50); }
-.dzd-info-card.accent-gray   { --dzd-accent: var(--dzd-text-secondary); --dzd-accent-bg: var(--dzd-bg-secondary); }
+.dzd-info-card.accent-purple       { --dzd-accent: var(--dzd-purple-500);      --dzd-accent-bg: var(--dzd-purple-50); }
+.dzd-info-card.accent-orange       { --dzd-accent: var(--dzd-orange-500);      --dzd-accent-bg: var(--dzd-orange-icon-bg); }
+.dzd-info-card.accent-green        { --dzd-accent: var(--dzd-green-500);       --dzd-accent-bg: var(--dzd-green-50); }
+.dzd-info-card.accent-red          { --dzd-accent: var(--dzd-red-500);         --dzd-accent-bg: var(--dzd-red-50); }
+.dzd-info-card.accent-blue         { --dzd-accent: var(--dzd-brand-primary);   --dzd-accent-bg: var(--dzd-blue-icon-bg); }
+.dzd-info-card.accent-gray         { --dzd-accent: var(--dzd-text-secondary);  --dzd-accent-bg: var(--dzd-bg-secondary); }
+.dzd-info-card.accent-cambridgeblue { --dzd-accent: var(--dzd-brand-secondary); --dzd-accent-bg: var(--dzd-cambridge-icon-bg); }
 
 .dzd-info-card__icon {
     width: 44px;
@@ -174,8 +180,8 @@ html, body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--dzd-accent-bg, var(--dzd-blue-50));
-    color: var(--dzd-accent, var(--dzd-blue-500));
+    background-color: var(--dzd-accent-bg, var(--dzd-blue-icon-bg));
+    color: var(--dzd-accent, var(--dzd-brand-primary));
 }
 
 .dzd-info-card__body {
@@ -192,9 +198,13 @@ html, body {
 
 .dzd-info-card__value {
     font-size: 1.1rem;
-    font-weight: 600;
+    font-weight: 400;
     color: var(--dzd-text-primary);
     line-height: 1.3;
+}
+
+.dzd-info-card.dzd-payment-summary .dzd-info-card__value {
+    font-size: 1.4rem;
 }
 
 h1:focus {

@@ -17,13 +17,11 @@ public partial class GradeManagementPanel
     private string?               _loadError;
     private List<CareerPathDto>   _careerPaths = [];
     private List<JobDto>          _allJobs     = [];
-    private List<UserGroupDto>    _userGroups  = [];
     private HashSet<int>          _expandedIds = [];
 
     private static readonly DialogOptions SmallDialog = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
 
     private int?                  _editPathId;    private string                _editPathName = string.Empty;
-    private int                   _editPathGroupId;
     private List<RuleEditModel>   _editRules = [];
     private HashSet<int>          _editOriginalRuleIds = [];
     private bool                  _saving;
@@ -47,11 +45,9 @@ public partial class GradeManagementPanel
         {
             var t1   = OrgService.GetCareerPathsAsync();
             var t2   = OrgService.GetJobsAsync();
-            var t3   = OrgService.GetUserGroupsAsync();
-            await Task.WhenAll(t1, t2, t3);
+            await Task.WhenAll(t1, t2);
             _careerPaths = t1.Result;
             _allJobs     = t2.Result;
-            _userGroups  = t3.Result;
         }
         catch (Exception)
         {
@@ -71,14 +67,8 @@ public partial class GradeManagementPanel
 
     private async Task OpenAddCareerPathDialog()
     {
-        if (_userGroups.Count == 0)
-        {
-            Snackbar.Add(Loc["gradeManagement.noUserGroups"], Severity.Warning);
-            return;
-        }
-
         var dialog = await DialogServiceRef.ShowAsync<CareerPathDialog>(Loc["careerPathDialog.addTitle"],
-            new() { ["UserGroups"] = _userGroups }, SmallDialog);
+            new(), SmallDialog);
         var result = await dialog.Result;
 
         if (result is { Canceled: false, Data: CareerPathDto dto })
@@ -87,7 +77,7 @@ public partial class GradeManagementPanel
             if (resp.IsSuccessStatusCode)
             {
                 await LoadData();
-                var created = _careerPaths.FirstOrDefault(p => p.Name == dto.Name && p.UserGroupId == dto.UserGroupId);
+                var created = _careerPaths.FirstOrDefault(p => p.Name == dto.Name);
                 if (created != null) _expandedIds.Add(created.Id);
                 Snackbar.Add(Loc["gradeManagement.careerPathCreated"], Severity.Success);
             }
@@ -113,7 +103,6 @@ public partial class GradeManagementPanel
 
         _editPathId          = path.Id;
         _editPathName        = path.Name;
-        _editPathGroupId     = path.UserGroupId;
         _editOriginalRuleIds = path.Rules.Select(r => r.Id).ToHashSet();
         _editRules = path.Rules
             .OrderBy(r => r.Grade)
@@ -165,7 +154,6 @@ public partial class GradeManagementPanel
 
     private bool CanSavePath =>
         !string.IsNullOrWhiteSpace(_editPathName)
-        && _editPathGroupId != 0
         && _editRules.All(r => r.JobIds.Count > 0)
         && !_saving;
 
@@ -180,7 +168,6 @@ public partial class GradeManagementPanel
             {
                 Id          = _editPathId.Value,
                 Name        = _editPathName.Trim(),
-                UserGroupId = _editPathGroupId,
             });
             if (!pathResp.IsSuccessStatusCode)
             {

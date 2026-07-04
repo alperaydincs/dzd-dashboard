@@ -175,7 +175,7 @@
 }
 
 ::deep .dzd-field-label .mud-icon-root {
-    color: var(--dzd-blue-500) !important;
+    color: var(--dzd-brand-primary) !important;
     font-size: 16px;
     display: flex;
     align-items: center;
@@ -633,6 +633,28 @@
     color: var(--dzd-text-secondary);
 }
 
+/* ===== Education level avatar/chip colors ===== */
+::deep .edu-avatar-highschool.mud-avatar { background-color: var(--dzd-cambridge-icon-bg) !important; border-color: transparent !important; }
+::deep .edu-avatar-highschool .mud-icon-root { color: var(--dzd-brand-secondary) !important; }
+
+::deep .edu-avatar-bachelors.mud-avatar { background-color: var(--dzd-blue-icon-bg) !important; border-color: transparent !important; }
+::deep .edu-avatar-bachelors .mud-icon-root { color: var(--dzd-brand-primary) !important; }
+
+::deep .edu-avatar-masters.mud-avatar { background-color: var(--dzd-purple-50) !important; border-color: transparent !important; }
+::deep .edu-avatar-masters .mud-icon-root { color: var(--dzd-purple-500) !important; }
+
+::deep .edu-avatar-phd.mud-avatar { background-color: var(--dzd-orange-50) !important; border-color: transparent !important; }
+::deep .edu-avatar-phd .mud-icon-root { color: var(--dzd-orange-500) !important; }
+
+::deep .edu-avatar-default.mud-avatar { background-color: var(--dzd-bg-secondary) !important; border-color: transparent !important; }
+::deep .edu-avatar-default .mud-icon-root { color: var(--dzd-text-secondary) !important; }
+
+::deep .edu-chip-highschool.mud-chip { color: var(--dzd-green-500) !important; background-color: var(--dzd-green-50) !important; }
+::deep .edu-chip-bachelors.mud-chip  { color: var(--dzd-blue-500) !important; background-color: var(--dzd-blue-50) !important; }
+::deep .edu-chip-masters.mud-chip    { color: var(--dzd-purple-500) !important; background-color: var(--dzd-purple-50) !important; }
+::deep .edu-chip-phd.mud-chip        { color: var(--dzd-orange-500) !important; background-color: var(--dzd-orange-50) !important; }
+::deep .edu-chip-default.mud-chip    { color: var(--dzd-text-secondary) !important; background-color: var(--dzd-bg-secondary) !important; }
+
 .trn-bars {
     flex: 1 1 320px;
     display: flex;
@@ -701,6 +723,15 @@
     background: var(--dzd-surface-primary);
     color: var(--dzd-text-primary);
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+}
+
+.trn-filter.trn-filter--full {
+    display: flex;
+    width: 100%;
+}
+
+.trn-filter.trn-filter--full .trn-filter-seg {
+    flex: 1 1 0;
 }
 
 .trn-course-progress {

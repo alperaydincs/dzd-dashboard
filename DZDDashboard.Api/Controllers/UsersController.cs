@@ -13,6 +13,7 @@ namespace DZDDashboard.Api.Controllers;
 public class UsersController(
     IUserReadService  readService,
     IUserWriteService writeService,
+    IUserDocumentService documents,
     ICurrentUserAccessor currentUser) : BaseController
 {
 
@@ -88,6 +89,42 @@ public class UsersController(
         return NoContent();
     }
 
+    [HttpPut("my-profile/address-info")]
+    public async Task<IActionResult> UpdateMyAddressInfo([FromBody] UpdateAddressInfoDto dto, CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var userId)) return Unauthorized();
+
+        await writeService.UpdateAddressInfoAsync(userId, dto, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPut("my-profile/education-info")]
+    public async Task<IActionResult> UpdateMyEducationInfo([FromBody] UpdateEducationInfoDto dto, CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var userId)) return Unauthorized();
+
+        await writeService.UpdateEducationInfoAsync(userId, dto, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpGet("my-profile/documents")]
+    public async Task<ActionResult<List<UserDocumentDto>>> GetMyDocuments(CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var userId)) return Unauthorized();
+
+        return Ok(await documents.GetUserDocumentsAsync(userId, cancellationToken));
+    }
+
+    [HttpGet("my-profile/documents/{documentId:int}/content")]
+    public async Task<IActionResult> DownloadMyDocument(int documentId, CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var userId)) return Unauthorized();
+
+        var content = await documents.GetContentAsync(userId, documentId, cancellationToken);
+        if (content is null) return NotFound();
+        return File(content.Value.Content, content.Value.ContentType ?? "application/octet-stream", content.Value.FileName);
+    }
+
     [HttpGet("{id:int}/card")]
     [Authorize(Roles = Roles.AdminOrHr)]
     public async Task<ActionResult<EmployeeCardDto>> GetEmployeeCard(int id, CancellationToken cancellationToken)
@@ -145,9 +182,7 @@ public class UsersController(
             return Problem("File content does not match the declared content type.",
                 statusCode: 400, title: "Validation Error");
 
-        var base64 = Convert.ToBase64String(fileBytes);
-
-        await writeService.UpdateAvatarAsync(userId, file.ContentType, base64, cancellationToken);
+        await writeService.UpdateAvatarAsync(userId, file.ContentType, fileBytes, cancellationToken);
         return NoContent();
     }
 
@@ -160,8 +195,10 @@ public class UsersController(
         return NoContent();
     }
 
+    // Any authenticated user may fetch a user's avatar: the org chart (visible to all
+    // authenticated users) exposes names/emails/jobs and renders these avatars, so the
+    // image is no more sensitive than data already shown there.
     [HttpGet("{id:int}/avatar")]
-    [Authorize(Roles = Roles.Admin)]
     public async Task<ActionResult<UserAvatarDto>> GetUserAvatar(int id, CancellationToken cancellationToken)
         => Ok(await readService.GetAvatarByUserIdAsync(id, cancellationToken) ?? new UserAvatarDto());
 

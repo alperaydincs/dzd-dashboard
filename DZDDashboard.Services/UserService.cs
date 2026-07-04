@@ -20,14 +20,17 @@ namespace DZDDashboard.Services;
 public partial class UserService(
     IMapper mapper,
     AppDbContext context,
+    IFileStorageService fileStorage,
     IReportsToCalculator reportsToCalculator,
     IOptions<OnboardingOptions> onboardingOptions,
     ILogger<UserService> logger)
     : IUserService, IUserReadService, IUserWriteService, IUserSyncService
 {
-    public async Task<string> GenerateUniqueSlugAsync(string? firstName, string? lastName, CancellationToken cancellationToken = default)
+    public async Task<string> GenerateUniqueSlugAsync(string? email, string? firstName, string? lastName, CancellationToken cancellationToken = default)
     {
-        var baseSlug = SlugGenerator.FromName(firstName, lastName);
+        var baseSlug = string.IsNullOrWhiteSpace(email)
+            ? SlugGenerator.FromName(firstName, lastName)
+            : SlugGenerator.FromEmail(email);
         var slug = baseSlug;
         var suffix = 2;
         while (await context.Users.AnyAsync(u => u.Slug == slug, cancellationToken))

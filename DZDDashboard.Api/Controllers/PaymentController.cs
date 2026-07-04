@@ -10,13 +10,13 @@ namespace DZDDashboard.Api.Controllers;
 [Route("api/users")]
 public class PaymentController(IPaymentService paymentService, ICurrentUserAccessor currentUser) : BaseController
 {
-    [HttpGet("my-profile/payment-summary")]
-    public async Task<ActionResult<MyPaymentSummaryDto>> GetMyPaymentSummary(CancellationToken cancellationToken)
+    [HttpGet("my-profile/payment")]
+    public async Task<ActionResult<EmployeePaymentDto>> GetMyPayment(CancellationToken cancellationToken)
     {
         var userId = currentUser.UserId;
         if (!userId.HasValue) return Unauthorized();
 
-        return Ok(await paymentService.GetMyPaymentSummaryAsync(userId.Value, cancellationToken));
+        return Ok(await paymentService.GetEmployeePaymentAsync(userId.Value, cancellationToken));
     }
 
     [HttpGet("{id:int}/payment")]

@@ -16,11 +16,6 @@ public class CareerPathConfiguration : IEntityTypeConfiguration<CareerPath>
                .IsRequired()
                .HasMaxLength(ValidationConstants.MaxStandardLength);
 
-        builder.HasOne(c => c.UserGroup)
-               .WithMany()
-               .HasForeignKey(c => c.UserGroupId)
-               .OnDelete(DeleteBehavior.Restrict);
-
         builder.HasOne(c => c.ModifiedBy)
                .WithMany()
                .HasForeignKey(c => c.ModifiedById)

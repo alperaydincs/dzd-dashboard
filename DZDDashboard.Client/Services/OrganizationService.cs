@@ -94,18 +94,6 @@ public class OrganizationService : ApiServiceBase, IOrganizationClientService
     public async Task<HttpResponseMessage> DeletePayrollLocationAsync(int id)
         => await DeleteAsync(ApiRoutes.Organization.PayrollLocation(id));
 
-    public async Task<List<UserGroupDto>> GetUserGroupsAsync()
-        => await GetAsync<List<UserGroupDto>>(ApiRoutes.Organization.UserGroups) ?? [];
-
-    public async Task<HttpResponseMessage> CreateUserGroupAsync(UserGroupDto dto)
-        => await PostAsync(ApiRoutes.Organization.UserGroups, dto);
-
-    public async Task<HttpResponseMessage> UpdateUserGroupAsync(UserGroupDto dto)
-        => await PutAsync(ApiRoutes.Organization.UserGroup(dto.Id), dto);
-
-    public async Task<HttpResponseMessage> DeleteUserGroupAsync(int id)
-        => await DeleteAsync(ApiRoutes.Organization.UserGroup(id));
-
     public async Task<List<CareerPathDto>> GetCareerPathsAsync()
         => await GetAsync<List<CareerPathDto>>(ApiRoutes.Organization.CareerPaths) ?? [];
 

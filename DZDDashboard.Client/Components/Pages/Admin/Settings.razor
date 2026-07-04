@@ -264,47 +264,6 @@
                         </div>
 
                         <div class="sacc-paper">
-                            <div class="sacc-section-hdr" @onclick="() => _employeeGroupsExpanded = !_employeeGroupsExpanded">
-                                <button type="button" class="sacc-toggle-btn">
-                                    <MudIcon Icon="@(_employeeGroupsExpanded ? DzdIcons.ChevronDown : DzdIcons.ChevronRight)" Size="Size.Small" />
-                                </button>
-                                <div class="sacc-icon-wrap sacc-red">
-                                    <MudIcon Icon="@DzdIcons.UsersRound" Size="Size.Small" />
-                                </div>
-                                <div class="sacc-title-group">
-                                    <span class="sacc-title">@Loc["settings.employeeGroups"]</span>
-                                    <span class="sacc-subtitle">@string.Format(Loc["settings.itemsCount"], _userGroups.Count)</span>
-                                </div>
-                            </div>
-                            @if (_employeeGroupsExpanded)
-                            {
-                                <div class="sacc-body">
-                                    @foreach (var group in _userGroups)
-                                    {
-                                        var groupCapture = group;
-                                        <div class="sacc-row sacc-flat-row">
-                                            <div class="sacc-icon-wrap sacc-red">
-                                                <MudIcon Icon="@DzdIcons.UsersRound" Size="Size.Small" />
-                                            </div>
-                                            <span class="sacc-row-name">@group.GroupName</span>
-                                            <div class="sacc-row-actions">
-                                                <button type="button" class="sacc-icon-btn" title="@Loc["common.edit"]" @onclick="() => OpenEditUserGroupDialog(groupCapture)">
-                                                    <MudIcon Icon="@DzdIcons.Pencil" Size="Size.Small" />
-                                                </button>
-                                                <button type="button" class="sacc-icon-btn sacc-icon-btn-danger" title="@Loc["payment.delete"]" @onclick="() => DeleteUserGroup(groupCapture)">
-                                                    <MudIcon Icon="@DzdIcons.Trash2" Size="Size.Small" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    }
-                                    <button type="button" class="sacc-add-bottom-btn" @onclick="OpenAddUserGroupDialog">
-                                        <MudIcon Icon="@DzdIcons.Plus" Size="Size.Small" Class="sacc-add-icon" /> @Loc["settings.addEmployeeGroup"]
-                                    </button>
-                                </div>
-                            }
-                        </div>
-
-                        <div class="sacc-paper">
                             <div class="sacc-section-hdr" @onclick="() => _payrollLocationsExpanded = !_payrollLocationsExpanded">
                                 <button type="button" class="sacc-toggle-btn">
                                     <MudIcon Icon="@(_payrollLocationsExpanded ? DzdIcons.ChevronDown : DzdIcons.ChevronRight)" Size="Size.Small" />

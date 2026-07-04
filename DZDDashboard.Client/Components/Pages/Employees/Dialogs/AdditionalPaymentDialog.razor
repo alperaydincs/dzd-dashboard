@@ -33,18 +33,18 @@
                 <MudItem xs="6">
                     <div class="dzd-dialog-label">@Loc["payment.currency"] <span class="dzd-required">*</span></div>
                     <MudSelect T="string" @bind-Value="_model.Currency" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
-                        @foreach (var option in Currencies.All)
+                        @foreach (var option in Domain.Options(DomainCategories.Currency))
                         {
-                            <MudSelectItem Value="@option">@Currencies.Display(option)</MudSelectItem>
+                            <MudSelectItem Value="@option.Code">@option.Label</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="6">
                     <div class="dzd-dialog-label">@Loc["dialogField.period"] <span class="dzd-required">*</span></div>
                     <MudSelect T="string" @bind-Value="_model.Period" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
-                        @foreach (var option in AdditionalPaymentPeriods.All)
+                        @foreach (var option in Domain.Options(DomainCategories.AdditionalPaymentPeriod))
                         {
-                            <MudSelectItem Value="@option">@option</MudSelectItem>
+                            <MudSelectItem Value="@option.Code">@option.Label</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
@@ -55,7 +55,7 @@
                 <div>
                     <div class="dzd-dialog-label">@Loc["payment.colPaymentDate"] <span class="dzd-required">*</span></div>
                     <MudDatePicker Date="@_model.PaymentDate" DateChanged="@(d => _model.PaymentDate = d)"
-                                   Variant="Variant.Outlined" Margin="Margin.Dense" Required="true"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" DateFormat="dd.MM.yyyy"
                                    AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
                 </div>
             }
@@ -65,13 +65,13 @@
                     <MudItem xs="6">
                         <div class="dzd-dialog-label">@Loc["payment.startDate"] <span class="dzd-required">*</span></div>
                         <MudDatePicker Date="@_model.StartDate" DateChanged="@(d => _model.StartDate = d)"
-                                       Variant="Variant.Outlined" Margin="Margin.Dense" Required="true"
+                                       Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" DateFormat="dd.MM.yyyy"
                                        AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
                     </MudItem>
                     <MudItem xs="6">
                         <div class="dzd-dialog-label">@Loc["salaryDialog.endDateOptional"]</div>
                         <MudDatePicker Date="@_model.EndDate" DateChanged="@(d => _model.EndDate = d)"
-                                       Variant="Variant.Outlined" Margin="Margin.Dense"
+                                       Variant="Variant.Outlined" Margin="Margin.Dense" DateFormat="dd.MM.yyyy"
                                        AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
                     </MudItem>
                 </MudGrid>

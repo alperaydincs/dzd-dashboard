@@ -52,6 +52,8 @@ public static class PositionChangeTypes
     public const string TitleAndGradeUpgrade = "Title & Grade Upgrade";
     public const string GradeUpgrade         = "Grade Upgrade";
     public const string TitleChange          = "Title Change";
+
+    public static readonly IReadOnlyList<string> All = [TitleAndGradeUpgrade, GradeUpgrade, TitleChange];
 }
 
 public static class ChecklistBenefitKinds

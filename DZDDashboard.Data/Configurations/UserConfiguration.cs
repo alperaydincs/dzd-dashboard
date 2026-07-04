@@ -79,11 +79,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                .HasForeignKey(u => u.TeamId)
                .OnDelete(DeleteBehavior.SetNull);
 
-        builder.HasOne(u => u.UserGroup)
-               .WithMany()
-               .HasForeignKey(u => u.UserGroupId)
-               .OnDelete(DeleteBehavior.SetNull);
-
         builder.HasOne(u => u.Job)
                .WithMany(j => j.Users)
                .HasForeignKey(u => u.JobId)

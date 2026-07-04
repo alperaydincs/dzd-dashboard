@@ -18,14 +18,14 @@
             <MudTextField T="string" Label="@Loc["educationDialog.programDepartment"]" @bind-Value="_model.Program" Variant="Variant.Outlined" Margin="Margin.Dense" />
 
             <MudDatePicker Label="@Loc["educationDialog.graduationDate"]" Date="@_model.GraduationDate" DateChanged="@(d => _model.GraduationDate = d)"
-                           Variant="Variant.Outlined" Margin="Margin.Dense"
+                           Variant="Variant.Outlined" Margin="Margin.Dense" DateFormat="dd.MM.yyyy"
                            AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter"
                            OverflowBehavior="OverflowBehavior.FlipNever" />
 
             <MudSelect T="string" Label="@Loc["educationDialog.status"]" @bind-Value="_model.Status" Variant="Variant.Outlined" Margin="Margin.Dense">
-                @foreach (var status in EducationStatuses.All)
+                @foreach (var option in Domain.Options(DomainCategories.EducationStatus))
                 {
-                    <MudSelectItem Value="@status">@status</MudSelectItem>
+                    <MudSelectItem Value="@option.Code">@option.Label</MudSelectItem>
                 }
             </MudSelect>
         </MudStack>

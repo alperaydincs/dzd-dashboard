@@ -15,7 +15,7 @@ public class CareerPathService(AppDbContext context, IMapper mapper) : ICareerPa
     {
         var paths = await context.CareerPaths
             .AsNoTracking()
-            .AsSplitQuery()            .Include(p => p.UserGroup)
+            .AsSplitQuery()
             .Include(p => p.Rules)
                 .ThenInclude(r => r.Positions)
                     .ThenInclude(pos => pos.Job)
@@ -27,9 +27,7 @@ public class CareerPathService(AppDbContext context, IMapper mapper) : ICareerPa
 
     public async Task<CareerPathDto> CreateCareerPathAsync(CareerPathDto dto, CancellationToken cancellationToken = default)
     {
-        var userGroup = await context.UserGroups.FindRequiredAsync(dto.UserGroupId, nameof(UserGroup), cancellationToken);
-
-        var entity = new CareerPath { Name = dto.Name, UserGroupId = dto.UserGroupId, UserGroup = userGroup };
+        var entity = new CareerPath { Name = dto.Name };
         context.CareerPaths.Add(entity);
         await context.SaveChangesAsync(cancellationToken);
 
@@ -40,11 +38,7 @@ public class CareerPathService(AppDbContext context, IMapper mapper) : ICareerPa
     {
         var entity = await context.CareerPaths.FindRequiredAsync(dto.Id, nameof(CareerPath), cancellationToken);
 
-        if (entity.UserGroupId != dto.UserGroupId)
-            await context.UserGroups.FindRequiredAsync(dto.UserGroupId, nameof(UserGroup), cancellationToken);
-
-        entity.Name        = dto.Name;
-        entity.UserGroupId = dto.UserGroupId;
+        entity.Name = dto.Name;
         await context.SaveChangesAsync(cancellationToken);
     }
 

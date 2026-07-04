@@ -52,6 +52,7 @@ public class EmployeeCardDto
     public string? LegalAddressCity { get; set; }
     public string? LegalAddressCountry { get; set; }
     public string? CurrentAddress { get; set; }
+    public DateTime? CurrentAddressChangedAt { get; set; }
     public string? City { get; set; }
     public string? Country { get; set; }
 
@@ -62,7 +63,6 @@ public class EmployeeCardDto
     public TeamDto? Team { get; set; }
     public JobDto? Job { get; set; }
     public PayrollLocationDto? PayrollLocation { get; set; }
-    public UserAvatarDto? Avatar { get; set; }
     public UserProfileReportsToDto? ReportsTo { get; set; }
 
     public List<TargetEffortDto>? TargetEfforts { get; set; }

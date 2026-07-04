@@ -40,7 +40,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, IAuditProvider
     public DbSet<TargetEffort> TargetEfforts { get; set; }
     public DbSet<Team> Teams { get; set; }
     public DbSet<Training> Trainings { get; set; }
-    public DbSet<UserGroup> UserGroups { get; set; }
     public DbSet<UserDocumentCategory> UserDocumentCategories { get; set; }
     public DbSet<UserDocument> UserDocuments { get; set; }
     public DbSet<UserAvatar> UserAvatars { get; set; }

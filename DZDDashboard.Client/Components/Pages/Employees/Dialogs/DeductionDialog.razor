@@ -33,25 +33,25 @@
                 <MudItem xs="6">
                     <div class="dzd-dialog-label">@Loc["payment.currency"] <span class="dzd-required">*</span></div>
                     <MudSelect T="string" @bind-Value="_model.Currency" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
-                        @foreach (var option in Currencies.All)
+                        @foreach (var option in Domain.Options(DomainCategories.Currency))
                         {
-                            <MudSelectItem Value="@option">@Currencies.Display(option)</MudSelectItem>
+                            <MudSelectItem Value="@option.Code">@option.Label</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="6">
                     <div class="dzd-dialog-label">@Loc["dialogField.period"] <span class="dzd-required">*</span></div>
                     <MudSelect T="string" @bind-Value="_model.Period" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
-                        @foreach (var option in PaymentPeriods.All)
+                        @foreach (var option in Domain.Options(DomainCategories.AdditionalPaymentPeriod))
                         {
-                            <MudSelectItem Value="@option">@option</MudSelectItem>
+                            <MudSelectItem Value="@option.Code">@option.Label</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12">
                     <div class="dzd-dialog-label">@Loc["payment.colPaymentDate"] <span class="dzd-required">*</span></div>
                     <MudDatePicker Date="@_model.StartDate" DateChanged="@(d => _model.StartDate = d ?? _model.StartDate)"
-                                   Variant="Variant.Outlined" Margin="Margin.Dense" Required="true"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" DateFormat="dd.MM.yyyy"
                                    AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
                 </MudItem>
             </MudGrid>
@@ -72,7 +72,7 @@
 @code {
     protected override void OnInitialized()
     {
-        _model.DeductionType ??= DeductionTypes.SocialSecurity;
+        _model.DeductionType ??= DeductionTypes.Other;
     }
 
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
@@ -83,7 +83,7 @@
     private DeductionDto _model = new()
     {
         Currency      = Currencies.Try,
-        Period        = PaymentPeriods.Monthly,
+        Period        = AdditionalPaymentPeriods.Monthly,
         StartDate     = DateTime.Today
     };
 

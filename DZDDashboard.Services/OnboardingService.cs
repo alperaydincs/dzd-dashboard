@@ -39,18 +39,15 @@ public class OnboardingService(
 
     public async Task<OnboardingProcessDto> StartAsync(StartOnboardingDto dto, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(dto.FirstName) || string.IsNullOrWhiteSpace(dto.LastName))
-            throw new DomainValidationException("Ad ve soyad zorunludur.");
-
         var user = new User
         {
             FirstName       = dto.FirstName.Trim(),
             LastName        = dto.LastName.Trim(),
-            Email           = dto.Email?.Trim(),
-            NormalizedEmail = dto.Email?.Trim().ToUpperInvariant(),
+            Email           = dto.Email!.Trim(),
+            NormalizedEmail = dto.Email.Trim().ToUpperInvariant(),
             PersonalEmail   = dto.PersonalEmail?.Trim(),
             PhoneNumber     = dto.PhoneNumber?.Trim(),
-            Slug            = await GenerateUniqueSlugAsync(dto.FirstName, dto.LastName, cancellationToken),
+            Slug            = await GenerateUniqueSlugAsync(dto.Email, cancellationToken),
             LifecycleStatus = UserLifecycleStatuses.Onboarding,
             IsActive        = false
         };
@@ -237,9 +234,9 @@ public class OnboardingService(
         return new MyOnboardingStateDto { LifecycleStatus = user.LifecycleStatus, ProcessId = process.Id };
     }
 
-    private async Task<string> GenerateUniqueSlugAsync(string first, string last, CancellationToken cancellationToken)
+    private async Task<string> GenerateUniqueSlugAsync(string email, CancellationToken cancellationToken)
     {
-        var baseSlug = SlugGenerator.FromName(first, last);
+        var baseSlug = SlugGenerator.FromEmail(email);
         var slug = baseSlug;
         var suffix = 2;
         while (await context.Users.AnyAsync(u => u.Slug == slug, cancellationToken))

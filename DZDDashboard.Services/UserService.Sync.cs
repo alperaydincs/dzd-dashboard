@@ -45,7 +45,7 @@ public partial class UserService
             NormalizedEmail = normalizedEmail,
             FirstName       = firstName,
             LastName        = lastName,
-            Slug            = await GenerateUniqueSlugAsync(firstName, lastName, cancellationToken),
+            Slug            = await GenerateUniqueSlugAsync(email, firstName, lastName, cancellationToken),
             IsActive        = startAsActive,
             LifecycleStatus = startAsActive ? UserLifecycleStatuses.Active : UserLifecycleStatuses.Onboarding
         };

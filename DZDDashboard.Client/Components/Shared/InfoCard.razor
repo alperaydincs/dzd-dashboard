@@ -1,4 +1,4 @@
-<div class="dzd-info-card accent-@Accent.ToString().ToLowerInvariant()">
+<div class="dzd-info-card accent-@(Accent.ToString().ToLowerInvariant()) @Class">
     <div class="dzd-info-card__icon">
         <MudIcon Icon="@Icon" />
     </div>
@@ -9,10 +9,11 @@
 </div>
 
 @code {
-    public enum AccentColor { Blue, Purple, Orange, Green, Red, Gray }
+    public enum AccentColor { Blue, Purple, Orange, Green, Red, Gray, CambridgeBlue }
 
     [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
     [Parameter, EditorRequired] public string Value { get; set; } = string.Empty;
     [Parameter, EditorRequired] public string Icon  { get; set; } = string.Empty;
     [Parameter] public AccentColor Accent { get; set; } = AccentColor.Blue;
+    [Parameter] public string? Class { get; set; }
 }

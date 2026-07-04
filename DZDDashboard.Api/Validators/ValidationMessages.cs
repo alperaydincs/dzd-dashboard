@@ -3,6 +3,7 @@ namespace DZDDashboard.Api.Validators;
 internal static class ValidationMessages
 {
     internal const string WorkEmailInvalid           = "Work email is not a valid email address.";
+    internal const string WorkEmailRequired          = "Work email is required.";
     internal const string PersonalEmailInvalid       = "Personal email is not a valid email address.";
     internal const string WorkPhoneInvalid           = "Work phone number is invalid.";
     internal const string PersonalPhoneInvalid       = "Personal phone number is invalid.";

@@ -12,7 +12,12 @@ public partial class Employee
 {
     private async Task LoadCvDocumentsAsync()
     {
-        try { _cvDocuments = await UserService.GetUserDocumentsAsync(_userId); }
+        try
+        {
+            _cvDocuments = SelfService
+                ? await UserService.GetMyDocumentsAsync()
+                : await UserService.GetUserDocumentsAsync(_userId);
+        }
         catch { _cvDocuments = []; }
         await InvokeAsync(StateHasChanged);
     }
@@ -66,7 +71,9 @@ public partial class Employee
     {
         try
         {
-            var bytes = await UserService.DownloadUserDocumentAsync(_userId, doc.Id);
+            var bytes = SelfService
+                ? await UserService.DownloadMyDocumentAsync(doc.Id)
+                : await UserService.DownloadUserDocumentAsync(_userId, doc.Id);
             if (bytes is null) { Snackbar.Add(Loc["employeeProfile.downloadFailed"], Severity.Error); return; }
             await JS.InvokeVoidAsync("dzdDownloadFile", doc.FileName, Convert.ToBase64String(bytes), doc.ContentType);
         }

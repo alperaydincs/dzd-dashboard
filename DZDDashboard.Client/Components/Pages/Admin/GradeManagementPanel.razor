@@ -50,14 +50,6 @@ else
                             <MudTextField @bind-Value="_editPathName" Placeholder="@Loc["gradeManagement.careerPathNamePlaceholder"]"
                                           Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true"
                                           Class="gm-hdr-name" />
-                            <MudSelect T="int" @bind-Value="_editPathGroupId" Placeholder="@Loc["gradeManagement.employeeGroupPlaceholder"]"
-                                       Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
-                                       Class="gm-hdr-group">
-                                @foreach (var g in _userGroups)
-                                {
-                                    <MudSelectItem T="int" Value="@g.Id">@g.GroupName</MudSelectItem>
-                                }
-                            </MudSelect>
                         </div>
                         <div class="gm-job-actions">
                             <MudIconButton Icon="@DzdIcons.Check" Color="Color.Success" Size="Size.Small"
@@ -71,8 +63,6 @@ else
                         <div class="gm-job-title-group" @onclick="() => TogglePath(pathCapture.Id)">
                             <span class="gm-job-name">@path.Name</span>
                             <span class="gm-job-meta">
-                                @path.UserGroupName
-                                <span class="gm-meta-sep">·</span>
                                 @string.Format(Loc["gradeManagement.gradeLevelsCount"], path.Rules.Count)
                             </span>
                         </div>

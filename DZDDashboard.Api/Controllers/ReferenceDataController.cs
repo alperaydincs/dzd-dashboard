@@ -100,37 +100,4 @@ public class ReferenceDataController(IReferenceDataService refDataService) : Bas
     }
 
 
-    [HttpGet("usergroups")]
-    public async Task<ActionResult<List<UserGroupDto>>> GetUserGroups(CancellationToken cancellationToken)
-        => Ok(await refDataService.GetUserGroupsAsync(cancellationToken));
-
-    [HttpPost("usergroups")]
-    [Authorize(Roles = Roles.Admin)]
-    public async Task<ActionResult<UserGroupDto>> CreateUserGroup([FromBody] UserGroupDto dto, CancellationToken cancellationToken)
-    {
-        var result = await refDataService.CreateUserGroupAsync(dto, cancellationToken);
-        return CreatedAtAction(nameof(GetUserGroups), null, result);
-    }
-
-    [HttpPut("usergroups/{id}")]
-    [Authorize(Roles = Roles.Admin)]
-    public async Task<IActionResult> UpdateUserGroup(int id, [FromBody] UserGroupDto dto, CancellationToken cancellationToken)
-    {
-        if (CheckIdMismatch(id, dto.Id) is { } mismatch) return mismatch;
-        await refDataService.UpdateUserGroupAsync(dto, cancellationToken);
-        return NoContent();
-    }
-
-    [HttpDelete("usergroups/{id}")]
-    [Authorize(Roles = Roles.Admin)]
-    public async Task<IActionResult> DeleteUserGroup(int id, CancellationToken cancellationToken)
-    {
-        await refDataService.DeleteUserGroupAsync(id, cancellationToken);
-        return NoContent();
-    }
-
-    [HttpGet("usergroups/{id}")]
-    public async Task<ActionResult<UserGroupDto>> GetUserGroupById(int id, CancellationToken cancellationToken)
-        => Ok(await refDataService.GetUserGroupByIdAsync(id, cancellationToken));
-
 }

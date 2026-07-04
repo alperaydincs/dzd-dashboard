@@ -15,8 +15,6 @@ public partial class UserService
 
         await EnsureExistsAsync<PayrollLocation>(dto.PayrollLocationId, cancellationToken);
 
-        var nameChanged = user.FirstName != dto.FirstName || user.LastName != dto.LastName;
-
         user.FirstName           = dto.FirstName;
         user.LastName            = dto.LastName;
         user.RegistrationNumber  = dto.RegistrationNumber;
@@ -27,9 +25,6 @@ public partial class UserService
         user.WorkModel           = dto.WorkModel;
         user.PayrollLocationId   = dto.PayrollLocationId;
 
-        if (nameChanged)
-            user.Slug = await GenerateUniqueSlugAsync(dto.FirstName, dto.LastName, cancellationToken);
-
         await context.SaveChangesAsync(cancellationToken);
     }
 
@@ -37,11 +32,16 @@ public partial class UserService
     {
         var user = await RequireUserAsync(userId, cancellationToken);
 
+        var emailChanged = user.Email != dto.Email && !string.IsNullOrWhiteSpace(dto.Email);
+
         user.Email               = dto.Email;
         user.NormalizedEmail     = string.IsNullOrWhiteSpace(dto.Email) ? null : dto.Email.ToUpperInvariant();
         user.PhoneNumber         = dto.PhoneNumber;
         user.PersonalEmail       = dto.PersonalEmail;
         user.PersonalPhoneNumber = dto.PersonalPhoneNumber;
+
+        if (emailChanged)
+            user.Slug = await GenerateUniqueSlugAsync(dto.Email, user.FirstName, user.LastName, cancellationToken);
 
         await context.SaveChangesAsync(cancellationToken);
     }
@@ -63,6 +63,9 @@ public partial class UserService
     public async Task UpdateAddressInfoAsync(int userId, UpdateAddressInfoDto dto, CancellationToken cancellationToken = default)
     {
         var user = await RequireUserAsync(userId, cancellationToken);
+
+        if (user.CurrentAddress != dto.CurrentAddress)
+            user.CurrentAddressChangedAt = DateTime.UtcNow;
 
         user.LegalAddress        = dto.LegalAddress;
         user.LegalAddressCity    = dto.LegalAddressCity;
@@ -178,22 +181,27 @@ public partial class UserService
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task UpdateAvatarAsync(int userId, string contentType, string base64Content, CancellationToken cancellationToken = default)
+    public async Task UpdateAvatarAsync(int userId, string contentType, byte[] content, CancellationToken cancellationToken = default)
     {
-        var maxBytes = AvatarConstants.MaxFileSizeBytes;
-        var approxBytes = base64Content.Length * 3 / 4;
-        if (approxBytes > maxBytes) throw new DomainValidationException($"File size exceeds {maxBytes / 1024 / 1024} MB limit.");
+        if (content.LongLength > AvatarConstants.MaxFileSizeBytes)
+            throw new DomainValidationException($"File size exceeds {AvatarConstants.MaxFileSizeBytes / 1024 / 1024} MB limit.");
 
         var user = await context.Users
             .Include(u => u.Avatar)
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken)
             ?? throw new EntityNotFoundException("User", userId);
 
-        user.Avatar             ??= new UserAvatar { UserId = userId };
-        user.Avatar.ContentType   = contentType;
-        user.Avatar.ContentBase64 = base64Content;
+        var previousStorageId = user.Avatar?.StorageId;
+        var newStorageId = await fileStorage.SaveAsync(content, contentType, cancellationToken);
+
+        user.Avatar           ??= new UserAvatar { UserId = userId };
+        user.Avatar.ContentType = contentType;
+        user.Avatar.StorageId   = newStorageId;
 
         await context.SaveChangesAsync(cancellationToken);
+
+        if (previousStorageId.HasValue)
+            await fileStorage.DeleteAsync(previousStorageId.Value, cancellationToken);
     }
 
     public async Task UpdateAvatarColorAsync(int userId, int? colorIndex, CancellationToken cancellationToken = default)

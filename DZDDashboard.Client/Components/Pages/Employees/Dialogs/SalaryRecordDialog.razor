@@ -2,6 +2,7 @@
 @using DZDDashboard.Common.DTOs
 @inject ISnackbar Snackbar
 @inject DZDDashboard.Client.Localization.AppLocalizer Loc
+@inject DZDDashboard.Client.Localization.DomainLocalizer Domain
 
 <MudDialog>
     <TitleContent>
@@ -14,9 +15,9 @@
         <MudGrid Spacing="4">
             <MudItem xs="12" sm="6">
                 <MudSelect T="string" Label="@Loc["salaryDialog.salaryType"]" @bind-Value="_model.PayType" Variant="Variant.Outlined" Margin="Margin.Dense">
-                    @foreach (var option in PayTypes.All)
+                    @foreach (var option in Domain.Options(DomainCategories.PayType))
                     {
-                        <MudSelectItem Value="@option">@option</MudSelectItem>
+                        <MudSelectItem Value="@option.Code">@option.Label</MudSelectItem>
                     }
                 </MudSelect>
             </MudItem>
@@ -26,29 +27,29 @@
 
             <MudItem xs="12" sm="6">
                 <MudSelect T="string" Label="@Loc["payment.currency"]" @bind-Value="_model.Currency" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
-                    @foreach (var option in Currencies.All)
+                    @foreach (var option in Domain.Options(DomainCategories.Currency))
                     {
-                        <MudSelectItem Value="@option">@option</MudSelectItem>
+                        <MudSelectItem Value="@option.Code">@option.Label</MudSelectItem>
                     }
                 </MudSelect>
             </MudItem>
             <MudItem xs="12" sm="6">
                 <MudSelect T="string" Label="@Loc["payment.paymentPeriod"]" @bind-Value="_model.Period" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
-                    @foreach (var option in PaymentPeriods.All)
+                    @foreach (var option in Domain.Options(DomainCategories.PaymentPeriod))
                     {
-                        <MudSelectItem Value="@option">@option</MudSelectItem>
+                        <MudSelectItem Value="@option.Code">@option.Label</MudSelectItem>
                     }
                 </MudSelect>
             </MudItem>
 
             <MudItem xs="12" sm="6">
                 <MudDatePicker Label="@Loc["payment.startDate"]" Date="@_model.StartDate" DateChanged="@(d => _model.StartDate = d ?? _model.StartDate)"
-                               Variant="Variant.Outlined" Margin="Margin.Dense" Required="true"
+                               Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" DateFormat="dd.MM.yyyy"
                                AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
             </MudItem>
             <MudItem xs="12" sm="6">
                 <MudDatePicker Label="@Loc["salaryDialog.endDateOptional"]" Date="@_model.EndDate" DateChanged="@(d => _model.EndDate = d)"
-                               Variant="Variant.Outlined" Margin="Margin.Dense"
+                               Variant="Variant.Outlined" Margin="Margin.Dense" DateFormat="dd.MM.yyyy"
                                AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
             </MudItem>
 

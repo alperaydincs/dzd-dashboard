@@ -27,13 +27,11 @@ public partial class Settings
     private List<DepartmentDto>      _departments      = [];
     private List<TeamDto>            _teams            = [];
     private List<PayrollLocationDto> _payrollLocations = [];
-    private List<UserGroupDto>       _userGroups       = [];
     private List<JobDto>             _jobs             = [];
 
 
     private bool _orgStructureExpanded;
     private bool _jobTitlesExpanded;
-    private bool _employeeGroupsExpanded;
     private bool _payrollLocationsExpanded;
 
     private HashSet<int> _expandedCompanyIds = [];
@@ -58,17 +56,15 @@ public partial class Settings
             var t3 = OrgService.GetDepartmentsAsync();
             var t4 = OrgService.GetTeamsAsync();
             var t5 = OrgService.GetPayrollLocationsAsync();
-            var t6 = OrgService.GetUserGroupsAsync();
             var t7 = OrgService.GetJobsAsync();
 
-            await Task.WhenAll(t1, t2, t3, t4, t5, t6, t7);
+            await Task.WhenAll(t1, t2, t3, t4, t5, t7);
 
             _organizationPositions = t1.Result;
             _companies             = t2.Result;
             _departments           = t3.Result;
             _teams                 = t4.Result;
             _payrollLocations      = t5.Result;
-            _userGroups            = t6.Result;
             _jobs                  = t7.Result;
 
             BuildOrgChart(_organizationPositions);
@@ -156,7 +152,6 @@ public partial class Settings
     private async Task RefreshDepartmentsAsync()      { _departments      = await OrgService.GetDepartmentsAsync(); }
     private async Task RefreshTeamsAsync()            { _teams            = await OrgService.GetTeamsAsync(); }
     private async Task RefreshJobsAsync()             { _jobs             = await OrgService.GetJobsAsync(); }
-    private async Task RefreshUserGroupsAsync()       { _userGroups       = await OrgService.GetUserGroupsAsync(); }
     private async Task RefreshPayrollLocationsAsync() { _payrollLocations = await OrgService.GetPayrollLocationsAsync(); }
     private async Task RefreshPositionsAsync()
     {
@@ -223,10 +218,6 @@ public partial class Settings
     private Task OpenAddJobDialog()             => ShowCrudDialogAsync<JobDialog>(string.Format(Loc["settings.addEntityTitle"], Loc["settings.jobTitle"]),  new() { ["Job"] = new JobDto() },  RefreshJobsAsync);
     private Task OpenEditJobDialog(JobDto j)    => ShowCrudDialogAsync<JobDialog>(string.Format(Loc["settings.editEntityTitle"], Loc["settings.jobTitle"]), new() { ["Job"] = j with { } },   RefreshJobsAsync);
     private Task DeleteJob(JobDto j)            => ConfirmDeleteAsync(Loc["settings.jobTitle"], j.Name ?? "", () => OrgService.DeleteJobAsync(j.Id), RefreshJobsAsync);
-
-    private Task OpenAddUserGroupDialog()               => ShowCrudDialogAsync<UserGroupDialog>(string.Format(Loc["settings.addEntityTitle"], Loc["settings.employeeGroupSingular"]),  new() { ["UserGroup"] = new UserGroupDto() }, RefreshUserGroupsAsync);
-    private Task OpenEditUserGroupDialog(UserGroupDto g)  => ShowCrudDialogAsync<UserGroupDialog>(string.Format(Loc["settings.editEntityTitle"], Loc["settings.employeeGroupSingular"]), new() { ["UserGroup"] = g with { } },        RefreshUserGroupsAsync);
-    private Task DeleteUserGroup(UserGroupDto g)          => ConfirmDeleteAsync(Loc["settings.employeeGroupSingular"], g.GroupName ?? "", () => OrgService.DeleteUserGroupAsync(g.Id),     RefreshUserGroupsAsync);
 
     private Task OpenAddPayrollLocationDialog()                   => ShowCrudDialogAsync<PayrollLocationDialog>(string.Format(Loc["settings.addEntityTitle"], Loc["settings.payrollLocationSingular"]),  new() { ["PayrollLocation"] = new PayrollLocationDto() }, RefreshPayrollLocationsAsync);
     private Task OpenEditPayrollLocationDialog(PayrollLocationDto l) => ShowCrudDialogAsync<PayrollLocationDialog>(string.Format(Loc["settings.editEntityTitle"], Loc["settings.payrollLocationSingular"]), new() { ["PayrollLocation"] = l with { } },            RefreshPayrollLocationsAsync);

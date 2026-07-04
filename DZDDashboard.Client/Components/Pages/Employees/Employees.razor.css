@@ -4,7 +4,7 @@
 
 ::deep .employees-header {
     padding: 6px 0 2px;
-    margin-bottom: -14px;
+    margin-bottom: -24px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -220,13 +220,13 @@
 }
 
 ::deep .status-active {
-    color: #016630;
-    background: #DCFCE7;
+    color: var(--dzd-green-500);
+    background: var(--dzd-green-50);
 }
 
 ::deep .status-leave {
-    color: #a07400;
-    background: #fff3cc;
+    color: var(--dzd-yellow-500);
+    background: var(--dzd-yellow-50);
 }
 
 ::deep .employee-card {

@@ -22,7 +22,6 @@ public class ReferenceDataMappingProfile : Profile
             .ForMember(dest => dest.PositionJobs,   opt => opt.MapFrom(src => src.Positions.Select(p => p.Job).Where(j => j != null).ToList()));
 
         CreateMap<CareerPath, CareerPathDto>()
-            .ForMember(dest => dest.UserGroupName, opt => opt.MapFrom(src => src.UserGroup != null ? src.UserGroup.GroupName : null))
             .ForMember(dest => dest.Rules, opt => opt.MapFrom(src => src.Rules.OrderBy(r => r.Grade)));
     }
 }

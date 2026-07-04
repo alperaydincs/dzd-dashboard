@@ -39,11 +39,6 @@ public interface IOrganizationClientService
     Task<HttpResponseMessage> UpdatePayrollLocationAsync(PayrollLocationDto dto);
     Task<HttpResponseMessage> DeletePayrollLocationAsync(int id);
 
-    Task<List<UserGroupDto>> GetUserGroupsAsync();
-    Task<HttpResponseMessage> CreateUserGroupAsync(UserGroupDto dto);
-    Task<HttpResponseMessage> UpdateUserGroupAsync(UserGroupDto dto);
-    Task<HttpResponseMessage> DeleteUserGroupAsync(int id);
-
     Task<List<CareerPathDto>> GetCareerPathsAsync();
     Task<HttpResponseMessage> CreateCareerPathAsync(CareerPathDto dto);
     Task<HttpResponseMessage> UpdateCareerPathAsync(CareerPathDto dto);

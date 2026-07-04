@@ -4,6 +4,7 @@ using DZDDashboard.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DZDDashboard.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260703172908_RemoveUserGroup")]
+    partial class RemoveUserGroup
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2822,9 +2825,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<DateTime?>("CurrentAddressChangedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("CvFilePath")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -3048,6 +3048,10 @@ namespace DZDDashboard.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ContentBase64")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ContentType")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -3061,17 +3065,12 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<int?>("ModifiedById")
                         .HasColumnType("int");
 
-                    b.Property<int>("StorageId")
-                        .HasColumnType("int");
-
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ModifiedById");
-
-                    b.HasIndex("StorageId");
 
                     b.HasIndex("UserId")
                         .IsUnique();
@@ -4316,12 +4315,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasForeignKey("ModifiedById")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("DZDDashboard.Data.Entities.StoredFile", "Storage")
-                        .WithMany()
-                        .HasForeignKey("StorageId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("DZDDashboard.Data.Entities.User", "User")
                         .WithOne("Avatar")
                         .HasForeignKey("DZDDashboard.Data.Entities.UserAvatar", "UserId")
@@ -4329,8 +4322,6 @@ namespace DZDDashboard.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("ModifiedBy");
-
-                    b.Navigation("Storage");
 
                     b.Navigation("User");
                 });

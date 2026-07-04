@@ -4,7 +4,7 @@ namespace DZDDashboard.Services;
 
 /// <summary>
 /// CRUD for the richer reference types that carry more than a single name
-/// (Job, Grade, PayrollLocation, UserGroup). Simple fixed value lists are
+/// (Job, Grade, PayrollLocation). Simple fixed value lists are
 /// embedded in code (see <c>DomainOptionCatalog</c>) instead of the database.
 /// </summary>
 public interface IReferenceDataService
@@ -23,10 +23,4 @@ public interface IReferenceDataService
     Task<PayrollLocationDto>       CreatePayrollLocationAsync(PayrollLocationDto dto, CancellationToken cancellationToken = default);
     Task                           UpdatePayrollLocationAsync(PayrollLocationDto dto, CancellationToken cancellationToken = default);
     Task                           DeletePayrollLocationAsync(int id, CancellationToken cancellationToken = default);
-
-    Task<List<UserGroupDto>>       GetUserGroupsAsync(CancellationToken cancellationToken = default);
-    Task<UserGroupDto>             CreateUserGroupAsync(UserGroupDto dto, CancellationToken cancellationToken = default);
-    Task                           UpdateUserGroupAsync(UserGroupDto dto, CancellationToken cancellationToken = default);
-    Task                           DeleteUserGroupAsync(int id, CancellationToken cancellationToken = default);
-    Task<UserGroupDto>             GetUserGroupByIdAsync(int id, CancellationToken cancellationToken = default);
 }

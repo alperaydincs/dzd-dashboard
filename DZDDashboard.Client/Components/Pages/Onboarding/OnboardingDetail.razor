@@ -34,10 +34,10 @@
                 <MudChip T="string" Color="@StatusColor(_process.Status)" Variant="Variant.Text">@StatusLabel(_process.Status)</MudChip>
             </MudStack>
 
-            <MudGrid Spacing="3" AlignItems="Center">
+            <MudGrid Spacing="3">
                 <MudItem xs="12" sm="5">
                     <MudDatePicker Label="@Loc["onboardingDetail.startDateLabel"]" Date="@_startDate" DateChanged="@(d => _startDate = d)"
-                                   Variant="Variant.Outlined" Margin="Margin.Dense" />
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" DateFormat="dd.MM.yyyy" />
                 </MudItem>
                 <MudItem xs="12" sm="5">
                     <MudAutocomplete T="UserSearchResultDto" Label="@Loc["onboardingDetail.managerLabel"]" @bind-Value="_manager"

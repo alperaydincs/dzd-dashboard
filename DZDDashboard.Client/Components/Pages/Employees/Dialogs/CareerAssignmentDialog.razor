@@ -7,6 +7,17 @@
 @inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <MudDialog>
+    <TitleContent>
+        <div class="d-flex align-center" style="gap:12px;">
+            <div style="width:40px;height:40px;background-color:var(--dzd-blue-icon-bg);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <MudIcon Icon="@DzdIcons.Briefcase" Size="Size.Small" Style="color:var(--dzd-brand-primary);" />
+            </div>
+            <div>
+                <MudText Typo="Typo.h6" Style="font-size:16px; font-weight:600; line-height:1.2;">@(IsFirstAssignment ? Loc["employeeProfile.assignPosition"] : Loc["employeeProfile.editCareerAssignment"])</MudText>
+                <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">@(IsFirstAssignment ? Loc["careerAssignmentDialog.assignSubtitle"] : Loc["careerAssignmentDialog.editSubtitle"])</MudText>
+            </div>
+        </div>
+    </TitleContent>
     <DialogContent>
         <MudStack Spacing="3" Style="min-width:520px;">
 
@@ -66,46 +77,49 @@
                     </MudSelect>
                 </MudItem>
 
-                <MudItem xs="12" sm="4">
+                <MudItem xs="12" sm="@(IsFirstAssignment ? 4 : 12)">
                     <MudSelect T="int?" Label="@Loc["employeeProfile.careerPath"]" Value="_m.PathId" ValueChanged="OnPathChanged"
                                Variant="Variant.Outlined" Margin="Margin.Dense">
                         <MudSelectItem T="int?" Value="@((int?)null)">@Loc["careerAssignmentDialog.none"]</MudSelectItem>
                         @foreach (var p in CareerPaths)
                         {
-                            <MudSelectItem T="int?" Value="@((int?)p.Id)">@p.Name (@p.UserGroupName)</MudSelectItem>
+                            <MudSelectItem T="int?" Value="@((int?)p.Id)">@p.Name</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
-                <MudItem xs="12" sm="4">
-                    <MudSelect T="int?" Label="@Loc["employeeProfile.jobTitle"]" Value="_m.JobId" ValueChanged="OnJobChanged"
-                               Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(_m.PathId == null)">
-                        <MudSelectItem T="int?" Value="@((int?)null)">@Loc["careerAssignmentDialog.none"]</MudSelectItem>
-                        @foreach (var j in _pathJobs)
-                        {
-                            <MudSelectItem T="int?" Value="@((int?)j.Id)">@j.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="12" sm="4">
-                    <MudSelect T="int?" Label="@Loc["employeeProfile.grade"]" @bind-Value="_m.Grade"
-                               Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(_m.JobId == null)">
-                        <MudSelectItem T="int?" Value="@((int?)null)">@Loc["careerAssignmentDialog.none"]</MudSelectItem>
-                        @foreach (var g in _jobGrades)
-                        {
-                            <MudSelectItem T="int?" Value="@((int?)g)">@g</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
+                @if (IsFirstAssignment)
+                {
+                    <MudItem xs="12" sm="4">
+                        <MudSelect T="int?" Label="@Loc["employeeProfile.jobTitle"]" Value="_m.JobId" ValueChanged="OnJobChanged"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(_m.PathId == null)">
+                            <MudSelectItem T="int?" Value="@((int?)null)">@Loc["careerAssignmentDialog.none"]</MudSelectItem>
+                            @foreach (var j in _pathJobs)
+                            {
+                                <MudSelectItem T="int?" Value="@((int?)j.Id)">@j.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudSelect T="int?" Label="@Loc["employeeProfile.grade"]" @bind-Value="_m.Grade"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(_m.JobId == null)">
+                            <MudSelectItem T="int?" Value="@((int?)null)">@Loc["careerAssignmentDialog.none"]</MudSelectItem>
+                            @foreach (var g in _jobGrades)
+                            {
+                                <MudSelectItem T="int?" Value="@((int?)g)">@g</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                }
 
                 <MudItem xs="12" sm="6">
                     <MudDatePicker Label="@Loc["employeeProfile.positionStartDate"]" Date="@_m.StartDate" DateChanged="@(d => _m.StartDate = d)"
-                                   Variant="Variant.Outlined" Margin="Margin.Dense"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" DateFormat="dd.MM.yyyy"
                                    AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter"
                                    OverflowBehavior="OverflowBehavior.FlipNever" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
                     <MudDatePicker Label="@Loc["careerAssignmentDialog.positionEndDate"]" Date="@_m.EndDate" DateChanged="@(d => _m.EndDate = d)"
-                                   Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" Editable="true"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" Editable="true" DateFormat="dd.MM.yyyy"
                                    HelperText="@Loc["careerAssignmentDialog.leaveEmptyForCurrent"]"
                                    AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter"
                                    OverflowBehavior="OverflowBehavior.FlipNever" />
@@ -128,6 +142,7 @@
     [Parameter] public List<CareerPathDto> CareerPaths { get; set; } = [];
     [Parameter] public int ExcludeUserId { get; set; }
     [Parameter] public CareerAssignmentResult? InitialModel { get; set; }
+    [Parameter] public bool IsFirstAssignment { get; set; }
 
     private CareerAssignmentResult _m = new();
     private UserSearchResultDto?   _manager;
@@ -174,7 +189,7 @@
     }
 
     private static string? ManagerAvatarUrl(UserSearchResultDto u)
-        => string.IsNullOrEmpty(u.AvatarBase64) ? null : $"data:{u.AvatarContentType ?? "image/png"};base64,{u.AvatarBase64}";
+        => u.HasAvatar ? AvatarUrl.For(u.Id, u.AvatarUpdatedAt) : null;
 
     private void OnManagerSelected(UserSearchResultDto? manager)
     {

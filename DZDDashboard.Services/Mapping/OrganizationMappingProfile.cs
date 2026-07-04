@@ -26,7 +26,6 @@ public class OrganizationMappingProfile : Profile
         CreateMap<Grade, GradeDto>();
         CreateMap<GradeDto, Grade>()
             .ForMember(dest => dest.NextStep, opt => opt.Ignore());
-        CreateMap<UserGroup, UserGroupDto>().ReverseMap();
 
         CreateMap<PayrollLocation, PayrollLocationDto>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Location));
@@ -34,7 +33,10 @@ public class OrganizationMappingProfile : Profile
             .ForMember(dest => dest.Location, opt => opt.MapFrom(src => src.Name));
 
         CreateMap<User, OrgChartUserDto>()
-            .ForMember(dest => dest.Job, opt => opt.MapFrom(src => src.Job));
+            .ForMember(dest => dest.Job,       opt => opt.MapFrom(src => src.Job))
+            .ForMember(dest => dest.HasAvatar, opt => opt.MapFrom(src => src.Avatar != null))
+            .ForMember(dest => dest.AvatarUpdatedAt, opt => opt.MapFrom(src =>
+                src.Avatar != null ? (DateTime?)(src.Avatar.ModifiedAt ?? src.Avatar.CreatedAt) : null));
 
         CreateMap<OrganizationPosition, OrganizationPositionDto>()
             .ForMember(dest => dest.UserCount, opt => opt.MapFrom(src => src.Users.Count))

@@ -54,7 +54,7 @@
                                 <MudText Typo="Typo.h4" Class="stat-value">@_activeEmployees</MudText>
                             </MudStack>
                             <MudAvatar Size="Size.Large" Class="stat-avatar stat-avatar-green" Variant="Variant.Text">
-                                <MudIcon Icon="@DzdIcons.User" Size="Size.Large" />
+                                <MudIcon Icon="@DzdIcons.UserCheck" Size="Size.Large" />
                             </MudAvatar>
                         </MudStack>
                     </MudPaper>
@@ -147,14 +147,14 @@
                             <HeaderContent>
                                 <MudTh style="min-width:280px">@Loc["employees.colEmployee"]</MudTh>
                                 <MudTh>@Loc["employees.colDepartment"]</MudTh>
-                                <MudTh>@Loc["employees.colPosition"]</MudTh>
+                                <MudTh>@Loc["employees.colJobTitle"]</MudTh>
                                 <MudTh>@Loc["employees.colStatus"]</MudTh>
                                 <MudTh>@Loc["employees.colJoinDate"]</MudTh>
                             </HeaderContent>
                             <RowTemplate>
                                 <MudTd DataLabel="@Loc["employees.colEmployee"]">
                                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                        <InitialsAvatar FullName="@AppFormatter.BuildFullName(context.FirstName, context.LastName)" ColorIndex="@context.AvatarColorIndex" Size="48" Class="employee-avatar" />
+                                        <InitialsAvatar FullName="@AppFormatter.BuildFullName(context.FirstName, context.LastName)" ColorIndex="@context.AvatarColorIndex" ImageSrc="@AvatarSrc(context)" Size="48" Class="employee-avatar" />
                                         <MudStack Spacing="0">
                                             <MudText Typo="Typo.subtitle2" Class="employee-name">@AppFormatter.BuildFullName(context.FirstName, context.LastName)</MudText>
                                             <MudText Typo="Typo.caption" Class="employee-email">@context.Email</MudText>
@@ -163,7 +163,7 @@
                                 </MudTd>
 
                                 <MudTd DataLabel="@Loc["employees.colDepartment"]">@(context.Department?.Name ?? Loc["common.notAvailable"])</MudTd>
-                                <MudTd DataLabel="@Loc["employees.colPosition"]">@(context.Job?.Name ?? Loc["common.notAvailable"])</MudTd>
+                                <MudTd DataLabel="@Loc["employees.colJobTitle"]">@(context.Job?.Name ?? Loc["common.notAvailable"])</MudTd>
 
                                 <MudTd DataLabel="@Loc["employees.colStatus"]">
                                     <MudChip T="string" Class="@GetStatusChipClass(context.IsActive)" Variant="Variant.Text" Size="Size.Small">
@@ -171,7 +171,7 @@
                                     </MudChip>
                                 </MudTd>
 
-                                <MudTd DataLabel="@Loc["employees.colJoinDate"]">@AppFormatter.FormatDate(context.UserStartDate, "dd.MM.yyyy")</MudTd>
+                                <MudTd DataLabel="@Loc["employees.colJoinDate"]">@AppFormatter.FormatDate(context.UserStartDate)</MudTd>
                             </RowTemplate>
                         </MudTable>
                     </MudPaper>
@@ -186,7 +186,7 @@
                             <MudPaper Elevation="3" Class="employee-card pa-4" @onclick="@(() => View(user))">
                                 <div class="employee-card-header">
                                     <div class="employee-card-profile">
-                                        <InitialsAvatar FullName="@AppFormatter.BuildFullName(user.FirstName, user.LastName)" ColorIndex="@user.AvatarColorIndex" Size="72" Class="employee-avatar employee-card-avatar" />
+                                        <InitialsAvatar FullName="@AppFormatter.BuildFullName(user.FirstName, user.LastName)" ColorIndex="@user.AvatarColorIndex" ImageSrc="@AvatarSrc(user)" Size="72" Class="employee-avatar employee-card-avatar" />
                                         <div class="employee-card-titles">
                                             <MudText Typo="Typo.subtitle1" Class="employee-card-name">@AppFormatter.BuildFullName(user.FirstName, user.LastName)</MudText>
                                             <MudText Typo="Typo.body2" Class="employee-card-role">@(user.Job?.Name ?? Loc["common.notAvailable"])</MudText>
@@ -338,6 +338,9 @@
 
     private static string GetCardContactIcon(UserSummaryDto u)
         => !string.IsNullOrWhiteSpace(u.PhoneNumber) ? DzdIcons.Phone : DzdIcons.Mail;
+
+    private static string? AvatarSrc(UserSummaryDto u)
+        => u.Avatar is null ? null : AvatarUrl.For(u.Id, u.Avatar.UpdatedAt);
 
     private void SetView(int index)
     {

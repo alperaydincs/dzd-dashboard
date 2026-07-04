@@ -364,7 +364,9 @@ public partial class Employee
         };
 
         await ExecuteSaveRequestAsync(
-            () => UserService.UpdateAddressInfoAsync(_userId, dto),
+            SelfService
+                ? () => UserService.UpdateMyAddressInfoAsync(dto)
+                : () => UserService.UpdateAddressInfoAsync(_userId, dto),
             Loc["employeeProfile.addressInfoUpdated"],
             Loc["employeeProfile.addressInfoUpdateFailed"],
             refreshProfileOnSuccess: true,
@@ -385,7 +387,9 @@ public partial class Employee
         };
 
         await ExecuteSaveRequestAsync(
-            () => UserService.UpdateEducationInfoAsync(_userId, dto),
+            SelfService
+                ? () => UserService.UpdateMyEducationInfoAsync(dto)
+                : () => UserService.UpdateEducationInfoAsync(_userId, dto),
             Loc["employeeProfile.educationInfoUpdated"],
             Loc["employeeProfile.educationInfoUpdateFailed"],
             refreshProfileOnSuccess: true,
@@ -469,24 +473,24 @@ public partial class Employee
         Program = source.Program, GraduationDate = source.GraduationDate, Status = source.Status
     };
 
-    private static Color GetEducationStatusColor(string? status)
+    private static string GetEducationLevelAvatarClass(string? level)
     {
-        if (status is null) return Color.Default;
-        if (status.Equals(EducationStatuses.Completed,  StringComparison.OrdinalIgnoreCase)) return Color.Success;
-        if (status.Equals(EducationStatuses.InProgress, StringComparison.OrdinalIgnoreCase)) return Color.Warning;
-        if (status.Equals(EducationStatuses.Planned,    StringComparison.OrdinalIgnoreCase)) return Color.Info;
-        return Color.Default;
+        if (level is null) return "edu-avatar-default";
+        if (level.Equals(EducationLevels.HighSchool, StringComparison.OrdinalIgnoreCase)) return "edu-avatar-highschool";
+        if (level.Equals(EducationLevels.Bachelors,  StringComparison.OrdinalIgnoreCase)) return "edu-avatar-bachelors";
+        if (level.Equals(EducationLevels.Masters,    StringComparison.OrdinalIgnoreCase)) return "edu-avatar-masters";
+        if (level.Equals(EducationLevels.Phd,        StringComparison.OrdinalIgnoreCase)) return "edu-avatar-phd";
+        return "edu-avatar-default";
     }
 
-    private static Color GetEducationLevelColor(string? level)
+    private static string GetEducationLevelChipClass(string? level)
     {
-        if (level is null) return Color.Default;
-        if (level.Equals(EducationLevels.HighSchool, StringComparison.OrdinalIgnoreCase)) return Color.Success;
-        if (level.Equals(EducationLevels.Associate,  StringComparison.OrdinalIgnoreCase)) return Color.Info;
-        if (level.Equals(EducationLevels.Bachelors,  StringComparison.OrdinalIgnoreCase)) return Color.Primary;
-        if (level.Equals(EducationLevels.Masters,    StringComparison.OrdinalIgnoreCase)) return Color.Secondary;
-        if (level.Equals(EducationLevels.Phd,        StringComparison.OrdinalIgnoreCase)) return Color.Error;
-        return Color.Default;
+        if (level is null) return "edu-chip-default";
+        if (level.Equals(EducationLevels.HighSchool, StringComparison.OrdinalIgnoreCase)) return "edu-chip-highschool";
+        if (level.Equals(EducationLevels.Bachelors,  StringComparison.OrdinalIgnoreCase)) return "edu-chip-bachelors";
+        if (level.Equals(EducationLevels.Masters,    StringComparison.OrdinalIgnoreCase)) return "edu-chip-masters";
+        if (level.Equals(EducationLevels.Phd,        StringComparison.OrdinalIgnoreCase)) return "edu-chip-phd";
+        return "edu-chip-default";
     }
 
     private static bool IsEmailValidOrEmpty(string? email)

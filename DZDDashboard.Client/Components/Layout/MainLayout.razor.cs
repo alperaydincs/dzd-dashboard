@@ -58,7 +58,7 @@ public partial class MainLayout : IDisposable
         [NavSection.MyProfile]       = "nav.myProfile",
     };
 
-    private sealed record UserHeader(string Name, string? AvatarDataUrl, int? ColorIndex)
+    private sealed record UserHeader(string Name, string? AvatarSrc, int? ColorIndex)
     {
         public static readonly UserHeader Empty = new(string.Empty, null, null);
     }
@@ -148,11 +148,16 @@ public partial class MainLayout : IDisposable
         {
             var profile = await UserService.GetMyProfileAsync();
             var name    = AppFormatter.BuildFullName(profile?.FirstName, profile?.LastName);
-            var avatar  = await UserService.GetMyAvatarAsync();
+
+            // The avatar image is served on demand from the /avatars/me proxy; we only need to
+            // know whether one exists and its version for cache-busting. No base64 payload here.
+            var avatarSrc = profile is { HasAvatar: true }
+                ? AvatarUrl.Mine(profile.AvatarUpdatedAt)
+                : null;
 
             return new UserHeader(
                 string.IsNullOrWhiteSpace(name) ? fallbackName : name,
-                ToAvatarDataUrl(avatar),
+                avatarSrc,
                 profile?.AvatarColorIndex);
         }
         catch
@@ -160,11 +165,6 @@ public partial class MainLayout : IDisposable
             return new UserHeader(fallbackName, null, null);
         }
     }
-
-    private static string? ToAvatarDataUrl(UserAvatarDto? avatar)
-        => avatar is null || string.IsNullOrEmpty(avatar.ContentBase64)
-            ? null
-            : $"data:{avatar.ContentType ?? "image/png"};base64,{avatar.ContentBase64}";
 
     private void OnAuthStateChanged(Task<AuthenticationState> task) => _ = HandleAuthStateChangedAsync(task);
 

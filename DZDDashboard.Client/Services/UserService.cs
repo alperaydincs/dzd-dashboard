@@ -25,6 +25,12 @@ public class UserService : ApiServiceBase, IUserClientService
     public async Task<HttpResponseMessage> UpdateMyFamilyInfoAsync(UpdateFamilyInfoDto dto)
         => await PutAsync(ApiRoutes.Users.MyFamilyInfo, dto);
 
+    public async Task<HttpResponseMessage> UpdateMyAddressInfoAsync(UpdateAddressInfoDto dto)
+        => await PutAsync(ApiRoutes.Users.MyAddressInfo, dto);
+
+    public async Task<HttpResponseMessage> UpdateMyEducationInfoAsync(UpdateEducationInfoDto dto)
+        => await PutAsync(ApiRoutes.Users.MyEducationInfo, dto);
+
     public async Task<PagedResult<UserSummaryDto>?> GetAllUsersAsync(int page = 1, int pageSize = 50)
         => await GetAsync<PagedResult<UserSummaryDto>>(ApiRoutes.Users.All(page, pageSize));
 
@@ -87,6 +93,15 @@ public class UserService : ApiServiceBase, IUserClientService
 
     public async Task<List<UserDocumentDto>> GetUserDocumentsAsync(int userId)
         => await GetAsync<List<UserDocumentDto>>(ApiRoutes.Users.Documents(userId)) ?? [];
+
+    public async Task<List<UserDocumentDto>> GetMyDocumentsAsync()
+        => await GetAsync<List<UserDocumentDto>>(ApiRoutes.Users.MyDocuments) ?? [];
+
+    public async Task<byte[]?> DownloadMyDocumentAsync(int documentId)
+    {
+        var resp = await ApiClient.GetAsync(ApiRoutes.Users.MyDocumentContent(documentId));
+        return resp.IsSuccessStatusCode ? await resp.Content.ReadAsByteArrayAsync() : null;
+    }
 
     public async Task<HttpResponseMessage> UploadUserDocumentAsync(int userId, MultipartFormDataContent content)
         => await PostMultipartAsync(ApiRoutes.Users.Documents(userId), content);

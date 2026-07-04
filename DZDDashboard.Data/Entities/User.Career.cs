@@ -2,8 +2,6 @@ namespace DZDDashboard.Data.Entities;
 
 public partial class User
 {
-    public int?               UserGroupId          { get; set; }
-    public UserGroup?         UserGroup            { get; set; }
     public string?            CompanyName          { get; set; }
     public int?               DepartmentId         { get; set; }
     public Department?        Department           { get; set; }

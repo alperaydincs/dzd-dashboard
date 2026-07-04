@@ -38,7 +38,8 @@ public partial class UserService
                 Avatar = u.Avatar == null ? null : new UserAvatarSummaryDto
                 {
                     Id          = u.Avatar.Id,
-                    ContentType = u.Avatar.ContentType
+                    ContentType = u.Avatar.ContentType,
+                    UpdatedAt   = u.Avatar.ModifiedAt ?? u.Avatar.CreatedAt
                 },
                 Department = u.Department == null ? null : new DepartmentDto
                 {
@@ -84,11 +85,23 @@ public partial class UserService
             .FirstOrDefaultAsync(cancellationToken);
 
     public async Task<UserAvatarDto?> GetAvatarByUserIdAsync(int id, CancellationToken cancellationToken = default)
-        => await context.UserAvatars
+    {
+        var avatar = await context.UserAvatars
             .AsNoTracking()
             .Where(a => a.UserId == id)
-            .ProjectTo<UserAvatarDto>(mapper.ConfigurationProvider)
+            .Select(a => new { a.StorageId, a.ContentType })
             .FirstOrDefaultAsync(cancellationToken);
+        if (avatar is null) return null;
+
+        var file = await fileStorage.GetAsync(avatar.StorageId, cancellationToken);
+        if (file is null) return null;
+
+        return new UserAvatarDto
+        {
+            ContentBase64 = Convert.ToBase64String(file.Value.Content),
+            ContentType   = avatar.ContentType ?? file.Value.ContentType
+        };
+    }
 
     public async Task<EmployeeSensitiveInfoDto?> GetSensitiveInfoAsync(int id, CancellationToken cancellationToken = default)
         => await context.Users
@@ -111,6 +124,7 @@ public partial class UserService
                 LegalAddressCity    = u.LegalAddressCity,
                 LegalAddressCountry = u.LegalAddressCountry,
                 CurrentAddress      = u.CurrentAddress,
+                CurrentAddressChangedAt = u.CurrentAddressChangedAt,
                 City                = u.City,
                 Country             = u.Country,
                 Children            = u.Children!.Select(c => new ChildInfoDto
@@ -147,8 +161,8 @@ public partial class UserService
                 LastName               = u.LastName,
                 Email                  = u.Email,
                 AvatarColorIndex       = u.AvatarColorIndex,
-                AvatarContentType      = u.Avatar != null ? u.Avatar.ContentType : null,
-                AvatarBase64           = u.Avatar != null ? u.Avatar.ContentBase64 : null,
+                HasAvatar              = u.Avatar != null,
+                AvatarUpdatedAt        = u.Avatar != null ? (u.Avatar.ModifiedAt ?? u.Avatar.CreatedAt) : null,
                 CompanyName            = u.CompanyName,
                 DepartmentId           = u.DepartmentId,
                 TeamId                 = u.TeamId,

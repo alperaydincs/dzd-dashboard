@@ -132,7 +132,8 @@ public class OrganizationPositionService(
         => context.OrganizationPositions
             .AsNoTracking()
             .AsSplitQuery()
-            .Include(x => x.Users).ThenInclude(x => x.Job);
+            .Include(x => x.Users).ThenInclude(x => x.Job)
+            .Include(x => x.Users).ThenInclude(x => x.Avatar);
     private static void ComputeLevels(IList<OrganizationPositionDto> dtos)
     {
         var byId   = dtos.ToDictionary(p => p.Id);

@@ -71,8 +71,8 @@ public partial class Employee
                 FirstName        = r.FirstName,
                 LastName         = r.LastName,
                 AvatarColorIndex = r.AvatarColorIndex,
-                AvatarContentType = r.Avatar?.ContentType,
-                AvatarBase64      = r.Avatar?.ContentBase64,
+                HasAvatar        = r.HasAvatar,
+                AvatarUpdatedAt  = r.AvatarUpdatedAt,
             }
             : null;
     }
@@ -102,7 +102,8 @@ public partial class Employee
             [nameof(CareerAssignmentDialog.AllTeams)]      = _career.AllTeams,
             [nameof(CareerAssignmentDialog.CareerPaths)]   = _career.CareerPaths,
             [nameof(CareerAssignmentDialog.ExcludeUserId)] = _userId,
-            [nameof(CareerAssignmentDialog.InitialModel)]  = initial
+            [nameof(CareerAssignmentDialog.InitialModel)]  = initial,
+            [nameof(CareerAssignmentDialog.IsFirstAssignment)] = current is null
         };
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
         var dialog  = await DialogService.ShowAsync<CareerAssignmentDialog>(

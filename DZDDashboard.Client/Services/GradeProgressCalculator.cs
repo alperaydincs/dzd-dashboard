@@ -66,41 +66,41 @@ public static class GradeProgressCalculator
         }
 
         if (ToMonths(next.MinExperience) > 0)
-            rows.Add(Duration(DzdIcons.Clock, "#E8EBFF", "#2B38F5", "Minimum Experience",
+            rows.Add(Duration(DzdIcons.Clock, "rgba(43, 56, 245, 0.1)", "#2B38F5", "Minimum Experience",
                 next.MinExperience, MonthsSince(userStartDate),
                 AppFormatter.FormatDurationFrom(userStartDate) ?? "-"));
 
         if (ToMonths(next.MinRoleTime) > 0)
-            rows.Add(Duration(DzdIcons.CalendarCheck, "#FFF1E8", "#F46036", "Time in Current Role",
+            rows.Add(Duration(DzdIcons.CalendarCheck, "rgba(244, 96, 54, 0.1)", "#F46036", "Time in Current Role",
                 next.MinRoleTime, MonthsSince(positionStartDate),
                 AppFormatter.FormatDurationFrom(positionStartDate) ?? "-"));
 
         if (next.ProjectObjective is int po and > 0)
-            rows.Add(new(DzdIcons.Target, "#E3F0EE", "#70A37F", "Project Goal Achievement",
+            rows.Add(new(DzdIcons.Target, "rgba(112, 163, 127, 0.15)", "#70A37F", "Project Goal Achievement",
                 $"{po} project{(po == 1 ? "" : "s")}", "Pending review", 0, ReqStatus.Pending));
 
         if (next.ManagerPerformanceEvaluation)
-            rows.Add(new(DzdIcons.UserRound, "#FFF8E8", "#FEA82F", "Manager Performance Rating",
+            rows.Add(new(DzdIcons.UserRound, "rgba(254, 168, 47, 0.15)", "#FEA82F", "Manager Performance Rating",
                 "Required", "Pending review", 0, ReqStatus.Pending));
 
         if (next.TechnicalInterview)
-            rows.Add(new(DzdIcons.ShieldCheck, "#E8EBFF", "#2B38F5", "Technical Interview",
+            rows.Add(new(DzdIcons.ShieldCheck, "rgba(43, 56, 245, 0.1)", "#2B38F5", "Technical Interview",
                 "Required", "Pending review", 0, ReqStatus.Pending));
 
         if (next.CaseStudy)
-            rows.Add(new(DzdIcons.FileText, "#E8EBFF", "#2B38F5", "Case Study",
+            rows.Add(new(DzdIcons.FileText, "rgba(43, 56, 245, 0.1)", "#2B38F5", "Case Study",
                 "Required", "Pending review", 0, ReqStatus.Pending));
 
         if (next.EnglishProficiency)
-            rows.Add(new(DzdIcons.Languages, "#E3F0EE", "#70A37F", "English Proficiency",
+            rows.Add(new(DzdIcons.Languages, "rgba(112, 163, 127, 0.15)", "#70A37F", "English Proficiency",
                 "Required", "Pending review", 0, ReqStatus.Pending));
 
         if (next.AssessmentCenterApplication)
-            rows.Add(new(DzdIcons.Target, "#FFF8E8", "#FEA82F", "Assessment Center",
+            rows.Add(new(DzdIcons.Target, "rgba(254, 168, 47, 0.15)", "#FEA82F", "Assessment Center",
                 "Required", "Pending review", 0, ReqStatus.Pending));
 
         if (next.CommitteeApproval)
-            rows.Add(new(DzdIcons.Users, "#FFF1E8", "#F46036", "Committee Approval",
+            rows.Add(new(DzdIcons.Users, "rgba(244, 96, 54, 0.1)", "#F46036", "Committee Approval",
                 "Required", "Pending review", 0, ReqStatus.Pending));
 
         return rows;

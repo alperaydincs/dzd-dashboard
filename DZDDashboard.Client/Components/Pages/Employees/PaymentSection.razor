@@ -16,30 +16,39 @@
     }
     else if (_payment is not null)
     {
+            <div class="mt-4">
+                <MudText Typo="Typo.h5" Style="font-weight:400;">@Loc["payment.managementTitle"]</MudText>
+                <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">@Loc["payment.managementSubtitle"]</MudText>
+            </div>
+
             <MudGrid Class="mt-4 mb-6" Spacing="4">
                 <MudItem xs="12" sm="6" md="3">
                     <InfoCard Label="@Loc["payment.currentSalary"]"
                               Value="@(CurrentSalary is not null ? FormatMoney(CurrentSalary.NetAmount, CurrentSalary.Currency) : "0,00")"
                               Icon="@DzdIcons.Briefcase"
-                              Accent="InfoCard.AccentColor.Blue" />
+                              Accent="InfoCard.AccentColor.Blue"
+                              Class="dzd-payment-summary" />
                 </MudItem>
                 <MudItem xs="12" sm="6" md="3">
                     <InfoCard Label="@Loc["payment.totalBenefits"]"
-                              Value="@(_payment.Summary.ActiveBenefitsTotal.Count > 0 ? FormatMoney(_payment.Summary.ActiveBenefitsTotal[0].Amount, _payment.Summary.ActiveBenefitsTotal[0].Currency) : "0,00")"
+                              Value="@FormatMoneyTotals(_payment.Summary.ActiveBenefitsTotal)"
                               Icon="@DzdIcons.Gift"
-                              Accent="InfoCard.AccentColor.Orange" />
+                              Accent="InfoCard.AccentColor.Orange"
+                              Class="dzd-payment-summary" />
                 </MudItem>
                 <MudItem xs="12" sm="6" md="3">
                     <InfoCard Label="@Loc["payment.additionalPayments"]"
-                              Value="@(AdditionalPaymentsTotal.Count > 0 ? FormatMoney(AdditionalPaymentsTotal[0].Amount, AdditionalPaymentsTotal[0].Currency) : "0,00")"
+                              Value="@FormatMoneyTotals(AdditionalPaymentsTotal)"
                               Icon="@DzdIcons.Award"
-                              Accent="InfoCard.AccentColor.Green" />
+                              Accent="InfoCard.AccentColor.Green"
+                              Class="dzd-payment-summary" />
                 </MudItem>
                 <MudItem xs="12" sm="6" md="3">
                     <InfoCard Label="@Loc["payment.totalDeductions"]"
-                              Value="@(_payment.Summary.ActiveDeductionsTotal.Count > 0 ? FormatMoney(_payment.Summary.ActiveDeductionsTotal[0].Amount, _payment.Summary.ActiveDeductionsTotal[0].Currency) : "0,00")"
+                              Value="@FormatMoneyTotals(_payment.Summary.ActiveDeductionsTotal)"
                               Icon="@DzdIcons.MinusCircle"
-                              Accent="InfoCard.AccentColor.Red" />
+                              Accent="InfoCard.AccentColor.Red"
+                              Class="dzd-payment-summary" />
                 </MudItem>
             </MudGrid>
 
@@ -68,15 +77,18 @@
                     <MudPaper Class="dzd-card pa-6 mb-6" Elevation="0">
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-5">
                             <div class="dzd-section-title">
-                                <MudIcon Icon="@DzdIcons.Banknote" Size="Size.Small" Style="color:#193CB8;" /> <span>@Loc["payment.salaryInformation"]</span>
+                                <MudIcon Icon="@DzdIcons.Banknote" Size="Size.Small" Style="color:var(--dzd-brand-primary);" /> <span>@Loc["payment.salaryInformation"]</span>
                             </div>
-                            @if (currentSalary is not null)
+                            @if (!SelfService)
                             {
-                                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Pencil" OnClick="@(() => OpenEditSalaryDialogAsync(currentSalary))">@Loc["common.edit"]</MudButton>
-                            }
-                            else
-                            {
-                                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Plus" OnClick="OpenAddSalaryDialogAsync">@Loc["common.add"]</MudButton>
+                                @if (currentSalary is not null)
+                                {
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Pencil" OnClick="@(() => OpenEditSalaryDialogAsync(currentSalary))">@Loc["common.edit"]</MudButton>
+                                }
+                                else
+                                {
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Plus" OnClick="OpenAddSalaryDialogAsync">@Loc["common.add"]</MudButton>
+                                }
                             }
                         </MudStack>
 
@@ -87,19 +99,19 @@
                                     <div class="dzd-field-box">
                                         <div class="dzd-field-label">@Loc["payment.currentSalary"]</div>
                                         <span class="dzd-amount-net">@FormatMoney(currentSalary.NetAmount, currentSalary.Currency)</span>
-                                        <span class="dzd-amount-suffix">@currentSalary.PayType.ToLowerInvariant()</span>
+                                        <span class="dzd-amount-suffix">@GetPayTypeName(currentSalary.PayType)</span>
                                     </div>
                                 </MudItem>
                                 <MudItem xs="12" sm="6" md="3">
                                     <div class="dzd-field-box">
                                         <div class="dzd-field-label">@Loc["payment.currency"]</div>
-                                        <MudText Typo="Typo.body1">@currentSalary.Currency</MudText>
+                                        <MudText Typo="Typo.body1">@GetCurrencyName(currentSalary.Currency)</MudText>
                                     </div>
                                 </MudItem>
                                 <MudItem xs="12" sm="6" md="3">
                                     <div class="dzd-field-box">
                                         <div class="dzd-field-label">@Loc["payment.paymentPeriod"]</div>
-                                        <MudText Typo="Typo.body1">@currentSalary.Period</MudText>
+                                        <MudText Typo="Typo.body1">@GetPaymentPeriodName(currentSalary.Period)</MudText>
                                     </div>
                                 </MudItem>
                                 <MudItem xs="12" sm="6" md="3">
@@ -137,7 +149,7 @@
                     <MudPaper Class="dzd-card pa-6" Elevation="0">
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-5">
                             <div class="dzd-section-title">
-                                <MudIcon Icon="@DzdIcons.History" Size="Size.Small" Style="color:#193CB8;" /> <span>@Loc["payment.salaryHistory"]</span>
+                                <MudIcon Icon="@DzdIcons.History" Size="Size.Small" Style="color:var(--dzd-brand-primary);" /> <span>@Loc["payment.salaryHistory"]</span>
                             </div>
                         </MudStack>
 
@@ -165,7 +177,7 @@
                                         </div>
                                         <div class="dzd-history-field">
                                             <div class="dzd-history-label">@Loc["payment.currency"]</div>
-                                            <div class="dzd-history-value">@record.Currency</div>
+                                            <div class="dzd-history-value">@GetCurrencyName(record.Currency)</div>
                                         </div>
                                         <div class="dzd-history-field">
                                             <div class="dzd-history-label">@Loc["payment.modifiedBy"]</div>
@@ -192,7 +204,10 @@
                             <div class="dzd-section-title dzd-title-benefits">
                                 <MudIcon Icon="@DzdIcons.Gift" Size="Size.Small" Style="color:#FEA82F;" /> <span>@Loc["payment.employeeBenefits"]</span>
                             </div>
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Plus" OnClick="OpenAddBenefitDialogAsync">@Loc["payment.addBenefit"]</MudButton>
+                            @if (!SelfService)
+                            {
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Plus" OnClick="OpenAddBenefitDialogAsync">@Loc["payment.addBenefit"]</MudButton>
+                            }
                         </MudStack>
 
                         @if (_payment.Benefits.Count == 0)
@@ -210,7 +225,7 @@
                                                 <div class="dzd-icon-badge @BenefitBadgeClass(record.BenefitType)"><MudIcon Icon="@BenefitIcon(record.BenefitType)" Size="Size.Small" /></div>
                                                 <div>
                                                     <div class="dzd-field-label">@Loc["payment.benefitType"]</div>
-                                                    <div class="dzd-benefit-name">@(string.IsNullOrWhiteSpace(record.BenefitName) ? record.BenefitType : record.BenefitName)</div>
+                                                    <div class="dzd-benefit-name">@(string.IsNullOrWhiteSpace(record.BenefitName) ? GetBenefitTypeName(record.BenefitType) : record.BenefitName)</div>
                                                 </div>
                                             </div>
                                             <div class="dzd-benefit-field">
@@ -219,7 +234,7 @@
                                             </div>
                                             <div class="dzd-benefit-field">
                                                 <div class="dzd-field-label">@Loc["payment.frequency"]</div>
-                                                <div class="dzd-benefit-value">@record.Period</div>
+                                                <div class="dzd-benefit-value">@GetPaymentPeriodName(record.Period)</div>
                                             </div>
                                             <div class="dzd-benefit-field">
                                                 <div class="dzd-field-label">@Loc["payment.startDate"]</div>
@@ -229,10 +244,13 @@
                                                 <div class="dzd-field-label">@Loc["payment.endDate"]</div>
                                                 <div class="dzd-benefit-value">@(record.EndDate.HasValue ? AppFormatter.FormatDate(record.EndDate) : Loc["payment.ongoing"])</div>
                                             </div>
-                                            <div class="dzd-benefit-actions">
-                                                <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" OnClick="@(() => OpenEditBenefitDialogAsync(record))" />
-                                                <MudIconButton Icon="@DzdIcons.Trash" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteBenefitRecordAsync(record))" />
-                                            </div>
+                                            @if (!SelfService)
+                                            {
+                                                <div class="dzd-benefit-actions">
+                                                    <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" OnClick="@(() => OpenEditBenefitDialogAsync(record))" />
+                                                    <MudIconButton Icon="@DzdIcons.Trash" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteBenefitRecordAsync(record))" />
+                                                </div>
+                                            }
                                         </div>
 
                                         @if (record.BenefitType == BenefitTypes.PrivateHealthInsurance)
@@ -257,7 +275,7 @@
                                                             </div>
                                                         </div>
                                                     }
-                                                    @if (record.Dependents.Count < ValidationConstants.MaxBenefitDependents)
+                                                    @if (!SelfService && record.Dependents.Count < ValidationConstants.MaxBenefitDependents)
                                                     {
                                                         <button type="button" class="dzd-add-dependent" @onclick="@(() => OpenAddDependentDialogAsync(record))">
                                                             <MudIcon Icon="@DzdIcons.Plus" Size="Size.Small" /> <span>@Loc["payment.addDependent"]</span>
@@ -308,7 +326,10 @@
                             <div class="dzd-section-title dzd-title-additional">
                                 <MudIcon Icon="@DzdIcons.Award" Size="Size.Small" Style="color:#70A37F;" /> <span>@Loc["payment.additionalPayments"]</span>
                             </div>
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Plus" OnClick="OpenAddAdditionalPaymentDialogAsync">@Loc["payment.addPayment"]</MudButton>
+                            @if (!SelfService)
+                            {
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Plus" OnClick="OpenAddAdditionalPaymentDialogAsync">@Loc["payment.addPayment"]</MudButton>
+                            }
                         </MudStack>
 
                         @if (_payment.AdditionalPayments.Count == 0)
@@ -327,7 +348,10 @@
                                             <th>@Loc["payment.colPeriod"]</th>
                                             <th>@Loc["payment.colPaymentDate"]</th>
                                             <th>@Loc["payment.colDescription"]</th>
-                                            <th class="dzd-col-actions">@Loc["payment.colActions"]</th>
+                                            @if (!SelfService)
+                                            {
+                                                <th class="dzd-col-actions">@Loc["payment.colActions"]</th>
+                                            }
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -336,20 +360,23 @@
                                             <tr>
                                                 <td>@GetAdditionalPaymentTypeName(record.PaymentType)</td>
                                                 <td class="dzd-cell-amount">@record.Amount.ToString("N3")</td>
-                                                <td>@record.Currency</td>
-                                                <td>@record.Period</td>
+                                                <td>@GetCurrencyName(record.Currency)</td>
+                                                <td>@GetAdditionalPaymentPeriodName(record.Period)</td>
                                                 <td>
                                                     @(record.Period == AdditionalPaymentPeriods.OneTime
                                                         ? AppFormatter.FormatDate(record.PaymentDate)
                                                         : $"{AppFormatter.FormatDate(record.StartDate)} — {(record.EndDate.HasValue ? AppFormatter.FormatDate(record.EndDate) : Loc["payment.present"])}")
                                                 </td>
                                                 <td class="dzd-cell-desc">@(string.IsNullOrWhiteSpace(record.Description) ? "—" : record.Description)</td>
-                                                <td class="dzd-col-actions">
-                                                    <div class="dzd-row-actions">
-                                                        <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" OnClick="@(() => OpenEditAdditionalPaymentDialogAsync(record))" />
-                                                        <MudIconButton Icon="@DzdIcons.Trash" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteAdditionalPaymentAsync(record))" />
-                                                    </div>
-                                                </td>
+                                                @if (!SelfService)
+                                                {
+                                                    <td class="dzd-col-actions">
+                                                        <div class="dzd-row-actions">
+                                                            <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" OnClick="@(() => OpenEditAdditionalPaymentDialogAsync(record))" />
+                                                            <MudIconButton Icon="@DzdIcons.Trash" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteAdditionalPaymentAsync(record))" />
+                                                        </div>
+                                                    </td>
+                                                }
                                             </tr>
                                         }
                                     </tbody>
@@ -369,7 +396,10 @@
                             <div class="dzd-section-title dzd-title-deductions">
                                 <MudIcon Icon="@DzdIcons.MinusCircle" Size="Size.Small" Style="color:#F46036;" /> <span>@Loc["payment.deductionsTitle"]</span>
                             </div>
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Plus" OnClick="OpenAddDeductionDialogAsync">@Loc["payment.addDeduction"]</MudButton>
+                            @if (!SelfService)
+                            {
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Plus" OnClick="OpenAddDeductionDialogAsync">@Loc["payment.addDeduction"]</MudButton>
+                            }
                         </MudStack>
 
                         @if (_payment.Deductions.Count == 0)
@@ -388,7 +418,10 @@
                                             <th>@Loc["payment.colPeriod"]</th>
                                             <th>@Loc["payment.colPaymentDate"]</th>
                                             <th>@Loc["payment.colDescription"]</th>
-                                            <th class="dzd-col-actions">@Loc["payment.colActions"]</th>
+                                            @if (!SelfService)
+                                            {
+                                                <th class="dzd-col-actions">@Loc["payment.colActions"]</th>
+                                            }
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -397,16 +430,19 @@
                                             <tr>
                                                 <td>@GetDeductionTypeName(record.DeductionType)</td>
                                                 <td class="dzd-cell-amount">@record.Amount.ToString("N3")</td>
-                                                <td>@record.Currency</td>
-                                                <td>@record.Period</td>
+                                                <td>@GetCurrencyName(record.Currency)</td>
+                                                <td>@GetAdditionalPaymentPeriodName(record.Period)</td>
                                                 <td>@AppFormatter.FormatDate(record.StartDate)</td>
                                                 <td class="dzd-cell-desc">@(string.IsNullOrWhiteSpace(record.Notes) ? "—" : record.Notes)</td>
-                                                <td class="dzd-col-actions">
-                                                    <div class="dzd-row-actions">
-                                                        <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" OnClick="@(() => OpenEditDeductionDialogAsync(record))" />
-                                                        <MudIconButton Icon="@DzdIcons.Trash" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteDeductionAsync(record))" />
-                                                    </div>
-                                                </td>
+                                                @if (!SelfService)
+                                                {
+                                                    <td class="dzd-col-actions">
+                                                        <div class="dzd-row-actions">
+                                                            <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" OnClick="@(() => OpenEditDeductionDialogAsync(record))" />
+                                                            <MudIconButton Icon="@DzdIcons.Trash" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteDeductionAsync(record))" />
+                                                        </div>
+                                                    </td>
+                                                }
                                             </tr>
                                         }
                                     </tbody>

@@ -12,10 +12,6 @@ public class UserAvatarConfiguration : IEntityTypeConfiguration<UserAvatar>
         builder.ToTable("UserAvatars");
         builder.HasKey(a => a.Id);
 
-        builder.Property(a => a.ContentBase64)
-               .IsRequired()
-               .HasColumnType("nvarchar(max)");
-
         builder.Property(a => a.ContentType)
                .HasMaxLength(ValidationConstants.MaxContentTypeLength);
 
@@ -23,6 +19,11 @@ public class UserAvatarConfiguration : IEntityTypeConfiguration<UserAvatar>
                .WithOne(u => u.Avatar)
                .HasForeignKey<UserAvatar>(a => a.UserId)
                .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(a => a.Storage)
+               .WithMany()
+               .HasForeignKey(a => a.StorageId)
+               .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(a => a.ModifiedBy)
                .WithMany()

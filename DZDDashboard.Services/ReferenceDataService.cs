@@ -77,26 +77,4 @@ public class ReferenceDataService(AppDbContext context, IMapper mapper) : IRefer
 
     public Task DeletePayrollLocationAsync(int id, CancellationToken cancellationToken = default)
         => DeleteRefAsync<PayrollLocation>(id, nameof(PayrollLocation), cancellationToken);
-
-
-    public Task<List<UserGroupDto>> GetUserGroupsAsync(CancellationToken cancellationToken = default)
-        => GetAllRefAsync<UserGroup, UserGroupDto>(cancellationToken);
-
-    public Task<UserGroupDto> CreateUserGroupAsync(UserGroupDto dto, CancellationToken cancellationToken = default)
-        => CreateRefAsync<UserGroup, UserGroupDto>(dto, cancellationToken);
-
-    public Task UpdateUserGroupAsync(UserGroupDto dto, CancellationToken cancellationToken = default)
-        => UpdateRefAsync<UserGroup, UserGroupDto>(dto.Id, dto, nameof(UserGroup), cancellationToken);
-
-    public Task DeleteUserGroupAsync(int id, CancellationToken cancellationToken = default)
-        => DeleteRefAsync<UserGroup>(id, nameof(UserGroup), cancellationToken);
-
-    public async Task<UserGroupDto> GetUserGroupByIdAsync(int id, CancellationToken cancellationToken = default)
-    {
-        var entity = await context.Set<UserGroup>()
-            .AsNoTracking()
-            .FirstOrDefaultAsync(ug => ug.Id == id, cancellationToken)
-            ?? throw new EntityNotFoundException(nameof(UserGroup), id);
-        return mapper.Map<UserGroupDto>(entity);
-    }
 }

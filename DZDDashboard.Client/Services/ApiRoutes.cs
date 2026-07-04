@@ -9,11 +9,14 @@ public static class ApiRoutes
         public const string MyProfileAvatar = "api/users/my-profile/avatar";
         public const string MyProfileAvatarColor = "api/users/my-profile/avatar-color";
         public const string MyContactInfo  = "api/users/my-profile/contact-info";
-        public const string MyPaymentSummary = "api/users/my-profile/payment-summary";
+        public const string MyPayment        = "api/users/my-profile/payment";
+        public const string MyDocuments      = "api/users/my-profile/documents";
         public const string MyCard               = "api/users/my-profile/card";
         public const string MySensitiveInfo      = "api/users/my-profile/sensitive-info";
         public const string MyEmergencyContacts  = "api/users/my-profile/emergency-contacts";
         public const string MyFamilyInfo         = "api/users/my-profile/family-info";
+        public const string MyAddressInfo        = "api/users/my-profile/address-info";
+        public const string MyEducationInfo      = "api/users/my-profile/education-info";
 
         public static string All(int page, int pageSize)         => $"api/users?page={page}&pageSize={pageSize}";
         public static string Search(string? query, int take = 20) => $"api/users/search?query={Uri.EscapeDataString(query ?? string.Empty)}&take={take}";
@@ -30,6 +33,7 @@ public static class ApiRoutes
         public static string Documents(int userId)               => $"api/users/{userId}/documents";
         public static string Document(int userId, int docId)     => $"api/users/{userId}/documents/{docId}";
         public static string DocumentContent(int userId, int docId) => $"api/users/{userId}/documents/{docId}/content";
+        public static string MyDocumentContent(int docId)            => $"api/users/my-profile/documents/{docId}/content";
         public static string DocumentReview(int userId, int docId)  => $"api/users/{userId}/documents/{docId}/review";
         public static string Career(int userId)                  => $"api/users/{userId}/career";
         public static string OrganizationPosition(int userId)    => $"api/users/{userId}/organization-position";
@@ -56,7 +60,6 @@ public static class ApiRoutes
         public const string Jobs           = "api/organization/jobs";
         public const string Grades         = "api/organization/grades";
         public const string PayrollLocations = "api/organization/payrolllocations";
-        public const string UserGroups     = "api/organization/usergroups";
         public const string CareerPaths    = "api/organization/careerpaths";
         public const string CareerMapRules = "api/organization/careermaprules";
 
@@ -67,7 +70,6 @@ public static class ApiRoutes
         public static string Job(int id)              => $"{Jobs}/{id}";
         public static string Grade(int id)            => $"{Grades}/{id}";
         public static string PayrollLocation(int id)  => $"{PayrollLocations}/{id}";
-        public static string UserGroup(int id)  => $"{UserGroups}/{id}";
         public static string CareerPath(int id) => $"{CareerPaths}/{id}";
         public static string CareerMapRule(int id)    => $"{CareerMapRules}/{id}";
     }

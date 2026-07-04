@@ -13,18 +13,31 @@ public class UserMappingProfile : Profile
             .ForMember(dest => dest.ReportsToName,
                 opt => opt.MapFrom(src => src.ReportsTo != null
                     ? AppFormatter.BuildFullName(src.ReportsTo.FirstName, src.ReportsTo.LastName)
-                    : null));
+                    : null))
+            .ForMember(dest => dest.HasAvatar,       opt => opt.MapFrom(src => src.Avatar != null))
+            .ForMember(dest => dest.AvatarUpdatedAt, opt => opt.MapFrom(src =>
+                src.Avatar != null ? (DateTime?)(src.Avatar.ModifiedAt ?? src.Avatar.CreatedAt) : null));
 
         CreateMap<User, UserSummaryDto>()
             .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src =>
-                src.Avatar == null ? null : new UserAvatarSummaryDto { Id = src.Avatar.Id, ContentType = src.Avatar.ContentType }))
+                src.Avatar == null ? null : new UserAvatarSummaryDto
+                {
+                    Id          = src.Avatar.Id,
+                    ContentType = src.Avatar.ContentType,
+                    UpdatedAt   = src.Avatar.ModifiedAt ?? src.Avatar.CreatedAt
+                }))
             .ForMember(dest => dest.Department, opt => opt.Ignore())
             .ForMember(dest => dest.Team,       opt => opt.Ignore())
             .ForMember(dest => dest.Job,        opt => opt.Ignore());
 
-        CreateMap<UserAvatar, UserAvatarDto>();
-        CreateMap<User, UserProfileReportsToDto>();
-        CreateMap<User, UserProfileDto>();
+        CreateMap<User, UserProfileReportsToDto>()
+            .ForMember(dest => dest.HasAvatar,       opt => opt.MapFrom(src => src.Avatar != null))
+            .ForMember(dest => dest.AvatarUpdatedAt, opt => opt.MapFrom(src =>
+                src.Avatar != null ? (DateTime?)(src.Avatar.ModifiedAt ?? src.Avatar.CreatedAt) : null));
+        CreateMap<User, UserProfileDto>()
+            .ForMember(dest => dest.HasAvatar,       opt => opt.MapFrom(src => src.Avatar != null))
+            .ForMember(dest => dest.AvatarUpdatedAt, opt => opt.MapFrom(src =>
+                src.Avatar != null ? (DateTime?)(src.Avatar.ModifiedAt ?? src.Avatar.CreatedAt) : null));
         CreateMap<EmergencyContact, EmergencyContactDto>()
             .ReverseMap()
             .ForMember(dest => dest.UserId, opt => opt.Ignore());
@@ -57,6 +70,7 @@ public class UserMappingProfile : Profile
             .ForMember(dest => dest.PersonalPhoneNumber,   opt => opt.Ignore())
             .ForMember(dest => dest.LegalAddress,          opt => opt.Ignore())
             .ForMember(dest => dest.CurrentAddress,        opt => opt.Ignore())
+            .ForMember(dest => dest.CurrentAddressChangedAt, opt => opt.Ignore())
             .ForMember(dest => dest.City,                  opt => opt.Ignore())
             .ForMember(dest => dest.Country,               opt => opt.Ignore())
             .ForMember(dest => dest.Children,              opt => opt.Ignore());

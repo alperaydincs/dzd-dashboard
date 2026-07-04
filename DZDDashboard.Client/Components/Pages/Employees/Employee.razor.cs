@@ -30,15 +30,11 @@ public partial class Employee
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private IUserClientService UserService { get; set; } = default!;
     [Inject] private IOrganizationClientService OrgService { get; set; } = default!;
-    [Inject] private IPaymentClientService PaymentService { get; set; } = default!;
     [Inject] private ITrainingClientService TrainingService { get; set; } = default!;
     [Inject] private IUserAvatarState AvatarState { get; set; } = default!;
     [Inject] private IJSRuntime JS { get; set; } = default!;
     [Inject] private DZDDashboard.Client.Localization.AppLocalizer Loc { get; set; } = default!;
     [Inject] private DZDDashboard.Client.Localization.DomainLocalizer Domain { get; set; } = default!;
-
-    private MyPaymentSummaryDto? _myPaymentSummary;
-    private bool _myPaymentSummaryLoading;
 
     private bool _loading;
     private string? _error;
@@ -155,22 +151,15 @@ public partial class Employee
             MergeSensitiveInfo(_profile, await UserService.GetMySensitiveInfoAsync());
 
             _fullName           = AppFormatter.BuildFullName(_profile.FirstName, _profile.LastName);
-            _employmentDuration = AppFormatter.FormatDurationFrom(_profile.UserStartDate ?? _profile.PositionStartDate);
+            _employmentDuration = FormatDurationLocalized(_profile.UserStartDate ?? _profile.PositionStartDate);
 
-            if (_profile.Avatar is { ContentBase64: { Length: > 0 } b64 })
-                _avatarDataUrl = $"data:{_profile.Avatar.ContentType ?? "image/png"};base64,{b64}";
-            else
-            {
-                var avatar = await UserService.GetMyAvatarAsync();
-                if (avatar is { ContentBase64: { Length: > 0 } ab64 })
-                    _avatarDataUrl = $"data:{avatar.ContentType ?? "image/png"};base64,{ab64}";
-            }
+            var avatar = await UserService.GetMyAvatarAsync();
+            if (avatar is { ContentBase64: { Length: > 0 } ab64 })
+                _avatarDataUrl = $"data:{avatar.ContentType ?? "image/png"};base64,{ab64}";
 
             SyncIntlPhoneInputs();
             _educationHistoryRecords = MapEducationHistories(_profile);
             _positionHistory = MapPositionHistory(_profile);
-
-            _ = LoadMyPaymentSummaryAsync();
         }
         catch (Exception)
         {
@@ -178,18 +167,6 @@ public partial class Employee
             Snackbar.Add(_error, Severity.Error);
         }
         finally { _loading = false; }
-    }
-
-    private async Task LoadMyPaymentSummaryAsync()
-    {
-        _myPaymentSummaryLoading = true;
-        try { _myPaymentSummary = await PaymentService.GetMyPaymentSummaryAsync(); }
-        catch { _myPaymentSummary = null; }
-        finally
-        {
-            _myPaymentSummaryLoading = false;
-            await InvokeAsync(StateHasChanged);
-        }
     }
 
     private async Task LoadData()
@@ -212,16 +189,11 @@ public partial class Employee
             MergeSensitiveInfo(_profile, await sensitiveInfoTask);
 
             _fullName           = AppFormatter.BuildFullName(_profile.FirstName, _profile.LastName);
-            _employmentDuration = AppFormatter.FormatDurationFrom(_profile.UserStartDate ?? _profile.PositionStartDate);
+            _employmentDuration = FormatDurationLocalized(_profile.UserStartDate ?? _profile.PositionStartDate);
 
-            if (_profile.Avatar != null && !string.IsNullOrEmpty(_profile.Avatar.ContentBase64))
-                _avatarDataUrl = $"data:{_profile.Avatar.ContentType ?? "image/png"};base64,{_profile.Avatar.ContentBase64}";
-            else
-            {
-                var avatar = await avatarTask;
-                if (avatar != null && !string.IsNullOrEmpty(avatar.ContentBase64))
-                    _avatarDataUrl = $"data:{avatar.ContentType ?? "image/png"};base64,{avatar.ContentBase64}";
-            }
+            var avatar = await avatarTask;
+            if (avatar != null && !string.IsNullOrEmpty(avatar.ContentBase64))
+                _avatarDataUrl = $"data:{avatar.ContentType ?? "image/png"};base64,{avatar.ContentBase64}";
 
             SyncIntlPhoneInputs();
             _educationHistoryRecords = MapEducationHistories(_profile);
@@ -243,6 +215,8 @@ public partial class Employee
     private string? GetContractTypeName(string? code)   => string.IsNullOrEmpty(code) ? null : Domain.Label(DomainCategories.ContractType, code);
     private string? GetWorkModelName(string? code)      => string.IsNullOrEmpty(code) ? null : Domain.Label(DomainCategories.WorkModel, code);
     private string? GetEducationLevelName(string? code) => string.IsNullOrEmpty(code) ? null : Domain.Label(DomainCategories.EducationLevel, code);
+    private string GetEducationStatusName(string? code) => string.IsNullOrEmpty(code) ? "-" : Domain.Label(DomainCategories.EducationStatus, code);
+    private string GetPositionChangeTypeName(string? code) => string.IsNullOrEmpty(code) ? "-" : Domain.Label(DomainCategories.PositionChangeType, code);
 
     private async Task RefreshProfileAsync()
     {
@@ -259,10 +233,11 @@ public partial class Employee
         _profile = latestProfile;
 
         _fullName           = AppFormatter.BuildFullName(_profile.FirstName, _profile.LastName);
-        _employmentDuration = AppFormatter.FormatDurationFrom(_profile.UserStartDate ?? _profile.PositionStartDate);
+        _employmentDuration = FormatDurationLocalized(_profile.UserStartDate ?? _profile.PositionStartDate);
 
-        if (_profile.Avatar is { ContentBase64: { Length: > 0 } b64 })
-            _avatarDataUrl = $"data:{_profile.Avatar.ContentType ?? "image/png"};base64,{b64}";
+        var avatar = SelfService ? await UserService.GetMyAvatarAsync() : await UserService.GetUserAvatarAsync(_userId);
+        if (avatar is { ContentBase64: { Length: > 0 } b64 })
+            _avatarDataUrl = $"data:{avatar.ContentType ?? "image/png"};base64,{b64}";
 
         SyncIntlPhoneInputs();
         _educationHistoryRecords = MapEducationHistories(_profile);
@@ -286,6 +261,7 @@ public partial class Employee
         card.LegalAddressCity    = pii.LegalAddressCity;
         card.LegalAddressCountry = pii.LegalAddressCountry;
         card.CurrentAddress      = pii.CurrentAddress;
+        card.CurrentAddressChangedAt = pii.CurrentAddressChangedAt;
         card.City                = pii.City;
         card.Country             = pii.Country;
         card.Children           = pii.Children
@@ -315,10 +291,8 @@ public partial class Employee
     private void SetView(int index)
     {
         _activeViewIndex = index;
-        if (!SelfService && index == 2 && !_career.IsLoaded)
+        if (index == 2 && !_career.IsLoaded)
             _ = LoadCareerDataAsync();
-        if (SelfService && index == 3 && _myPaymentSummary is null)
-            _ = LoadMyPaymentSummaryAsync();
         if (index == 4 && !_trainingLoaded)
             _ = LoadTrainingsAsync();
     }
@@ -345,8 +319,19 @@ public partial class Employee
 
     private string? GetWorkPhoneValue()     => _profile?.PhoneNumber;
     private string? GetPersonalPhoneValue() => _profile?.PersonalPhoneNumber;
-    private string GetWorkPhoneDisplay()     => GetWorkPhoneValue() ?? Loc["common.notAvailable"];
-    private string GetPersonalPhoneDisplay() => GetPersonalPhoneValue() ?? Loc["common.notAvailable"];
+    private string GetWorkPhoneDisplay()     => GetWorkPhoneValue()     is { } v ? AppFormatter.FormatPhoneDisplay(v) : Loc["common.notAvailable"];
+    private string GetPersonalPhoneDisplay() => GetPersonalPhoneValue() is { } v ? AppFormatter.FormatPhoneDisplay(v) : Loc["common.notAvailable"];
+
+    private string? FormatDurationLocalized(DateTime? start)
+    {
+        if (start is null) return null;
+        var (years, months) = AppFormatter.GetElapsedYearsMonths(start);
+        if (years <= 0 && months <= 0) return Loc["duration.lessThanMonth"];
+
+        var yearsPart  = years  > 0 ? string.Format(years  == 1 ? Loc["duration.yearSingular"]  : Loc["duration.yearPlural"],  years)  : null;
+        var monthsPart = months > 0 ? string.Format(months == 1 ? Loc["duration.monthSingular"] : Loc["duration.monthPlural"], months) : null;
+        return string.Join(" ", new[] { yearsPart, monthsPart }.Where(s => s is not null));
+    }
 
     private static string? FirstNonEmpty(params string?[] values)
     {
@@ -362,7 +347,9 @@ public partial class Employee
         var name = AppFormatter.BuildFullName(_profile.ReportsTo.FirstName, _profile.ReportsTo.LastName);
         return string.IsNullOrWhiteSpace(name) ? Loc["common.notAvailable"] : name;
     }
-    private string GetManagerDepartmentName() => _profile?.ReportsTo?.Department?.Name ?? Loc["common.notAvailable"];
+    private string? GetManagerAvatarUrl() => _profile?.ReportsTo is { HasAvatar: true } m ? AvatarUrl.For(m.Id, m.AvatarUpdatedAt) : null;
+    private string GetManagerEmailDisplay() => _profile?.ReportsTo?.Email ?? Loc["common.notAvailable"];
+    private string GetManagerPhoneDisplay() => _profile?.ReportsTo?.PhoneNumber is { } v ? AppFormatter.FormatPhoneDisplay(v) : Loc["common.notAvailable"];
 
     private sealed class EducationHistoryRecord
     {

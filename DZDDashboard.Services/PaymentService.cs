@@ -57,50 +57,6 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         };
     }
 
-    public async Task<MyPaymentSummaryDto> GetMyPaymentSummaryAsync(int userId, CancellationToken cancellationToken = default)
-    {
-        var today = DateTime.UtcNow.Date;
-
-        var activeSalary = await context.SalaryHistories.AsNoTracking()
-            .Where(s => s.UserId == userId && s.StartDate <= today && (s.EndDate == null || s.EndDate >= today))
-            .OrderByDescending(s => s.StartDate)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        var pensionBenefits = await context.BenefitRecords.AsNoTracking()
-            .Where(b => b.UserId == userId
-                     && b.BenefitType == BenefitTypes.PrivatePension
-                     && b.StartDate <= today && (b.EndDate == null || b.EndDate >= today))
-            .OrderBy(b => b.Payer)
-            .ToListAsync(cancellationToken);
-
-        return new MyPaymentSummaryDto
-        {
-            ActiveSalary = activeSalary is null ? null : new SalaryRecordDto
-            {
-                Id          = activeSalary.Id,
-                NetAmount   = activeSalary.NetAmount,
-                GrossAmount = activeSalary.GrossAmount,
-                PayType     = activeSalary.PayType,
-                Currency    = activeSalary.Currency,
-                Period      = activeSalary.Period,
-                StartDate   = activeSalary.StartDate,
-                EndDate     = activeSalary.EndDate
-            },
-            PensionBenefits = [.. pensionBenefits.Select(b => new BenefitRecordDto
-            {
-                Id          = b.Id,
-                BenefitType = b.BenefitType,
-                Payer       = b.Payer,
-                Amount      = b.Amount,
-                Currency    = b.Currency,
-                Period      = b.Period,
-                StartDate   = b.StartDate,
-                EndDate     = b.EndDate
-            })]
-        };
-    }
-
-
     public async Task<SalaryRecordDto> CreateSalaryRecordAsync(int userId, SalaryRecordDto dto, CancellationToken cancellationToken = default)
     {
         await context.Users.FindRequiredAsync(userId, nameof(User), cancellationToken);

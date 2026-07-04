@@ -23,5 +23,11 @@ public record UserProfileDto
     public TeamDto? Team { get; init; }
     public JobDto? Job { get; init; }
     public PayrollLocationDto? PayrollLocation { get; init; }
-    public UserAvatarDto? Avatar { get; init; }
+
+    /// <summary>Whether the user has an uploaded avatar. The image itself is served via the
+    /// <c>/avatars/me</c> proxy rather than embedded here, keeping this payload small.</summary>
+    public bool HasAvatar { get; init; }
+
+    /// <summary>Last time the avatar changed; used as a cache-busting token in the avatar URL.</summary>
+    public DateTime? AvatarUpdatedAt { get; init; }
 }

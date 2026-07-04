@@ -43,7 +43,7 @@
                         <MudText Typo="Typo.caption" Style="opacity:.6;">@Loc["positionUserDialog.currentAssignment"]</MudText>
                         <MudPaper Class="pa-3 d-flex justify-space-between align-center" Outlined="true" Style="background-color: #E3F2FD; border-color: #2196F3;">
                             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                <InitialsAvatar FullName="@AppFormatter.BuildFullName(_currentUser.FirstName, _currentUser.LastName)" ColorIndex="@_currentUser.AvatarColorIndex" Size="40" />
+                                <InitialsAvatar FullName="@AppFormatter.BuildFullName(_currentUser.FirstName, _currentUser.LastName)" ColorIndex="@_currentUser.AvatarColorIndex" ImageSrc="@AvatarSrc(_currentUser)" Size="40" />
                                 <MudStack Spacing="0">
                                     <MudText Typo="Typo.body2" Style="font-weight:500;">@AppFormatter.BuildFullName(_currentUser.FirstName, _currentUser.LastName)</MudText>
                                     <MudText Typo="Typo.caption">@_currentUser.Email</MudText>
@@ -73,7 +73,7 @@
                         {
                             <MudPaper Class="pa-3 d-flex justify-space-between align-center" Outlined="true">
                                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                    <InitialsAvatar FullName="@AppFormatter.BuildFullName(user.FirstName, user.LastName)" ColorIndex="@user.AvatarColorIndex" Size="40" />
+                                    <InitialsAvatar FullName="@AppFormatter.BuildFullName(user.FirstName, user.LastName)" ColorIndex="@user.AvatarColorIndex" ImageSrc="@AvatarSrc(user)" Size="40" />
                                     <MudStack Spacing="0">
                                         <MudText Typo="Typo.body2" Style="font-weight:500;">@AppFormatter.BuildFullName(user.FirstName, user.LastName)</MudText>
                                         <MudText Typo="Typo.caption">@user.Email</MudText>
@@ -135,6 +135,9 @@
             _originalUser = _currentUser;
         }
     }
+
+    private static string? AvatarSrc(UserSummaryDto u)
+        => u.Avatar is null ? null : AvatarUrl.For(u.Id, u.Avatar.UpdatedAt);
 
     private void SelectUser(UserSummaryDto user)
     {

@@ -148,7 +148,7 @@ public class DeductionDtoValidator : AbstractValidator<DeductionDto>
             .Must(c => Currencies.All.Contains(c)).WithMessage(ValidationMessages.CurrencyInvalid);
 
         RuleFor(x => x.Period)
-            .Must(p => PaymentPeriods.All.Contains(p)).WithMessage(ValidationMessages.SalaryPeriodInvalid);
+            .Must(p => AdditionalPaymentPeriods.All.Contains(p)).WithMessage(ValidationMessages.SalaryPeriodInvalid);
 
         RuleFor(x => x.Notes).MaximumLength(ValidationConstants.MaxNotesLength);
 

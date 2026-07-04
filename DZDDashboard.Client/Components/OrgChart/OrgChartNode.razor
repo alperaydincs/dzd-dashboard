@@ -10,7 +10,7 @@
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="node-card-content">
                     @if (Node.User != null)
                     {
-                        <InitialsAvatar FullName="@AppFormatter.BuildFullName(Node.User.FirstName, Node.User.LastName)" ColorIndex="@Node.User.AvatarColorIndex" Size="64" Class="node-avatar" />
+                        <InitialsAvatar FullName="@AppFormatter.BuildFullName(Node.User.FirstName, Node.User.LastName)" ColorIndex="@Node.User.AvatarColorIndex" ImageSrc="@AvatarSrc(Node.User)" Size="64" Class="node-avatar" />
                     }
                     else
                     {
@@ -98,6 +98,9 @@
     [Parameter] public EventCallback<OrgChartNodeItem> OnEditNode { get; set; }
     [Parameter] public EventCallback<OrgChartNodeItem> OnDeleteNode { get; set; }
     [Parameter] public EventCallback<OrgChartNodeItem> OnNodeSelected { get; set; }
+
+    private static string? AvatarSrc(OrgChartUserDto u)
+        => u.HasAvatar ? AvatarUrl.For(u.Id, u.AvatarUpdatedAt) : null;
 
     private void ToggleExpand()
     {

@@ -27,4 +27,7 @@ public record UserAvatarSummaryDto
 {
     public int Id { get; init; }
     public string? ContentType { get; init; }
+
+    /// <summary>Last time the avatar image changed; used as a cache-busting token in avatar URLs.</summary>
+    public DateTime? UpdatedAt { get; init; }
 }
