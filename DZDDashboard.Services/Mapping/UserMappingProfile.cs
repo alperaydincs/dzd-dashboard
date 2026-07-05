@@ -1,64 +1,72 @@
-using AutoMapper;
 using DZDDashboard.Common.DTOs;
 using DZDDashboard.Common.Utils;
 using DZDDashboard.Data.Entities;
+using Mapster;
 
 namespace DZDDashboard.Services.Mapping;
 
-public class UserMappingProfile : Profile
+public class UserMappingProfile : IRegister
 {
-    public UserMappingProfile()
+    public void Register(TypeAdapterConfig config)
     {
-        CreateMap<User, UserDto>()
-            .ForMember(dest => dest.ReportsToName,
-                opt => opt.MapFrom(src => src.ReportsTo != null
-                    ? AppFormatter.BuildFullName(src.ReportsTo.FirstName, src.ReportsTo.LastName)
-                    : null));
+        config.NewConfig<User, UserDto>()
+            .Map(dest => dest.ReportsToName, src => src.ReportsTo != null
+                ? AppFormatter.BuildFullName(src.ReportsTo.FirstName, src.ReportsTo.LastName)
+                : null)
+            .Map(dest => dest.HasAvatar, src => src.Avatar != null)
+            .Map(dest => dest.AvatarUpdatedAt, src =>
+                src.Avatar != null ? (DateTime?)(src.Avatar.ModifiedAt ?? src.Avatar.CreatedAt) : null);
 
-        CreateMap<User, UserSummaryDto>()
-            .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src =>
-                src.Avatar == null ? null : new UserAvatarSummaryDto { Id = src.Avatar.Id, ContentType = src.Avatar.ContentType }))
-            .ForMember(dest => dest.Department, opt => opt.Ignore())
-            .ForMember(dest => dest.Team,       opt => opt.Ignore())
-            .ForMember(dest => dest.Job,        opt => opt.Ignore());
+        config.NewConfig<User, UserSummaryDto>()
+            .Map(dest => dest.Avatar, src =>
+                src.Avatar == null ? null : new UserAvatarSummaryDto
+                {
+                    Id = src.Avatar.Id,
+                    ContentType = src.Avatar.ContentType,
+                    UpdatedAt = src.Avatar.ModifiedAt ?? src.Avatar.CreatedAt
+                })
+            .Ignore("Department")
+            .Ignore("Team")
+            .Ignore("Job");
 
-        CreateMap<UserAvatar, UserAvatarDto>();
-        CreateMap<User, UserProfileReportsToDto>();
-        CreateMap<User, UserProfileDto>();
-        CreateMap<EmergencyContact, EmergencyContactDto>()
-            .ReverseMap()
-            .ForMember(dest => dest.UserId, opt => opt.Ignore());        CreateMap<EducationHistory, EducationHistoryDto>().ReverseMap();
+        config.NewConfig<User, UserProfileReportsToDto>()
+            .Map(dest => dest.HasAvatar, src => src.Avatar != null)
+            .Map(dest => dest.AvatarUpdatedAt, src =>
+                src.Avatar != null ? (DateTime?)(src.Avatar.ModifiedAt ?? src.Avatar.CreatedAt) : null);
 
-        CreateMap<PositionHistory, PositionHistoryDto>()
-            .ForMember(dest => dest.DepartmentName,
-                opt => opt.MapFrom(src => src.Department != null ? src.Department.Name : null))
-            .ForMember(dest => dest.TeamName,
-                opt => opt.MapFrom(src => src.Team != null ? src.Team.Name : null));
+        config.NewConfig<User, UserProfileDto>()
+            .Map(dest => dest.HasAvatar, src => src.Avatar != null)
+            .Map(dest => dest.AvatarUpdatedAt, src =>
+                src.Avatar != null ? (DateTime?)(src.Avatar.ModifiedAt ?? src.Avatar.CreatedAt) : null);
 
-        CreateMap<User, EmployeeCardDto>()
-            .ForMember(dest => dest.OrganizationPositionName,
-                opt => opt.MapFrom(src => src.OrganizationPosition != null ? src.OrganizationPosition.Name : null))
-            .ForMember(dest => dest.FullName,
-                opt => opt.MapFrom(src => (src.FirstName + " " + src.LastName).Trim()))
-            .ForMember(dest => dest.CareerPathName,
-                opt => opt.MapFrom(src => src.CareerPath != null ? src.CareerPath.Name : null))
-            .ForMember(dest => dest.TargetEfforts,
-                opt => opt.MapFrom(src => src.TargetEfforts!.Where(t => t.IsActive)))
-            .ForMember(dest => dest.DateOfBirth,           opt => opt.Ignore())
-            .ForMember(dest => dest.Gender,                opt => opt.Ignore())
-            .ForMember(dest => dest.Nationality,           opt => opt.Ignore())
-            .ForMember(dest => dest.CitizenshipNumber,     opt => opt.Ignore())
-            .ForMember(dest => dest.DisabilityStatus,      opt => opt.Ignore())
-            .ForMember(dest => dest.DisabilityDegree,      opt => opt.Ignore())
-            .ForMember(dest => dest.MaritalStatus,         opt => opt.Ignore())
-            .ForMember(dest => dest.SpouseFullName,        opt => opt.Ignore())
-            .ForMember(dest => dest.PersonalEmail,         opt => opt.Ignore())
-            .ForMember(dest => dest.PersonalPhoneNumber,   opt => opt.Ignore())
-            .ForMember(dest => dest.LegalAddress,          opt => opt.Ignore())
-            .ForMember(dest => dest.CurrentAddress,        opt => opt.Ignore())
-            .ForMember(dest => dest.City,                  opt => opt.Ignore())
-            .ForMember(dest => dest.Country,               opt => opt.Ignore())
-            .ForMember(dest => dest.Children,              opt => opt.Ignore());
+        config.NewConfig<EmergencyContact, EmergencyContactDto>();
+        config.NewConfig<EmergencyContactDto, EmergencyContact>()
+            .Ignore("UserId");
 
+        config.NewConfig<EducationHistory, EducationHistoryDto>();
+        config.NewConfig<EducationHistoryDto, EducationHistory>();
+
+        config.NewConfig<PositionHistory, PositionHistoryDto>();
+
+        config.NewConfig<User, EmployeeCardDto>()
+            .Map(dest => dest.OrganizationPositionName, src => src.OrganizationPosition != null ? src.OrganizationPosition.Name : null)
+            .Map(dest => dest.FullName, src => (src.FirstName + " " + src.LastName).Trim())
+            .Map(dest => dest.CareerPathName, src => src.CareerPath != null ? src.CareerPath.Name : null)
+            .Ignore("DateOfBirth")
+            .Ignore("Gender")
+            .Ignore("Nationality")
+            .Ignore("CitizenshipNumber")
+            .Ignore("DisabilityStatus")
+            .Ignore("DisabilityDegree")
+            .Ignore("MaritalStatus")
+            .Ignore("SpouseFullName")
+            .Ignore("PersonalEmail")
+            .Ignore("PersonalPhoneNumber")
+            .Ignore("LegalAddress")
+            .Ignore("CurrentAddress")
+            .Ignore("CurrentAddressChangedAt")
+            .Ignore("City")
+            .Ignore("Country")
+            .Ignore("Children");
     }
 }

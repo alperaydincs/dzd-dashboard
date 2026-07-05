@@ -9,11 +9,14 @@ public static class ApiRoutes
         public const string MyProfileAvatar = "api/users/my-profile/avatar";
         public const string MyProfileAvatarColor = "api/users/my-profile/avatar-color";
         public const string MyContactInfo  = "api/users/my-profile/contact-info";
-        public const string MyPaymentSummary = "api/users/my-profile/payment-summary";
+        public const string MyPayment        = "api/users/my-profile/payment";
+        public const string MyDocuments      = "api/users/my-profile/documents";
         public const string MyCard               = "api/users/my-profile/card";
         public const string MySensitiveInfo      = "api/users/my-profile/sensitive-info";
         public const string MyEmergencyContacts  = "api/users/my-profile/emergency-contacts";
         public const string MyFamilyInfo         = "api/users/my-profile/family-info";
+        public const string MyAddressInfo        = "api/users/my-profile/address-info";
+        public const string MyEducationInfo      = "api/users/my-profile/education-info";
 
         public static string All(int page, int pageSize)         => $"api/users?page={page}&pageSize={pageSize}";
         public static string Search(string? query, int take = 20) => $"api/users/search?query={Uri.EscapeDataString(query ?? string.Empty)}&take={take}";
@@ -30,6 +33,8 @@ public static class ApiRoutes
         public static string Documents(int userId)               => $"api/users/{userId}/documents";
         public static string Document(int userId, int docId)     => $"api/users/{userId}/documents/{docId}";
         public static string DocumentContent(int userId, int docId) => $"api/users/{userId}/documents/{docId}/content";
+        public static string MyDocumentContent(int docId)            => $"api/users/my-profile/documents/{docId}/content";
+        public static string DocumentReview(int userId, int docId)  => $"api/users/{userId}/documents/{docId}/review";
         public static string Career(int userId)                  => $"api/users/{userId}/career";
         public static string OrganizationPosition(int userId)    => $"api/users/{userId}/organization-position";
         public static string EmergencyContacts(int userId)       => $"api/users/{userId}/emergency-contacts";
@@ -52,24 +57,65 @@ public static class ApiRoutes
         public const string Companies      = "api/organization/companies";
         public const string Departments    = "api/organization/departments";
         public const string Teams          = "api/organization/teams";
-        public const string WorkTypes      = "api/organization/worktypes";
         public const string Jobs           = "api/organization/jobs";
-        public const string Grades         = "api/organization/grades";
         public const string PayrollLocations = "api/organization/payrolllocations";
-        public const string UserGroups     = "api/organization/usergroups";
-        public const string CareerPaths    = "api/organization/careerpaths";
-        public const string CareerMapRules = "api/organization/careermaprules";
+        public const string CareerPaths     = "api/organization/careerpaths";
+        public const string CareerPathRules = "api/organization/careerpathrules";
 
         public static string Position(int id)         => $"{Positions}/{id}";
         public static string Company(int id)          => $"{Companies}/{id}";
         public static string Department(int id)       => $"{Departments}/{id}";
         public static string Team(int id)             => $"{Teams}/{id}";
-        public static string WorkType(int id)         => $"{WorkTypes}/{id}";
         public static string Job(int id)              => $"{Jobs}/{id}";
-        public static string Grade(int id)            => $"{Grades}/{id}";
         public static string PayrollLocation(int id)  => $"{PayrollLocations}/{id}";
-        public static string UserGroup(int id)  => $"{UserGroups}/{id}";
-        public static string CareerPath(int id) => $"{CareerPaths}/{id}";
-        public static string CareerMapRule(int id)    => $"{CareerMapRules}/{id}";
+        public static string CareerPath(int id)     => $"{CareerPaths}/{id}";
+        public static string CareerPathRule(int id) => $"{CareerPathRules}/{id}";
+    }
+
+    public static class Onboarding
+    {
+        public const string Base = "api/onboarding";
+
+        public static string Process(int id)                 => $"{Base}/{id}";
+        public static string Complete(int id)                => $"{Base}/{id}/complete";
+        public static string Cancel(int id)                  => $"{Base}/{id}/cancel";
+        public static string ItemComplete(int id, int itemId) => $"{Base}/{id}/items/{itemId}/complete";
+        public static string ItemSkip(int id, int itemId)     => $"{Base}/{id}/items/{itemId}/skip";
+        public static string ItemReopen(int id, int itemId)   => $"{Base}/{id}/items/{itemId}/reopen";
+        public static string ItemNote(int id, int itemId)     => $"{Base}/{id}/items/{itemId}/note";
+        public static string ItemDocument(int id, int itemId) => $"{Base}/{id}/items/{itemId}/document";
+    }
+
+    public static class ChecklistTemplates
+    {
+        public const string Base = "api/checklist-templates";
+        public static string List(string processType) => $"{Base}?processType={Uri.EscapeDataString(processType)}";
+        public static string Item(int id) => $"{Base}/{id}";
+    }
+
+    public static class MyOnboarding
+    {
+        public const string State          = "api/my-onboarding/state";
+        public const string Documents      = "api/my-onboarding/documents";
+        public static string Document(int docId)        => $"{Documents}/{docId}";
+        public static string DocumentContent(int docId) => $"{Documents}/{docId}/content";
+    }
+
+    public static class Trainings
+    {
+        public const string MyProgress = "api/trainings/my-progress";
+        public static string UserProgress(int userId) => $"api/trainings/users/{userId}/progress";
+    }
+
+    public static class Offboarding
+    {
+        public const string Base = "api/offboarding";
+
+        public static string Process(int id)                 => $"{Base}/{id}";
+        public static string ItemComplete(int id, int itemId) => $"{Base}/{id}/items/{itemId}/complete";
+        public static string ItemSkip(int id, int itemId)     => $"{Base}/{id}/items/{itemId}/skip";
+        public static string ItemReopen(int id, int itemId)   => $"{Base}/{id}/items/{itemId}/reopen";
+        public static string ItemNote(int id, int itemId)     => $"{Base}/{id}/items/{itemId}/note";
+        public static string ItemDocument(int id, int itemId) => $"{Base}/{id}/items/{itemId}/document";
     }
 }

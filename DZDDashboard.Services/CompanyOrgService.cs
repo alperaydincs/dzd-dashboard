@@ -1,4 +1,4 @@
-using AutoMapper;
+using MapsterMapper;
 using DZDDashboard.Common.DTOs;
 using DZDDashboard.Common.Exceptions;
 using DZDDashboard.Data;
@@ -32,7 +32,11 @@ public class CompanyOrgService(AppDbContext context, IMapper mapper) : ICompanyO
 
     public async Task DeleteCompanyAsync(int id, CancellationToken cancellationToken = default)
     {
-        var entity = await context.Companies.FindRequiredAsync(id, nameof(Company), cancellationToken);
+        var entity = await context.Companies
+            .Include(c => c.Departments)
+                .ThenInclude(d => d.Teams)
+            .FirstOrDefaultAsync(c => c.Id == id, cancellationToken)
+            ?? throw new EntityNotFoundException(nameof(Company), id);
         context.Companies.Remove(entity);
         await context.SaveChangesAsync(cancellationToken);
     }
@@ -59,7 +63,10 @@ public class CompanyOrgService(AppDbContext context, IMapper mapper) : ICompanyO
 
     public async Task DeleteDepartmentAsync(int id, CancellationToken cancellationToken = default)
     {
-        var entity = await context.Departments.FindRequiredAsync(id, nameof(Department), cancellationToken);
+        var entity = await context.Departments
+            .Include(d => d.Teams)
+            .FirstOrDefaultAsync(d => d.Id == id, cancellationToken)
+            ?? throw new EntityNotFoundException(nameof(Department), id);
         context.Departments.Remove(entity);
         await context.SaveChangesAsync(cancellationToken);
     }

@@ -4,6 +4,16 @@
 
 ::deep .employees-header {
     padding: 6px 0 2px;
+    margin-bottom: -24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+::deep .employees-header-actions {
+    flex-shrink: 0;
 }
 
 ::deep .employees-title {
@@ -49,6 +59,10 @@
 
 ::deep .stat-avatar-blue {
     color: #2b38f5;
+}
+
+::deep .stat-avatar-black {
+    color: #000000;
 }
 
 ::deep .stat-avatar-green {
@@ -206,13 +220,13 @@
 }
 
 ::deep .status-active {
-    color: #016630;
-    background: #DCFCE7;
+    color: var(--dzd-green-500);
+    background: var(--dzd-green-50);
 }
 
 ::deep .status-leave {
-    color: #a07400;
-    background: #fff3cc;
+    color: var(--dzd-yellow-500);
+    background: var(--dzd-yellow-50);
 }
 
 ::deep .employee-card {
@@ -314,7 +328,7 @@
 ::deep .employee-card-status {
     margin-top: 0;
     font-size: 0.78rem;
-    font-weight: 600;
+    font-weight: 400;
 }
 
 ::deep .employee-card-meta {

@@ -1,5 +1,7 @@
 using DZDDashboard.Client.Services;
 using DZDDashboard.Common.Constants;
+using DZDDashboard.Common.DTOs;
+using System.Net.Http;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
@@ -20,8 +22,14 @@ public static class ServiceCollectionExtensions
         services.AddRazorComponents()
             .AddInteractiveServerComponents();
 
+        services.Configure<Microsoft.AspNetCore.Builder.RequestLocalizationOptions>(options =>
+        {
+            options.SetDefaultCulture(DZDDashboard.Client.Localization.AppLocalizer.DefaultCulture);
+            options.AddSupportedCultures(DZDDashboard.Client.Localization.AppLocalizer.SupportedCultures);
+            options.AddSupportedUICultures(DZDDashboard.Client.Localization.AppLocalizer.SupportedCultures);
+        });
+
         services.AddMudServices();
-        services.RegisterIntlTelInput();
         services.AddAntiforgery();
         services.AddHttpContextAccessor();
 
@@ -85,12 +93,24 @@ public static class ServiceCollectionExtensions
     private static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         services.AddScoped<AuthTokenHandler>();
+        services.AddScoped<DZDDashboard.Client.Localization.AppLocalizer>();
+        services.AddScoped<DZDDashboard.Client.Localization.DomainLocalizer>();
         services.AddScoped<UserService>();
         services.AddScoped<IUserClientService>(sp => sp.GetRequiredService<UserService>());
         services.AddScoped<OrganizationService>();
         services.AddScoped<IOrganizationClientService>(sp => sp.GetRequiredService<OrganizationService>());
         services.AddScoped<PaymentService>();
         services.AddScoped<IPaymentClientService>(sp => sp.GetRequiredService<PaymentService>());
+        services.AddScoped<OnboardingClientService>();
+        services.AddScoped<IOnboardingClientService>(sp => sp.GetRequiredService<OnboardingClientService>());
+        services.AddScoped<OffboardingClientService>();
+        services.AddScoped<IOffboardingClientService>(sp => sp.GetRequiredService<OffboardingClientService>());
+        services.AddScoped<MyOnboardingClientService>();
+        services.AddScoped<IMyOnboardingClientService>(sp => sp.GetRequiredService<MyOnboardingClientService>());
+        services.AddScoped<ChecklistTemplateClientService>();
+        services.AddScoped<IChecklistTemplateClientService>(sp => sp.GetRequiredService<ChecklistTemplateClientService>());
+        services.AddScoped<TrainingClientService>();
+        services.AddScoped<ITrainingClientService>(sp => sp.GetRequiredService<TrainingClientService>());
         services.AddScoped<NotificationCenterService>();
         services.AddScoped<INotificationCenterService>(sp => sp.GetRequiredService<NotificationCenterService>());
         services.AddScoped<IUserAvatarState, UserAvatarState>();

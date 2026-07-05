@@ -1,12 +1,13 @@
 @using MudBlazor
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <MudDialog>
     <DialogContent>
-        <MudTextField @bind-Value="_name" Label="Name" Required="true" />
+        <MudTextField @bind-Value="_name" Label="@Loc["dialogField.name"]" Required="true" Immediate="true" />
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(string.IsNullOrWhiteSpace(_name))">Save</MudButton>
+        <MudButton OnClick="Cancel">@Loc["common.cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" Disabled="@(string.IsNullOrWhiteSpace(_name))">@Loc["common.save"]</MudButton>
     </DialogActions>
 </MudDialog>
 

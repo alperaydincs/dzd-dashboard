@@ -7,6 +7,7 @@ using DZDDashboard.Common.Utils;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Routing;
+using Microsoft.JSInterop;
 using MudBlazor;
 
 namespace DZDDashboard.Client.Components.Layout;
@@ -18,13 +19,17 @@ public partial class MainLayout : IDisposable
     [Inject] private IUserClientService           UserService        { get; set; } = default!;
     [Inject] private INotificationCenterService   NotificationCenter { get; set; } = default!;
     [Inject] private IUserAvatarState             AvatarState        { get; set; } = default!;
+    [Inject] private IMyOnboardingClientService   MyOnboarding       { get; set; } = default!;
+
+    private const string OnboardingPath = "my-onboarding";
+    private bool _onboardingMode;
 
     private const string DefaultTitle = "DZD Dashboard";
     private const string LoadingText  = "Loading…";
 
     private enum NavSection
     {
-        None, Dashboard, Employees, Departments, Positions,
+        None, Dashboard, Employees, Onboarding, Offboarding, Departments, Positions,
         Attendance, LeaveManagement, Training, Performance, Company, Settings, MyProfile
     }
 
@@ -32,33 +37,30 @@ public partial class MainLayout : IDisposable
 
     private static readonly IReadOnlyList<NavLink> NavLinks =
     [
-        new(NavSection.Dashboard,       "/",                 DzdIcons.LayoutDashboard,   "Dashboard"),
-        new(NavSection.Employees,       "/employees",        DzdIcons.Users,             "Employees"),
-        new(NavSection.Departments,     "/departments",      DzdIcons.Building2,         "Departments"),
-        new(NavSection.Positions,       "/positions",        DzdIcons.IdCard,            "Positions"),
-        new(NavSection.Attendance,      "/attendance",       DzdIcons.Clock3,            "Attendance"),
-        new(NavSection.LeaveManagement, "/leave-management", DzdIcons.CalendarCheck,     "Leave Management"),
-        new(NavSection.Training,        "/training",         DzdIcons.GraduationCap,     "Training"),
-        new(NavSection.Performance,     "/performance",      DzdIcons.TrendingUp,        "Performance"),
-        new(NavSection.Company,         "/company",          DzdIcons.BriefcaseBusiness, "Company"),
-        new(NavSection.Settings,        "/settings",         DzdIcons.Settings,          "Settings", Roles.AdminOrHr),
+        new(NavSection.Dashboard,       "/",                 DzdIcons.LayoutDashboard,   "nav.dashboard"),
+        new(NavSection.Employees,       "/employees",        DzdIcons.Users,             "nav.employees"),
     ];
+
+    private static readonly NavLink SettingsNavLink =
+        new(NavSection.Settings, "/settings", DzdIcons.Settings, "nav.settings", Roles.AdminOrHr);
 
     private static readonly Dictionary<NavSection, string> SectionTitles = new()
     {
-        [NavSection.Employees]       = "Employees",
-        [NavSection.Departments]     = "Departments",
-        [NavSection.Positions]       = "Positions",
-        [NavSection.Attendance]      = "Attendance",
-        [NavSection.LeaveManagement] = "Leave Management",
-        [NavSection.Training]        = "Training",
-        [NavSection.Performance]     = "Performance",
-        [NavSection.Company]         = "Company",
-        [NavSection.Settings]        = "Settings",
-        [NavSection.MyProfile]       = "My Profile",
+        [NavSection.Employees]       = "nav.employees",
+        [NavSection.Onboarding]      = "nav.onboarding",
+        [NavSection.Offboarding]     = "nav.offboarding",
+        [NavSection.Departments]     = "nav.departments",
+        [NavSection.Positions]       = "nav.positions",
+        [NavSection.Attendance]      = "nav.attendance",
+        [NavSection.LeaveManagement] = "nav.leaveManagement",
+        [NavSection.Training]        = "nav.training",
+        [NavSection.Performance]     = "nav.performance",
+        [NavSection.Company]         = "nav.company",
+        [NavSection.Settings]        = "nav.settings",
+        [NavSection.MyProfile]       = "nav.myProfile",
     };
 
-    private sealed record UserHeader(string Name, string? AvatarDataUrl, int? ColorIndex)
+    private sealed record UserHeader(string Name, string? AvatarSrc, int? ColorIndex)
     {
         public static readonly UserHeader Empty = new(string.Empty, null, null);
     }
@@ -110,12 +112,35 @@ public partial class MainLayout : IDisposable
         try
         {
             _header = await LoadHeaderAsync(user);
+            await RefreshOnboardingModeAsync();
         }
         finally
         {
             _ready = true;
             await InvokeAsync(StateHasChanged);
         }
+    }
+
+    private async Task RefreshOnboardingModeAsync()
+    {
+        try
+        {
+            var state = await MyOnboarding.GetStateAsync();
+            _onboardingMode = state?.LifecycleStatus == UserLifecycleStatuses.Onboarding
+                           || state?.LifecycleStatus == UserLifecycleStatuses.Candidate;
+            if (_onboardingMode) EnsureOnboardingRoute();
+        }
+        catch
+        {
+            _onboardingMode = false;
+        }
+    }
+
+    private void EnsureOnboardingRoute()
+    {
+        var path = Nav.ToBaseRelativePath(Nav.Uri).Split('?')[0];
+        if (!path.Equals(OnboardingPath, StringComparison.OrdinalIgnoreCase))
+            Nav.NavigateTo("/" + OnboardingPath, forceLoad: false, replace: true);
     }
 
     private async Task<UserHeader> LoadHeaderAsync(ClaimsPrincipal user)
@@ -125,11 +150,16 @@ public partial class MainLayout : IDisposable
         {
             var profile = await UserService.GetMyProfileAsync();
             var name    = AppFormatter.BuildFullName(profile?.FirstName, profile?.LastName);
-            var avatar  = await UserService.GetMyAvatarAsync();
+
+            // The avatar image is served on demand from the /avatars/me proxy; we only need to
+            // know whether one exists and its version for cache-busting. No base64 payload here.
+            var avatarSrc = profile is { HasAvatar: true }
+                ? AvatarUrl.Mine(profile.AvatarUpdatedAt)
+                : null;
 
             return new UserHeader(
                 string.IsNullOrWhiteSpace(name) ? fallbackName : name,
-                ToAvatarDataUrl(avatar),
+                avatarSrc,
                 profile?.AvatarColorIndex);
         }
         catch
@@ -138,22 +168,19 @@ public partial class MainLayout : IDisposable
         }
     }
 
-    private static string? ToAvatarDataUrl(UserAvatarDto? avatar)
-        => avatar is null || string.IsNullOrEmpty(avatar.ContentBase64)
-            ? null
-            : $"data:{avatar.ContentType ?? "image/png"};base64,{avatar.ContentBase64}";
-
     private void OnAuthStateChanged(Task<AuthenticationState> task) => _ = HandleAuthStateChangedAsync(task);
 
     private async Task HandleAuthStateChangedAsync(Task<AuthenticationState> task)
     {
-        try { await task; } catch { }
+        // The auth-state task may fault on sign-out/refresh races; we re-read state below regardless.
+        try { await task; } catch (Exception) { /* intentionally ignored — state is re-fetched next */ }
         await RefreshSessionAsync();
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
         SetActiveSection(e.Location);
+        if (_onboardingMode) EnsureOnboardingRoute();
         _ = InvokeAsync(StateHasChanged);
     }
 
@@ -185,6 +212,8 @@ public partial class MainLayout : IDisposable
 
     private void Logout() => Nav.NavigateTo("/MicrosoftIdentity/Account/SignOut", forceLoad: true, replace: true);
 
+    private async Task SetCulture(string culture) => await JS.InvokeVoidAsync("dzdSetCulture", culture);
+
     private void SetActiveSection(string location)
     {
         var path = Nav.ToBaseRelativePath(location);
@@ -192,6 +221,8 @@ public partial class MainLayout : IDisposable
         _activeSection = true switch
         {
             _ when string.IsNullOrEmpty(path)                                    => NavSection.Dashboard,
+            _ when Seg(path, "onboarding")                                       => NavSection.Onboarding,
+            _ when Seg(path, "offboarding")                                      => NavSection.Offboarding,
             _ when Seg(path, "employees") || Seg(path, "employee")               => NavSection.Employees,
             _ when Seg(path, "departments")                                      => NavSection.Departments,
             _ when Seg(path, "positions")                                        => NavSection.Positions,

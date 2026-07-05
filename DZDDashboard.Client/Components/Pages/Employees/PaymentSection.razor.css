@@ -8,12 +8,12 @@
     justify-content: center;
 }
 
-.dzd-icon-badge.orange { background-color: var(--dzd-orange-50); color: var(--dzd-orange-500); }
+.dzd-icon-badge.orange { background-color: var(--dzd-orange-icon-bg); color: var(--dzd-orange-500); }
 .dzd-icon-badge.green  { background-color: var(--dzd-green-50);  color: var(--dzd-green-500); }
 .dzd-icon-badge.red    { background-color: var(--dzd-red-50);    color: var(--dzd-red-500); }
-.dzd-icon-badge.blue   { background-color: var(--dzd-blue-50);   color: var(--dzd-blue-500); }
+.dzd-icon-badge.blue   { background-color: var(--dzd-blue-icon-bg);   color: var(--dzd-brand-primary); }
 .dzd-icon-badge.gray   { background-color: var(--dzd-bg-secondary); color: var(--dzd-text-secondary); }
-.dzd-icon-badge.amber  { background-color: rgba(254, 168, 47, 0.14); color: #FEA82F; }
+.dzd-icon-badge.amber  { background-color: var(--dzd-amber-icon-bg); color: #FEA82F; }
 
 ::deep .dzd-icon-badge.amber .mud-icon-root { color: #FEA82F; }
 

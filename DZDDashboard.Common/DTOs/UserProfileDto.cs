@@ -15,13 +15,19 @@ public record UserProfileDto
     public string? ContractType { get; init; }
     public DateTime? ContractEndDate { get; init; }
     public string? WorkModel { get; init; }
-    public string? CompanyName { get; init; }
-    public string? ApprovalProcessUnit { get; init; }
+    public int? CompanyId { get; init; }
+    public CompanyDto? Company { get; init; }
     public int? Grade { get; init; }
     public UserProfileReportsToDto? ReportsTo { get; init; }
     public DepartmentDto? Department { get; init; }
     public TeamDto? Team { get; init; }
     public JobDto? Job { get; init; }
     public PayrollLocationDto? PayrollLocation { get; init; }
-    public UserAvatarDto? Avatar { get; init; }
+
+    /// <summary>Whether the user has an uploaded avatar. The image itself is served via the
+    /// <c>/avatars/me</c> proxy rather than embedded here, keeping this payload small.</summary>
+    public bool HasAvatar { get; init; }
+
+    /// <summary>Last time the avatar changed; used as a cache-busting token in the avatar URL.</summary>
+    public DateTime? AvatarUpdatedAt { get; init; }
 }

@@ -1,0 +1,29 @@
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
+
+<MudDialog>
+    <DialogContent>
+        <div class="dcd-wrap">
+            <div class="dcd-icon-glow">
+                <div class="dcd-icon-circle">
+                    <MudIcon Icon="@DzdIcons.TriangleAlert" Size="Size.Medium" />
+                </div>
+            </div>
+            <div class="dcd-title">@Title</div>
+            <div class="dcd-message">@Message</div>
+            <div class="dcd-actions">
+                <button type="button" class="dcd-btn dcd-btn-cancel" @onclick="Cancel">@Loc["common.cancel"]</button>
+                <button type="button" class="dcd-btn dcd-btn-delete" @onclick="Confirm">@Loc["payment.delete"]</button>
+            </div>
+        </div>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter, EditorRequired] public string Title   { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string Message { get; set; } = string.Empty;
+
+    private void Confirm() => MudDialog.Close(DialogResult.Ok(true));
+    private void Cancel()  => MudDialog.Cancel();
+}

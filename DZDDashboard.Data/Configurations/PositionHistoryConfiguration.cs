@@ -1,3 +1,4 @@
+using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -15,6 +16,8 @@ public class PositionHistoryConfiguration : IEntityTypeConfiguration<PositionHis
         builder.Property(p => p.JobTitle).HasMaxLength(200);
         builder.Property(p => p.CompanyName).HasMaxLength(200);
         builder.Property(p => p.ChangeType).HasMaxLength(100);
+        builder.Property(p => p.DepartmentName).HasMaxLength(ValidationConstants.MaxEntityNameLength);
+        builder.Property(p => p.TeamName).HasMaxLength(ValidationConstants.MaxEntityNameLength);
 
         builder.HasOne(p => p.User)
                .WithMany(u => u.PositionHistories)
@@ -24,11 +27,11 @@ public class PositionHistoryConfiguration : IEntityTypeConfiguration<PositionHis
         builder.HasOne(p => p.Department)
                .WithMany()
                .HasForeignKey(p => p.DepartmentId)
-               .OnDelete(DeleteBehavior.Restrict);
+               .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(p => p.Team)
                .WithMany()
                .HasForeignKey(p => p.TeamId)
-               .OnDelete(DeleteBehavior.Restrict);
+               .OnDelete(DeleteBehavior.SetNull);
     }
 }

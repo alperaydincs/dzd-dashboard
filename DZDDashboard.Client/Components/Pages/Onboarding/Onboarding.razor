@@ -1,0 +1,102 @@
+@page "/onboarding"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = Roles.AdminOrHrPolicy)]
+@using DZDDashboard.Client.Components.Pages.Onboarding.Dialogs
+@using DZDDashboard.Client.Services
+@using DZDDashboard.Common.Constants
+@using DZDDashboard.Common.DTOs
+@using DZDDashboard.Common.Utils
+@inject IOnboardingClientService OnboardingService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
+
+<MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+        <MudText Typo="Typo.h5">@Loc["onboarding.title"]</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.UserPlus" OnClick="StartOnboarding">@Loc["onboarding.start"]</MudButton>
+    </MudStack>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+    else if (_items.Count == 0)
+    {
+        <MudPaper Elevation="0" Class="pa-8 d-flex justify-center">
+            <MudText Typo="Typo.body1" Style="color:var(--dzd-text-secondary);">@Loc["onboarding.empty"]</MudText>
+        </MudPaper>
+    }
+    else
+    {
+        <MudTable Items="_items" Hover="true" Breakpoint="Breakpoint.Sm" OnRowClick="@(args => OpenDetail(args.Item))" T="OnboardingListItemDto">
+            <HeaderContent>
+                <MudTh>@Loc["lifecycle.employee"]</MudTh>
+                <MudTh>@Loc["lifecycle.startDate"]</MudTh>
+                <MudTh>@Loc["lifecycle.progress"]</MudTh>
+                <MudTh>@Loc["lifecycle.status"]</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="@Loc["lifecycle.employee"]">@context.EmployeeName</MudTd>
+                <MudTd DataLabel="@Loc["lifecycle.startDate"]">@AppFormatter.FormatDate(context.StartDate)</MudTd>
+                <MudTd DataLabel="@Loc["lifecycle.progress"]">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="min-width:160px;">
+                        <MudProgressLinear Value="@Percent(context)" Color="Color.Primary" Style="flex:1;" Rounded="true" />
+                        <MudText Typo="Typo.caption">@context.CompletedCount/@context.TotalCount</MudText>
+                    </MudStack>
+                </MudTd>
+                <MudTd DataLabel="@Loc["lifecycle.status"]">
+                    <MudChip T="string" Size="Size.Small" Color="@StatusColor(context.Status)" Variant="Variant.Text">@StatusLabel(context.Status)</MudChip>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+</MudContainer>
+
+@code {
+    private List<OnboardingListItemDto> _items = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _items = await OnboardingService.GetAllAsync() ?? [];
+        _loading = false;
+    }
+
+    private async Task StartOnboarding()
+    {
+        var dialog = await DialogService.ShowAsync<StartOnboardingDialog>(Loc["onboarding.dialogTitle"]);
+        var result = await dialog.Result;
+        if (result is { Canceled: false, Data: StartOnboardingDto dto })
+        {
+            var created = await OnboardingService.StartAsync(dto);
+            if (created is null) { Snackbar.Add(Loc["onboarding.startFailed"], Severity.Error); return; }
+            Snackbar.Add(Loc["onboarding.startSuccess"], Severity.Success);
+            Nav.NavigateTo($"/onboarding/{created.Id}");
+        }
+    }
+
+    private void OpenDetail(OnboardingListItemDto? item)
+    {
+        if (item is not null) Nav.NavigateTo($"/onboarding/{item.Id}");
+    }
+
+    private static double Percent(OnboardingListItemDto i) => i.TotalCount == 0 ? 0 : 100.0 * i.CompletedCount / i.TotalCount;
+
+    private static Color StatusColor(string status) => status switch
+    {
+        ProcessStatuses.Completed => Color.Success,
+        ProcessStatuses.Cancelled => Color.Error,
+        _                         => Color.Info
+    };
+
+    private string StatusLabel(string status) => status switch
+    {
+        ProcessStatuses.Completed => Loc["lifecycle.completed"],
+        ProcessStatuses.Cancelled => Loc["lifecycle.cancelled"],
+        _                         => Loc["lifecycle.inProgress"]
+    };
+}

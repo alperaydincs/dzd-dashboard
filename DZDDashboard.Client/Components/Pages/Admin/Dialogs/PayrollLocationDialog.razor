@@ -8,14 +8,15 @@
 <MudDialog>
     <DialogContent>
         <MudTextField @bind-Value="_locationName"
-                      Label="Location Name"
+                      Label="@Loc["dialogField.locationName"]"
                       Variant="Variant.Outlined"
                       Required="true"
-                      FullWidth="true" />
+                      FullWidth="true"
+                      Immediate="true" />
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">Save</MudButton>
+        <MudButton OnClick="Cancel">@Loc["common.cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">@Loc["common.save"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -41,12 +42,12 @@
             dto.Id,
             () => OrgService.CreatePayrollLocationAsync(dto),
             () => OrgService.UpdatePayrollLocationAsync(dto),
-            "location",
+            Loc["settings.locationSingular"],
             () =>
             {
                 if (!IsFormValid)
                 {
-                    Snackbar.Add("Location name is required", Severity.Warning);
+                    Snackbar.Add(Loc["settings.locationNameRequired"], Severity.Warning);
                     return false;
                 }
                 return true;

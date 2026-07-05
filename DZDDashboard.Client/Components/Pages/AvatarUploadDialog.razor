@@ -2,6 +2,7 @@
 @using DZDDashboard.Client.Models
 @using DZDDashboard.Common.Constants
 @inject ISnackbar Snackbar
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <MudDialog>
     <DialogContent>
@@ -9,7 +10,7 @@
 
             <MudItem xs="12" Class="d-flex flex-column align-center">
                 <MudText Typo="Typo.subtitle1" GutterBottom="true">
-                    @(!string.IsNullOrEmpty(_previewImageDataUrl) ? "New Photo (Preview)" : "Current Photo")
+                    @(!string.IsNullOrEmpty(_previewImageDataUrl) ? Loc["avatarDialog.newPhotoPreview"] : Loc["avatarDialog.currentPhoto"])
                 </MudText>
 
                 <InitialsAvatar FullName="@UserFullName"
@@ -21,7 +22,7 @@
             @if (string.IsNullOrEmpty(_previewImageDataUrl) && string.IsNullOrEmpty(CurrentAvatarUrl))
             {
                 <MudItem xs="12" Class="d-flex flex-column align-center">
-                    <MudText Typo="Typo.body2" Class="mb-2" Style="color:var(--dzd-text-secondary);">Background color</MudText>
+                    <MudText Typo="Typo.body2" Class="mb-2" Style="color:var(--dzd-text-secondary);">@Loc["avatarDialog.backgroundColor"]</MudText>
                     <div class="avatar-color-palette">
                         @for (var i = 0; i < InitialsAvatar.Gradients.Length; i++)
                         {
@@ -30,7 +31,7 @@
                                     class="avatar-color-swatch @(_selectedColorIndex == index ? "selected" : "")"
                                     style="@($"background:{InitialsAvatar.Gradients[index]};")"
                                     @onclick="@(() => _selectedColorIndex = index)"
-                                    aria-label="@($"Color {index + 1}")"></button>
+                                    aria-label="@string.Format(Loc["avatarDialog.colorLabel"], index + 1)"></button>
                         }
                     </div>
                 </MudItem>
@@ -38,29 +39,41 @@
 
             <MudItem xs="12">
                 <MudFileUpload T="IBrowserFile" Accept=".jpg,.jpeg,.png" MaximumFileCount="1" OnFilesChanged="OnInputFileChanged">
-                    <ActivatorContent>
-                        <MudButton HtmlTag="label"
-                                   Variant="Variant.Filled"
+                    <CustomContent Context="fileUpload">
+                        <MudButton Variant="Variant.Filled"
                                    Color="Color.Primary"
                                    StartIcon="@DzdIcons.CloudUpload"
-                                   Class="mt-4">
-                            Select Photo (.png, .jpg)
+                                   Class="mt-4"
+                                   OnClick="@fileUpload.OpenFilePickerAsync">
+                            @Loc["avatarDialog.selectPhoto"]
                         </MudButton>
-                    </ActivatorContent>
+                    </CustomContent>
                 </MudFileUpload>
                 @if (_selectedFile is not null)
                 {
                     <MudText Typo="Typo.body2" Class="mt-2" Align="Align.Center">
-                        Selected file: @_selectedFile.Name
+                        @string.Format(Loc["avatarDialog.selectedFile"], _selectedFile.Name)
                     </MudText>
                 }
             </MudItem>
 
+            @if (!string.IsNullOrEmpty(CurrentAvatarUrl) && _selectedFile is null)
+            {
+                <MudItem xs="12" Class="d-flex justify-center">
+                    <MudButton Variant="Variant.Text"
+                               Color="Color.Error"
+                               StartIcon="@DzdIcons.Trash2"
+                               OnClick="RemovePhoto">
+                        @Loc["avatarDialog.removePhoto"]
+                    </MudButton>
+                </MudItem>
+            }
+
         </MudGrid>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Save" Disabled="@(_selectedFile is null && _selectedColorIndex == CurrentColorIndex)">Save</MudButton>
+        <MudButton OnClick="Cancel">@Loc["common.cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Save" Disabled="@(_selectedFile is null && _selectedColorIndex == CurrentColorIndex)">@Loc["common.save"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -87,13 +100,13 @@
 
         if (!AvatarConstants.AllowedMimeTypes.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
         {
-            Snackbar.Add($"Unsupported file type. Allowed: {string.Join(", ", AvatarConstants.AllowedExtensions)}.", Severity.Warning);
+            Snackbar.Add(string.Format(Loc["avatarDialog.unsupportedFileType"], string.Join(", ", AvatarConstants.AllowedExtensions)), Severity.Warning);
             Reset(); return;
         }
 
         if (file.Size > AvatarConstants.MaxFileSizeBytes)
         {
-            Snackbar.Add($"File size cannot exceed {AvatarConstants.MaxFileSizeBytes / 1024 / 1024} MB.", Severity.Warning);
+            Snackbar.Add(string.Format(Loc["avatarDialog.fileSizeExceeds"], AvatarConstants.MaxFileSizeBytes / 1024 / 1024), Severity.Warning);
             Reset(); return;
         }
 
@@ -108,7 +121,7 @@
         }
         catch (Exception)
         {
-            Snackbar.Add("Failed to read the selected file. Please try a different file.", Severity.Error);
+            Snackbar.Add(Loc["avatarDialog.readFileFailed"], Severity.Error);
             Reset();
         }
     }
@@ -131,6 +144,9 @@
 
         MudDialog.Close(DialogResult.Ok(new AvatarDialogResult(file, _selectedColorIndex, colorChanged)));
     }
+
+    void RemovePhoto()
+        => MudDialog.Close(DialogResult.Ok(new AvatarDialogResult(null, _selectedColorIndex, false, Removed: true)));
 
     void Cancel() => MudDialog.Cancel();
 }

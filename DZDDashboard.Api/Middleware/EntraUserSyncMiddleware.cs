@@ -65,9 +65,11 @@ public partial class EntraUserSyncMiddleware(
         var name  = GetClaimValue(context.User, ClaimTypes.Name, "name");
         var (firstName, lastName) = ParseName(name);
 
+        var hasElevatedRole = context.User.IsInRole(Roles.Admin) || context.User.IsInRole(Roles.Hr);
+
         try
         {
-            var userId = await userService.SyncEntraUserAsync(objectId, email, firstName, lastName, context.RequestAborted);
+            var userId = await userService.SyncEntraUserAsync(objectId, email, firstName, lastName, hasElevatedRole, context.RequestAborted);
 
             await cache.SetAsync(cacheKey, BitConverter.GetBytes(userId),
                 new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = _cacheDuration });

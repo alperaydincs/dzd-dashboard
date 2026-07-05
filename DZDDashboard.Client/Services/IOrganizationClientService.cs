@@ -24,37 +24,22 @@ public interface IOrganizationClientService
     Task<HttpResponseMessage> UpdateTeamAsync(TeamDto dto);
     Task<HttpResponseMessage> DeleteTeamAsync(int id);
 
-    Task<List<WorkTypeDto>> GetWorkTypesAsync();
-    Task<HttpResponseMessage> CreateWorkTypeAsync(WorkTypeDto dto);
-    Task<HttpResponseMessage> UpdateWorkTypeAsync(WorkTypeDto dto);
-    Task<HttpResponseMessage> DeleteWorkTypeAsync(int id);
-
     Task<List<JobDto>> GetJobsAsync();
     Task<HttpResponseMessage> CreateJobAsync(JobDto dto);
     Task<HttpResponseMessage> UpdateJobAsync(JobDto dto);
     Task<HttpResponseMessage> DeleteJobAsync(int id);
-
-    Task<List<GradeDto>> GetGradesAsync();
-    Task<HttpResponseMessage> CreateGradeAsync(GradeDto dto);
-    Task<HttpResponseMessage> UpdateGradeAsync(GradeDto dto);
-    Task<HttpResponseMessage> DeleteGradeAsync(int id);
 
     Task<List<PayrollLocationDto>> GetPayrollLocationsAsync();
     Task<HttpResponseMessage> CreatePayrollLocationAsync(PayrollLocationDto dto);
     Task<HttpResponseMessage> UpdatePayrollLocationAsync(PayrollLocationDto dto);
     Task<HttpResponseMessage> DeletePayrollLocationAsync(int id);
 
-    Task<List<UserGroupDto>> GetUserGroupsAsync();
-    Task<HttpResponseMessage> CreateUserGroupAsync(UserGroupDto dto);
-    Task<HttpResponseMessage> UpdateUserGroupAsync(UserGroupDto dto);
-    Task<HttpResponseMessage> DeleteUserGroupAsync(int id);
-
     Task<List<CareerPathDto>> GetCareerPathsAsync();
     Task<HttpResponseMessage> CreateCareerPathAsync(CareerPathDto dto);
     Task<HttpResponseMessage> UpdateCareerPathAsync(CareerPathDto dto);
     Task<HttpResponseMessage> DeleteCareerPathAsync(int id);
 
-    Task<HttpResponseMessage> CreateCareerMapRuleAsync(CareerMapRuleDto dto);
-    Task<HttpResponseMessage> UpdateCareerMapRuleAsync(CareerMapRuleDto dto);
-    Task<HttpResponseMessage> DeleteCareerMapRuleAsync(int id);
+    Task<HttpResponseMessage> CreateCareerPathRuleAsync(CareerPathRuleDto dto);
+    Task<HttpResponseMessage> UpdateCareerPathRuleAsync(CareerPathRuleDto dto);
+    Task<HttpResponseMessage> DeleteCareerPathRuleAsync(int id);
 }

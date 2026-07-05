@@ -3,6 +3,7 @@
 @using Microsoft.JSInterop
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 @code {
     [Parameter]
@@ -26,8 +27,8 @@
 
 <div style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--mud-palette-background,#fff);z-index:9999;">
     <div style="text-align:center;max-width:360px;padding:24px;">
-        <h2>Redirecting...</h2>
-        <p>Your session is being refreshed. Please wait.</p>
+        <h2>@Loc["signInRedirect.title"]</h2>
+        <p>@Loc["signInRedirect.message"]</p>
         <div style="margin-top:24px;">
             <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
         </div>

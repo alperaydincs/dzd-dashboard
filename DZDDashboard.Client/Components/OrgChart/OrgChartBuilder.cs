@@ -36,4 +36,28 @@ public static class OrgChartBuilder
 
         return node;
     }
+
+    public static List<OrgChartNodeItem> FilterByUserIds(List<OrgChartNodeItem> nodes, HashSet<int> matchingUserIds)
+    {
+        var result = new List<OrgChartNodeItem>();
+
+        foreach (var node in nodes)
+        {
+            var filteredChildren = FilterByUserIds(node.Children, matchingUserIds);
+            var nodeMatches = node.User != null && matchingUserIds.Contains(node.User.Id);
+
+            if (!nodeMatches && filteredChildren.Count == 0)
+                continue;
+
+            result.Add(new OrgChartNodeItem
+            {
+                Position = node.Position,
+                User = nodeMatches ? node.User : null,
+                Children = filteredChildren,
+                IsExpanded = true
+            });
+        }
+
+        return result;
+    }
 }

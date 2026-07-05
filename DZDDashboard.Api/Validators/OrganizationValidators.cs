@@ -48,37 +48,6 @@ public class JobDtoValidator : AbstractValidator<JobDto>
     }
 }
 
-public class WorkTypeDtoValidator : AbstractValidator<WorkTypeDto>
-{
-    public WorkTypeDtoValidator()
-    {
-        RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Work type name is required.")
-            .MaximumLength(ValidationConstants.MaxNameLength).WithMessage($"Work type name cannot exceed {ValidationConstants.MaxNameLength} characters.");
-    }
-}
-
-public class GradeDtoValidator : AbstractValidator<GradeDto>
-{
-    public GradeDtoValidator()
-    {
-        RuleFor(x => x.Level)
-            .NotEmpty().WithMessage("Grade level is required.")
-            .MaximumLength(ValidationConstants.MaxGradeLevelLength).WithMessage($"Grade level cannot exceed {ValidationConstants.MaxGradeLevelLength} characters.");
-
-        RuleFor(x => x.Currency)
-            .NotEmpty().WithMessage("Currency is required.")
-            .MaximumLength(ValidationConstants.MaxCurrencyCodeLength).WithMessage($"Currency code cannot exceed {ValidationConstants.MaxCurrencyCodeLength} characters.");
-
-        RuleFor(x => x.MinSalary)
-            .GreaterThanOrEqualTo(0).WithMessage("Minimum salary must be non-negative.");
-
-        RuleFor(x => x.MaxSalary)
-            .GreaterThanOrEqualTo(0).WithMessage("Maximum salary must be non-negative.")
-            .GreaterThanOrEqualTo(x => x.MinSalary).WithMessage("Maximum salary must be greater than or equal to minimum salary.");
-    }
-}
-
 public class PayrollLocationDtoValidator : AbstractValidator<PayrollLocationDto>
 {
     public PayrollLocationDtoValidator()
@@ -89,16 +58,6 @@ public class PayrollLocationDtoValidator : AbstractValidator<PayrollLocationDto>
     }
 }
 
-public class UserGroupDtoValidator : AbstractValidator<UserGroupDto>
-{
-    public UserGroupDtoValidator()
-    {
-        RuleFor(x => x.GroupName)
-            .NotEmpty().WithMessage("Group name is required.")
-            .MaximumLength(ValidationConstants.MaxEntityNameLength).WithMessage($"Group name cannot exceed {ValidationConstants.MaxEntityNameLength} characters.");
-    }
-}
-
 public class CareerPathDtoValidator : AbstractValidator<CareerPathDto>
 {
     public CareerPathDtoValidator()
@@ -106,9 +65,6 @@ public class CareerPathDtoValidator : AbstractValidator<CareerPathDto>
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Career path name is required.")
             .MaximumLength(ValidationConstants.MaxStandardLength);
-
-        RuleFor(x => x.UserGroupId)
-            .GreaterThan(0).WithMessage("Employee group is required.");
     }
 }
 

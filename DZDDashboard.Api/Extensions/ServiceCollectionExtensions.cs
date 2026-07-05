@@ -9,11 +9,12 @@ using DZDDashboard.Data.Abstractions;
 using DZDDashboard.Services;
 using DZDDashboard.Services.Mapping;
 using FluentValidation;
-using FluentValidation.AspNetCore;
+using Mapster;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Identity.Web;
+using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Threading.RateLimiting;
 
 namespace DZDDashboard.Api.Extensions;
@@ -30,7 +31,7 @@ public static class ServiceCollectionExtensions
         services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-            options.KnownNetworks.Clear();
+            options.KnownIPNetworks.Clear();
             options.KnownProxies.Clear();
         });
 
@@ -107,12 +108,16 @@ public static class ServiceCollectionExtensions
 
         services.Configure<ApiOptions>(configuration.GetSection("Api"));
         services.Configure<MiddlewareOptions>(configuration.GetSection("Middleware"));
+        services.Configure<OnboardingOptions>(configuration.GetSection(OnboardingOptions.SectionName));
+        services.AddUdemyIntegration(configuration);
 
+        services.AddMemoryCache();
         services.AddApplicationServices();
         services.AddHttpContextAccessor();
         services.AddScoped<IAuditProvider, HttpContextAuditProvider>();
         services.AddScoped<ICurrentUserAccessor, HttpContextCurrentUserAccessor>();
-        services.AddAutoMapper(typeof(OrganizationMappingProfile).Assembly);
+        TypeAdapterConfig.GlobalSettings.Scan(typeof(OrganizationMappingProfile).Assembly);
+        services.AddMapster();
 
         var allowedOrigins = configuration.GetSection("Api:AllowedCorsOrigins").Get<string[]>() ?? [];
 
@@ -150,6 +155,32 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IFileStorageService, DbFileStorageService>();
         services.AddScoped<IUserDocumentService, UserDocumentService>();
+        services.AddScoped<ChecklistEngine>();
+        services.AddScoped<IOnboardingService, OnboardingService>();
+        services.AddScoped<IOffboardingService, OffboardingService>();
+        services.AddScoped<IChecklistTemplateService, ChecklistTemplateService>();
+        services.AddScoped<ITrainingProgressService, TrainingProgressService>();
+        return services;
+    }
+
+    private static IServiceCollection AddUdemyIntegration(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<DZDDashboard.Api.Udemy.UdemyOptions>(
+            configuration.GetSection(DZDDashboard.Api.Udemy.UdemyOptions.SectionName));
+
+        var udemy = configuration.GetSection(DZDDashboard.Api.Udemy.UdemyOptions.SectionName)
+            .Get<DZDDashboard.Api.Udemy.UdemyOptions>() ?? new DZDDashboard.Api.Udemy.UdemyOptions();
+
+        services.AddHttpClient<DZDDashboard.Api.Udemy.IUdemyApiClient, DZDDashboard.Api.Udemy.UdemyApiClient>(client =>
+        {
+            if (!string.IsNullOrWhiteSpace(udemy.BaseUrl))
+                client.BaseAddress = new Uri(udemy.BaseUrl);
+            client.Timeout = TimeSpan.FromMinutes(2);
+        });
+
+        if (udemy.IsConfigured)
+            services.AddHostedService<DZDDashboard.Api.Udemy.UdemySyncBackgroundService>();
+
         return services;
     }
 }

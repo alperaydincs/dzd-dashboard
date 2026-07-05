@@ -17,9 +17,6 @@ public class CompanyConfiguration : IEntityTypeConfiguration<Company>
                .IsRequired()
                .HasMaxLength(ValidationConstants.MaxStandardLength);
 
-        builder.Property(c => c.Description)
-               .HasMaxLength(ValidationConstants.MaxDescriptionLength);
-
         builder.HasIndex(c => c.Name).IsUnique();
 
         builder.HasMany(c => c.Departments)

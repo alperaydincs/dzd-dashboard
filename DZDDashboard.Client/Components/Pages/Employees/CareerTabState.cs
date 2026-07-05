@@ -12,7 +12,7 @@ internal sealed class CareerTabState
     public List<JobDto>        AllJobs     { get; set; } = [];
     public List<CareerPathDto> CareerPaths { get; set; } = [];
 
-    public string? CompanyName { get; set; }
+    public int?    CompanyId   { get; set; }
     public int?    DeptId      { get; set; }
     public int?    TeamId      { get; set; }
     public int?    PathId      { get; set; }

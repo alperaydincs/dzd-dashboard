@@ -1,0 +1,151 @@
+@using DZDDashboard.Common.Constants
+@using DZDDashboard.Common.DTOs
+@using DZDDashboard.Common.Validation
+@using DZDDashboard.Client.Services
+@inject ISnackbar Snackbar
+@inject DZDDashboard.Client.Localization.DomainLocalizer Domain
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
+
+<MudDialog>
+    <TitleContent>
+        <div class="d-flex align-center gap-2">
+            <MudIcon Icon="@DzdIcons.ClipboardCheck" Color="Color.Primary" Size="Size.Small" />
+            <MudText Typo="Typo.h6">@string.Format(Loc["completeStepDialog.title"], Item.Title)</MudText>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="3">
+            @if (_isBenefit)
+            {
+                <MudItem xs="12" sm="6">
+                    <MudTextField T="string" Label="@Loc["completeStepDialog.provider"]" @bind-Value="_dto.ProviderName" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="string" Label="@Loc["completeStepDialog.currency"]" @bind-Value="_dto.Currency" Variant="Variant.Outlined" Margin="Margin.Dense">
+                        @foreach (var c in Currencies.All)
+                        {
+                            <MudSelectItem Value="@c">@c</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                @if (Item.BenefitKind == ChecklistBenefitKinds.Bes)
+                {
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="decimal?" Label="@Loc["completeStepDialog.besEmployerAmount"]" @bind-Value="_dto.EmployerAmount" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" Format="N2" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="decimal?" Label="@Loc["completeStepDialog.besEmployeeAmount"]" @bind-Value="_dto.EmployeeAmount" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" Format="N2" />
+                    </MudItem>
+                }
+                else if (Item.BenefitKind == ChecklistBenefitKinds.Oss)
+                {
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="decimal?" Label="@Loc["completeStepDialog.ossEmployeeAmount"]" @bind-Value="_dto.EmployeeAmount" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" Format="N2" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                            <MudText Typo="Typo.subtitle2">@string.Format(Loc["completeStepDialog.dependentsTitle"], _dto.Dependents.Count, ValidationConstants.MaxBenefitDependents)</MudText>
+                            <MudButton Size="Size.Small" Variant="Variant.Outlined" StartIcon="@DzdIcons.Plus"
+                                       OnClick="AddDependent" Disabled="@(_dto.Dependents.Count >= ValidationConstants.MaxBenefitDependents)">@Loc["completeStepDialog.addDependent"]</MudButton>
+                        </MudStack>
+                    </MudItem>
+                    @foreach (var dep in _dto.Dependents)
+                    {
+                        <MudItem xs="12" sm="4">
+                            <MudSelect T="string" Label="@Loc["completeStepDialog.dependentType"]" @bind-Value="dep.RelationType" Variant="Variant.Outlined" Margin="Margin.Dense">
+                                @foreach (var option in Domain.Options(DomainCategories.RelationType))
+                                {
+                                    <MudSelectItem Value="@option.Code">@option.Label</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudTextField T="string" Label="@Loc["completeStepDialog.nameOptional"]" @bind-Value="dep.DependentName" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                        <MudItem xs="10" sm="3">
+                            <MudNumericField T="decimal" Label="@Loc["completeStepDialog.amount"]" @bind-Value="dep.Amount" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" Format="N2" />
+                        </MudItem>
+                        <MudItem xs="2" sm="1" Class="d-flex align-center">
+                            <MudIconButton Icon="@DzdIcons.Trash2" Color="Color.Error" Size="Size.Small" OnClick="@(() => RemoveDependent(dep))" />
+                        </MudItem>
+                    }
+                }
+            }
+
+            <MudItem xs="12">
+                <MudTextField T="string" Label="@Loc["completeStepDialog.noteOptional"]" @bind-Value="_dto.Note" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" />
+            </MudItem>
+
+            @if (_isBenefit)
+            {
+                <MudItem xs="12">
+                    <MudAlert Severity="Severity.Info" Dense="true" Variant="Variant.Outlined">
+                        @Loc["completeStepDialog.paymentInfo"]
+                    </MudAlert>
+                </MudItem>
+            }
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Outlined" OnClick="Cancel">@Loc["common.cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" Disabled="@_submitted">@Loc["common.complete"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public ChecklistItemDto Item { get; set; } = default!;
+
+    private CompleteChecklistItemDto _dto = new();
+    private bool _isBenefit;
+    private bool _submitted;
+
+    protected override void OnInitialized()
+    {
+        _isBenefit = Item.BenefitKind != ChecklistBenefitKinds.None;
+        _dto = new CompleteChecklistItemDto
+        {
+            Note           = Item.Note,
+            ProviderName   = Item.ProviderName,
+            Currency       = string.IsNullOrWhiteSpace(Item.Currency) ? Currencies.Try : Item.Currency,
+            EmployeeAmount = Item.EmployeeAmount,
+            EmployerAmount = Item.EmployerAmount,
+            Dependents     = [.. Item.Dependents.Select(d => new ChecklistItemDependentInputDto
+            {
+                Order = d.Order, RelationType = d.RelationType, DependentName = d.DependentName, Amount = d.Amount
+            })]
+        };
+    }
+
+    private void AddDependent()
+        => _dto.Dependents.Add(new ChecklistItemDependentInputDto
+        {
+            RelationType = RelationTypes.Child,
+            Order = _dto.Dependents.Count + 1
+        });
+
+    private void RemoveDependent(ChecklistItemDependentInputDto dep) => _dto.Dependents.Remove(dep);
+
+    private void Submit()
+    {
+        if (_submitted) return;
+
+        if (Item.BenefitKind == ChecklistBenefitKinds.Bes && _dto.EmployeeAmount is null && _dto.EmployerAmount is null)
+        {
+            Snackbar.Add(Loc["completeStepDialog.besAmountRequired"], Severity.Warning);
+            return;
+        }
+        if (Item.BenefitKind == ChecklistBenefitKinds.Oss && _dto.EmployeeAmount is null)
+        {
+            Snackbar.Add(Loc["completeStepDialog.ossAmountRequired"], Severity.Warning);
+            return;
+        }
+
+        _submitted = true;
+        MudDialog.Close(DialogResult.Ok(_dto));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

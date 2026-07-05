@@ -13,6 +13,7 @@ namespace DZDDashboard.Api.Controllers;
 public class UsersController(
     IUserReadService  readService,
     IUserWriteService writeService,
+    IUserDocumentService documents,
     ICurrentUserAccessor currentUser) : BaseController
 {
 
@@ -37,61 +38,91 @@ public class UsersController(
     [HttpGet("my-profile")]
     public async Task<ActionResult<UserProfileDto>> GetMyProfile(CancellationToken cancellationToken)
     {
-        var userId = currentUser.UserId;
-        if (!userId.HasValue) return Unauthorized();
+        if (!TryGetUserId(out var userId)) return Unauthorized();
 
-        var profile = await readService.GetProfileByIdAsync(userId.Value, cancellationToken);
+        var profile = await readService.GetProfileByIdAsync(userId, cancellationToken);
         return profile is null ? NotFound() : Ok(profile);
     }
 
     [HttpPut("my-profile/contact-info")]
     public async Task<IActionResult> UpdateMyContactInfo([FromBody] UpdateContactInfoDto dto, CancellationToken cancellationToken)
     {
-        var userId = currentUser.UserId;
-        if (!userId.HasValue) return Unauthorized();
+        if (!TryGetUserId(out var userId)) return Unauthorized();
 
-        await writeService.UpdateMyContactInfoAsync(userId.Value, dto, cancellationToken);
+        await writeService.UpdateMyContactInfoAsync(userId, dto, cancellationToken);
         return NoContent();
     }
 
     [HttpGet("my-profile/card")]
     public async Task<ActionResult<EmployeeCardDto>> GetMyCard(CancellationToken cancellationToken)
     {
-        var userId = currentUser.UserId;
-        if (!userId.HasValue) return Unauthorized();
+        if (!TryGetUserId(out var userId)) return Unauthorized();
 
-        var card = await readService.GetEmployeeCardAsync(userId.Value, cancellationToken);
+        var card = await readService.GetEmployeeCardAsync(userId, cancellationToken);
         return card is null ? NotFound() : Ok(card);
     }
 
     [HttpGet("my-profile/sensitive-info")]
     public async Task<ActionResult<EmployeeSensitiveInfoDto>> GetMySensitiveInfo(CancellationToken cancellationToken)
     {
-        var userId = currentUser.UserId;
-        if (!userId.HasValue) return Unauthorized();
+        if (!TryGetUserId(out var userId)) return Unauthorized();
 
-        var info = await readService.GetSensitiveInfoAsync(userId.Value, cancellationToken);
+        var info = await readService.GetSensitiveInfoAsync(userId, cancellationToken);
         return info is null ? NotFound() : Ok(info);
     }
 
     [HttpPut("my-profile/emergency-contacts")]
     public async Task<IActionResult> UpdateMyEmergencyContacts([FromBody] UpdateEmergencyContactsDto dto, CancellationToken cancellationToken)
     {
-        var userId = currentUser.UserId;
-        if (!userId.HasValue) return Unauthorized();
+        if (!TryGetUserId(out var userId)) return Unauthorized();
 
-        await writeService.UpdateEmergencyContactsAsync(userId.Value, dto, cancellationToken);
+        await writeService.UpdateEmergencyContactsAsync(userId, dto, cancellationToken);
         return NoContent();
     }
 
     [HttpPut("my-profile/family-info")]
     public async Task<IActionResult> UpdateMyFamilyInfo([FromBody] UpdateFamilyInfoDto dto, CancellationToken cancellationToken)
     {
-        var userId = currentUser.UserId;
-        if (!userId.HasValue) return Unauthorized();
+        if (!TryGetUserId(out var userId)) return Unauthorized();
 
-        await writeService.UpdateFamilyInfoAsync(userId.Value, dto, cancellationToken);
+        await writeService.UpdateFamilyInfoAsync(userId, dto, cancellationToken);
         return NoContent();
+    }
+
+    [HttpPut("my-profile/address-info")]
+    public async Task<IActionResult> UpdateMyAddressInfo([FromBody] UpdateAddressInfoDto dto, CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var userId)) return Unauthorized();
+
+        await writeService.UpdateAddressInfoAsync(userId, dto, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPut("my-profile/education-info")]
+    public async Task<IActionResult> UpdateMyEducationInfo([FromBody] UpdateEducationInfoDto dto, CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var userId)) return Unauthorized();
+
+        await writeService.UpdateEducationInfoAsync(userId, dto, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpGet("my-profile/documents")]
+    public async Task<ActionResult<List<UserDocumentDto>>> GetMyDocuments(CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var userId)) return Unauthorized();
+
+        return Ok(await documents.GetUserDocumentsAsync(userId, cancellationToken));
+    }
+
+    [HttpGet("my-profile/documents/{documentId:int}/content")]
+    public async Task<IActionResult> DownloadMyDocument(int documentId, CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var userId)) return Unauthorized();
+
+        var content = await documents.GetContentAsync(userId, documentId, cancellationToken);
+        if (content is null) return NotFound();
+        return File(content.Value.Content, content.Value.ContentType ?? "application/octet-stream", content.Value.FileName);
     }
 
     [HttpGet("{id:int}/card")]
@@ -121,10 +152,9 @@ public class UsersController(
     [HttpGet("my-avatar")]
     public async Task<ActionResult<UserAvatarDto>> GetMyAvatar(CancellationToken cancellationToken)
     {
-        var userId = currentUser.UserId;
-        if (!userId.HasValue) return Unauthorized();
+        if (!TryGetUserId(out var userId)) return Unauthorized();
 
-        var avatarDto = await readService.GetAvatarByUserIdAsync(userId.Value, cancellationToken);
+        var avatarDto = await readService.GetAvatarByUserIdAsync(userId, cancellationToken);
         return Ok(avatarDto ?? new UserAvatarDto());
     }
 
@@ -142,8 +172,7 @@ public class UsersController(
                 $"Unsupported file type '{file.ContentType}'. Allowed: {string.Join(", ", AvatarConstants.AllowedMimeTypes)}.",
                 statusCode: 400, title: "Validation Error");
 
-        var userId = currentUser.UserId;
-        if (!userId.HasValue) return Unauthorized();
+        if (!TryGetUserId(out var userId)) return Unauthorized();
 
         using var ms = new MemoryStream((int)file.Length);
         await file.CopyToAsync(ms, cancellationToken);
@@ -153,24 +182,32 @@ public class UsersController(
             return Problem("File content does not match the declared content type.",
                 statusCode: 400, title: "Validation Error");
 
-        var base64 = Convert.ToBase64String(fileBytes);
+        await writeService.UpdateAvatarAsync(userId, file.ContentType, fileBytes, cancellationToken);
+        return NoContent();
+    }
 
-        await writeService.UpdateAvatarAsync(userId.Value, file.ContentType, base64, cancellationToken);
+    [HttpDelete("my-profile/avatar")]
+    public async Task<IActionResult> RemoveMyAvatar(CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var userId)) return Unauthorized();
+
+        await writeService.RemoveAvatarAsync(userId, cancellationToken);
         return NoContent();
     }
 
     [HttpPut("my-profile/avatar-color")]
     public async Task<IActionResult> UpdateMyAvatarColor([FromBody] AvatarColorUpdateDto dto, CancellationToken cancellationToken)
     {
-        var userId = currentUser.UserId;
-        if (!userId.HasValue) return Unauthorized();
+        if (!TryGetUserId(out var userId)) return Unauthorized();
 
-        await writeService.UpdateAvatarColorAsync(userId.Value, dto.ColorIndex, cancellationToken);
+        await writeService.UpdateAvatarColorAsync(userId, dto.ColorIndex, cancellationToken);
         return NoContent();
     }
 
+    // Any authenticated user may fetch a user's avatar: the org chart (visible to all
+    // authenticated users) exposes names/emails/jobs and renders these avatars, so the
+    // image is no more sensitive than data already shown there.
     [HttpGet("{id:int}/avatar")]
-    [Authorize(Roles = Roles.Admin)]
     public async Task<ActionResult<UserAvatarDto>> GetUserAvatar(int id, CancellationToken cancellationToken)
         => Ok(await readService.GetAvatarByUserIdAsync(id, cancellationToken) ?? new UserAvatarDto());
 
@@ -252,5 +289,16 @@ public class UsersController(
     {
         await writeService.UpdateFamilyInfoAsync(id, dto, cancellationToken);
         return NoContent();
+    }
+
+    /// <summary>
+    /// Resolves the authenticated user's id, centralizing the "is there a
+    /// current user?" guard that every self-service endpoint shares.
+    /// </summary>
+    private bool TryGetUserId(out int userId)
+    {
+        var id = currentUser.UserId;
+        userId = id ?? 0;
+        return id.HasValue;
     }
 }

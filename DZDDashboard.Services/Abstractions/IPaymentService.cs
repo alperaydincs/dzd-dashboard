@@ -6,8 +6,6 @@ public interface IPaymentService
 {
     Task<EmployeePaymentDto> GetEmployeePaymentAsync(int userId, CancellationToken cancellationToken = default);
 
-    Task<MyPaymentSummaryDto> GetMyPaymentSummaryAsync(int userId, CancellationToken cancellationToken = default);
-
     Task<SalaryRecordDto> CreateSalaryRecordAsync(int userId, SalaryRecordDto dto, CancellationToken cancellationToken = default);
     Task                  UpdateSalaryRecordAsync(int userId, int recordId, SalaryRecordDto dto, CancellationToken cancellationToken = default);
     Task                  DeleteSalaryRecordAsync(int userId, int recordId, CancellationToken cancellationToken = default);

@@ -2,14 +2,15 @@
 @using DZDDashboard.Common.Constants
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <PageTitle>Home</PageTitle>
 
 <AuthorizeView>
     <Authorized>
         <MudPaper Class="pa-4">
-            <MudText Typo="Typo.h4" GutterBottom="true">Welcome, @context.User.Identity!.Name!</MudText>
-            <MudText Typo="Typo.body1">This is your dashboard. You can add more components and information here.</MudText>
+            <MudText Typo="Typo.h4" GutterBottom="true">@string.Format(Loc["home.welcome"], context.User.Identity!.Name!)</MudText>
+            <MudText Typo="Typo.body1">@Loc["home.description"]</MudText>
 
             @{
                 var roles = context.User.Claims
@@ -22,7 +23,7 @@
 
             @if (roles.Any())
             {
-                <MudText Typo="Typo.h6" Class="mt-4">Your Roles:</MudText>
+                <MudText Typo="Typo.h6" Class="mt-4">@Loc["home.yourRoles"]</MudText>
                 <MudList T="string">
                     @foreach (var role in roles)
                     {
@@ -32,7 +33,7 @@
             }
             else
             {
-                <MudAlert Severity="Severity.Info" Class="mt-4">You do not have any assigned roles.</MudAlert>
+                <MudAlert Severity="Severity.Info" Class="mt-4">@Loc["home.noRoles"]</MudAlert>
             }
         </MudPaper>
     </Authorized>

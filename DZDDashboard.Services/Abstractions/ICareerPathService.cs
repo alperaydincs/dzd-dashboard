@@ -8,7 +8,7 @@ public interface ICareerPathService
     Task<CareerPathDto>       CreateCareerPathAsync(CareerPathDto dto, CancellationToken cancellationToken = default);
     Task                      UpdateCareerPathAsync(CareerPathDto dto, CancellationToken cancellationToken = default);
     Task                      DeleteCareerPathAsync(int id, CancellationToken cancellationToken = default);
-    Task<CareerMapRuleDto>    CreateCareerMapRuleAsync(CareerMapRuleDto dto, CancellationToken cancellationToken = default);
-    Task                      UpdateCareerMapRuleAsync(CareerMapRuleDto dto, CancellationToken cancellationToken = default);
-    Task                      DeleteCareerMapRuleAsync(int id, CancellationToken cancellationToken = default);
+    Task<CareerPathRuleDto>   CreateCareerPathRuleAsync(CareerPathRuleDto dto, CancellationToken cancellationToken = default);
+    Task                      UpdateCareerPathRuleAsync(CareerPathRuleDto dto, CancellationToken cancellationToken = default);
+    Task                      DeleteCareerPathRuleAsync(int id, CancellationToken cancellationToken = default);
 }

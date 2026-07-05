@@ -22,7 +22,4 @@ public partial class User : AuditableEntity
     public string?   ContractType        { get; set; }
     public DateTime? ContractEndDate     { get; set; }
     public string?   WorkModel           { get; set; }
-    public string?   ApprovalProcessUnit { get; set; }
-    public string?   EmployeeGroup       { get; set; }
-    public string?   CvFilePath          { get; set; }
 }

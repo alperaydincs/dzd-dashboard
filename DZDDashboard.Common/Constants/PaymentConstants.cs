@@ -15,6 +15,14 @@ public static class Currencies
         Eur => "Euro (EUR)",
         _   => code
     };
+
+    public static string Symbol(string code) => code switch
+    {
+        Try => "₺",
+        Usd => "$",
+        Eur => "€",
+        _   => code
+    };
 }
 
 public static class PaymentPeriods
@@ -59,7 +67,7 @@ public static class PaymentSources
     public static readonly IReadOnlyList<string> All = [Manual, Onboarding];
 }
 
-public static class DependentTypes
+public static class RelationTypes
 {
     public const string Spouse = "Spouse";
     public const string Child  = "Child";
@@ -76,7 +84,7 @@ public static class AdditionalPaymentTypes
     public const string Overtime = "Overtime";
     public const string Other    = "Other";
 
-    public static readonly IReadOnlyList<string> All = [Premium, Bonus, Advance, Overtime, Other];
+    public static readonly IReadOnlyList<string> All = [Bonus, Other];
 }
 
 public static class AdditionalPaymentPeriods
@@ -93,6 +101,5 @@ public static class DeductionTypes
     public const string SocialSecurity = "Social Security";    public const string Garnishment    = "Garnishment";    public const string Advance        = "Advance";    public const string Tax            = "Tax";
     public const string Other          = "Other";
 
-    public static readonly IReadOnlyList<string> All =
-        [SocialSecurity, Garnishment, Advance, Tax, Other];
+    public static readonly IReadOnlyList<string> All = [Other];
 }

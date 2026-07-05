@@ -1,4 +1,4 @@
-using AutoMapper;
+using MapsterMapper;
 using DZDDashboard.Common.DTOs;
 using DZDDashboard.Common.Exceptions;
 using DZDDashboard.Data;
@@ -17,7 +17,7 @@ public class ReferenceDataService(AppDbContext context, IMapper mapper) : IRefer
 
     private async Task<TDto> CreateRefAsync<TEntity, TDto>(TDto dto, CancellationToken ct) where TEntity : class
     {
-        var entity = mapper.Map<TEntity>(dto);
+        var entity = mapper.Map<TEntity>(dto!);
         context.Set<TEntity>().Add(entity);
         await context.SaveChangesAsync(ct);
         return mapper.Map<TDto>(entity);
@@ -39,18 +39,6 @@ public class ReferenceDataService(AppDbContext context, IMapper mapper) : IRefer
     }
 
 
-    public Task<List<WorkTypeDto>> GetWorkTypesAsync(CancellationToken cancellationToken = default)
-        => GetAllRefAsync<WorkType, WorkTypeDto>(cancellationToken);
-
-    public Task<WorkTypeDto> CreateWorkTypeAsync(WorkTypeDto dto, CancellationToken cancellationToken = default)
-        => CreateRefAsync<WorkType, WorkTypeDto>(dto, cancellationToken);
-
-    public Task UpdateWorkTypeAsync(WorkTypeDto dto, CancellationToken cancellationToken = default)
-        => UpdateRefAsync<WorkType, WorkTypeDto>(dto.Id, dto, nameof(WorkType), cancellationToken);
-
-    public Task DeleteWorkTypeAsync(int id, CancellationToken cancellationToken = default)
-        => DeleteRefAsync<WorkType>(id, nameof(WorkType), cancellationToken);
-
 
     public Task<List<JobDto>> GetJobsAsync(CancellationToken cancellationToken = default)
         => GetAllRefAsync<Job, JobDto>(cancellationToken);
@@ -65,19 +53,6 @@ public class ReferenceDataService(AppDbContext context, IMapper mapper) : IRefer
         => DeleteRefAsync<Job>(id, nameof(Job), cancellationToken);
 
 
-    public Task<List<GradeDto>> GetGradesAsync(CancellationToken cancellationToken = default)
-        => GetAllRefAsync<Grade, GradeDto>(cancellationToken);
-
-    public Task<GradeDto> CreateGradeAsync(GradeDto dto, CancellationToken cancellationToken = default)
-        => CreateRefAsync<Grade, GradeDto>(dto, cancellationToken);
-
-    public Task UpdateGradeAsync(GradeDto dto, CancellationToken cancellationToken = default)
-        => UpdateRefAsync<Grade, GradeDto>(dto.Id, dto, nameof(Grade), cancellationToken);
-
-    public Task DeleteGradeAsync(int id, CancellationToken cancellationToken = default)
-        => DeleteRefAsync<Grade>(id, nameof(Grade), cancellationToken);
-
-
     public Task<List<PayrollLocationDto>> GetPayrollLocationsAsync(CancellationToken cancellationToken = default)
         => GetAllRefAsync<PayrollLocation, PayrollLocationDto>(cancellationToken);
 
@@ -89,26 +64,4 @@ public class ReferenceDataService(AppDbContext context, IMapper mapper) : IRefer
 
     public Task DeletePayrollLocationAsync(int id, CancellationToken cancellationToken = default)
         => DeleteRefAsync<PayrollLocation>(id, nameof(PayrollLocation), cancellationToken);
-
-
-    public Task<List<UserGroupDto>> GetUserGroupsAsync(CancellationToken cancellationToken = default)
-        => GetAllRefAsync<UserGroup, UserGroupDto>(cancellationToken);
-
-    public Task<UserGroupDto> CreateUserGroupAsync(UserGroupDto dto, CancellationToken cancellationToken = default)
-        => CreateRefAsync<UserGroup, UserGroupDto>(dto, cancellationToken);
-
-    public Task UpdateUserGroupAsync(UserGroupDto dto, CancellationToken cancellationToken = default)
-        => UpdateRefAsync<UserGroup, UserGroupDto>(dto.Id, dto, nameof(UserGroup), cancellationToken);
-
-    public Task DeleteUserGroupAsync(int id, CancellationToken cancellationToken = default)
-        => DeleteRefAsync<UserGroup>(id, nameof(UserGroup), cancellationToken);
-
-    public async Task<UserGroupDto> GetUserGroupByIdAsync(int id, CancellationToken cancellationToken = default)
-    {
-        var entity = await context.Set<UserGroup>()
-            .AsNoTracking()
-            .FirstOrDefaultAsync(ug => ug.Id == id, cancellationToken)
-            ?? throw new EntityNotFoundException(nameof(UserGroup), id);
-        return mapper.Map<UserGroupDto>(entity);
-    }
 }

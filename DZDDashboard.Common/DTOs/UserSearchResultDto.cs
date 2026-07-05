@@ -9,10 +9,15 @@ public record UserSearchResultDto
     public string? Email { get; init; }
 
     public int?    AvatarColorIndex   { get; init; }
-    public string? AvatarContentType  { get; init; }
-    public string? AvatarBase64       { get; init; }
 
-    public string? CompanyName            { get; init; }
+    /// <summary>Whether the user has an uploaded avatar. The image itself is served via the
+    /// <c>/avatars/{id}</c> proxy rather than embedded here.</summary>
+    public bool      HasAvatar        { get; init; }
+
+    /// <summary>Last time the avatar changed; used as a cache-busting token in the avatar URL.</summary>
+    public DateTime? AvatarUpdatedAt  { get; init; }
+
+    public int?    CompanyId              { get; init; }
     public int?    DepartmentId           { get; init; }
     public int?    TeamId                 { get; init; }
     public int?    OrganizationPositionId { get; init; }

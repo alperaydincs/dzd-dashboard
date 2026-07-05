@@ -36,14 +36,23 @@
     box-shadow: none !important;
 }
 
-.sidebar-nav.sidebar-collapsed .nav-label {
+.sidebar-nav.sidebar-collapsed .nav-label,
+.sidebar-footer-nav.sidebar-collapsed .nav-label {
     display: none;
 }
 
-.sidebar-nav.sidebar-collapsed .nav-item {
+.sidebar-nav.sidebar-collapsed .nav-item,
+.sidebar-footer-nav.sidebar-collapsed .nav-item {
     justify-content: center;
     gap: 0;
     padding: 10px;
+}
+
+.sidebar-footer-nav {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    padding: 0 8px 20px;
 }
 
 .sidebar-logo.sidebar-collapsed {
@@ -102,7 +111,7 @@
 .sidebar-nav {
     display: flex;
     flex-direction: column;
-    padding: 8px 8px 12px;
+    padding: 0 8px 12px;
     gap: 2px;
     flex: 1;
     overflow-y: auto;
@@ -168,6 +177,56 @@
 
 :deep(.profile-menu) {
     margin-left: 8px;
+}
+
+.profile-avatar-trigger {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 2px;
+    transition: box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.profile-avatar-trigger :deep(.dzd-initials-avatar) {
+    transition: transform 160ms ease;
+}
+
+.profile-avatar-trigger:hover {
+    background-color: var(--mud-palette-action-default-hover, rgba(43, 56, 245, 0.08));
+    box-shadow: 0 0 0 2px rgba(43, 56, 245, 0.35);
+}
+
+.profile-avatar-trigger:hover :deep(.dzd-initials-avatar) {
+    transform: scale(1.04);
+}
+
+.profile-avatar-caret {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--dzd-surface-primary, #fff);
+    color: var(--dzd-text-secondary, #6c757d);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.2);
+    opacity: 0;
+    transform: translateY(2px);
+    transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.profile-avatar-caret :deep(svg) {
+    width: 12px;
+    height: 12px;
+}
+
+.profile-avatar-trigger:hover .profile-avatar-caret {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 :deep(.notifications-panel) {

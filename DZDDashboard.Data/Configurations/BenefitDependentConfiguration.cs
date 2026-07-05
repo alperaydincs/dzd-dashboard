@@ -13,7 +13,6 @@ public class BenefitDependentConfiguration : IEntityTypeConfiguration<BenefitDep
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.DependentName).HasMaxLength(ValidationConstants.MaxShortNameLength);
-        builder.Property(x => x.DependentType).IsRequired().HasMaxLength(ValidationConstants.MaxShortNameLength);
         builder.Property(x => x.Amount).HasPrecision(18, 2);
         builder.Property(x => x.StartDate).IsRequired();
 
@@ -22,5 +21,6 @@ public class BenefitDependentConfiguration : IEntityTypeConfiguration<BenefitDep
             .HasForeignKey(x => x.ModifiedById)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.Property(x => x.RelationType).HasMaxLength(ValidationConstants.MaxStandardLength);
     }
 }

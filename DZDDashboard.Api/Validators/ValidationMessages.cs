@@ -3,6 +3,7 @@ namespace DZDDashboard.Api.Validators;
 internal static class ValidationMessages
 {
     internal const string WorkEmailInvalid           = "Work email is not a valid email address.";
+    internal const string WorkEmailRequired          = "Work email is required.";
     internal const string PersonalEmailInvalid       = "Personal email is not a valid email address.";
     internal const string WorkPhoneInvalid           = "Work phone number is invalid.";
     internal const string PersonalPhoneInvalid       = "Personal phone number is invalid.";
@@ -23,7 +24,7 @@ internal static class ValidationMessages
     internal const string BenefitPayerInvalid            = "Payer must be either Employer or Employee.";
     internal const string BenefitAmountInvalid           = "Benefit amount must be greater than zero.";
     internal const string BenefitStartDateRequired       = "Benefit start date is required.";
-    internal const string DependentTypeRequired          = "Dependent type is required.";
+    internal const string RelationTypeRequired           = "Relation type is required.";
     internal const string DependentAmountInvalid         = "Dependent amount must be greater than zero.";
     internal const string AdditionalPaymentTypeInvalid   = "Additional payment type is not recognised.";
     internal const string AdditionalPaymentAmountInvalid = "Additional payment amount must be greater than zero.";

@@ -23,37 +23,45 @@
                 <div class="@($"settings-tabs-shell settings-tabs-3 active-{_activeSettingsTabIndex}")" role="tablist" aria-label="Settings tabs">
                     <button type="button" class="settings-tab-segment" role="tab" aria-selected="@(_activeSettingsTabIndex == 0 ? "true" : "false")" @onclick="() => SetSettingsTab(0)">
                         <MudIcon Icon="@DzdIcons.Workflow" Size="Size.Small" Class="settings-tab-icon" />
-                        Organization
+                        @Loc["settings.tabOrganization"]
                     </button>
                     <button type="button" class="settings-tab-segment" role="tab" aria-selected="@(_activeSettingsTabIndex == 1 ? "true" : "false")" @onclick="() => SetSettingsTab(1)">
-                        <MudIcon Icon="@DzdIcons.GraduationCap" Size="Size.Small" Class="settings-tab-icon" />
-                        Grades
+                        <MudIcon Icon="@DzdIcons.ChartNoAxesCombined" Size="Size.Small" Class="settings-tab-icon" />
+                        @Loc["settings.tabCareerPaths"]
                     </button>
                     <button type="button" class="settings-tab-segment" role="tab" aria-selected="@(_activeSettingsTabIndex == 2 ? "true" : "false")" @onclick="() => SetSettingsTab(2)">
                         <MudIcon Icon="@DzdIcons.SlidersHorizontal" Size="Size.Small" Class="settings-tab-icon" />
-                        More Settings
+                        @Loc["settings.tabOnboardingOffboarding"]
                     </button>
                 </div>
 
+                @if (_activeSettingsTabIndex == 2)
+                {
+                    <ChecklistTemplatePanel />
+                }
+
                 @if (_activeSettingsTabIndex == 1)
                 {
-                    <GradeManagementPanel />
+                    <CareerPathManagementPanel />
                 }
                 else if (_activeSettingsTabIndex == 0)
                 {
                     <MudStack Spacing="2">
 
+                        <div class="settings-header">
+                            <MudText Typo="Typo.h5" Class="settings-title">@Loc["settings.orgStructureTitle"]</MudText>
+                            <MudText Typo="Typo.body2" Class="settings-subtitle">@Loc["settings.orgStructureSubtitle"]</MudText>
+                        </div>
+
                         <div class="sacc-paper">
                             <div class="sacc-section-hdr" @onclick="() => _orgStructureExpanded = !_orgStructureExpanded">
-                                <button type="button" class="sacc-toggle-btn" @onclick:stopPropagation="false">
-                                    <MudIcon Icon="@(_orgStructureExpanded ? DzdIcons.ChevronDown : DzdIcons.ChevronRight)" Size="Size.Small" />
-                                </button>
+                                <MudIconButton Icon="@(_orgStructureExpanded ? DzdIcons.ChevronDown : DzdIcons.ChevronRight)" Size="Size.Small" Class="sacc-toggle-btn" OnClick="() => _orgStructureExpanded = !_orgStructureExpanded" />
                                 <div class="sacc-icon-wrap sacc-blue">
                                     <MudIcon Icon="@DzdIcons.Building2" Size="Size.Small" />
                                 </div>
                                 <div class="sacc-title-group">
-                                    <span class="sacc-title">Company / Departments / Teams</span>
-                                    <span class="sacc-subtitle">@_companies.Count companies, @_departments.Count departments, @_teams.Count teams</span>
+                                    <span class="sacc-title">@Loc["settings.companyDeptTeam"]</span>
+                                    <span class="sacc-subtitle">@string.Format(Loc["settings.orgSummary"], _companies.Count, _departments.Count, _teams.Count)</span>
                                 </div>
                             </div>
 
@@ -69,21 +77,15 @@
                                             <input class="sacc-inline-input"
                                                    value="@_newCompanyName"
                                                    @oninput="e => _newCompanyName = e.Value?.ToString() ?? string.Empty"
-                                                   placeholder="Enter company name"
+                                                   placeholder="@Loc["settings.enterCompanyName"]"
                                                    @onkeydown="OnCompanyKeyDown" />
-                                            <button type="button" class="sacc-inline-confirm" @onclick="SaveCompany">
-                                                <MudIcon Icon="@DzdIcons.Check" Size="Size.Small" />
-                                            </button>
-                                            <button type="button" class="sacc-inline-cancel" @onclick="CancelAddCompany">
-                                                <MudIcon Icon="@DzdIcons.X" Size="Size.Small" />
-                                            </button>
+                                            <MudIconButton Icon="@DzdIcons.Check" Size="Size.Small" Color="Color.Success" Class="sacc-inline-confirm" OnClick="SaveCompany" />
+                                            <MudIconButton Icon="@DzdIcons.X" Size="Size.Small" Color="Color.Error" Class="sacc-inline-cancel" OnClick="CancelAddCompany" />
                                         </div>
                                     }
                                     else
                                     {
-                                        <button type="button" class="sacc-add-top-btn" @onclick="() => { _addingCompany = true; _newCompanyName = string.Empty; }">
-                                            <MudIcon Icon="@DzdIcons.Plus" Size="Size.Small" Class="sacc-add-icon" /> Add Company
-                                        </button>
+                                        <MudButton Variant="Variant.Text" Color="Color.Dark" StartIcon="@DzdIcons.Plus" Class="sacc-add-top-btn" OnClick="@(() => { _addingCompany = true; _newCompanyName = string.Empty; })">@Loc["settings.addCompany"]</MudButton>
                                     }
 
                                     @foreach (var company in _companies)
@@ -93,22 +95,16 @@
                                         var isCompanyExpanded = _expandedCompanyIds.Contains(company.Id);
 
                                         <div class="sacc-item-block">
-                                            <div class="sacc-row">
-                                                <button type="button" class="sacc-toggle-btn" @onclick="() => ToggleCompany(companyCapture.Id)" @onclick:stopPropagation>
-                                                    <MudIcon Icon="@(isCompanyExpanded ? DzdIcons.ChevronDown : DzdIcons.ChevronRight)" Size="Size.Small" />
-                                                </button>
+                                            <div class="sacc-row" @onclick="() => ToggleCompany(companyCapture.Id)">
+                                                <MudIconButton Icon="@(isCompanyExpanded ? DzdIcons.ChevronDown : DzdIcons.ChevronRight)" Size="Size.Small" Class="sacc-toggle-btn" OnClick="() => ToggleCompany(companyCapture.Id)" />
                                                 <div class="sacc-icon-wrap sacc-blue">
                                                     <MudIcon Icon="@DzdIcons.Building2" Size="Size.Small" />
                                                 </div>
                                                 <span class="sacc-row-name">@company.Name</span>
-                                                <div class="sacc-row-actions">
-                                                    <button type="button" class="sacc-pill-btn sacc-pill-blue" @onclick="() => StartAddDept(companyCapture.Id)" @onclick:stopPropagation>Add Department</button>
-                                                    <button type="button" class="sacc-icon-btn" title="Edit" @onclick="() => OpenEditCompanyDialog(companyCapture)" @onclick:stopPropagation>
-                                                        <MudIcon Icon="@DzdIcons.Pencil" Size="Size.Small" />
-                                                    </button>
-                                                    <button type="button" class="sacc-icon-btn sacc-icon-btn-danger" title="Delete" @onclick="() => DeleteCompany(companyCapture)" @onclick:stopPropagation>
-                                                        <MudIcon Icon="@DzdIcons.Trash2" Size="Size.Small" />
-                                                    </button>
+                                                <div class="sacc-row-actions" @onclick:stopPropagation="true">
+                                                    <MudButton Variant="Variant.Text" Color="Color.Primary" Class="sacc-pill-btn sacc-pill-blue" OnClick="() => StartAddDept(companyCapture.Id)">@Loc["settings.addDepartment"]</MudButton>
+                                                    <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" title="@Loc["common.edit"]" OnClick="() => OpenEditCompanyDialog(companyCapture)" />
+                                                    <MudIconButton Icon="@DzdIcons.Trash2" Size="Size.Small" Color="Color.Error" title="@Loc["payment.delete"]" OnClick="() => DeleteCompany(companyCapture)" />
                                                 </div>
                                             </div>
 
@@ -122,22 +118,16 @@
                                                         var isDeptExpanded = _expandedDeptIds.Contains(dept.Id);
 
                                                         <div class="sacc-item-block">
-                                                            <div class="sacc-row">
-                                                                <button type="button" class="sacc-toggle-btn" @onclick="() => ToggleDept(deptCapture.Id)" @onclick:stopPropagation>
-                                                                    <MudIcon Icon="@(isDeptExpanded ? DzdIcons.ChevronDown : DzdIcons.ChevronRight)" Size="Size.Small" />
-                                                                </button>
+                                                            <div class="sacc-row" @onclick="() => ToggleDept(deptCapture.Id)">
+                                                                <MudIconButton Icon="@(isDeptExpanded ? DzdIcons.ChevronDown : DzdIcons.ChevronRight)" Size="Size.Small" Class="sacc-toggle-btn" OnClick="() => ToggleDept(deptCapture.Id)" />
                                                                 <div class="sacc-icon-wrap sacc-green">
                                                                     <MudIcon Icon="@DzdIcons.Building" Size="Size.Small" />
                                                                 </div>
                                                                 <span class="sacc-row-name">@dept.Name</span>
-                                                                <div class="sacc-row-actions">
-                                                                    <button type="button" class="sacc-pill-btn sacc-pill-green" @onclick="() => StartAddTeam(deptCapture.Id)" @onclick:stopPropagation>Add Team</button>
-                                                                    <button type="button" class="sacc-icon-btn" title="Edit" @onclick="() => OpenEditDeptDialog(deptCapture)" @onclick:stopPropagation>
-                                                                        <MudIcon Icon="@DzdIcons.Pencil" Size="Size.Small" />
-                                                                    </button>
-                                                                    <button type="button" class="sacc-icon-btn sacc-icon-btn-danger" title="Delete" @onclick="() => DeleteDepartment(deptCapture)" @onclick:stopPropagation>
-                                                                        <MudIcon Icon="@DzdIcons.Trash2" Size="Size.Small" />
-                                                                    </button>
+                                                                <div class="sacc-row-actions" @onclick:stopPropagation="true">
+                                                                    <MudButton Variant="Variant.Text" Color="Color.Secondary" Class="sacc-pill-btn sacc-pill-green" OnClick="() => StartAddTeam(deptCapture.Id)">@Loc["settings.addTeam"]</MudButton>
+                                                                    <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" title="@Loc["common.edit"]" OnClick="() => OpenEditDeptDialog(deptCapture)" />
+                                                                    <MudIconButton Icon="@DzdIcons.Trash2" Size="Size.Small" Color="Color.Error" title="@Loc["payment.delete"]" OnClick="() => DeleteDepartment(deptCapture)" />
                                                                 </div>
                                                             </div>
 
@@ -154,12 +144,8 @@
                                                                             </div>
                                                                             <span class="sacc-row-name">@team.Name</span>
                                                                             <div class="sacc-row-actions">
-                                                                                <button type="button" class="sacc-icon-btn" title="Edit" @onclick="() => OpenEditTeamDialog(teamCapture)">
-                                                                                    <MudIcon Icon="@DzdIcons.Pencil" Size="Size.Small" />
-                                                                                </button>
-                                                                                <button type="button" class="sacc-icon-btn sacc-icon-btn-danger" title="Delete" @onclick="() => DeleteTeam(teamCapture)">
-                                                                                    <MudIcon Icon="@DzdIcons.Trash2" Size="Size.Small" />
-                                                                                </button>
+                                                                                <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" title="@Loc["common.edit"]" OnClick="() => OpenEditTeamDialog(teamCapture)" />
+                                                                                <MudIconButton Icon="@DzdIcons.Trash2" Size="Size.Small" Color="Color.Error" title="@Loc["payment.delete"]" OnClick="() => DeleteTeam(teamCapture)" />
                                                                             </div>
                                                                         </div>
                                                                     }
@@ -174,14 +160,10 @@
                                                                             <input class="sacc-inline-input"
                                                                                    value="@_newTeamName"
                                                                                    @oninput="e => _newTeamName = e.Value?.ToString() ?? string.Empty"
-                                                                                   placeholder="Enter team name"
+                                                                                   placeholder="@Loc["settings.enterTeamName"]"
                                                                                    @onkeydown="OnTeamKeyDown" />
-                                                                            <button type="button" class="sacc-inline-confirm" @onclick="() => SaveTeam(deptCapture.Id)">
-                                                                                <MudIcon Icon="@DzdIcons.Check" Size="Size.Small" />
-                                                                            </button>
-                                                                            <button type="button" class="sacc-inline-cancel" @onclick="CancelAddTeam">
-                                                                                <MudIcon Icon="@DzdIcons.X" Size="Size.Small" />
-                                                                            </button>
+                                                                            <MudIconButton Icon="@DzdIcons.Check" Size="Size.Small" Color="Color.Success" Class="sacc-inline-confirm" OnClick="() => SaveTeam(deptCapture.Id)" />
+                                                                            <MudIconButton Icon="@DzdIcons.X" Size="Size.Small" Color="Color.Error" Class="sacc-inline-cancel" OnClick="CancelAddTeam" />
                                                                         </div>
                                                                     }
                                                                 </div>
@@ -199,14 +181,10 @@
                                                             <input class="sacc-inline-input"
                                                                    value="@_newDeptName"
                                                                    @oninput="e => _newDeptName = e.Value?.ToString() ?? string.Empty"
-                                                                   placeholder="Enter department name"
+                                                                   placeholder="@Loc["settings.enterDeptName"]"
                                                                    @onkeydown="e => OnDeptKeyDown(e, companyCapture.Id)" />
-                                                            <button type="button" class="sacc-inline-confirm" @onclick="() => SaveDept(companyCapture.Id)">
-                                                                <MudIcon Icon="@DzdIcons.Check" Size="Size.Small" />
-                                                            </button>
-                                                            <button type="button" class="sacc-inline-cancel" @onclick="CancelAddDept">
-                                                                <MudIcon Icon="@DzdIcons.X" Size="Size.Small" />
-                                                            </button>
+                                                            <MudIconButton Icon="@DzdIcons.Check" Size="Size.Small" Color="Color.Success" Class="sacc-inline-confirm" OnClick="() => SaveDept(companyCapture.Id)" />
+                                                            <MudIconButton Icon="@DzdIcons.X" Size="Size.Small" Color="Color.Error" Class="sacc-inline-cancel" OnClick="CancelAddDept" />
                                                         </div>
                                                     }
                                                 </div>
@@ -219,15 +197,13 @@
 
                         <div class="sacc-paper">
                             <div class="sacc-section-hdr" @onclick="() => _jobTitlesExpanded = !_jobTitlesExpanded">
-                                <button type="button" class="sacc-toggle-btn">
-                                    <MudIcon Icon="@(_jobTitlesExpanded ? DzdIcons.ChevronDown : DzdIcons.ChevronRight)" Size="Size.Small" />
-                                </button>
+                                <MudIconButton Icon="@(_jobTitlesExpanded ? DzdIcons.ChevronDown : DzdIcons.ChevronRight)" Size="Size.Small" Class="sacc-toggle-btn" OnClick="() => _jobTitlesExpanded = !_jobTitlesExpanded" />
                                 <div class="sacc-icon-wrap sacc-purple">
                                     <MudIcon Icon="@DzdIcons.Briefcase" Size="Size.Small" />
                                 </div>
                                 <div class="sacc-title-group">
-                                    <span class="sacc-title">Job Titles</span>
-                                    <span class="sacc-subtitle">@_jobs.Count items</span>
+                                    <span class="sacc-title">@Loc["settings.jobTitles"]</span>
+                                    <span class="sacc-subtitle">@string.Format(Loc["settings.itemsCount"], _jobs.Count)</span>
                                 </div>
                             </div>
                             @if (_jobTitlesExpanded)
@@ -242,74 +218,25 @@
                                             </div>
                                             <span class="sacc-row-name">@job.Name</span>
                                             <div class="sacc-row-actions">
-                                                <button type="button" class="sacc-icon-btn" title="Edit" @onclick="() => OpenEditJobDialog(jobCapture)">
-                                                    <MudIcon Icon="@DzdIcons.Pencil" Size="Size.Small" />
-                                                </button>
-                                                <button type="button" class="sacc-icon-btn sacc-icon-btn-danger" title="Delete" @onclick="() => DeleteJob(jobCapture)">
-                                                    <MudIcon Icon="@DzdIcons.Trash2" Size="Size.Small" />
-                                                </button>
+                                                <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" title="@Loc["common.edit"]" OnClick="() => OpenEditJobDialog(jobCapture)" />
+                                                <MudIconButton Icon="@DzdIcons.Trash2" Size="Size.Small" Color="Color.Error" title="@Loc["payment.delete"]" OnClick="() => DeleteJob(jobCapture)" />
                                             </div>
                                         </div>
                                     }
-                                    <button type="button" class="sacc-add-bottom-btn" @onclick="OpenAddJobDialog">
-                                        <MudIcon Icon="@DzdIcons.Plus" Size="Size.Small" Class="sacc-add-icon" /> Add Job Title
-                                    </button>
-                                </div>
-                            }
-                        </div>
-
-                        <div class="sacc-paper">
-                            <div class="sacc-section-hdr" @onclick="() => _employeeGroupsExpanded = !_employeeGroupsExpanded">
-                                <button type="button" class="sacc-toggle-btn">
-                                    <MudIcon Icon="@(_employeeGroupsExpanded ? DzdIcons.ChevronDown : DzdIcons.ChevronRight)" Size="Size.Small" />
-                                </button>
-                                <div class="sacc-icon-wrap sacc-red">
-                                    <MudIcon Icon="@DzdIcons.UsersRound" Size="Size.Small" />
-                                </div>
-                                <div class="sacc-title-group">
-                                    <span class="sacc-title">Employee Groups</span>
-                                    <span class="sacc-subtitle">@_userGroups.Count items</span>
-                                </div>
-                            </div>
-                            @if (_employeeGroupsExpanded)
-                            {
-                                <div class="sacc-body">
-                                    @foreach (var group in _userGroups)
-                                    {
-                                        var groupCapture = group;
-                                        <div class="sacc-row sacc-flat-row">
-                                            <div class="sacc-icon-wrap sacc-red">
-                                                <MudIcon Icon="@DzdIcons.UsersRound" Size="Size.Small" />
-                                            </div>
-                                            <span class="sacc-row-name">@group.GroupName</span>
-                                            <div class="sacc-row-actions">
-                                                <button type="button" class="sacc-icon-btn" title="Edit" @onclick="() => OpenEditUserGroupDialog(groupCapture)">
-                                                    <MudIcon Icon="@DzdIcons.Pencil" Size="Size.Small" />
-                                                </button>
-                                                <button type="button" class="sacc-icon-btn sacc-icon-btn-danger" title="Delete" @onclick="() => DeleteUserGroup(groupCapture)">
-                                                    <MudIcon Icon="@DzdIcons.Trash2" Size="Size.Small" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    }
-                                    <button type="button" class="sacc-add-bottom-btn" @onclick="OpenAddUserGroupDialog">
-                                        <MudIcon Icon="@DzdIcons.Plus" Size="Size.Small" Class="sacc-add-icon" /> Add Employee Group
-                                    </button>
+                                    <MudButton Variant="Variant.Text" Color="Color.Dark" StartIcon="@DzdIcons.Plus" Class="sacc-add-bottom-btn" OnClick="OpenAddJobDialog">@Loc["settings.addJobTitle"]</MudButton>
                                 </div>
                             }
                         </div>
 
                         <div class="sacc-paper">
                             <div class="sacc-section-hdr" @onclick="() => _payrollLocationsExpanded = !_payrollLocationsExpanded">
-                                <button type="button" class="sacc-toggle-btn">
-                                    <MudIcon Icon="@(_payrollLocationsExpanded ? DzdIcons.ChevronDown : DzdIcons.ChevronRight)" Size="Size.Small" />
-                                </button>
+                                <MudIconButton Icon="@(_payrollLocationsExpanded ? DzdIcons.ChevronDown : DzdIcons.ChevronRight)" Size="Size.Small" Class="sacc-toggle-btn" OnClick="() => _payrollLocationsExpanded = !_payrollLocationsExpanded" />
                                 <div class="sacc-icon-wrap sacc-teal">
                                     <MudIcon Icon="@DzdIcons.MapPin" Size="Size.Small" />
                                 </div>
                                 <div class="sacc-title-group">
-                                    <span class="sacc-title">Payroll Locations</span>
-                                    <span class="sacc-subtitle">@_payrollLocations.Count items</span>
+                                    <span class="sacc-title">@Loc["settings.payrollLocations"]</span>
+                                    <span class="sacc-subtitle">@string.Format(Loc["settings.itemsCount"], _payrollLocations.Count)</span>
                                 </div>
                             </div>
                             @if (_payrollLocationsExpanded)
@@ -324,74 +251,25 @@
                                             </div>
                                             <span class="sacc-row-name">@loc.Name</span>
                                             <div class="sacc-row-actions">
-                                                <button type="button" class="sacc-icon-btn" title="Edit" @onclick="() => OpenEditPayrollLocationDialog(locCapture)">
-                                                    <MudIcon Icon="@DzdIcons.Pencil" Size="Size.Small" />
-                                                </button>
-                                                <button type="button" class="sacc-icon-btn sacc-icon-btn-danger" title="Delete" @onclick="() => DeletePayrollLocation(locCapture)">
-                                                    <MudIcon Icon="@DzdIcons.Trash2" Size="Size.Small" />
-                                                </button>
+                                                <MudIconButton Icon="@DzdIcons.Pencil" Size="Size.Small" Color="Color.Primary" title="@Loc["common.edit"]" OnClick="() => OpenEditPayrollLocationDialog(locCapture)" />
+                                                <MudIconButton Icon="@DzdIcons.Trash2" Size="Size.Small" Color="Color.Error" title="@Loc["payment.delete"]" OnClick="() => DeletePayrollLocation(locCapture)" />
                                             </div>
                                         </div>
                                     }
-                                    <button type="button" class="sacc-add-bottom-btn" @onclick="OpenAddPayrollLocationDialog">
-                                        <MudIcon Icon="@DzdIcons.Plus" Size="Size.Small" Class="sacc-add-icon" /> Add Payroll Location
-                                    </button>
+                                    <MudButton Variant="Variant.Text" Color="Color.Dark" StartIcon="@DzdIcons.Plus" Class="sacc-add-bottom-btn" OnClick="OpenAddPayrollLocationDialog">@Loc["settings.addPayrollLocation"]</MudButton>
                                 </div>
                             }
                         </div>
-
-                        <div class="sacc-paper">
-                            <div class="sacc-section-hdr" @onclick="() => _workTypesExpanded = !_workTypesExpanded">
-                                <button type="button" class="sacc-toggle-btn">
-                                    <MudIcon Icon="@(_workTypesExpanded ? DzdIcons.ChevronDown : DzdIcons.ChevronRight)" Size="Size.Small" />
-                                </button>
-                                <div class="sacc-icon-wrap sacc-amber">
-                                    <MudIcon Icon="@DzdIcons.Clock" Size="Size.Small" />
-                                </div>
-                                <div class="sacc-title-group">
-                                    <span class="sacc-title">Work Types</span>
-                                    <span class="sacc-subtitle">@_workTypes.Count items</span>
-                                </div>
-                            </div>
-                            @if (_workTypesExpanded)
-                            {
-                                <div class="sacc-body">
-                                    @foreach (var wt in _workTypes)
-                                    {
-                                        var wtCapture = wt;
-                                        <div class="sacc-row sacc-flat-row">
-                                            <div class="sacc-icon-wrap sacc-amber">
-                                                <MudIcon Icon="@DzdIcons.Clock" Size="Size.Small" />
-                                            </div>
-                                            <span class="sacc-row-name">@wt.Name</span>
-                                            <div class="sacc-row-actions">
-                                                <button type="button" class="sacc-icon-btn" title="Edit" @onclick="() => OpenEditWorkTypeDialog(wtCapture)">
-                                                    <MudIcon Icon="@DzdIcons.Pencil" Size="Size.Small" />
-                                                </button>
-                                                <button type="button" class="sacc-icon-btn sacc-icon-btn-danger" title="Delete" @onclick="() => DeleteWorkType(wtCapture)">
-                                                    <MudIcon Icon="@DzdIcons.Trash2" Size="Size.Small" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    }
-                                    <button type="button" class="sacc-add-bottom-btn" @onclick="OpenAddWorkTypeDialog">
-                                        <MudIcon Icon="@DzdIcons.Plus" Size="Size.Small" Class="sacc-add-icon" /> Add Work Type
-                                    </button>
-                                </div>
-                            }
-                        </div>
-
                         <MudPaper Elevation="1" Class="pa-4">
                             <MudText Typo="Typo.h6">
                                 <MudIcon Icon="@DzdIcons.Network" Size="Size.Small" Class="mr-2" />
-                                Organization Tree Management
+                                @Loc["settings.orgTreeManagement"]
                             </MudText>
 
                             @if (!_orgNodes.Any())
                             {
                                 <MudStack Class="pa-4" AlignItems="AlignItems.Center" Spacing="2">
-                                    <MudText Typo="Typo.body2" Color="Color.Secondary">No organization positions defined yet.</MudText>
-                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => OpenPositionAddDialog())">Add Root Position</MudButton>
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => OpenPositionAddDialog())">@Loc["settings.addRootPosition"]</MudButton>
                                 </MudStack>
                             }
                             else
@@ -405,12 +283,7 @@
                                 </div>
                             }
                         </MudPaper>
-
                     </MudStack>
-                }
-                else
-                {
-                    <MudAlert Severity="Severity.Info">Additional settings will be added here.</MudAlert>
                 }
             </MudStack>
         }

@@ -8,6 +8,7 @@ public abstract class CrudDialogBase : ComponentBase
 {
     [CascadingParameter] protected IMudDialogInstance MudDialog { get; set; } = default!;
     [Inject] protected ISnackbar Snackbar { get; set; } = default!;
+    [Inject] protected DZDDashboard.Client.Localization.AppLocalizer Loc { get; set; } = default!;
 
     protected bool _saving;
 
@@ -33,12 +34,12 @@ public abstract class CrudDialogBase : ComponentBase
             else
             {
                 var detail = await ApiServiceBase.TryReadProblemDetailAsync(response);
-                Snackbar.Add(detail ?? $"Failed to save {entityName}.", Severity.Error);
+                Snackbar.Add(detail ?? string.Format(Loc["crud.saveFailed"], entityName), Severity.Error);
             }
         }
         catch (Exception)
         {
-            Snackbar.Add($"An unexpected error occurred while saving {entityName}. Please try again.", Severity.Error);
+            Snackbar.Add(string.Format(Loc["crud.unexpectedSaveError"], entityName), Severity.Error);
         }
         finally
         {

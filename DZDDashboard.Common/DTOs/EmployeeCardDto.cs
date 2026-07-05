@@ -4,13 +4,15 @@ public class EmployeeCardDto
 {
     public int  Id       { get; set; }
     public bool IsActive { get; set; }
+    public string LifecycleStatus { get; set; } = string.Empty;
 
     public string? Slug { get; set; }
     public string? FullName { get; set; }
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public int? AvatarColorIndex { get; set; }
-    public string? CompanyName { get; set; }
+    public int? CompanyId { get; set; }
+    public CompanyDto? Company { get; set; }
     public string? RegistrationNumber { get; set; }
 
     public int? Grade { get; set; }
@@ -29,7 +31,6 @@ public class EmployeeCardDto
     public DateTime? ContractEndDate { get; set; }
     public string? WorkModel { get; set; }
 
-    public string? ApprovalProcessUnit { get; set; }
     public string? OrganizationPositionName { get; set; }
 
     public string? Email { get; set; }
@@ -51,6 +52,7 @@ public class EmployeeCardDto
     public string? LegalAddressCity { get; set; }
     public string? LegalAddressCountry { get; set; }
     public string? CurrentAddress { get; set; }
+    public DateTime? CurrentAddressChangedAt { get; set; }
     public string? City { get; set; }
     public string? Country { get; set; }
 
@@ -61,11 +63,8 @@ public class EmployeeCardDto
     public TeamDto? Team { get; set; }
     public JobDto? Job { get; set; }
     public PayrollLocationDto? PayrollLocation { get; set; }
-    public UserAvatarDto? Avatar { get; set; }
     public UserProfileReportsToDto? ReportsTo { get; set; }
 
-    public List<TargetEffortDto>? TargetEfforts { get; set; }
-    public List<UserTrainingDto>? UserTrainings { get; set; }
     public List<EmergencyContactDto> EmergencyContacts { get; set; } = new();
     public List<ChildInfoDto> Children { get; set; } = new();
 }

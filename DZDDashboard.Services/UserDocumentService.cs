@@ -9,18 +9,34 @@ namespace DZDDashboard.Services;
 public class UserDocumentService(AppDbContext context, IFileStorageService storage) : IUserDocumentService
 {
     public async Task<List<UserDocumentDto>> GetUserDocumentsAsync(int userId, CancellationToken cancellationToken = default)
-        => await context.UserDocuments.AsNoTracking()
+        => await context.UserCvDocuments.AsNoTracking()
             .Where(d => d.UserId == userId && d.IsActive)
             .OrderByDescending(d => d.CreatedAt)
             .Select(d => new UserDocumentDto
             {
-                Id          = d.Id,
-                FileName    = d.FileName,
-                ContentType = d.ContentType,
-                SizeBytes   = d.SizeBytes,
-                UploadedAt  = d.CreatedAt
+                Id           = d.Id,
+                FileName     = d.FileName,
+                ContentType  = d.ContentType,
+                SizeBytes    = d.SizeBytes,
+                UploadedAt   = d.CreatedAt,
+                ReviewStatus = d.ReviewStatus,
+                ReviewNote   = d.ReviewNote
             })
             .ToListAsync(cancellationToken);
+
+    public async Task ReviewAsync(int userId, int documentId, string status, string? note, CancellationToken cancellationToken = default)
+    {
+        if (!DZDDashboard.Common.Constants.DocumentReviewStatuses.All.Contains(status))
+            throw new DomainValidationException("Geçersiz belge inceleme durumu.");
+
+        var doc = await context.UserCvDocuments
+            .FirstOrDefaultAsync(d => d.Id == documentId && d.UserId == userId && d.IsActive, cancellationToken)
+            ?? throw new EntityNotFoundException("UserCvDocument", documentId);
+
+        doc.ReviewStatus = status;
+        doc.ReviewNote   = status == DZDDashboard.Common.Constants.DocumentReviewStatuses.NeedsCorrection ? note : null;
+        await context.SaveChangesAsync(cancellationToken);
+    }
 
     public async Task<UserDocumentDto> UploadAsync(int userId, string fileName, string contentType, byte[] content, CancellationToken cancellationToken = default)
     {
@@ -30,16 +46,16 @@ public class UserDocumentService(AppDbContext context, IFileStorageService stora
         var uniqueName = await EnsureUniqueFileNameAsync(userId, fileName, cancellationToken);
         var storageId  = await storage.SaveAsync(content, contentType, cancellationToken);
 
-        var doc = new UserDocument
+        var doc = new UserCvDocument
         {
-            UserId       = userId,
-            FileName     = uniqueName,
-            ContentType  = contentType,
-            SizeBytes    = content.LongLength,
-            IsActive     = true,
-            StoredFileId = storageId
+            UserId      = userId,
+            FileName    = uniqueName,
+            ContentType = contentType,
+            SizeBytes   = content.LongLength,
+            IsActive    = true,
+            FileId      = storageId
         };
-        context.UserDocuments.Add(doc);
+        context.UserCvDocuments.Add(doc);
         await context.SaveChangesAsync(cancellationToken);
 
         return new UserDocumentDto
@@ -51,9 +67,9 @@ public class UserDocumentService(AppDbContext context, IFileStorageService stora
 
     public async Task<(byte[] Content, string? ContentType, string FileName)?> GetContentAsync(int userId, int documentId, CancellationToken cancellationToken = default)
     {
-        var doc = await context.UserDocuments.AsNoTracking()
+        var doc = await context.UserCvDocuments.AsNoTracking()
             .FirstOrDefaultAsync(d => d.Id == documentId && d.UserId == userId && d.IsActive, cancellationToken);
-        if (doc?.StoredFileId is not int storageId) return null;
+        if (doc?.FileId is not int storageId) return null;
 
         var blob = await storage.GetAsync(storageId, cancellationToken);
         return blob is null ? null : (blob.Value.Content, blob.Value.ContentType, doc.FileName ?? "document");
@@ -61,12 +77,12 @@ public class UserDocumentService(AppDbContext context, IFileStorageService stora
 
     public async Task DeleteAsync(int userId, int documentId, CancellationToken cancellationToken = default)
     {
-        var doc = await context.UserDocuments
+        var doc = await context.UserCvDocuments
             .FirstOrDefaultAsync(d => d.Id == documentId && d.UserId == userId, cancellationToken)
-            ?? throw new EntityNotFoundException("UserDocument", documentId);
+            ?? throw new EntityNotFoundException("UserCvDocument", documentId);
 
-        var storageId = doc.StoredFileId;
-        context.UserDocuments.Remove(doc);
+        var storageId = doc.FileId;
+        context.UserCvDocuments.Remove(doc);
         await context.SaveChangesAsync(cancellationToken);
 
         if (storageId is int id) await storage.DeleteAsync(id, cancellationToken);
@@ -74,7 +90,7 @@ public class UserDocumentService(AppDbContext context, IFileStorageService stora
 
     private async Task<string> EnsureUniqueFileNameAsync(int userId, string fileName, CancellationToken cancellationToken)
     {
-        var taken = await context.UserDocuments
+        var taken = await context.UserCvDocuments
             .Where(d => d.UserId == userId)
             .Select(d => d.FileName)
             .ToListAsync(cancellationToken);

@@ -10,8 +10,8 @@ public class PaymentService : ApiServiceBase, IPaymentClientService
         NavigationManager navigationManager)
         : base(httpClientFactory, navigationManager) { }
 
-    public async Task<MyPaymentSummaryDto?> GetMyPaymentSummaryAsync()
-        => await GetAsync<MyPaymentSummaryDto>(ApiRoutes.Users.MyPaymentSummary);
+    public async Task<EmployeePaymentDto?> GetMyPaymentAsync()
+        => await GetAsync<EmployeePaymentDto>(ApiRoutes.Users.MyPayment);
 
     public async Task<EmployeePaymentDto?> GetEmployeePaymentAsync(int userId)
         => await GetAsync<EmployeePaymentDto>(ApiRoutes.Users.Payment(userId));

@@ -3,87 +3,88 @@
 
 
 @inject IUserClientService UserService
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <MudDialog>
     <DialogContent>
         <MudStack Spacing="3">
-            <MudText Typo="Typo.h6">Edit Position & Assign User</MudText>
-            
-            
-            <MudTextField @bind-Value="_positionName" 
-                          Label="Position Name" 
+            <MudText Typo="Typo.h6">@Loc["positionUserDialog.title"]</MudText>
+
+
+            <MudTextField @bind-Value="_positionName"
+                          Label="@Loc["positionUserDialog.positionNameLabel"]"
                           Variant="Variant.Outlined"
                           Margin="Margin.Dense" />
-            
+
             <MudDivider />
-            
-            
-            <MudText Typo="Typo.subtitle2" Style="margin-top: 8px;">User Assignment</MudText>
-            
+
+
+            <MudText Typo="Typo.subtitle2" Style="margin-top: 8px;">@Loc["positionUserDialog.userAssignment"]</MudText>
+
             @if (_users == null)
             {
                 <MudProgressCircular Indeterminate="true" />
             }
             else if (_users.Count == 0)
             {
-                <MudAlert Severity="Severity.Info">No users available</MudAlert>
+                <MudAlert Severity="Severity.Info">@Loc["positionUserDialog.noUsersAvailable"]</MudAlert>
             }
             else
             {
                 @if (_totalUserCount > _users.Count)
                 {
                     <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-2">
-                        Showing @_users.Count of @_totalUserCount users. Search is limited to this page.
+                        @string.Format(Loc["positionUserDialog.showingUsersOf"], _users.Count, _totalUserCount)
                     </MudAlert>
                 }
                 @if (_currentUser != null)
                 {
                     <div style="margin-bottom: 16px;">
-                        <MudText Typo="Typo.caption" Style="opacity:.6;">Current Assignment</MudText>
+                        <MudText Typo="Typo.caption" Style="opacity:.6;">@Loc["positionUserDialog.currentAssignment"]</MudText>
                         <MudPaper Class="pa-3 d-flex justify-space-between align-center" Outlined="true" Style="background-color: #E3F2FD; border-color: #2196F3;">
                             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                <InitialsAvatar FullName="@AppFormatter.BuildFullName(_currentUser.FirstName, _currentUser.LastName)" ColorIndex="@_currentUser.AvatarColorIndex" Size="40" />
+                                <InitialsAvatar FullName="@AppFormatter.BuildFullName(_currentUser.FirstName, _currentUser.LastName)" ColorIndex="@_currentUser.AvatarColorIndex" ImageSrc="@AvatarSrc(_currentUser)" Size="40" />
                                 <MudStack Spacing="0">
                                     <MudText Typo="Typo.body2" Style="font-weight:500;">@AppFormatter.BuildFullName(_currentUser.FirstName, _currentUser.LastName)</MudText>
                                     <MudText Typo="Typo.caption">@_currentUser.Email</MudText>
                                 </MudStack>
                             </MudStack>
-                            <MudButton 
-                                Variant="Variant.Filled" 
-                                Color="Color.Error" 
+                            <MudButton
+                                Variant="Variant.Filled"
+                                Color="Color.Error"
                                 Size="Size.Small"
                                 OnClick="RemoveUser">
-                                Remove
+                                @Loc["positionUserDialog.remove"]
                             </MudButton>
                         </MudPaper>
                     </div>
                 }
-                
+
                 <div style="max-height: @UserListMaxHeight; overflow-y: auto;">
                     @if (AvailableUsers.Count == 0)
                     {
-                        <MudAlert Severity="Severity.Info">All users are assigned</MudAlert>
+                        <MudAlert Severity="Severity.Info">@Loc["positionUserDialog.allUsersAssigned"]</MudAlert>
                     }
                     else
                     {
-                        <MudText Typo="Typo.caption" Style="opacity:.6; margin-bottom: 8px;">Available Users</MudText>
+                        <MudText Typo="Typo.caption" Style="opacity:.6; margin-bottom: 8px;">@Loc["positionUserDialog.availableUsers"]</MudText>
                         <MudStack Spacing="2">
                             @foreach (var user in AvailableUsers)
                         {
                             <MudPaper Class="pa-3 d-flex justify-space-between align-center" Outlined="true">
                                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                    <InitialsAvatar FullName="@AppFormatter.BuildFullName(user.FirstName, user.LastName)" ColorIndex="@user.AvatarColorIndex" Size="40" />
+                                    <InitialsAvatar FullName="@AppFormatter.BuildFullName(user.FirstName, user.LastName)" ColorIndex="@user.AvatarColorIndex" ImageSrc="@AvatarSrc(user)" Size="40" />
                                     <MudStack Spacing="0">
                                         <MudText Typo="Typo.body2" Style="font-weight:500;">@AppFormatter.BuildFullName(user.FirstName, user.LastName)</MudText>
                                         <MudText Typo="Typo.caption">@user.Email</MudText>
                                     </MudStack>
                                 </MudStack>
-                                <MudButton 
-                                    Variant="Variant.Filled" 
-                                    Color="Color.Primary" 
+                                <MudButton
+                                    Variant="Variant.Filled"
+                                    Color="Color.Primary"
                                     Size="Size.Small"
                                     OnClick="@(() => SelectUser(user))">
-                                    Select
+                                    @Loc["positionUserDialog.select"]
                                 </MudButton>
                             </MudPaper>
                         }
@@ -94,9 +95,9 @@
         </MudStack>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton OnClick="Cancel">@Loc["common.cancel"]</MudButton>
         <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Save"
-                   Disabled="@(_users is null)">Save</MudButton>
+                   Disabled="@(_users is null)">@Loc["common.save"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -134,6 +135,9 @@
             _originalUser = _currentUser;
         }
     }
+
+    private static string? AvatarSrc(UserSummaryDto u)
+        => u.Avatar is null ? null : AvatarUrl.For(u.Id, u.Avatar.UpdatedAt);
 
     private void SelectUser(UserSummaryDto user)
     {

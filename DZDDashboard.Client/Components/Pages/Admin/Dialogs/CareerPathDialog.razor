@@ -1,30 +1,23 @@
 @using DZDDashboard.Common.DTOs
 @using MudBlazor
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <MudDialog>
     <TitleContent>
-        <MudText Typo="Typo.h6">@(IsEdit ? "Edit Career Path" : "Add Career Path")</MudText>
+        <MudText Typo="Typo.h6">@(IsEdit ? Loc["careerPathDialog.editTitle"] : Loc["careerPathDialog.addTitle"])</MudText>
     </TitleContent>
     <DialogContent>
         <MudStack Spacing="3">
-            <MudTextField @bind-Value="_name" Label="Career Path Name" Variant="Variant.Outlined"
-                          Margin="Margin.Dense" Required="true"
-                          Placeholder="@(IsEdit ? "" : "e.g. Business Analyst Career Path")" />
-
-            <MudSelect @bind-Value="_selectedGroupId" Label="Employee Group" Variant="Variant.Outlined"
-                       Margin="Margin.Dense" Required="true" FullWidth="true">
-                @foreach (var g in UserGroups)
-                {
-                    <MudSelectItem Value="@g.Id">@g.GroupName</MudSelectItem>
-                }
-            </MudSelect>
+            <MudTextField @bind-Value="_name" Label="@Loc["careerPathDialog.nameLabel"]" Variant="Variant.Outlined"
+                          Margin="Margin.Dense" Required="true" Immediate="true"
+                          Placeholder="@(IsEdit ? "" : Loc["careerPathDialog.namePlaceholder"])" />
         </MudStack>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel" Variant="Variant.Text">Cancel</MudButton>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">@Loc["common.cancel"]</MudButton>
         <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit"
-                   Disabled="@(string.IsNullOrWhiteSpace(_name) || _selectedGroupId == 0)">
-            @(IsEdit ? "Save" : "Create")
+                   Disabled="@(string.IsNullOrWhiteSpace(_name))">
+            @(IsEdit ? Loc["common.save"] : Loc["careerPathDialog.create"])
         </MudButton>
     </DialogActions>
 </MudDialog>
@@ -33,37 +26,27 @@
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter] public CareerPathDto? ExistingPath { get; set; }
-    [Parameter] public List<UserGroupDto> UserGroups { get; set; } = new();
 
     private string _name = string.Empty;
-    private int _selectedGroupId;
 
     private bool IsEdit => ExistingPath is not null;
 
     protected override void OnInitialized()
     {
         if (ExistingPath is not null)
-        {
             _name = ExistingPath.Name;
-            _selectedGroupId = ExistingPath.UserGroupId;
-        }
-        else if (UserGroups.Count > 0)
-        {
-            _selectedGroupId = UserGroups[0].Id;
-        }
     }
 
     private void Cancel() => MudDialog.Cancel();
 
     private void Submit()
     {
-        if (string.IsNullOrWhiteSpace(_name) || _selectedGroupId == 0) return;
+        if (string.IsNullOrWhiteSpace(_name)) return;
 
         MudDialog.Close(DialogResult.Ok(new CareerPathDto
         {
             Id = ExistingPath?.Id ?? 0,
-            Name = _name.Trim(),
-            UserGroupId = _selectedGroupId
+            Name = _name.Trim()
         }));
     }
 }

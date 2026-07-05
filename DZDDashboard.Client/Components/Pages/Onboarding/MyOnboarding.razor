@@ -1,0 +1,177 @@
+@page "/my-onboarding"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@using DZDDashboard.Client.Services
+@using DZDDashboard.Common.Constants
+@using DZDDashboard.Common.DTOs
+@using DZDDashboard.Common.Utils
+@using Microsoft.AspNetCore.Components.Forms
+@inject IMyOnboardingClientService MyOnboardingSvc
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudPaper Elevation="2" Class="pa-6 mb-4">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+            <MudIcon Icon="@DzdIcons.UserPlus" Color="Color.Primary" Size="Size.Large" />
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.h5">@Loc["myOnboarding.heroTitle"]</MudText>
+                <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">
+                    @Loc["myOnboarding.heroSubtitle"]
+                </MudText>
+            </MudStack>
+        </MudStack>
+    </MudPaper>
+
+    @if (_allApproved && _documents.Count > 0)
+    {
+        <MudAlert Severity="Severity.Success" Variant="Variant.Filled" Class="mb-4">
+            @Loc["myOnboarding.allApproved"]
+        </MudAlert>
+    }
+    else if (_needsCorrectionCount > 0)
+    {
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Class="mb-4">
+            @string.Format(Loc["myOnboarding.needsCorrection"], _needsCorrectionCount)
+        </MudAlert>
+    }
+
+    <MudPaper Elevation="1" Class="pa-4">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
+            <MudText Typo="Typo.h6">@Loc["myOnboarding.myDocuments"]</MudText>
+            <MudFileUpload T="IBrowserFile" FilesChanged="OnFileSelected" MaximumFileCount="1">
+                <CustomContent Context="fileUpload">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Upload" Disabled="@_uploading"
+                               OnClick="@fileUpload.OpenFilePickerAsync">@Loc["myOnboarding.uploadDocument"]</MudButton>
+                </CustomContent>
+            </MudFileUpload>
+        </MudStack>
+
+        @if (_loading)
+        {
+            <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+        }
+        else if (_documents.Count == 0)
+        {
+            <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">@Loc["myOnboarding.noDocuments"]</MudText>
+        }
+        else
+        {
+            <MudStack Spacing="2">
+                @foreach (var doc in _documents)
+                {
+                    <MudPaper Elevation="0" Class="pa-3" Style="border:1px solid var(--mud-palette-lines-default);">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <MudIcon Icon="@DzdIcons.Paperclip" Size="Size.Small" />
+                                <MudText Typo="Typo.body2">@doc.FileName</MudText>
+                                <MudChip T="string" Size="Size.Small" Color="@ReviewColor(doc.ReviewStatus)" Variant="Variant.Text">@ReviewLabel(doc.ReviewStatus)</MudChip>
+                            </MudStack>
+                            <MudStack Row="true" Spacing="1">
+                                <MudIconButton Icon="@DzdIcons.Download" Size="Size.Small" OnClick="@(() => DownloadDoc(doc))" />
+                                <MudIconButton Icon="@DzdIcons.Trash2" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteDoc(doc.Id))" />
+                            </MudStack>
+                        </MudStack>
+                        @if (doc.ReviewStatus == DocumentReviewStatuses.NeedsCorrection && !string.IsNullOrWhiteSpace(doc.ReviewNote))
+                        {
+                            <MudAlert Severity="Severity.Warning" Dense="true" Variant="Variant.Outlined" Class="mt-2">
+                                @string.Format(Loc["myOnboarding.correctionReason"], doc.ReviewNote)
+                            </MudAlert>
+                        }
+                    </MudPaper>
+                }
+            </MudStack>
+        }
+    </MudPaper>
+
+    <MudStack Row="true" Justify="Justify.Center" Class="mt-6">
+        <MudButton Variant="Variant.Outlined" StartIcon="@DzdIcons.LogOut" OnClick="Logout">@Loc["myOnboarding.logout"]</MudButton>
+    </MudStack>
+</MudContainer>
+
+@code {
+    private List<UserDocumentDto> _documents = [];
+    private bool _loading = true;
+    private bool _uploading;
+
+    private bool _allApproved;
+    private int  _needsCorrectionCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await MyOnboardingSvc.GetStateAsync();
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _documents = await MyOnboardingSvc.GetDocumentsAsync() ?? [];
+        _needsCorrectionCount = _documents.Count(d => d.ReviewStatus == DocumentReviewStatuses.NeedsCorrection);
+        _allApproved = _documents.Count > 0 && _documents.All(d => d.ReviewStatus == DocumentReviewStatuses.Approved);
+        _loading = false;
+    }
+
+    private async Task OnFileSelected(IBrowserFile? file)
+    {
+        if (file is null) return;
+        if (!DocumentConstants.AllowedMimeTypes.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
+        {
+            Snackbar.Add(string.Format(Loc["myOnboarding.unsupportedFileType"], file.ContentType), Severity.Warning);
+            return;
+        }
+        if (file.Size > DocumentConstants.MaxFileSizeBytes)
+        {
+            Snackbar.Add(string.Format(Loc["myOnboarding.fileTooLarge"], DocumentConstants.MaxFileSizeBytes / 1024 / 1024), Severity.Warning);
+            return;
+        }
+
+        _uploading = true;
+        try
+        {
+            await using var stream = file.OpenReadStream(DocumentConstants.MaxFileSizeBytes);
+            var response = await MyOnboardingSvc.UploadDocumentAsync(file.Name, file.ContentType, stream);
+            if (!response.IsSuccessStatusCode)
+            {
+                var detail = await ApiServiceBase.TryReadProblemDetailAsync(response);
+                Snackbar.Add(detail ?? Loc["onboardingDetail.documentUploadFailed"], Severity.Error);
+                return;
+            }
+            Snackbar.Add(Loc["onboardingDetail.documentUploaded"], Severity.Success);
+            await LoadAsync();
+        }
+        finally { _uploading = false; }
+    }
+
+    private async Task DownloadDoc(UserDocumentDto doc)
+    {
+        var bytes = await MyOnboardingSvc.DownloadDocumentAsync(doc.Id);
+        if (bytes is null) { Snackbar.Add(Loc["onboardingDetail.downloadFailed"], Severity.Error); return; }
+        await JS.InvokeVoidAsync("dzdDownloadFile", doc.FileName, Convert.ToBase64String(bytes), doc.ContentType);
+    }
+
+    private async Task DeleteDoc(int docId)
+    {
+        var response = await MyOnboardingSvc.DeleteDocumentAsync(docId);
+        if (!response.IsSuccessStatusCode) { Snackbar.Add(Loc["myOnboarding.documentDeleteFailed"], Severity.Error); return; }
+        Snackbar.Add(Loc["onboardingDetail.documentDeleted"], Severity.Success);
+        await LoadAsync();
+    }
+
+    private void Logout() => Nav.NavigateTo("/MicrosoftIdentity/Account/SignOut", forceLoad: true, replace: true);
+
+    private static Color ReviewColor(string status) => status switch
+    {
+        DocumentReviewStatuses.Approved        => Color.Success,
+        DocumentReviewStatuses.NeedsCorrection => Color.Warning,
+        _                                      => Color.Default
+    };
+
+    private string ReviewLabel(string status) => status switch
+    {
+        DocumentReviewStatuses.Approved        => Loc["review.approved"],
+        DocumentReviewStatuses.NeedsCorrection => Loc["review.needsCorrection"],
+        _                                      => Loc["review.pending"]
+    };
+}

@@ -1,4 +1,4 @@
-using AutoMapper;
+using MapsterMapper;
 using DZDDashboard.Common.Constants;
 using DZDDashboard.Common.DTOs;
 using DZDDashboard.Common.Exceptions;
@@ -37,7 +37,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         var additionalPayments = await context.AdditionalPayments.AsNoTracking()
             .Include(p => p.ModifiedBy)
             .Where(p => p.UserId == userId)
-            .OrderByDescending(p => p.StartDate ?? p.PaymentDate ?? DateTime.MinValue)
+            .OrderByDescending(p => p.StartDate)
             .ToListAsync(cancellationToken);
 
         var deductions = await context.Deductions.AsNoTracking()
@@ -56,50 +56,6 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
             Summary            = BuildSummary(salaryHistory, benefits, additionalPayments, deductions)
         };
     }
-
-    public async Task<MyPaymentSummaryDto> GetMyPaymentSummaryAsync(int userId, CancellationToken cancellationToken = default)
-    {
-        var today = DateTime.UtcNow.Date;
-
-        var activeSalary = await context.SalaryHistories.AsNoTracking()
-            .Where(s => s.UserId == userId && s.StartDate <= today && (s.EndDate == null || s.EndDate >= today))
-            .OrderByDescending(s => s.StartDate)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        var pensionBenefits = await context.BenefitRecords.AsNoTracking()
-            .Where(b => b.UserId == userId
-                     && b.BenefitType == BenefitTypes.PrivatePension
-                     && b.StartDate <= today && (b.EndDate == null || b.EndDate >= today))
-            .OrderBy(b => b.Payer)
-            .ToListAsync(cancellationToken);
-
-        return new MyPaymentSummaryDto
-        {
-            ActiveSalary = activeSalary is null ? null : new SalaryRecordDto
-            {
-                Id          = activeSalary.Id,
-                NetAmount   = activeSalary.NetAmount,
-                GrossAmount = activeSalary.GrossAmount,
-                PayType     = activeSalary.PayType,
-                Currency    = activeSalary.Currency,
-                Period      = activeSalary.Period,
-                StartDate   = activeSalary.StartDate,
-                EndDate     = activeSalary.EndDate
-            },
-            PensionBenefits = [.. pensionBenefits.Select(b => new BenefitRecordDto
-            {
-                Id          = b.Id,
-                BenefitType = b.BenefitType,
-                Payer       = b.Payer,
-                Amount      = b.Amount,
-                Currency    = b.Currency,
-                Period      = b.Period,
-                StartDate   = b.StartDate,
-                EndDate     = b.EndDate
-            })]
-        };
-    }
-
 
     public async Task<SalaryRecordDto> CreateSalaryRecordAsync(int userId, SalaryRecordDto dto, CancellationToken cancellationToken = default)
     {
@@ -174,7 +130,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
 
         var entity = new BenefitRecord { UserId = userId, Source = string.IsNullOrWhiteSpace(dto.Source) ? PaymentSources.Manual : dto.Source };
         ApplyBenefitDto(dto, entity);
-        ReplaceDependents(entity, dto.Dependents);
+        await ReplaceDependentsAsync(entity, dto.Dependents, cancellationToken);
 
         context.BenefitRecords.Add(entity);
         await context.SaveChangesAsync(cancellationToken);
@@ -188,7 +144,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         EnsureDependentsValid(dto);
 
         ApplyBenefitDto(dto, entity);
-        ReplaceDependents(entity, dto.Dependents);
+        await ReplaceDependentsAsync(entity, dto.Dependents, cancellationToken);
 
         await context.SaveChangesAsync(cancellationToken);
     }
@@ -207,6 +163,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
 
         var entity = new AdditionalPayment { UserId = userId };
         ApplyAdditionalPaymentDto(dto, entity);
+        entity.PaymentType = dto.PaymentType;
 
         context.AdditionalPayments.Add(entity);
         await context.SaveChangesAsync(cancellationToken);
@@ -220,6 +177,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         EnsureAdditionalPaymentDatesValid(dto);
 
         ApplyAdditionalPaymentDto(dto, entity);
+        entity.PaymentType = dto.PaymentType;
         await context.SaveChangesAsync(cancellationToken);
     }
 
@@ -234,9 +192,11 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
     public async Task<DeductionDto> CreateDeductionAsync(int userId, DeductionDto dto, CancellationToken cancellationToken = default)
     {
         await context.Users.FindRequiredAsync(userId, nameof(User), cancellationToken);
+        EnsureDeductionDatesValid(dto);
 
         var entity = new Deduction { UserId = userId };
         ApplyDeductionDto(dto, entity);
+        entity.DeductionType = dto.DeductionType;
 
         context.Deductions.Add(entity);
         await context.SaveChangesAsync(cancellationToken);
@@ -247,8 +207,10 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
     public async Task UpdateDeductionAsync(int userId, int deductionId, DeductionDto dto, CancellationToken cancellationToken = default)
     {
         var entity = await RequireDeductionAsync(userId, deductionId, cancellationToken);
+        EnsureDeductionDatesValid(dto);
 
         ApplyDeductionDto(dto, entity);
+        entity.DeductionType = dto.DeductionType;
         await context.SaveChangesAsync(cancellationToken);
     }
 
@@ -316,11 +278,9 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
 
     private static void ApplyAdditionalPaymentDto(AdditionalPaymentDto dto, AdditionalPayment entity)
     {
-        entity.PaymentType  = dto.PaymentType;
         entity.Amount       = dto.Amount;
         entity.Currency     = dto.Currency;
         entity.Period       = dto.Period;
-        entity.PaymentDate  = dto.PaymentDate;
         entity.StartDate    = dto.StartDate;
         entity.EndDate      = dto.EndDate;
         entity.Description  = dto.Description;
@@ -328,15 +288,15 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
 
     private static void ApplyDeductionDto(DeductionDto dto, Deduction entity)
     {
-        entity.DeductionType = dto.DeductionType;
         entity.Amount        = dto.Amount;
         entity.Currency      = dto.Currency;
         entity.Period        = dto.Period;
         entity.StartDate     = dto.StartDate;
+        entity.EndDate       = dto.EndDate;
         entity.Notes         = dto.Notes;
     }
 
-    private void ReplaceDependents(BenefitRecord entity, List<BenefitDependentDto> dependents)
+    private async Task ReplaceDependentsAsync(BenefitRecord entity, List<BenefitDependentDto> dependents, CancellationToken ct)
     {
         if (entity.Dependents.Count > 0)
             context.BenefitDependents.RemoveRange(entity.Dependents);
@@ -346,7 +306,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
             BenefitRecordId = entity.Id,
             Order           = index + 1,
             DependentName   = d.DependentName,
-            DependentType   = d.DependentType,
+            RelationType    = d.RelationType,
             Amount          = d.Amount,
             StartDate       = d.StartDate,
             EndDate         = d.EndDate
@@ -383,26 +343,21 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
             if (dependent.EndDate.HasValue && dependent.EndDate.Value < dependent.StartDate)
                 throw new DomainValidationException("A dependent's end date cannot be before its start date.");
 
-            if (dependent.StartDate < dto.StartDate || (dto.EndDate.HasValue && (dependent.EndDate ?? dependent.StartDate) > dto.EndDate.Value))
+            if (dependent.StartDate < dto.StartDate || (dto.EndDate.HasValue && dependent.EndDate.HasValue && dependent.EndDate.Value > dto.EndDate.Value))
                 throw new DomainConflictException("A dependent's validity period cannot extend beyond the benefit record's period.");
         }
     }
 
     private static void EnsureAdditionalPaymentDatesValid(AdditionalPaymentDto dto)
     {
-        if (dto.Period == AdditionalPaymentPeriods.OneTime)
-        {
-            if (dto.PaymentDate is null)
-                throw new DomainValidationException("Payment date is required for one-time additional payments.");
-        }
-        else
-        {
-            if (dto.StartDate is null)
-                throw new DomainValidationException("Start date is required for recurring additional payments.");
+        if (dto.EndDate.HasValue && dto.EndDate.Value < dto.StartDate)
+            throw new DomainValidationException("End date cannot be before start date.");
+    }
 
-            if (dto.EndDate.HasValue && dto.EndDate.Value < dto.StartDate.Value)
-                throw new DomainValidationException("End date cannot be before start date.");
-        }
+    private static void EnsureDeductionDatesValid(DeductionDto dto)
+    {
+        if (dto.EndDate.HasValue && dto.EndDate.Value < dto.StartDate)
+            throw new DomainValidationException("End date cannot be before start date.");
     }
 
 
@@ -415,13 +370,10 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         bool IsActive(DateTime start, DateTime? end) => start <= today && (end is null || end >= today);
         bool ExpiresWithinHorizon(DateTime? end) => end.HasValue && end.Value >= today && end.Value <= horizon;
 
-        var activeSalary    = salaryHistory.Where(s => IsActive(s.StartDate, s.EndDate)).ToList();
-        var activeBenefits  = benefits.Where(b => IsActive(b.StartDate, b.EndDate)).ToList();
-        var activeAdditional = additionalPayments.Where(p =>
-            p.Period == AdditionalPaymentPeriods.OneTime
-                ? p.PaymentDate.HasValue && p.PaymentDate.Value.Year == today.Year && p.PaymentDate.Value.Month == today.Month
-                : p.StartDate.HasValue && IsActive(p.StartDate.Value, p.EndDate)).ToList();
-        var activeDeductions = deductions.Where(d => d.StartDate <= today).ToList();
+        var activeSalary      = salaryHistory.Where(s => IsActive(s.StartDate, s.EndDate)).ToList();
+        var activeBenefits    = benefits.Where(b => IsActive(b.StartDate, b.EndDate)).ToList();
+        var activeAdditional = additionalPayments.Where(p => IsActive(p.StartDate, p.EndDate)).ToList();
+        var activeDeductions  = deductions.Where(d => IsActive(d.StartDate, d.EndDate)).ToList();
 
         var monthlyCost = new Dictionary<string, decimal>();
         void AddMonthlyCost(string currency, decimal? amount)
@@ -434,29 +386,35 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
             AddMonthlyCost(salary.Currency, NormalizeToMonthly(salary.NetAmount, salary.Period));
 
         foreach (var benefit in activeBenefits.Where(b => b.Payer == BenefitPayers.Employer))
-            AddMonthlyCost(benefit.Currency, NormalizeToMonthly(benefit.Amount, benefit.Period));
+            AddMonthlyCost(benefit.Currency, NormalizeToMonthly(BenefitTotalAmount(benefit), benefit.Period));
 
         foreach (var payment in activeAdditional)
             AddMonthlyCost(payment.Currency, payment.Period == AdditionalPaymentPeriods.OneTime ? payment.Amount : NormalizeToMonthly(payment.Amount, payment.Period));
 
         var benefitsTotal = new Dictionary<string, decimal>();
         foreach (var benefit in activeBenefits)
-            benefitsTotal[benefit.Currency] = benefitsTotal.GetValueOrDefault(benefit.Currency) + benefit.Amount;
+            benefitsTotal[benefit.Currency] = benefitsTotal.GetValueOrDefault(benefit.Currency) + BenefitTotalAmount(benefit);
 
         var deductionsTotal = new Dictionary<string, decimal>();
         foreach (var deduction in activeDeductions)
             deductionsTotal[deduction.Currency] = deductionsTotal.GetValueOrDefault(deduction.Currency) + deduction.Amount;
 
+        var additionalTotal = new Dictionary<string, decimal>();
+        foreach (var payment in activeAdditional)
+            additionalTotal[payment.Currency] = additionalTotal.GetValueOrDefault(payment.Currency) + payment.Amount;
+
         var upcomingExpirations =
             salaryHistory.Count(s => ExpiresWithinHorizon(s.EndDate)) +
             benefits.Count(b => ExpiresWithinHorizon(b.EndDate)) +
-            additionalPayments.Count(p => ExpiresWithinHorizon(p.EndDate));
+            additionalPayments.Count(p => ExpiresWithinHorizon(p.EndDate)) +
+            deductions.Count(d => ExpiresWithinHorizon(d.EndDate));
 
         return new EmployeePaymentSummaryDto
         {
-            EstimatedMonthlyCost     = [.. monthlyCost.Select(kv => new CurrencyAmountDto(kv.Key, kv.Value))],
-            ActiveBenefitsTotal      = [.. benefitsTotal.Select(kv => new CurrencyAmountDto(kv.Key, kv.Value))],
-            ActiveDeductionsTotal    = [.. deductionsTotal.Select(kv => new CurrencyAmountDto(kv.Key, kv.Value))],
+            EstimatedMonthlyCost           = [.. monthlyCost.Select(kv => new CurrencyAmountDto(kv.Key, kv.Value))],
+            ActiveBenefitsTotal            = [.. benefitsTotal.Select(kv => new CurrencyAmountDto(kv.Key, kv.Value))],
+            ActiveDeductionsTotal          = [.. deductionsTotal.Select(kv => new CurrencyAmountDto(kv.Key, kv.Value))],
+            ActiveAdditionalPaymentsTotal  = [.. additionalTotal.Select(kv => new CurrencyAmountDto(kv.Key, kv.Value))],
             ActiveItemCount          = activeSalary.Count + activeBenefits.Count + activeAdditional.Count + activeDeductions.Count,
             UpcomingExpirationCount  = upcomingExpirations
         };
@@ -469,4 +427,8 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         PaymentPeriods.Weekly  => amount * 52m / 12m,
         _ => null
     };
+
+    private static decimal BenefitTotalAmount(BenefitRecord benefit) => benefit.BenefitType == BenefitTypes.PrivateHealthInsurance
+        ? benefit.Amount + benefit.Dependents.Sum(d => d.Amount)
+        : benefit.Amount;
 }

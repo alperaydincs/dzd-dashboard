@@ -4,7 +4,7 @@ namespace DZDDashboard.Client.Services;
 
 public interface IPaymentClientService
 {
-    Task<MyPaymentSummaryDto?> GetMyPaymentSummaryAsync();
+    Task<EmployeePaymentDto?> GetMyPaymentAsync();
     Task<EmployeePaymentDto?> GetEmployeePaymentAsync(int userId);
 
     Task<SalaryRecordDto?> CreateSalaryRecordAsync(int userId, SalaryRecordDto dto);

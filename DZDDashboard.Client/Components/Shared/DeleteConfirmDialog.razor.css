@@ -1,0 +1,84 @@
+::deep .mud-dialog-content {
+    padding: 28px 24px 24px !important;
+}
+
+::deep .dcd-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+}
+
+::deep .dcd-icon-glow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(231, 0, 11, 0.18) 0%, rgba(231, 0, 11, 0) 70%);
+    margin: 0 auto 14px;
+}
+
+::deep .dcd-icon-circle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--dzd-red-500);
+    color: #ffffff;
+}
+
+::deep .dcd-title {
+    width: 100%;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--dzd-text-primary);
+    margin-bottom: 8px;
+}
+
+::deep .dcd-message {
+    width: 100%;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--dzd-text-secondary);
+    line-height: 1.4;
+    margin-bottom: 24px;
+}
+
+::deep .dcd-actions {
+    display: flex;
+    width: 100%;
+    gap: 12px;
+    margin-bottom: 4px;
+}
+
+::deep .dcd-btn {
+    flex: 1;
+    border: none;
+    border-radius: 999px;
+    padding: 11px 16px;
+    font-size: 1.05rem;
+    font-weight: 400;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+::deep .dcd-btn:hover {
+    opacity: 0.85;
+}
+
+::deep .dcd-btn-cancel {
+    background: #eef0f3;
+    color: var(--dzd-text-primary);
+}
+
+::deep .dcd-btn-delete {
+    background: var(--dzd-red-500);
+    color: #ffffff;
+}

@@ -1,21 +1,22 @@
 @using DZDDashboard.Common.DTOs
 @using MudBlazor
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <div class="jts-root">
 <MudMenu AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft"
          Class="jts-menu" PopoverClass="jts-popover" Dense="true">
     <ActivatorContent>
-        <div class="jts-trigger @(SelectedIds.Count == 0 ? "jts-trigger-empty" : "")">
+        <div class="jts-trigger @(SelectedIds.Count == 0 ? "jts-trigger-empty" : "")" @onclick="@context.ToggleAsync">
             @LabelText
         </div>
     </ActivatorContent>
     <ChildContent>
         <div class="jts-pop-inner" @onclick:stopPropagation>
-            <div class="jts-section-title">Selected Positions</div>
+            <div class="jts-section-title">@Loc["jobTitleSelector.selectedPositions"]</div>
             <div class="jts-chips">
                 @if (SelectedIds.Count == 0)
                 {
-                    <span class="jts-empty">None selected</span>
+                    <span class="jts-empty">@Loc["jobTitleSelector.noneSelected"]</span>
                 }
                 else
                 {
@@ -30,8 +31,10 @@
                 }
             </div>
 
-            <div class="jts-section-title">Add Position</div>
-            <MudTextField @bind-Value="_search" Placeholder="Search positions..."
+            <hr class="jts-divider" />
+
+            <div class="jts-section-title">@Loc["jobTitleSelector.addPosition"]</div>
+            <MudTextField @bind-Value="_search" Placeholder="@Loc["jobTitleSelector.searchPositions"]"
                           Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true"
                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
                           Class="jts-search" />
@@ -41,7 +44,7 @@
                 {
                     var jc = job;
                     <div class="jts-list-item">
-                        <MudCheckBox T="bool" Dense="true"
+                        <MudCheckBox T="bool" Dense="true" Class="jts-checkbox" Color="Color.Primary"
                                      Value="SelectedIds.Contains(jc.Id)"
                                      ValueChanged="@(v => Toggle(jc.Id, v))"
                                      Label="@jc.Name" />
@@ -49,7 +52,7 @@
                 }
                 @if (Filtered.Count == 0)
                 {
-                    <div class="jts-no-results">No positions found.</div>
+                    <div class="jts-no-results">@Loc["jobTitleSelector.noPositionsFound"]</div>
                 }
             </div>
         </div>
@@ -80,9 +83,9 @@
             var ordered = OrderedSelected.ToList();
             return ordered.Count switch
             {
-                0 => "Select positions",
+                0 => Loc["jobTitleSelector.selectPositions"],
                 1 => NameOf(ordered[0]),
-                _ => $"{NameOf(ordered[0])} +{ordered.Count - 1} more"
+                _ => $"{NameOf(ordered[0])} {string.Format(Loc["jobTitleSelector.moreCount"], ordered.Count - 1)}"
             };
         }
     }

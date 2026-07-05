@@ -1,53 +1,51 @@
-using AutoMapper;
 using DZDDashboard.Common.DTOs;
 using DZDDashboard.Data.Entities;
+using Mapster;
 
 namespace DZDDashboard.Services.Mapping;
 
-public class OrganizationMappingProfile : Profile
+public class OrganizationMappingProfile : IRegister
 {
-    public OrganizationMappingProfile()
+    public void Register(TypeAdapterConfig config)
     {
-        CreateMap<Company, CompanyDto>().ReverseMap();
+        config.NewConfig<Company, CompanyDto>();
+        config.NewConfig<CompanyDto, Company>();
 
-        CreateMap<Job, JobDto>()
-            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Title))
-            .ReverseMap()
-            .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Name));
+        config.NewConfig<Job, JobDto>()
+            .Map(dest => dest.Name, src => src.Title);
+        config.NewConfig<JobDto, Job>()
+            .Map(dest => dest.Title, src => src.Name);
 
-        CreateMap<Department, DepartmentDto>()
-            .ReverseMap()
-            .ForMember(dest => dest.Company, opt => opt.Ignore());
+        config.NewConfig<Department, DepartmentDto>();
+        config.NewConfig<DepartmentDto, Department>()
+            .Ignore("Company");
 
-        CreateMap<Team, TeamDto>()
-            .ReverseMap()
-            .ForMember(dest => dest.Department, opt => opt.Ignore());
+        config.NewConfig<Team, TeamDto>();
+        config.NewConfig<TeamDto, Team>()
+            .Ignore("Department");
 
-        CreateMap<WorkType, WorkTypeDto>().ReverseMap();
-        CreateMap<Grade, GradeDto>();
-        CreateMap<GradeDto, Grade>()
-            .ForMember(dest => dest.NextStep, opt => opt.Ignore());
-        CreateMap<UserGroup, UserGroupDto>().ReverseMap();
+        config.NewConfig<PayrollLocation, PayrollLocationDto>()
+            .Map(dest => dest.Name, src => src.Location);
+        config.NewConfig<PayrollLocationDto, PayrollLocation>()
+            .Map(dest => dest.Location, src => src.Name);
 
-        CreateMap<PayrollLocation, PayrollLocationDto>()
-            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Location));
-        CreateMap<PayrollLocationDto, PayrollLocation>()
-            .ForMember(dest => dest.Location, opt => opt.MapFrom(src => src.Name));
+        config.NewConfig<User, OrgChartUserDto>()
+            .Map(dest => dest.Department, src => src.Department)
+            .Map(dest => dest.HasAvatar, src => src.Avatar != null)
+            .Map(dest => dest.AvatarUpdatedAt, src =>
+                src.Avatar != null ? (DateTime?)(src.Avatar.ModifiedAt ?? src.Avatar.CreatedAt) : null);
 
-        CreateMap<User, OrgChartUserDto>()
-            .ForMember(dest => dest.Job, opt => opt.MapFrom(src => src.Job));
+        config.NewConfig<OrganizationPosition, OrganizationPositionDto>()
+            .Map(dest => dest.UserCount, src => src.Users.Count)
+            .Map(dest => dest.User, src => src.Users.OrderBy(x => x.Id).FirstOrDefault())
+            .Map(dest => dest.UserId, src => src.Users.OrderBy(x => x.Id).Select(x => (int?)x.Id).FirstOrDefault())
+            .Ignore("Children");
 
-        CreateMap<OrganizationPosition, OrganizationPositionDto>()
-            .ForMember(dest => dest.UserCount, opt => opt.MapFrom(src => src.Users.Count))
-            .ForMember(dest => dest.User,      opt => opt.MapFrom(src => src.Users.OrderBy(x => x.Id).FirstOrDefault()))
-            .ForMember(dest => dest.UserId,    opt => opt.MapFrom(src => src.Users.OrderBy(x => x.Id).Select(x => (int?)x.Id).FirstOrDefault()))
-            .ForMember(dest => dest.Children,  opt => opt.Ignore());
-
-        CreateMap<CreateOrganizationPositionDto, OrganizationPosition>();
-        CreateMap<UpdateOrganizationPositionDto, OrganizationPosition>()
-            .ForMember(dest => dest.Users, opt => opt.Ignore())
-            .ForMember(dest => dest.Parent, opt => opt.Ignore())
-            .ForMember(dest => dest.Children, opt => opt.Ignore())
-            .ForMember(dest => dest.ModifiedBy, opt => opt.Ignore());
+        config.NewConfig<CreateOrganizationPositionDto, OrganizationPosition>();
+        config.NewConfig<UpdateOrganizationPositionDto, OrganizationPosition>()
+            .Ignore("Users")
+            .Ignore("Parent")
+            .Ignore("Children")
+            .Ignore("ModifiedBy");
     }
 }

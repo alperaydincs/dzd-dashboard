@@ -14,10 +14,3 @@ public record EmployeePaymentDto
 
     public EmployeePaymentSummaryDto Summary { get; set; } = new();
 }
-
-public record MyPaymentSummaryDto
-{
-    public SalaryRecordDto? ActiveSalary { get; set; }
-
-    public List<BenefitRecordDto> PensionBenefits { get; set; } = [];
-}

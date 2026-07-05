@@ -57,4 +57,11 @@ public class UserDocumentsController(IUserDocumentService documents) : BaseContr
         await documents.DeleteAsync(userId, documentId, cancellationToken);
         return NoContent();
     }
+
+    [HttpPut("{documentId:int}/review")]
+    public async Task<IActionResult> Review(int userId, int documentId, [FromBody] ReviewDocumentDto dto, CancellationToken cancellationToken)
+    {
+        await documents.ReviewAsync(userId, documentId, dto.Status, dto.Note, cancellationToken);
+        return NoContent();
+    }
 }

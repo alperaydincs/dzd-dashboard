@@ -1,34 +1,36 @@
 @using DZDDashboard.Common.Constants
+@using DZDDashboard.Client.Services
 @inject ISnackbar Snackbar
+@inject DZDDashboard.Client.Localization.DomainLocalizer Domain
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
 <MudDialog>
     <DialogContent>
         <MudStack Spacing="2">
-            <MudSelect T="string" Label="Education Level" @bind-Value="_model.Level" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
-                @foreach (var option in EducationLevels.All)
+            <MudSelect T="string" Label="@Loc["educationDialog.educationLevel"]" @bind-Value="_model.EducationLevel" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
+                @foreach (var option in Domain.Options(DomainCategories.EducationLevel))
                 {
-                    <MudSelectItem Value="@option">@option</MudSelectItem>
+                    <MudSelectItem Value="@option.Code">@option.Label</MudSelectItem>
                 }
             </MudSelect>
 
-            <MudTextField T="string" Label="Institution" @bind-Value="_model.Institution" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
-            <MudTextField T="string" Label="Program / Department" @bind-Value="_model.Program" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            <MudTextField T="string" Label="@Loc["educationDialog.institution"]" @bind-Value="_model.Institution" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+            <MudTextField T="string" Label="@Loc["educationDialog.programDepartment"]" @bind-Value="_model.Program" Variant="Variant.Outlined" Margin="Margin.Dense" />
 
-            <MudDatePicker Label="Graduation Date" Date="@_model.GraduationDate" DateChanged="@(d => _model.GraduationDate = d)"
-                           Variant="Variant.Outlined" Margin="Margin.Dense"
-                           AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter"
-                           OverflowBehavior="OverflowBehavior.FlipNever" />
+            <MudDatePicker Label="@Loc["educationDialog.graduationDate"]" Date="@_model.GraduationDate" DateChanged="@(d => _model.GraduationDate = d)"
+                           Variant="Variant.Outlined" Margin="Margin.Dense" DateFormat="dd.MM.yyyy"
+                           AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" />
 
-            <MudSelect T="string" Label="Status" @bind-Value="_model.Status" Variant="Variant.Outlined" Margin="Margin.Dense">
-                @foreach (var status in EducationStatuses.All)
+            <MudSelect T="string" Label="@Loc["educationDialog.status"]" @bind-Value="_model.Status" Variant="Variant.Outlined" Margin="Margin.Dense">
+                @foreach (var option in Domain.Options(DomainCategories.EducationStatus))
                 {
-                    <MudSelectItem Value="@status">@status</MudSelectItem>
+                    <MudSelectItem Value="@option.Code">@option.Label</MudSelectItem>
                 }
             </MudSelect>
         </MudStack>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">@Loc["common.cancel"]</MudButton>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save"
                    Disabled="@_submitted">@ConfirmButtonText</MudButton>
     </DialogActions>
@@ -55,20 +57,20 @@
 
         _model = new AddEducationHistoryDialogResult
         {
-            Level          = InitialModel.Level,
-            Institution    = InitialModel.Institution,
-            Program        = InitialModel.Program,
-            GraduationDate = InitialModel.GraduationDate,
-            Status         = InitialModel.Status
+            EducationLevel   = InitialModel.EducationLevel,
+            Institution      = InitialModel.Institution,
+            Program          = InitialModel.Program,
+            GraduationDate   = InitialModel.GraduationDate,
+            Status           = InitialModel.Status
         };
     }
 
     private void Save()
     {
         if (_submitted) return;
-        if (string.IsNullOrWhiteSpace(_model.Level) || string.IsNullOrWhiteSpace(_model.Institution))
+        if (string.IsNullOrWhiteSpace(_model.EducationLevel) || string.IsNullOrWhiteSpace(_model.Institution))
         {
-            Snackbar.Add("Education level and institution are required.", Severity.Warning);
+            Snackbar.Add(Loc["educationDialog.requiredFields"], Severity.Warning);
             return;
         }
         _submitted = true;
@@ -79,10 +81,10 @@
 
     public sealed class AddEducationHistoryDialogResult
     {
-        public string    Level          { get; set; } = string.Empty;
-        public string    Institution    { get; set; } = string.Empty;
-        public string?   Program        { get; set; }
-        public DateTime? GraduationDate { get; set; }
-        public string    Status         { get; set; } = EducationStatuses.Completed;
+        public string?   EducationLevel   { get; set; }
+        public string    Institution      { get; set; } = string.Empty;
+        public string?   Program          { get; set; }
+        public DateTime? GraduationDate   { get; set; }
+        public string    Status           { get; set; } = EducationStatuses.Completed;
     }
 }

@@ -1,4 +1,4 @@
-using AutoMapper;
+using MapsterMapper;
 using DZDDashboard.Common.DTOs;
 using DZDDashboard.Common.Exceptions;
 using DZDDashboard.Data;
@@ -15,7 +15,7 @@ public class CareerPathService(AppDbContext context, IMapper mapper) : ICareerPa
     {
         var paths = await context.CareerPaths
             .AsNoTracking()
-            .AsSplitQuery()            .Include(p => p.UserGroup)
+            .AsSplitQuery()
             .Include(p => p.Rules)
                 .ThenInclude(r => r.Positions)
                     .ThenInclude(pos => pos.Job)
@@ -27,9 +27,7 @@ public class CareerPathService(AppDbContext context, IMapper mapper) : ICareerPa
 
     public async Task<CareerPathDto> CreateCareerPathAsync(CareerPathDto dto, CancellationToken cancellationToken = default)
     {
-        var userGroup = await context.UserGroups.FindRequiredAsync(dto.UserGroupId, nameof(UserGroup), cancellationToken);
-
-        var entity = new CareerPath { Name = dto.Name, UserGroupId = dto.UserGroupId, UserGroup = userGroup };
+        var entity = new CareerPath { Name = dto.Name };
         context.CareerPaths.Add(entity);
         await context.SaveChangesAsync(cancellationToken);
 
@@ -40,11 +38,7 @@ public class CareerPathService(AppDbContext context, IMapper mapper) : ICareerPa
     {
         var entity = await context.CareerPaths.FindRequiredAsync(dto.Id, nameof(CareerPath), cancellationToken);
 
-        if (entity.UserGroupId != dto.UserGroupId)
-            await context.UserGroups.FindRequiredAsync(dto.UserGroupId, nameof(UserGroup), cancellationToken);
-
-        entity.Name        = dto.Name;
-        entity.UserGroupId = dto.UserGroupId;
+        entity.Name = dto.Name;
         await context.SaveChangesAsync(cancellationToken);
     }
 
@@ -55,31 +49,31 @@ public class CareerPathService(AppDbContext context, IMapper mapper) : ICareerPa
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<CareerMapRuleDto> CreateCareerMapRuleAsync(CareerMapRuleDto dto, CancellationToken cancellationToken = default)
+    public async Task<CareerPathRuleDto> CreateCareerPathRuleAsync(CareerPathRuleDto dto, CancellationToken cancellationToken = default)
     {
         await ValidateJobIdsExistAsync(dto.PositionJobIds, cancellationToken);
 
-        var entity = ApplyDto(dto, new CareerMapRule());
-        entity.Positions = [.. dto.PositionJobIds.Select(jobId => new CareerMapRulePosition { JobId = jobId })];
+        var entity = ApplyDto(dto, new CareerPathRule());
+        entity.Positions = [.. dto.PositionJobIds.Select(jobId => new CareerPathRuleJob { JobId = jobId })];
 
-        context.CareerMapRules.Add(entity);
+        context.CareerPathRules.Add(entity);
         await context.SaveChangesAsync(cancellationToken);
 
         await context.Entry(entity).Collection(e => e.Positions).Query()
             .Include(p => p.Job)
             .LoadAsync(cancellationToken);
 
-        return mapper.Map<CareerMapRuleDto>(entity);
+        return mapper.Map<CareerPathRuleDto>(entity);
     }
 
-    public async Task UpdateCareerMapRuleAsync(CareerMapRuleDto dto, CancellationToken cancellationToken = default)
+    public async Task UpdateCareerPathRuleAsync(CareerPathRuleDto dto, CancellationToken cancellationToken = default)
     {
         await ValidateJobIdsExistAsync(dto.PositionJobIds, cancellationToken);
 
-        var entity = await context.CareerMapRules
+        var entity = await context.CareerPathRules
             .Include(r => r.Positions)
             .FirstOrDefaultAsync(r => r.Id == dto.Id, cancellationToken)
-            ?? throw new EntityNotFoundException(nameof(CareerMapRule), dto.Id);
+            ?? throw new EntityNotFoundException(nameof(CareerPathRule), dto.Id);
 
         ApplyDto(dto, entity);
 
@@ -87,24 +81,24 @@ public class CareerPathService(AppDbContext context, IMapper mapper) : ICareerPa
         var incomingJobIds = dto.PositionJobIds.ToHashSet();
 
         var toRemove = entity.Positions.Where(p => !incomingJobIds.Contains(p.JobId)).ToList();
-        context.CareerMapRulePositions.RemoveRange(toRemove);
+        context.CareerPathRuleJobs.RemoveRange(toRemove);
 
         foreach (var jobId in incomingJobIds.Except(existingJobIds))
         {
-            context.CareerMapRulePositions.Add(new CareerMapRulePosition
+            context.CareerPathRuleJobs.Add(new CareerPathRuleJob
             {
-                CareerMapRuleId = entity.Id,
-                JobId           = jobId
+                CareerPathRuleId = entity.Id,
+                JobId            = jobId
             });
         }
 
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task DeleteCareerMapRuleAsync(int id, CancellationToken cancellationToken = default)
+    public async Task DeleteCareerPathRuleAsync(int id, CancellationToken cancellationToken = default)
     {
-        var entity = await context.CareerMapRules.FindRequiredAsync(id, nameof(CareerMapRule), cancellationToken);
-        context.CareerMapRules.Remove(entity);
+        var entity = await context.CareerPathRules.FindRequiredAsync(id, nameof(CareerPathRule), cancellationToken);
+        context.CareerPathRules.Remove(entity);
         await context.SaveChangesAsync(cancellationToken);
     }
 
@@ -121,7 +115,7 @@ public class CareerPathService(AppDbContext context, IMapper mapper) : ICareerPa
             throw new EntityNotFoundException($"Job ids not found: {string.Join(", ", missingIds)}");
     }
 
-    private static CareerMapRule ApplyDto(CareerMapRuleDto dto, CareerMapRule entity)
+    private static CareerPathRule ApplyDto(CareerPathRuleDto dto, CareerPathRule entity)
     {
         entity.CareerPathId                 = dto.CareerPathId;
         entity.Grade                        = dto.Grade;
@@ -136,6 +130,18 @@ public class CareerPathService(AppDbContext context, IMapper mapper) : ICareerPa
         entity.EnglishProficiency           = dto.EnglishProficiency;
         entity.ProjectObjective             = dto.ProjectObjective;
         entity.CommitteeApproval            = dto.CommitteeApproval;
+
+        entity.SalaryIncreasePercent = dto.SalaryIncreasePercent;
+
+        entity.PrivatePensionInsuranceAmount   = dto.PrivatePensionInsuranceAmount;
+        entity.PrivatePensionInsuranceCurrency = dto.PrivatePensionInsuranceCurrency;
+
+        entity.EmployerContributionUpperLimitAmount   = dto.EmployerContributionUpperLimitAmount;
+        entity.EmployerContributionUpperLimitCurrency = dto.EmployerContributionUpperLimitCurrency;
+
+        entity.MealAllowanceAmount   = dto.MealAllowanceAmount;
+        entity.MealAllowanceCurrency = dto.MealAllowanceCurrency;
+
         return entity;
     }
 }
