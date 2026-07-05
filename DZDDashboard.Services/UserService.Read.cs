@@ -1,5 +1,5 @@
-using AutoMapper.QueryableExtensions;
 using DZDDashboard.Common.DTOs;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 
 namespace DZDDashboard.Services;
@@ -10,7 +10,7 @@ public partial class UserService
         => await context.Users
             .AsNoTracking()
             .Where(x => x.Id == id)
-            .ProjectTo<UserProfileDto>(mapper.ConfigurationProvider)
+            .ProjectToType<UserProfileDto>(mapper.Config)
             .FirstOrDefaultAsync(cancellationToken);
 
     public async Task<PagedResult<UserSummaryDto>> GetAllSummariesAsync(int page, int pageSize, CancellationToken cancellationToken = default)
@@ -74,32 +74,32 @@ public partial class UserService
         => await context.Users
             .AsNoTracking()
             .Where(u => u.Id == id)
-            .ProjectTo<EmployeeCardDto>(mapper.ConfigurationProvider)
+            .ProjectToType<EmployeeCardDto>(mapper.Config)
             .FirstOrDefaultAsync(cancellationToken);
 
     public async Task<EmployeeCardDto?> GetEmployeeCardBySlugAsync(string slug, CancellationToken cancellationToken = default)
         => await context.Users
             .AsNoTracking()
             .Where(u => u.Slug == slug)
-            .ProjectTo<EmployeeCardDto>(mapper.ConfigurationProvider)
+            .ProjectToType<EmployeeCardDto>(mapper.Config)
             .FirstOrDefaultAsync(cancellationToken);
 
     public async Task<UserAvatarDto?> GetAvatarByUserIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        var avatar = await context.UserAvatars
+        var avatarId = await context.Users
             .AsNoTracking()
-            .Where(a => a.UserId == id)
-            .Select(a => new { a.StorageId, a.ContentType })
+            .Where(u => u.Id == id)
+            .Select(u => u.AvatarId)
             .FirstOrDefaultAsync(cancellationToken);
-        if (avatar is null) return null;
+        if (avatarId is not int fileId) return null;
 
-        var file = await fileStorage.GetAsync(avatar.StorageId, cancellationToken);
+        var file = await fileStorage.GetAsync(fileId, cancellationToken);
         if (file is null) return null;
 
         return new UserAvatarDto
         {
             ContentBase64 = Convert.ToBase64String(file.Value.Content),
-            ContentType   = avatar.ContentType ?? file.Value.ContentType
+            ContentType   = file.Value.ContentType
         };
     }
 
@@ -163,7 +163,7 @@ public partial class UserService
                 AvatarColorIndex       = u.AvatarColorIndex,
                 HasAvatar              = u.Avatar != null,
                 AvatarUpdatedAt        = u.Avatar != null ? (u.Avatar.ModifiedAt ?? u.Avatar.CreatedAt) : null,
-                CompanyName            = u.CompanyName,
+                CompanyId              = u.CompanyId,
                 DepartmentId           = u.DepartmentId,
                 TeamId                 = u.TeamId,
                 OrganizationPositionId = u.OrganizationPositionId,

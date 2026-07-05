@@ -8,7 +8,9 @@
 <div class="dzd-payment-section">
     @if (_loading)
     {
-        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+        <MudStack AlignItems="AlignItems.Center" Class="py-8">
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+        </MudStack>
     }
     else if (_loadError is not null)
     {
@@ -38,7 +40,7 @@
                 </MudItem>
                 <MudItem xs="12" sm="6" md="3">
                     <InfoCard Label="@Loc["payment.additionalPayments"]"
-                              Value="@FormatMoneyTotals(AdditionalPaymentsTotal)"
+                              Value="@FormatMoneyTotals(_payment.Summary.ActiveAdditionalPaymentsTotal)"
                               Icon="@DzdIcons.Award"
                               Accent="InfoCard.AccentColor.Green"
                               Class="dzd-payment-summary" />
@@ -346,7 +348,8 @@
                                             <th>@Loc["payment.colAmount"]</th>
                                             <th>@Loc["payment.colCurrency"]</th>
                                             <th>@Loc["payment.colPeriod"]</th>
-                                            <th>@Loc["payment.colPaymentDate"]</th>
+                                            <th>@Loc["payment.startDate"]</th>
+                                            <th>@Loc["payment.endDate"]</th>
                                             <th>@Loc["payment.colDescription"]</th>
                                             @if (!SelfService)
                                             {
@@ -362,11 +365,8 @@
                                                 <td class="dzd-cell-amount">@record.Amount.ToString("N3")</td>
                                                 <td>@GetCurrencyName(record.Currency)</td>
                                                 <td>@GetAdditionalPaymentPeriodName(record.Period)</td>
-                                                <td>
-                                                    @(record.Period == AdditionalPaymentPeriods.OneTime
-                                                        ? AppFormatter.FormatDate(record.PaymentDate)
-                                                        : $"{AppFormatter.FormatDate(record.StartDate)} — {(record.EndDate.HasValue ? AppFormatter.FormatDate(record.EndDate) : Loc["payment.present"])}")
-                                                </td>
+                                                <td>@AppFormatter.FormatDate(record.StartDate)</td>
+                                                <td>@(record.EndDate.HasValue ? AppFormatter.FormatDate(record.EndDate) : Loc["payment.ongoing"])</td>
                                                 <td class="dzd-cell-desc">@(string.IsNullOrWhiteSpace(record.Description) ? "—" : record.Description)</td>
                                                 @if (!SelfService)
                                                 {
@@ -416,7 +416,8 @@
                                             <th>@Loc["payment.colAmount"]</th>
                                             <th>@Loc["payment.colCurrency"]</th>
                                             <th>@Loc["payment.colPeriod"]</th>
-                                            <th>@Loc["payment.colPaymentDate"]</th>
+                                            <th>@Loc["payment.startDate"]</th>
+                                            <th>@Loc["payment.endDate"]</th>
                                             <th>@Loc["payment.colDescription"]</th>
                                             @if (!SelfService)
                                             {
@@ -433,6 +434,7 @@
                                                 <td>@GetCurrencyName(record.Currency)</td>
                                                 <td>@GetAdditionalPaymentPeriodName(record.Period)</td>
                                                 <td>@AppFormatter.FormatDate(record.StartDate)</td>
+                                                <td>@(record.EndDate.HasValue ? AppFormatter.FormatDate(record.EndDate) : Loc["payment.ongoing"])</td>
                                                 <td class="dzd-cell-desc">@(string.IsNullOrWhiteSpace(record.Notes) ? "—" : record.Notes)</td>
                                                 @if (!SelfService)
                                                 {

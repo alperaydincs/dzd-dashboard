@@ -30,10 +30,8 @@ public class ChecklistItem : AuditableEntity
     public int?      CompletedById { get; set; }
     public User?     CompletedBy   { get; set; }
 
-    public int?     DocumentStoredFileId { get; set; }
-    public StoredFile? DocumentStoredFile { get; set; }
-    public string?  DocumentFileName     { get; set; }
-    public string?  DocumentContentType  { get; set; }
+    public UserOnboardingDocument?  OnboardingDocument  { get; set; }
+    public UserOffboardingDocument? OffboardingDocument { get; set; }
 
     public string?  ProviderName   { get; set; }
     public string?  Currency       { get; set; }

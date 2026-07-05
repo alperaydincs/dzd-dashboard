@@ -186,6 +186,15 @@ public class UsersController(
         return NoContent();
     }
 
+    [HttpDelete("my-profile/avatar")]
+    public async Task<IActionResult> RemoveMyAvatar(CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var userId)) return Unauthorized();
+
+        await writeService.RemoveAvatarAsync(userId, cancellationToken);
+        return NoContent();
+    }
+
     [HttpPut("my-profile/avatar-color")]
     public async Task<IActionResult> UpdateMyAvatarColor([FromBody] AvatarColorUpdateDto dto, CancellationToken cancellationToken)
     {

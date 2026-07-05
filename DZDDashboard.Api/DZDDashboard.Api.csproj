@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     
@@ -10,21 +10,25 @@
 
   <ItemGroup>
     
-    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />
+    <PackageReference Include="Mapster.DependencyInjection" Version="10.0.10" />
     
-    <PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="10.0.8" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <PackageReference Include="SharpGrip.FluentValidation.AutoValidation.Mvc" Version="2.0.0" />
     
-    <ProjectReference Include="..\DZDDashboard.Common\DZDDashboard.Common.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="10.0.9" />
+    
+<ProjectReference Include="..\DZDDashboard.Common\DZDDashboard.Common.csproj" />
     <ProjectReference Include="..\DZDDashboard.Data\DZDDashboard.Data.csproj" />
     <ProjectReference Include="..\DZDDashboard.Services\DZDDashboard.Services.csproj" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.9">
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+    <PackageReference Include="Microsoft.OpenApi" Version="2.9.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.9" />
     <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="9.0.0" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="4.5.0" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="4.12.2" />
   </ItemGroup>
 
 </Project>

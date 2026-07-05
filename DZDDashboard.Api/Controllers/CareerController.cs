@@ -40,28 +40,28 @@ public class CareerController(ICareerPathService careerPathService) : BaseContro
     }
 
 
-    [HttpPost("careermaprules")]
+    [HttpPost("careerpathrules")]
     [Authorize(Roles = Roles.AdminOrHr)]
-    public async Task<ActionResult<CareerMapRuleDto>> CreateCareerMapRule([FromBody] CareerMapRuleDto dto, CancellationToken cancellationToken)
+    public async Task<ActionResult<CareerPathRuleDto>> CreateCareerPathRule([FromBody] CareerPathRuleDto dto, CancellationToken cancellationToken)
     {
-        var result = await careerPathService.CreateCareerMapRuleAsync(dto, cancellationToken);
+        var result = await careerPathService.CreateCareerPathRuleAsync(dto, cancellationToken);
         return StatusCode(StatusCodes.Status201Created, result);
     }
 
-    [HttpPut("careermaprules/{id}")]
+    [HttpPut("careerpathrules/{id}")]
     [Authorize(Roles = Roles.AdminOrHr)]
-    public async Task<IActionResult> UpdateCareerMapRule(int id, [FromBody] CareerMapRuleDto dto, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateCareerPathRule(int id, [FromBody] CareerPathRuleDto dto, CancellationToken cancellationToken)
     {
         if (CheckIdMismatch(id, dto.Id) is { } mismatch) return mismatch;
-        await careerPathService.UpdateCareerMapRuleAsync(dto, cancellationToken);
+        await careerPathService.UpdateCareerPathRuleAsync(dto, cancellationToken);
         return NoContent();
     }
 
-    [HttpDelete("careermaprules/{id}")]
+    [HttpDelete("careerpathrules/{id}")]
     [Authorize(Roles = Roles.AdminOrHr)]
-    public async Task<IActionResult> DeleteCareerMapRule(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> DeleteCareerPathRule(int id, CancellationToken cancellationToken)
     {
-        await careerPathService.DeleteCareerMapRuleAsync(id, cancellationToken);
+        await careerPathService.DeleteCareerPathRuleAsync(id, cancellationToken);
         return NoContent();
     }
 }

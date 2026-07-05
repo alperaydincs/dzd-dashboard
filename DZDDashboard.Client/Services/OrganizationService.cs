@@ -70,18 +70,6 @@ public class OrganizationService : ApiServiceBase, IOrganizationClientService
     public async Task<HttpResponseMessage> DeleteJobAsync(int id)
         => await DeleteAsync(ApiRoutes.Organization.Job(id));
 
-    public async Task<List<GradeDto>> GetGradesAsync()
-        => await GetAsync<List<GradeDto>>(ApiRoutes.Organization.Grades) ?? [];
-
-    public async Task<HttpResponseMessage> CreateGradeAsync(GradeDto dto)
-        => await PostAsync(ApiRoutes.Organization.Grades, dto);
-
-    public async Task<HttpResponseMessage> UpdateGradeAsync(GradeDto dto)
-        => await PutAsync(ApiRoutes.Organization.Grade(dto.Id), dto);
-
-    public async Task<HttpResponseMessage> DeleteGradeAsync(int id)
-        => await DeleteAsync(ApiRoutes.Organization.Grade(id));
-
     public async Task<List<PayrollLocationDto>> GetPayrollLocationsAsync()
         => await GetAsync<List<PayrollLocationDto>>(ApiRoutes.Organization.PayrollLocations) ?? [];
 
@@ -106,12 +94,12 @@ public class OrganizationService : ApiServiceBase, IOrganizationClientService
     public async Task<HttpResponseMessage> DeleteCareerPathAsync(int id)
         => await DeleteAsync(ApiRoutes.Organization.CareerPath(id));
 
-    public async Task<HttpResponseMessage> CreateCareerMapRuleAsync(CareerMapRuleDto dto)
-        => await PostAsync(ApiRoutes.Organization.CareerMapRules, dto);
+    public async Task<HttpResponseMessage> CreateCareerPathRuleAsync(CareerPathRuleDto dto)
+        => await PostAsync(ApiRoutes.Organization.CareerPathRules, dto);
 
-    public async Task<HttpResponseMessage> UpdateCareerMapRuleAsync(CareerMapRuleDto dto)
-        => await PutAsync(ApiRoutes.Organization.CareerMapRule(dto.Id), dto);
+    public async Task<HttpResponseMessage> UpdateCareerPathRuleAsync(CareerPathRuleDto dto)
+        => await PutAsync(ApiRoutes.Organization.CareerPathRule(dto.Id), dto);
 
-    public async Task<HttpResponseMessage> DeleteCareerMapRuleAsync(int id)
-        => await DeleteAsync(ApiRoutes.Organization.CareerMapRule(id));
+    public async Task<HttpResponseMessage> DeleteCareerPathRuleAsync(int id)
+        => await DeleteAsync(ApiRoutes.Organization.CareerPathRule(id));
 }

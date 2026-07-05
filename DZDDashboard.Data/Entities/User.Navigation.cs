@@ -3,7 +3,6 @@ namespace DZDDashboard.Data.Entities;
 public partial class User
 {
     public List<SalaryHistory>? SalaryHistories { get; set; }
-    public List<GradeHistory>?  GradeHistories  { get; set; }
     public List<PositionHistory>? PositionHistories { get; set; }
 
     public List<BenefitRecord>?     BenefitRecords     { get; set; }
@@ -12,7 +11,4 @@ public partial class User
 
     public List<EmergencyContact>?  EmergencyContacts  { get; set; }
     public List<EducationHistory>?  EducationHistories { get; set; }
-    public List<UserTraining>?      UserTrainings      { get; set; }
-    public List<TargetEffort>?      TargetEfforts      { get; set; }
-    public List<ExCompanyHistory>?  ExCompanyHistories { get; set; }
 }

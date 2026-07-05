@@ -120,7 +120,12 @@
                             <MudSelectItem Value=@("All")>@Loc["employees.all"]</MudSelectItem>
                             @foreach (var department in _departmentOptions)
                             {
-                                <MudSelectItem Value="@department">@department</MudSelectItem>
+                                <MudSelectItem Value="@department">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; width:100%; gap:12px;">
+                                        <span>@department</span>
+                                        <span style="color:#616161;">@GetDepartmentEmployeeCount(department)</span>
+                                    </div>
+                                </MudSelectItem>
                             }
                         </MudSelect>
                     </MudItem>
@@ -220,7 +225,7 @@
             {
                 <MudPaper Elevation="3" Class="org-chart-shell pa-3">
                     <div style="overflow-x: auto; padding-bottom: 20px;">
-                        <OrgChartTree Nodes="_orgNodes" />
+                        <OrgChartTree Nodes="_filteredOrgNodes" />
                     </div>
                 </MudPaper>
             }
@@ -247,6 +252,20 @@
         .Where(n => !string.IsNullOrWhiteSpace(n))
         .Distinct(StringComparer.OrdinalIgnoreCase)
         .Count();
+
+    private List<OrgChartNodeItem> _filteredOrgNodes =>
+        _roleFilter == "All"
+            ? _orgNodes
+            : OrgChartBuilder.FilterByUserIds(_orgNodes, _departmentUserIds(_roleFilter));
+
+    private HashSet<int> _departmentUserIds(string department)
+        => _users
+            .Where(u => string.Equals(u.Department?.Name, department, StringComparison.OrdinalIgnoreCase))
+            .Select(u => u.Id)
+            .ToHashSet();
+
+    private int GetDepartmentEmployeeCount(string department)
+        => _users.Count(u => string.Equals(u.Department?.Name, department, StringComparison.OrdinalIgnoreCase));
 
     private IEnumerable<UserSummaryDto> _filteredUsers =>
         _users

@@ -39,15 +39,15 @@
 
             <MudItem xs="12">
                 <MudFileUpload T="IBrowserFile" Accept=".jpg,.jpeg,.png" MaximumFileCount="1" OnFilesChanged="OnInputFileChanged">
-                    <ActivatorContent>
-                        <MudButton HtmlTag="label"
-                                   Variant="Variant.Filled"
+                    <CustomContent Context="fileUpload">
+                        <MudButton Variant="Variant.Filled"
                                    Color="Color.Primary"
                                    StartIcon="@DzdIcons.CloudUpload"
-                                   Class="mt-4">
+                                   Class="mt-4"
+                                   OnClick="@fileUpload.OpenFilePickerAsync">
                             @Loc["avatarDialog.selectPhoto"]
                         </MudButton>
-                    </ActivatorContent>
+                    </CustomContent>
                 </MudFileUpload>
                 @if (_selectedFile is not null)
                 {
@@ -56,6 +56,18 @@
                     </MudText>
                 }
             </MudItem>
+
+            @if (!string.IsNullOrEmpty(CurrentAvatarUrl) && _selectedFile is null)
+            {
+                <MudItem xs="12" Class="d-flex justify-center">
+                    <MudButton Variant="Variant.Text"
+                               Color="Color.Error"
+                               StartIcon="@DzdIcons.Trash2"
+                               OnClick="RemovePhoto">
+                        @Loc["avatarDialog.removePhoto"]
+                    </MudButton>
+                </MudItem>
+            }
 
         </MudGrid>
     </DialogContent>
@@ -132,6 +144,9 @@
 
         MudDialog.Close(DialogResult.Ok(new AvatarDialogResult(file, _selectedColorIndex, colorChanged)));
     }
+
+    void RemovePhoto()
+        => MudDialog.Close(DialogResult.Ok(new AvatarDialogResult(null, _selectedColorIndex, false, Removed: true)));
 
     void Cancel() => MudDialog.Cancel();
 }

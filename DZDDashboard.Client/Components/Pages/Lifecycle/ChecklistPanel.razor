@@ -89,9 +89,10 @@
                         <MudIconButton Icon="@DzdIcons.Trash2" Color="Color.Error" Size="Size.Small" OnClick="@(() => OnDeleteDocument.InvokeAsync(item.Id))" />
                     }
                     <MudFileUpload T="IBrowserFile" FilesChanged="@(f => OnFileSelected(item.Id, f))" MaximumFileCount="1">
-                        <ActivatorContent>
-                            <MudButton Size="Size.Small" Variant="Variant.Outlined" StartIcon="@DzdIcons.Upload">@Loc["checklist.documentLabel"]</MudButton>
-                        </ActivatorContent>
+                        <CustomContent Context="fileUpload">
+                            <MudButton Size="Size.Small" Variant="Variant.Outlined" StartIcon="@DzdIcons.Upload"
+                                       OnClick="@fileUpload.OpenFilePickerAsync">@Loc["checklist.documentLabel"]</MudButton>
+                        </CustomContent>
                     </MudFileUpload>
                 </MudItem>
             </MudGrid>

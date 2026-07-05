@@ -1,5 +1,6 @@
 using DZDDashboard.Client.Components.OrgChart;
 using DZDDashboard.Client.Components.Pages.Admin.Dialogs;
+using DZDDashboard.Client.Components.Shared;
 using DZDDashboard.Client.Services;
 using DZDDashboard.Common.DTOs;
 using DZDDashboard.Common.Utils;
@@ -185,11 +186,18 @@ public partial class Settings
         if (await dialog.Result is { Canceled: false }) await (refresh ?? LoadData)();
     }
 
-    private async Task ConfirmDeleteAsync(string entityType, string entityName,
+    private static readonly DialogOptions DeleteConfirmDialogOptions = new() { MaxWidth = MaxWidth.Small, FullWidth = true, NoHeader = true, CloseButton = false };
+
+    private async Task ConfirmDeleteAsync(string entityType, string message,
         Func<Task<HttpResponseMessage>> deleteFunc, Func<Task>? refresh = null)
     {
-        if (await DialogServiceRef.ShowMessageBox(string.Format(Loc["settings.deleteEntityTitle"], entityType), string.Format(Loc["settings.deleteEntityConfirm"], entityName),
-            yesText: Loc["payment.delete"], cancelText: Loc["common.cancel"]) != true) return;
+        var parameters = new DialogParameters
+        {
+            ["Title"]   = string.Format(Loc["settings.deleteEntityTitle"], entityType),
+            ["Message"] = message,
+        };
+        var dialog = await DialogServiceRef.ShowAsync<DeleteConfirmDialog>(string.Empty, parameters, DeleteConfirmDialogOptions);
+        if (await dialog.Result is not { Canceled: false }) return;
 
         var response = await deleteFunc();
         if (response.IsSuccessStatusCode) { await (refresh ?? LoadData)(); Snackbar.Add(string.Format(Loc["settings.entityDeleted"], entityType), Severity.Success); }
@@ -211,17 +219,33 @@ public partial class Settings
             new() { ["Team"] = t with { }, ["Companies"] = _companies, ["Departments"] = _departments },
             RefreshTeamsAsync);
 
-    private Task DeleteCompany(CompanyDto c)       => ConfirmDeleteAsync(Loc["employeeProfile.company"],    c.Name ?? "", () => OrgService.DeleteCompanyAsync(c.Id),    RefreshCompanyHierarchyAsync);
-    private Task DeleteDepartment(DepartmentDto d)  => ConfirmDeleteAsync(Loc["employeeProfile.department"], d.Name ?? "", () => OrgService.DeleteDepartmentAsync(d.Id), RefreshDeptHierarchyAsync);
-    private Task DeleteTeam(TeamDto t)              => ConfirmDeleteAsync(Loc["settings.team"],       t.Name ?? "", () => OrgService.DeleteTeamAsync(t.Id),       RefreshTeamsAsync);
+    private Task DeleteCompany(CompanyDto c)
+    {
+        var deptCount = _departments.Count(d => d.CompanyId == c.Id);
+        var teamCount = _teams.Count(t => _departments.Any(d => d.Id == t.DepartmentId && d.CompanyId == c.Id));
+        var message = string.Format(Loc["settings.deleteCompanyConfirm"], c.Name, deptCount, teamCount);
+        return ConfirmDeleteAsync(Loc["employeeProfile.company"], message, () => OrgService.DeleteCompanyAsync(c.Id), RefreshCompanyHierarchyAsync);
+    }
+
+    private Task DeleteDepartment(DepartmentDto d)
+    {
+        var teamCount = _teams.Count(t => t.DepartmentId == d.Id);
+        var message = string.Format(Loc["settings.deleteDepartmentConfirm"], d.Name, teamCount);
+        return ConfirmDeleteAsync(Loc["employeeProfile.department"], message, () => OrgService.DeleteDepartmentAsync(d.Id), RefreshDeptHierarchyAsync);
+    }
+
+    private Task DeleteTeam(TeamDto t)
+        => ConfirmDeleteAsync(Loc["settings.team"], string.Format(Loc["settings.deleteTeamConfirm"], t.Name), () => OrgService.DeleteTeamAsync(t.Id), RefreshTeamsAsync);
 
     private Task OpenAddJobDialog()             => ShowCrudDialogAsync<JobDialog>(string.Format(Loc["settings.addEntityTitle"], Loc["settings.jobTitle"]),  new() { ["Job"] = new JobDto() },  RefreshJobsAsync);
     private Task OpenEditJobDialog(JobDto j)    => ShowCrudDialogAsync<JobDialog>(string.Format(Loc["settings.editEntityTitle"], Loc["settings.jobTitle"]), new() { ["Job"] = j with { } },   RefreshJobsAsync);
-    private Task DeleteJob(JobDto j)            => ConfirmDeleteAsync(Loc["settings.jobTitle"], j.Name ?? "", () => OrgService.DeleteJobAsync(j.Id), RefreshJobsAsync);
+    private Task DeleteJob(JobDto j)
+        => ConfirmDeleteAsync(Loc["settings.jobTitle"], string.Format(Loc["settings.deleteJobTitleConfirm"], j.Name), () => OrgService.DeleteJobAsync(j.Id), RefreshJobsAsync);
 
     private Task OpenAddPayrollLocationDialog()                   => ShowCrudDialogAsync<PayrollLocationDialog>(string.Format(Loc["settings.addEntityTitle"], Loc["settings.payrollLocationSingular"]),  new() { ["PayrollLocation"] = new PayrollLocationDto() }, RefreshPayrollLocationsAsync);
     private Task OpenEditPayrollLocationDialog(PayrollLocationDto l) => ShowCrudDialogAsync<PayrollLocationDialog>(string.Format(Loc["settings.editEntityTitle"], Loc["settings.payrollLocationSingular"]), new() { ["PayrollLocation"] = l with { } },            RefreshPayrollLocationsAsync);
-    private Task DeletePayrollLocation(PayrollLocationDto l)         => ConfirmDeleteAsync(Loc["settings.payrollLocationSingular"], l.Name ?? "", () => OrgService.DeletePayrollLocationAsync(l.Id),                  RefreshPayrollLocationsAsync);
+    private Task DeletePayrollLocation(PayrollLocationDto l)
+        => ConfirmDeleteAsync(Loc["settings.payrollLocationSingular"], string.Format(Loc["settings.deletePayrollLocationConfirm"], l.Name), () => OrgService.DeletePayrollLocationAsync(l.Id), RefreshPayrollLocationsAsync);
 
     private void BuildOrgChart(List<OrganizationPositionDto> positions)
         => _orgNodes = OrgChartBuilder.Build(positions);
@@ -304,11 +328,8 @@ public partial class Settings
             return;
         }
 
-        if (await DialogServiceRef.ShowMessageBox(string.Format(Loc["settings.deleteEntityTitle"], Loc["settings.position"]), Loc["settings.areYouSure"], yesText: Loc["payment.delete"], cancelText: Loc["common.cancel"]) != true) return;
-
-        var response = await OrgService.DeleteOrganizationPositionAsync(node.Position.Id);
-        if (response.IsSuccessStatusCode) { await RefreshPositionsAsync(); Snackbar.Add(Loc["settings.positionDeleted"], Severity.Success); }
-        else Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(response) ?? Loc["settings.positionDeleteFailed"], Severity.Error);
+        await ConfirmDeleteAsync(Loc["settings.position"], Loc["settings.areYouSure"],
+            () => OrgService.DeleteOrganizationPositionAsync(node.Position.Id), RefreshPositionsAsync);
     }
 
 }

@@ -40,36 +40,6 @@ public class ReferenceDataController(IReferenceDataService refDataService) : Bas
     }
 
 
-    [HttpGet("grades")]
-    public async Task<ActionResult<List<GradeDto>>> GetGrades(CancellationToken cancellationToken)
-        => Ok(await refDataService.GetGradesAsync(cancellationToken));
-
-    [HttpPost("grades")]
-    [Authorize(Roles = Roles.Admin)]
-    public async Task<ActionResult<GradeDto>> CreateGrade([FromBody] GradeDto dto, CancellationToken cancellationToken)
-    {
-        var result = await refDataService.CreateGradeAsync(dto, cancellationToken);
-        return CreatedAtAction(nameof(GetGrades), null, result);
-    }
-
-    [HttpPut("grades/{id}")]
-    [Authorize(Roles = Roles.Admin)]
-    public async Task<IActionResult> UpdateGrade(int id, [FromBody] GradeDto dto, CancellationToken cancellationToken)
-    {
-        if (CheckIdMismatch(id, dto.Id) is { } mismatch) return mismatch;
-        await refDataService.UpdateGradeAsync(dto, cancellationToken);
-        return NoContent();
-    }
-
-    [HttpDelete("grades/{id}")]
-    [Authorize(Roles = Roles.Admin)]
-    public async Task<IActionResult> DeleteGrade(int id, CancellationToken cancellationToken)
-    {
-        await refDataService.DeleteGradeAsync(id, cancellationToken);
-        return NoContent();
-    }
-
-
     [HttpGet("payrolllocations")]
     public async Task<ActionResult<List<PayrollLocationDto>>> GetPayrollLocations(CancellationToken cancellationToken)
         => Ok(await refDataService.GetPayrollLocationsAsync(cancellationToken));

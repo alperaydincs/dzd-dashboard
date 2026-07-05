@@ -53,7 +53,7 @@ public class ChecklistEngine(
 
         EnsureGateUnblocked(item, siblings);
 
-        if (item.RequiresDocument && item.DocumentStoredFileId is null)
+        if (item.RequiresDocument && item.OnboardingDocument is null && item.OffboardingDocument is null)
             throw new DomainValidationException("Bu adım tamamlanmadan önce bir belge yüklenmelidir.");
 
         if (item.BenefitKind != ChecklistBenefitKinds.None)
@@ -108,32 +108,71 @@ public class ChecklistEngine(
 
     public async Task UploadDocumentAsync(ChecklistItem item, string fileName, string contentType, byte[] content, CancellationToken cancellationToken)
     {
-        if (item.DocumentStoredFileId is { } existing)
+        var existingFileId = item.OnboardingDocument?.FileId ?? item.OffboardingDocument?.FileId;
+        if (existingFileId is { } existing)
             await fileStorage.DeleteAsync(existing, cancellationToken);
 
         var storageId = await fileStorage.SaveAsync(content, contentType, cancellationToken);
-        item.DocumentStoredFileId = storageId;
-        item.DocumentFileName     = fileName;
-        item.DocumentContentType  = contentType;
+
+        if (item.OnboardingProcessId.HasValue)
+        {
+            if (item.OnboardingDocument is null)
+            {
+                item.OnboardingDocument = new UserOnboardingDocument { ChecklistItemId = item.Id };
+                context.UserOnboardingDocuments.Add(item.OnboardingDocument);
+            }
+            item.OnboardingDocument.FileId      = storageId;
+            item.OnboardingDocument.FileName    = fileName;
+            item.OnboardingDocument.ContentType = contentType;
+        }
+        else if (item.OffboardingProcessId.HasValue)
+        {
+            if (item.OffboardingDocument is null)
+            {
+                item.OffboardingDocument = new UserOffboardingDocument { ChecklistItemId = item.Id };
+                context.UserOffboardingDocuments.Add(item.OffboardingDocument);
+            }
+            item.OffboardingDocument.FileId      = storageId;
+            item.OffboardingDocument.FileName    = fileName;
+            item.OffboardingDocument.ContentType = contentType;
+        }
+
         await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task DeleteDocumentAsync(ChecklistItem item, CancellationToken cancellationToken)
     {
-        if (item.DocumentStoredFileId is not { } storageId) return;
+        var fileId = item.OnboardingDocument?.FileId ?? item.OffboardingDocument?.FileId;
+        if (fileId is not { } storageId) return;
+
         await fileStorage.DeleteAsync(storageId, cancellationToken);
-        item.DocumentStoredFileId = null;
-        item.DocumentFileName     = null;
-        item.DocumentContentType  = null;
+
+        if (item.OnboardingDocument is not null)
+        {
+            context.UserOnboardingDocuments.Remove(item.OnboardingDocument);
+            item.OnboardingDocument = null;
+        }
+        if (item.OffboardingDocument is not null)
+        {
+            context.UserOffboardingDocuments.Remove(item.OffboardingDocument);
+            item.OffboardingDocument = null;
+        }
+
         await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<(byte[] Content, string? ContentType, string FileName)?> GetDocumentAsync(ChecklistItem item, CancellationToken cancellationToken)
     {
-        if (item.DocumentStoredFileId is not { } storageId) return null;
+        var doc = item.OnboardingDocument is not null
+            ? (item.OnboardingDocument.FileId, item.OnboardingDocument.ContentType, item.OnboardingDocument.FileName)
+            : item.OffboardingDocument is not null
+                ? (item.OffboardingDocument.FileId, item.OffboardingDocument.ContentType, item.OffboardingDocument.FileName)
+                : ((int?)null, null, null);
+
+        if (doc.Item1 is not { } storageId) return null;
         var file = await fileStorage.GetAsync(storageId, cancellationToken);
         if (file is null) return null;
-        return (file.Value.Content, file.Value.ContentType ?? item.DocumentContentType, item.DocumentFileName ?? "document");
+        return (file.Value.Content, file.Value.ContentType ?? doc.Item2, doc.Item3 ?? "document");
     }
 
     private static void EnsureGateUnblocked(ChecklistItem item, IReadOnlyList<ChecklistItem> siblings)
@@ -241,8 +280,8 @@ public class ChecklistEngine(
             CompletedByName = item.CompletedBy != null
                 ? AppFormatter.BuildFullName(item.CompletedBy.FirstName, item.CompletedBy.LastName)
                 : null,
-            HasDocument      = item.DocumentStoredFileId.HasValue,
-            DocumentFileName = item.DocumentFileName,
+            HasDocument      = item.OnboardingDocument is not null || item.OffboardingDocument is not null,
+            DocumentFileName = item.OnboardingDocument?.FileName ?? item.OffboardingDocument?.FileName,
             ProviderName     = item.ProviderName,
             Currency         = item.Currency,
             EmployeeAmount   = item.EmployeeAmount,

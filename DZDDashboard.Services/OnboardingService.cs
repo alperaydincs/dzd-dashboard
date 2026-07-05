@@ -14,8 +14,7 @@ public class OnboardingService(
     AppDbContext context,
     IAuditProvider audit,
     ChecklistEngine engine,
-    IFileStorageService fileStorage,
-    IUserDocumentService documents) : IOnboardingService
+    IFileStorageService fileStorage) : IOnboardingService
 {
     public async Task<List<OnboardingListItemDto>> GetAllAsync(CancellationToken cancellationToken = default)
         => await context.OnboardingProcesses.AsNoTracking()
@@ -126,6 +125,7 @@ public class OnboardingService(
             .Include(p => p.Manager)
             .Include(p => p.Items).ThenInclude(i => i.Dependents)
             .Include(p => p.Items).ThenInclude(i => i.CompletedBy)
+            .Include(p => p.Items).ThenInclude(i => i.OnboardingDocument)
             .AsSplitQuery()
             .FirstOrDefaultAsync(p => p.Id == processId, cancellationToken)
            ?? throw new EntityNotFoundException(nameof(OnboardingProcess), processId);
@@ -188,15 +188,13 @@ public class OnboardingService(
     {
         var process = await LoadAsync(processId, cancellationToken);
 
-        foreach (var item in process.Items.Where(i => i.DocumentStoredFileId.HasValue))
-            await fileStorage.DeleteAsync(item.DocumentStoredFileId!.Value, cancellationToken);
-
-        var userDocs = await context.UserDocuments
-            .Where(d => d.UserId == process.UserId)
-            .Select(d => d.Id)
-            .ToListAsync(cancellationToken);
-        foreach (var docId in userDocs)
-            await documents.DeleteAsync(process.UserId, docId, cancellationToken);
+        foreach (var item in process.Items.Where(i => i.OnboardingDocument is not null))
+        {
+            if (item.OnboardingDocument!.FileId is int fileId)
+                await fileStorage.DeleteAsync(fileId, cancellationToken);
+            context.UserOnboardingDocuments.Remove(item.OnboardingDocument);
+            item.OnboardingDocument = null;
+        }
 
         process.Status      = ProcessStatuses.Cancelled;
         process.CompletedAt = null;

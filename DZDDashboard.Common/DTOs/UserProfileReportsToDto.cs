@@ -6,6 +6,7 @@ public record UserProfileReportsToDto
     public string? FirstName { get; init; }
     public string? LastName { get; init; }
     public int? AvatarColorIndex { get; init; }
+    public int? OrganizationPositionId { get; init; }
     public DepartmentDto? Department { get; init; }
     public JobDto? Job { get; init; }
     public string? Email { get; init; }

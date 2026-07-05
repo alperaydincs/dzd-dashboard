@@ -15,8 +15,8 @@ public record UserProfileDto
     public string? ContractType { get; init; }
     public DateTime? ContractEndDate { get; init; }
     public string? WorkModel { get; init; }
-    public string? CompanyName { get; init; }
-    public string? ApprovalProcessUnit { get; init; }
+    public int? CompanyId { get; init; }
+    public CompanyDto? Company { get; init; }
     public int? Grade { get; init; }
     public UserProfileReportsToDto? ReportsTo { get; init; }
     public DepartmentDto? Department { get; init; }

@@ -18,9 +18,9 @@ public class RoleDurationDtoValidator : AbstractValidator<RoleDurationDto>
     }
 }
 
-public class CareerMapRuleDtoValidator : AbstractValidator<CareerMapRuleDto>
+public class CareerPathRuleDtoValidator : AbstractValidator<CareerPathRuleDto>
 {
-    public CareerMapRuleDtoValidator()
+    public CareerPathRuleDtoValidator()
     {
         RuleFor(x => x.CareerPathId)
             .GreaterThan(0).WithMessage("Career path is required.");
@@ -31,7 +31,7 @@ public class CareerMapRuleDtoValidator : AbstractValidator<CareerMapRuleDto>
             .WithMessage($"Grade must be between {ValidationConstants.MinGrade} and {ValidationConstants.MaxGrade}.");
 
         RuleFor(x => x.PositionJobIds)
-            .NotEmpty().WithMessage("At least one job must be assigned to the career map rule.");
+            .NotEmpty().WithMessage("At least one job must be assigned to the career path rule.");
 
         RuleFor(x => x.MinRoleTime).SetValidator(new RoleDurationDtoValidator());
         RuleFor(x => x.MinExperience).SetValidator(new RoleDurationDtoValidator());
@@ -42,8 +42,9 @@ public class UpdateCareerAssignmentDtoValidator : AbstractValidator<UpdateCareer
 {
     public UpdateCareerAssignmentDtoValidator()
     {
-        RuleFor(x => x.CompanyName)
-            .MaximumLength(ValidationConstants.MaxStandardLength).When(x => x.CompanyName != null);
+        RuleFor(x => x.CompanyId)
+            .GreaterThan(0).When(x => x.CompanyId.HasValue)
+            .WithMessage("Company id must be a positive integer.");
 
         RuleFor(x => x.DepartmentId)
             .GreaterThan(0).When(x => x.DepartmentId.HasValue)

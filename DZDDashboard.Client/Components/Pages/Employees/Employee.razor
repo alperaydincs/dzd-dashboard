@@ -5,7 +5,6 @@
 @using DZDDashboard.Client.Services
 @using DZDDashboard.Common.Constants
 @using DZDDashboard.Common.Utils
-@using IntlTelInputBlazor
 @using Microsoft.AspNetCore.Components.Forms
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-3">
@@ -53,7 +52,7 @@
                                 <MudText Typo="Typo.h5" Style="font-weight: 600; color: var(--dzd-text-primary);">@_fullName</MudText>
                                 <MudChip T="string" Color="@LifecycleColor(_profile.LifecycleStatus, _profile.IsActive)" Variant="Variant.Text" Size="Size.Small">@LifecycleLabel(_profile.LifecycleStatus, _profile.IsActive)</MudChip>
                                 <MudSpacer />
-                                <MudChip T="string" Variant="Variant.Text" Size="Size.Small" Style="background-color:var(--dzd-bg-input); color:var(--dzd-text-secondary);">@(_profile.CompanyName ?? "-")</MudChip>
+                                <MudChip T="string" Variant="Variant.Text" Size="Size.Small" Style="background-color:var(--dzd-bg-input); color:var(--dzd-text-secondary);">@(_profile.Company?.Name ?? "-")</MudChip>
                             </MudStack>
                             <MudDivider Class="my-1" />
                             
@@ -556,6 +555,36 @@
                                 </div>
                             }
                         }
+
+                        @{
+                            var benefits = CurrentGradeBenefits();
+                        }
+                        @if (benefits.Count > 0)
+                        {
+                            <div class="clp-req-box">
+                                <MudText Typo="Typo.subtitle1" Style="font-weight:600;">@Loc["employeeProfile.currentGradeBenefits"]</MudText>
+                                @if (_profile?.Grade is int bg)
+                                {
+                                    <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">@string.Format(Loc["employeeProfile.currentGradeBenefitsSubtitle"], bg)</MudText>
+                                }
+
+                                <div class="clp-benefit-grid">
+                                    @foreach (var benefit in benefits)
+                                    {
+                                        <div class="clp-benefit-item">
+                                            <span class="clp-req-icon" style="@($"background:{benefit.IconBg};color:{benefit.IconColor};")">
+                                                <MudIcon Icon="@benefit.Icon" Size="Size.Small" />
+                                            </span>
+                                            <div class="clp-benefit-text">
+                                                <span class="clp-benefit-name">@benefit.Name</span>
+                                                <span class="clp-benefit-value">@benefit.Value</span>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+
                     </MudPaper>
 
                     <MudPaper Elevation="0" Class="pa-4" Style="border-radius:12px; border:1px solid var(--dzd-bg-input);">
@@ -567,10 +596,11 @@
                             @if (!SelfService)
                             {
                                 <MudFileUpload T="IBrowserFile" Accept="@CvAcceptList" MaximumFileCount="1" OnFilesChanged="OnCvFileSelected">
-                                    <ActivatorContent>
-                                        <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium"
-                                                   StartIcon="@DzdIcons.Upload" Disabled="@_cvUploading">@Loc["employeeProfile.uploadNewCv"]</MudButton>
-                                    </ActivatorContent>
+                                    <CustomContent Context="fileUpload">
+                                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium"
+                                                   StartIcon="@DzdIcons.Upload" Disabled="@_cvUploading"
+                                                   OnClick="@fileUpload.OpenFilePickerAsync">@Loc["employeeProfile.uploadNewCv"]</MudButton>
+                                    </CustomContent>
                                 </MudFileUpload>
                             }
                         </MudStack>
@@ -676,7 +706,7 @@
                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.CalendarDays" Size="Size.Small" Style="color: var(--dzd-brand-secondary) !important;" /> @Loc["employeeProfile.jobStartDate"]</div>
                                     @if (_basicInfoEdit.IsEditing)
                                     {
-                                        <MudDatePicker AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" Date="@_profile.UserStartDate" DateChanged="@(d => _profile.UserStartDate = d)" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input" DateFormat="dd.MM.yyyy" />
+                                        <MudDatePicker AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" Date="@_profile.UserStartDate" DateChanged="@(d => _profile.UserStartDate = d)" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input" DateFormat="dd.MM.yyyy" />
                                     }
                                     else
                                     {
@@ -688,7 +718,7 @@
                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Calendar" Size="Size.Small" Style="color: var(--dzd-brand-primary) !important;" /> @Loc["employeeProfile.positionStartDate"]</div>
                                     @if (_basicInfoEdit.IsEditing)
                                     {
-                                        <MudDatePicker AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" Date="@_profile.PositionStartDate" DateChanged="@(d => _profile.PositionStartDate = d)" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input" DateFormat="dd.MM.yyyy" />
+                                        <MudDatePicker AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" Date="@_profile.PositionStartDate" DateChanged="@(d => _profile.PositionStartDate = d)" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input" DateFormat="dd.MM.yyyy" />
                                     }
                                     else
                                     {
@@ -722,7 +752,7 @@
                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.CalendarX" Size="Size.Small" Style="color: #F46036 !important;" /> @Loc["employeeProfile.contractEndDate"]</div>
                                     @if (_basicInfoEdit.IsEditing)
                                     {
-                                        <MudDatePicker AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" Date="@_profile.ContractEndDate" DateChanged="@(d => _profile.ContractEndDate = d)" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input" DateFormat="dd.MM.yyyy" />
+                                        <MudDatePicker AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" Date="@_profile.ContractEndDate" DateChanged="@(d => _profile.ContractEndDate = d)" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input" DateFormat="dd.MM.yyyy" Clearable="true" />
                                     }
                                     else
                                     {
@@ -810,9 +840,7 @@
                                             <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Phone" Size="Size.Small" Style="color: #70A37F !important;" /> @Loc["employeeProfile.workPhone"]</div>
                                             @if (_contactsEdit.IsEditing)
                                             {
-                                                <div class="dzd-intl-phone dzd-input">
-                                                    <MudIntlTelInput T="IntlTel" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="_workPhoneIntl" />
-                                                </div>
+                                                <MudTextField @bind-Value="_profile!.PhoneNumber" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input" Immediate="true" />
                                             }
                                             else
                                             {
@@ -847,9 +875,7 @@
                                             <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.Phone" Size="Size.Small" Style="color: var(--dzd-brand-secondary) !important;" /> @Loc["employeeProfile.personalPhone"]</div>
                                             @if (_contactsEdit.IsEditing)
                                             {
-                                                <div class="dzd-intl-phone dzd-input">
-                                                    <MudIntlTelInput T="IntlTel" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="_personalPhoneIntl" />
-                                                </div>
+                                                <MudTextField @bind-Value="_profile!.PersonalPhoneNumber" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input" Immediate="true" />
                                             }
                                             else
                                             {
@@ -889,7 +915,7 @@
                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.CalendarDays" Size="Size.Small" /> @Loc["employeeProfile.dateOfBirth"]</div>
                                     @if (_citizenshipEdit.IsEditing)
                                     {
-                                        <MudDatePicker AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" Date="@_profile.DateOfBirth" DateChanged="@(d => _profile.DateOfBirth = d)" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input" DateFormat="dd.MM.yyyy" />
+                                        <MudDatePicker AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" Date="@_profile.DateOfBirth" DateChanged="@(d => _profile.DateOfBirth = d)" Variant="Variant.Outlined" Margin="Margin.Dense" Class="dzd-input" DateFormat="dd.MM.yyyy" />
                                     }
                                     else
                                     {
@@ -1012,13 +1038,9 @@
                                             @if (_emergencyEdit.IsEditing)
                                             {
                                                 <div class="dzd-inline-edit-row">
-                                                    <div class="dzd-intl-phone dzd-input dzd-inline-edit-control flex-grow-1">
-                                                        <MudIntlTelInput T="IntlTel" 
-                                                                        Variant="Variant.Outlined" 
-                                                                        Value="GetEmergencyPhone(contact)" 
-                                                                        ValueChanged="@(val => OnEmergencyPhoneChanged(contact, val))" />
-                                                    </div>
-                                                    <MudIconButton Icon="@DzdIcons.Trash" 
+                                                    <MudTextField @bind-Value="contact.PhoneNumber" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                                  Class="dzd-input dzd-inline-edit-control flex-grow-1" Immediate="true" />
+                                                    <MudIconButton Icon="@DzdIcons.Trash"
                                                                 Color="Color.Error" 
                                                                 Size="Size.Small" 
                                                                 OnClick="@(() => RemoveEmergencyContact(contact))"
@@ -1044,7 +1066,7 @@
                                 @if (_emergencyEdit.IsEditing)
                                 {
                                     <MudItem xs="12">
-                                        <MudButton Variant="Variant.Outlined" StartIcon="@DzdIcons.Plus" Size="Size.Medium" OnClick="AddEmergencyContact" Class="d-flex align-center gap-2">@Loc["employeeProfile.addContact"]</MudButton>
+                                        <MudButton Variant="Variant.Text" StartIcon="@DzdIcons.Plus" Size="Size.Medium" OnClick="AddEmergencyContact" Class="d-flex align-center gap-2">@Loc["employeeProfile.addContact"]</MudButton>
                                     </MudItem>
                                 }
                             </MudGrid>
@@ -1139,7 +1161,7 @@
                                 @if (_familyEdit.IsEditing)
                                 {
                                     <MudItem xs="12">
-                                        <MudButton Variant="Variant.Outlined" StartIcon="@DzdIcons.Plus" OnClick="AddChild" Class="d-flex align-center gap-2">@Loc["employeeProfile.addChild"]</MudButton>
+                                        <MudButton Variant="Variant.Text" StartIcon="@DzdIcons.Plus" OnClick="AddChild" Class="d-flex align-center gap-2">@Loc["employeeProfile.addChild"]</MudButton>
                                     </MudItem>
                                 }
 
@@ -1362,7 +1384,7 @@
                                 }
 
                                 <MudStack Row="true" Justify="Justify.FlexStart" Class="mt-3">
-                                    <MudButton Variant="Variant.Outlined" StartIcon="@DzdIcons.Plus" OnClick="OpenAddEducationHistoryDialogAsync" Class="d-flex align-center gap-2">@Loc["employeeProfile.addEducationRecord"]</MudButton>
+                                    <MudButton Variant="Variant.Text" StartIcon="@DzdIcons.Plus" OnClick="OpenAddEducationHistoryDialogAsync" Class="d-flex align-center gap-2">@Loc["employeeProfile.addEducationRecord"]</MudButton>
                                 </MudStack>
                             }
                         </MudPaper>

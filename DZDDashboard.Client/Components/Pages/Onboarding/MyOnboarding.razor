@@ -41,9 +41,10 @@
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
             <MudText Typo="Typo.h6">@Loc["myOnboarding.myDocuments"]</MudText>
             <MudFileUpload T="IBrowserFile" FilesChanged="OnFileSelected" MaximumFileCount="1">
-                <ActivatorContent>
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Upload" Disabled="@_uploading">@Loc["myOnboarding.uploadDocument"]</MudButton>
-                </ActivatorContent>
+                <CustomContent Context="fileUpload">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Upload" Disabled="@_uploading"
+                               OnClick="@fileUpload.OpenFilePickerAsync">@Loc["myOnboarding.uploadDocument"]</MudButton>
+                </CustomContent>
             </MudFileUpload>
         </MudStack>
 

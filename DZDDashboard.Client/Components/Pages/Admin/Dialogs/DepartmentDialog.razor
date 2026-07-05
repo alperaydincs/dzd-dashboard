@@ -7,7 +7,7 @@
 
 <MudDialog>
     <DialogContent>
-        <MudTextField @bind-Value="Department.Name" Label="@Loc["dialogField.name"]" Required="true" Variant="Variant.Outlined"/>
+        <MudTextField @bind-Value="Department.Name" Label="@Loc["dialogField.name"]" Required="true" Variant="Variant.Outlined" Immediate="true"/>
         <MudSelect T="int?" Label="@Loc["employeeProfile.company"]" @bind-Value="Department.CompanyId" Class="mt-3" Variant="Variant.Outlined">
             @foreach (var company in Companies)
             {
@@ -17,7 +17,7 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">@Loc["common.cancel"]</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">@Loc["common.save"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">@Loc["common.save"]</MudButton>
     </DialogActions>
 </MudDialog>
 

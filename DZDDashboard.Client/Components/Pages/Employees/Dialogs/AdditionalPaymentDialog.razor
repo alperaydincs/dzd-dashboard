@@ -50,32 +50,20 @@
                 </MudItem>
             </MudGrid>
 
-            @if (_model.Period == AdditionalPaymentPeriods.OneTime)
-            {
-                <div>
-                    <div class="dzd-dialog-label">@Loc["payment.colPaymentDate"] <span class="dzd-required">*</span></div>
-                    <MudDatePicker Date="@_model.PaymentDate" DateChanged="@(d => _model.PaymentDate = d)"
+            <MudGrid Spacing="3">
+                <MudItem xs="6">
+                    <div class="dzd-dialog-label">@Loc["payment.startDate"] <span class="dzd-required">*</span></div>
+                    <MudDatePicker Date="@_model.StartDate" DateChanged="@(d => _model.StartDate = d ?? _model.StartDate)"
                                    Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" DateFormat="dd.MM.yyyy"
-                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
-                </div>
-            }
-            else
-            {
-                <MudGrid Spacing="3">
-                    <MudItem xs="6">
-                        <div class="dzd-dialog-label">@Loc["payment.startDate"] <span class="dzd-required">*</span></div>
-                        <MudDatePicker Date="@_model.StartDate" DateChanged="@(d => _model.StartDate = d)"
-                                       Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" DateFormat="dd.MM.yyyy"
-                                       AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
-                    </MudItem>
-                    <MudItem xs="6">
-                        <div class="dzd-dialog-label">@Loc["salaryDialog.endDateOptional"]</div>
-                        <MudDatePicker Date="@_model.EndDate" DateChanged="@(d => _model.EndDate = d)"
-                                       Variant="Variant.Outlined" Margin="Margin.Dense" DateFormat="dd.MM.yyyy"
-                                       AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
-                    </MudItem>
-                </MudGrid>
-            }
+                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" />
+                </MudItem>
+                <MudItem xs="6">
+                    <div class="dzd-dialog-label">@Loc["salaryDialog.endDateOptional"]</div>
+                    <MudDatePicker Date="@_model.EndDate" DateChanged="@(d => _model.EndDate = d)"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" DateFormat="dd.MM.yyyy"
+                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" />
+                </MudItem>
+            </MudGrid>
 
             <div>
                 <div class="dzd-dialog-label">@Loc["dialogField.description"]</div>
@@ -85,7 +73,7 @@
         </MudStack>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Outlined" OnClick="Cancel">@Loc["common.cancel"]</MudButton>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">@Loc["common.cancel"]</MudButton>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_submitted">@ConfirmButtonText</MudButton>
     </DialogActions>
 </MudDialog>
@@ -103,9 +91,9 @@
 
     private AdditionalPaymentDto _model = new()
     {
-        Currency    = Currencies.Try,
-        Period      = AdditionalPaymentPeriods.OneTime,
-        PaymentDate = DateTime.Today
+        Currency  = Currencies.Try,
+        Period    = AdditionalPaymentPeriods.OneTime,
+        StartDate = DateTime.Today
     };
 
     private bool _initialized;
@@ -129,29 +117,10 @@
             return;
         }
 
-        if (_model.Period == AdditionalPaymentPeriods.OneTime)
+        if (_model.EndDate.HasValue && _model.EndDate < _model.StartDate)
         {
-            if (!_model.PaymentDate.HasValue)
-            {
-                Snackbar.Add(Loc["additionalPaymentDialog.paymentDateRequired"], Severity.Warning);
-                return;
-            }
-            _model.StartDate = null;
-            _model.EndDate   = null;
-        }
-        else
-        {
-            if (!_model.StartDate.HasValue)
-            {
-                Snackbar.Add(Loc["additionalPaymentDialog.startDateRequiredPeriodic"], Severity.Warning);
-                return;
-            }
-            if (_model.EndDate.HasValue && _model.EndDate < _model.StartDate)
-            {
-                Snackbar.Add(Loc["salaryDialog.endDateBeforeStart"], Severity.Warning);
-                return;
-            }
-            _model.PaymentDate = null;
+            Snackbar.Add(Loc["salaryDialog.endDateBeforeStart"], Severity.Warning);
+            return;
         }
 
         _submitted = true;

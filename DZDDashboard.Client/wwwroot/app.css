@@ -80,13 +80,13 @@ html, body {
     color: var(--dzd-red-500);
 }
 
-.sidebar-divider.mud-divider {
-    flex: 0 0 auto !important;
-    align-self: stretch;
-    border-color: #C5CAD6;
-    border-width: 1px;
-    opacity: 1;
-    margin: 0;
+hr.sidebar-divider.mud-divider-fullwidth {
+    flex-grow: 0;
+    width: auto;
+}
+
+hr.sidebar-divider.mud-divider {
+    margin: 20px 0;
 }
 
 .dzd-initials-avatar {

@@ -29,9 +29,9 @@
                     </MudButtonGroup>
                     <div style="margin-right:8px;">
                         <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Class="notifications-menu">
-                            <ActivatorContent>
+                            <ActivatorContent Context="notificationsMenuContext">
                                 <MudBadge Content="@_unreadNotifications" Color="Color.Error" Overlap="true" Visible="@(_unreadNotifications > 0)">
-                                    <MudIconButton Icon="@DzdIcons.Bell" Color="Color.Inherit" Size="Size.Small" Class="notifications-trigger" />
+                                    <MudIconButton Icon="@DzdIcons.Bell" Color="Color.Inherit" Size="Size.Small" Class="notifications-trigger" OnClick="@notificationsMenuContext.ToggleAsync" />
                                 </MudBadge>
                             </ActivatorContent>
                             <ChildContent>
@@ -71,8 +71,8 @@
                     </div>
 
                     <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Class="profile-menu">
-                        <ActivatorContent>
-                            <span class="profile-avatar-trigger">
+                        <ActivatorContent Context="profileMenuContext">
+                            <span class="profile-avatar-trigger" @onclick="@profileMenuContext.ToggleAsync">
                                 <InitialsAvatar FullName="@_header.Name"
                                                 ImageSrc="@_header.AvatarSrc"
                                                 ColorIndex="@_header.ColorIndex"
@@ -121,6 +121,17 @@
                         </AuthorizeView>
                     }
                 </nav>
+                <AuthorizeView Roles="@SettingsNavLink.RequiredRoles" Context="settingsNavAuthContext">
+                    <MudDivider Class="sidebar-divider" />
+                </AuthorizeView>
+                <div class="sidebar-footer-nav @(_drawerOpen ? "" : "sidebar-collapsed")">
+                    <AuthorizeView Roles="@SettingsNavLink.RequiredRoles" Context="settingsNavAuthContext">
+                        <a href="@SettingsNavLink.Href" class="nav-item @(IsActive(SettingsNavLink.Section) ? "nav-item-active" : "")">
+                            <MudIcon Icon="@SettingsNavLink.Icon" Class="nav-icon" />
+                            <span class="nav-label">@Loc[SettingsNavLink.Label]</span>
+                        </a>
+                    </AuthorizeView>
+                </div>
             </MudDrawer>
             }
         </Authorized>

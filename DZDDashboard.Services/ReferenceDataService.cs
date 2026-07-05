@@ -1,4 +1,4 @@
-using AutoMapper;
+using MapsterMapper;
 using DZDDashboard.Common.DTOs;
 using DZDDashboard.Common.Exceptions;
 using DZDDashboard.Data;
@@ -17,7 +17,7 @@ public class ReferenceDataService(AppDbContext context, IMapper mapper) : IRefer
 
     private async Task<TDto> CreateRefAsync<TEntity, TDto>(TDto dto, CancellationToken ct) where TEntity : class
     {
-        var entity = mapper.Map<TEntity>(dto);
+        var entity = mapper.Map<TEntity>(dto!);
         context.Set<TEntity>().Add(entity);
         await context.SaveChangesAsync(ct);
         return mapper.Map<TDto>(entity);
@@ -51,19 +51,6 @@ public class ReferenceDataService(AppDbContext context, IMapper mapper) : IRefer
 
     public Task DeleteJobAsync(int id, CancellationToken cancellationToken = default)
         => DeleteRefAsync<Job>(id, nameof(Job), cancellationToken);
-
-
-    public Task<List<GradeDto>> GetGradesAsync(CancellationToken cancellationToken = default)
-        => GetAllRefAsync<Grade, GradeDto>(cancellationToken);
-
-    public Task<GradeDto> CreateGradeAsync(GradeDto dto, CancellationToken cancellationToken = default)
-        => CreateRefAsync<Grade, GradeDto>(dto, cancellationToken);
-
-    public Task UpdateGradeAsync(GradeDto dto, CancellationToken cancellationToken = default)
-        => UpdateRefAsync<Grade, GradeDto>(dto.Id, dto, nameof(Grade), cancellationToken);
-
-    public Task DeleteGradeAsync(int id, CancellationToken cancellationToken = default)
-        => DeleteRefAsync<Grade>(id, nameof(Grade), cancellationToken);
 
 
     public Task<List<PayrollLocationDto>> GetPayrollLocationsAsync(CancellationToken cancellationToken = default)

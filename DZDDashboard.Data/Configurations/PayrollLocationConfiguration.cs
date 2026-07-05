@@ -19,11 +19,6 @@ public class PayrollLocationConfiguration : IEntityTypeConfiguration<PayrollLoca
 
         builder.HasIndex(p => p.Location).IsUnique();
 
-        builder.HasMany(p => p.IntertechTeams)
-               .WithOne(s => s.PayrollLocation)
-               .HasForeignKey(s => s.PayrollLocationId)
-               .OnDelete(DeleteBehavior.SetNull);
-
         builder.HasOne(p => p.ModifiedBy)
                .WithMany()
                .HasForeignKey(p => p.ModifiedById)

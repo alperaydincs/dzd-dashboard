@@ -18,9 +18,6 @@ public class ChecklistItemConfiguration : IEntityTypeConfiguration<ChecklistItem
         builder.Property(x => x.BenefitKind).IsRequired().HasMaxLength(ValidationConstants.MaxShortNameLength);
         builder.Property(x => x.Note).HasMaxLength(ValidationConstants.MaxNotesLength);
 
-        builder.Property(x => x.DocumentFileName).HasMaxLength(ValidationConstants.MaxFileNameLength);
-        builder.Property(x => x.DocumentContentType).HasMaxLength(ValidationConstants.MaxShortNameLength);
-
         builder.Property(x => x.ProviderName).HasMaxLength(ValidationConstants.MaxProviderNameLength);
         builder.Property(x => x.Currency).HasMaxLength(ValidationConstants.MaxCurrencyCodeLength);
         builder.Property(x => x.EmployeeAmount).HasPrecision(18, 2);
@@ -38,11 +35,6 @@ public class ChecklistItemConfiguration : IEntityTypeConfiguration<ChecklistItem
             .WithMany()
             .HasForeignKey(x => x.ModifiedById)
             .OnDelete(DeleteBehavior.Restrict);
-
-        builder.HasOne(x => x.DocumentStoredFile)
-            .WithMany()
-            .HasForeignKey(x => x.DocumentStoredFileId)
-            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasMany(x => x.Dependents)
             .WithOne(d => d.ChecklistItem)

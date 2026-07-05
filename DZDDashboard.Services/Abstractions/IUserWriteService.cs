@@ -14,6 +14,7 @@ public interface IUserWriteService
     Task UpdateEmergencyContactsAsync(int userId, UpdateEmergencyContactsDto dto, CancellationToken cancellationToken = default);
     Task UpdateFamilyInfoAsync(int userId, UpdateFamilyInfoDto dto, CancellationToken cancellationToken = default);
     Task UpdateAvatarAsync(int userId, string contentType, byte[] content, CancellationToken cancellationToken = default);
+    Task RemoveAvatarAsync(int userId, CancellationToken cancellationToken = default);
     Task UpdateAvatarColorAsync(int userId, int? colorIndex, CancellationToken cancellationToken = default);
     Task UpdateOrganizationPositionAsync(int userId, int? organizationPositionId, CancellationToken cancellationToken = default);
     Task UpdateCareerAssignmentAsync(int userId, UpdateCareerAssignmentDto dto, CancellationToken cancellationToken = default);

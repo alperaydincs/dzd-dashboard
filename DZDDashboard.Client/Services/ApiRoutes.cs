@@ -58,20 +58,18 @@ public static class ApiRoutes
         public const string Departments    = "api/organization/departments";
         public const string Teams          = "api/organization/teams";
         public const string Jobs           = "api/organization/jobs";
-        public const string Grades         = "api/organization/grades";
         public const string PayrollLocations = "api/organization/payrolllocations";
-        public const string CareerPaths    = "api/organization/careerpaths";
-        public const string CareerMapRules = "api/organization/careermaprules";
+        public const string CareerPaths     = "api/organization/careerpaths";
+        public const string CareerPathRules = "api/organization/careerpathrules";
 
         public static string Position(int id)         => $"{Positions}/{id}";
         public static string Company(int id)          => $"{Companies}/{id}";
         public static string Department(int id)       => $"{Departments}/{id}";
         public static string Team(int id)             => $"{Teams}/{id}";
         public static string Job(int id)              => $"{Jobs}/{id}";
-        public static string Grade(int id)            => $"{Grades}/{id}";
         public static string PayrollLocation(int id)  => $"{PayrollLocations}/{id}";
-        public static string CareerPath(int id) => $"{CareerPaths}/{id}";
-        public static string CareerMapRule(int id)    => $"{CareerMapRules}/{id}";
+        public static string CareerPath(int id)     => $"{CareerPaths}/{id}";
+        public static string CareerPathRule(int id) => $"{CareerPathRules}/{id}";
     }
 
     public static class Onboarding

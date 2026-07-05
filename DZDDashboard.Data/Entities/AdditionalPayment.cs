@@ -10,9 +10,8 @@ public class AdditionalPayment : AuditableEntity
     public string  Currency { get; set; } = string.Empty;
     public string  Period   { get; set; } = string.Empty;
 
-    public DateTime? PaymentDate { get; set; }
-    public DateTime? StartDate   { get; set; }
-    public DateTime? EndDate     { get; set; }
+    public DateTime  StartDate { get; set; }
+    public DateTime? EndDate   { get; set; }
 
     public string? Description { get; set; }
 

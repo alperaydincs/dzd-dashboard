@@ -9,7 +9,7 @@
     <DialogContent>
         <MudStack Spacing="3">
             <MudTextField @bind-Value="_name" Label="@Loc["careerPathDialog.nameLabel"]" Variant="Variant.Outlined"
-                          Margin="Margin.Dense" Required="true"
+                          Margin="Margin.Dense" Required="true" Immediate="true"
                           Placeholder="@(IsEdit ? "" : Loc["careerPathDialog.namePlaceholder"])" />
         </MudStack>
     </DialogContent>

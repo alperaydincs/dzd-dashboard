@@ -7,11 +7,11 @@
 
 <MudDialog>
     <DialogContent>
-        <MudTextField @bind-Value="Job.Name" Label="@Loc["dialogField.title"]" Required="true" />
+        <MudTextField @bind-Value="Job.Name" Label="@Loc["dialogField.title"]" Required="true" Immediate="true" />
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">@Loc["common.cancel"]</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">@Loc["common.save"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">@Loc["common.save"]</MudButton>
     </DialogActions>
 </MudDialog>
 

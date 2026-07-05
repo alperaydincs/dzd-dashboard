@@ -30,7 +30,6 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddMudServices();
-        services.RegisterIntlTelInput();
         services.AddAntiforgery();
         services.AddHttpContextAccessor();
 

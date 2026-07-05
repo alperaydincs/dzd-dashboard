@@ -10,7 +10,8 @@ public record DeductionDto
     public string  Currency { get; set; } = string.Empty;
     public string  Period   { get; set; } = string.Empty;
 
-    public DateTime StartDate { get; set; }
+    public DateTime  StartDate { get; set; }
+    public DateTime? EndDate   { get; set; }
 
     public string? Notes { get; set; }
 

@@ -36,14 +36,23 @@
     box-shadow: none !important;
 }
 
-.sidebar-nav.sidebar-collapsed .nav-label {
+.sidebar-nav.sidebar-collapsed .nav-label,
+.sidebar-footer-nav.sidebar-collapsed .nav-label {
     display: none;
 }
 
-.sidebar-nav.sidebar-collapsed .nav-item {
+.sidebar-nav.sidebar-collapsed .nav-item,
+.sidebar-footer-nav.sidebar-collapsed .nav-item {
     justify-content: center;
     gap: 0;
     padding: 10px;
+}
+
+.sidebar-footer-nav {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    padding: 0 8px 20px;
 }
 
 .sidebar-logo.sidebar-collapsed {
@@ -102,7 +111,7 @@
 .sidebar-nav {
     display: flex;
     flex-direction: column;
-    padding: 8px 8px 12px;
+    padding: 0 8px 12px;
     gap: 2px;
     flex: 1;
     overflow-y: auto;

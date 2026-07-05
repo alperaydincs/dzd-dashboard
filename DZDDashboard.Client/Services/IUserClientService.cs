@@ -19,6 +19,7 @@ public interface IUserClientService
     Task<UserAvatarDto?> GetUserAvatarAsync(int userId);
     Task<UserAvatarDto?> GetMyAvatarAsync();
     Task<HttpResponseMessage> UpdateMyProfileAvatarAsync(MultipartFormDataContent content);
+    Task<HttpResponseMessage> RemoveMyAvatarAsync();
     Task<HttpResponseMessage> UpdateMyAvatarColorAsync(int? colorIndex);
     Task<HttpResponseMessage> UpdateMyContactInfoAsync(UpdateContactInfoDto dto);
     Task<HttpResponseMessage> UpdateOrganizationPositionAsync(int userId, UpdateUserOrganizationPositionDto dto);

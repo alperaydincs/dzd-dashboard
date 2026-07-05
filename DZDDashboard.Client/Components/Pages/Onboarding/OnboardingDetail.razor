@@ -263,7 +263,7 @@
 
     private async Task CancelOnboarding()
     {
-        var confirmed = await DialogService.ShowMessageBox(
+        var confirmed = await DialogService.ShowMessageBoxAsync(
             Loc["onboardingDetail.cancelOnboarding"],
             Loc["onboardingDetail.cancelDialogMessage"],
             yesText: Loc["onboardingDetail.cancelYes"], cancelText: Loc["common.cancel"]);

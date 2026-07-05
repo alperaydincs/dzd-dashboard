@@ -48,11 +48,17 @@
                         }
                     </MudSelect>
                 </MudItem>
-                <MudItem xs="12">
-                    <div class="dzd-dialog-label">@Loc["payment.colPaymentDate"] <span class="dzd-required">*</span></div>
+                <MudItem xs="6">
+                    <div class="dzd-dialog-label">@Loc["payment.startDate"] <span class="dzd-required">*</span></div>
                     <MudDatePicker Date="@_model.StartDate" DateChanged="@(d => _model.StartDate = d ?? _model.StartDate)"
                                    Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" DateFormat="dd.MM.yyyy"
-                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
+                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter"/>
+                </MudItem>
+                <MudItem xs="6">
+                    <div class="dzd-dialog-label">@Loc["salaryDialog.endDateOptional"]</div>
+                    <MudDatePicker Date="@_model.EndDate" DateChanged="@(d => _model.EndDate = d)"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" DateFormat="dd.MM.yyyy"
+                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" />
                 </MudItem>
             </MudGrid>
 
@@ -105,6 +111,12 @@
         if (_model.Amount <= 0)
         {
             Snackbar.Add(Loc["dialogField.amountRequired"], Severity.Warning);
+            return;
+        }
+
+        if (_model.EndDate.HasValue && _model.EndDate < _model.StartDate)
+        {
+            Snackbar.Add(Loc["salaryDialog.endDateBeforeStart"], Severity.Warning);
             return;
         }
 

@@ -43,12 +43,13 @@
 
             <MudGrid Spacing="2">
                 <MudItem xs="12" sm="4">
-                    <MudSelect T="string" Label="@Loc["employeeProfile.company"]" Value="_m.CompanyName" ValueChanged="OnCompanyChanged"
+                    <MudSelect T="int?" Label="@Loc["employeeProfile.company"]" Value="_m.CompanyId" ValueChanged="OnCompanyChanged"
+                               ToStringFunc="@(id => Companies.FirstOrDefault(c => c.Id == id)?.Name ?? string.Empty)"
                                Variant="Variant.Outlined" Margin="Margin.Dense">
-                        <MudSelectItem T="string" Value="@("")">@Loc["careerAssignmentDialog.none"]</MudSelectItem>
+                        <MudSelectItem T="int?" Value="@((int?)null)">@Loc["careerAssignmentDialog.none"]</MudSelectItem>
                         @foreach (var c in Companies)
                         {
-                            <MudSelectItem T="string" Value="@c.Name">@c.Name</MudSelectItem>
+                            <MudSelectItem T="int?" Value="@((int?)c.Id)">@c.Name</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
@@ -56,7 +57,7 @@
                     <MudSelect T="int?" Label="@Loc["employeeProfile.department"]" Value="_m.DepartmentId" ValueChanged="OnDeptChanged"
                                ToStringFunc="@(id => AllDepts.FirstOrDefault(d => d.Id == id)?.Name ?? string.Empty)"
                                Variant="Variant.Outlined" Margin="Margin.Dense"
-                               Disabled="@string.IsNullOrEmpty(_m.CompanyName)">
+                               Disabled="@(_m.CompanyId == null)">
                         <MudSelectItem T="int?" Value="@((int?)null)">@Loc["careerAssignmentDialog.none"]</MudSelectItem>
                         @foreach (var d in _depts)
                         {
@@ -114,15 +115,13 @@
                 <MudItem xs="12" sm="6">
                     <MudDatePicker Label="@Loc["employeeProfile.positionStartDate"]" Date="@_m.StartDate" DateChanged="@(d => _m.StartDate = d)"
                                    Variant="Variant.Outlined" Margin="Margin.Dense" DateFormat="dd.MM.yyyy"
-                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter"
-                                   OverflowBehavior="OverflowBehavior.FlipNever" />
+                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter"/>
                 </MudItem>
                 <MudItem xs="12" sm="6">
                     <MudDatePicker Label="@Loc["careerAssignmentDialog.positionEndDate"]" Date="@_m.EndDate" DateChanged="@(d => _m.EndDate = d)"
                                    Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" Editable="true" DateFormat="dd.MM.yyyy"
                                    HelperText="@Loc["careerAssignmentDialog.leaveEmptyForCurrent"]"
-                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter"
-                                   OverflowBehavior="OverflowBehavior.FlipNever" />
+                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter"/>
                 </MudItem>
             </MudGrid>
         </MudStack>
@@ -164,7 +163,7 @@
             {
                 ManagerId    = InitialModel.ManagerId,
                 Manager      = InitialModel.Manager,
-                CompanyName  = InitialModel.CompanyName,
+                CompanyId    = InitialModel.CompanyId,
                 DepartmentId = InitialModel.DepartmentId,
                 TeamId       = InitialModel.TeamId,
                 PathId       = InitialModel.PathId,
@@ -176,7 +175,7 @@
             _manager = InitialModel.Manager;
         }
 
-        _depts = FilterDepts(_m.CompanyName);
+        _depts = FilterDepts(_m.CompanyId);
         _teams = FilterTeams(_m.DepartmentId);
         RecomputePathJobs();
         RecomputeGrades();
@@ -198,7 +197,7 @@
         _m.Manager   = manager;
         if (manager is null) return;
 
-        OnCompanyChanged(manager.CompanyName);
+        OnCompanyChanged(manager.CompanyId);
         if (manager.DepartmentId.HasValue)
         {
             OnDeptChanged(manager.DepartmentId);
@@ -206,12 +205,12 @@
         }
     }
 
-    private void OnCompanyChanged(string? name)
+    private void OnCompanyChanged(int? companyId)
     {
-        _m.CompanyName  = name;
+        _m.CompanyId    = companyId;
         _m.DepartmentId = null;
         _m.TeamId       = null;
-        _depts = FilterDepts(name);
+        _depts = FilterDepts(companyId);
         _teams = [];
     }
 
@@ -253,10 +252,10 @@
             : path.Rules.Where(r => r.PositionJobIds.Contains(_m.JobId.Value)).Select(r => r.Grade).OrderBy(g => g).ToList();
     }
 
-    private List<DepartmentDto> FilterDepts(string? companyName)
-        => string.IsNullOrEmpty(companyName)
+    private List<DepartmentDto> FilterDepts(int? companyId)
+        => companyId is null
             ? []
-            : AllDepts.Where(d => Companies.Any(c => c.Name == companyName && c.Id == d.CompanyId)).ToList();
+            : AllDepts.Where(d => d.CompanyId == companyId).ToList();
 
     private List<TeamDto> FilterTeams(int? deptId)
         => deptId.HasValue ? AllTeams.Where(t => t.DepartmentId == deptId).ToList() : [];
@@ -284,7 +283,7 @@
     {
         public int?      ManagerId    { get; set; }
         public UserSearchResultDto? Manager { get; set; }
-        public string?   CompanyName  { get; set; }
+        public int?      CompanyId    { get; set; }
         public int?      DepartmentId { get; set; }
         public int?      TeamId       { get; set; }
         public int?      PathId       { get; set; }

@@ -11,11 +11,12 @@
                       Label="@Loc["dialogField.locationName"]"
                       Variant="Variant.Outlined"
                       Required="true"
-                      FullWidth="true" />
+                      FullWidth="true"
+                      Immediate="true" />
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">@Loc["common.cancel"]</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">@Loc["common.save"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" Disabled="@(!IsFormValid || _saving)">@Loc["common.save"]</MudButton>
     </DialogActions>
 </MudDialog>
 

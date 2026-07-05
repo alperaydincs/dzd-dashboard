@@ -48,27 +48,6 @@ public class JobDtoValidator : AbstractValidator<JobDto>
     }
 }
 
-public class GradeDtoValidator : AbstractValidator<GradeDto>
-{
-    public GradeDtoValidator()
-    {
-        RuleFor(x => x.Level)
-            .NotEmpty().WithMessage("Grade level is required.")
-            .MaximumLength(ValidationConstants.MaxGradeLevelLength).WithMessage($"Grade level cannot exceed {ValidationConstants.MaxGradeLevelLength} characters.");
-
-        RuleFor(x => x.Currency)
-            .NotEmpty().WithMessage("Currency is required.")
-            .MaximumLength(ValidationConstants.MaxCurrencyCodeLength).WithMessage($"Currency code cannot exceed {ValidationConstants.MaxCurrencyCodeLength} characters.");
-
-        RuleFor(x => x.MinSalary)
-            .GreaterThanOrEqualTo(0).WithMessage("Minimum salary must be non-negative.");
-
-        RuleFor(x => x.MaxSalary)
-            .GreaterThanOrEqualTo(0).WithMessage("Maximum salary must be non-negative.")
-            .GreaterThanOrEqualTo(x => x.MinSalary).WithMessage("Maximum salary must be greater than or equal to minimum salary.");
-    }
-}
-
 public class PayrollLocationDtoValidator : AbstractValidator<PayrollLocationDto>
 {
     public PayrollLocationDtoValidator()

@@ -9,11 +9,12 @@ using DZDDashboard.Data.Abstractions;
 using DZDDashboard.Services;
 using DZDDashboard.Services.Mapping;
 using FluentValidation;
-using FluentValidation.AspNetCore;
+using Mapster;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Identity.Web;
+using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Threading.RateLimiting;
 
 namespace DZDDashboard.Api.Extensions;
@@ -30,7 +31,7 @@ public static class ServiceCollectionExtensions
         services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-            options.KnownNetworks.Clear();
+            options.KnownIPNetworks.Clear();
             options.KnownProxies.Clear();
         });
 
@@ -115,7 +116,8 @@ public static class ServiceCollectionExtensions
         services.AddHttpContextAccessor();
         services.AddScoped<IAuditProvider, HttpContextAuditProvider>();
         services.AddScoped<ICurrentUserAccessor, HttpContextCurrentUserAccessor>();
-        services.AddAutoMapper(typeof(OrganizationMappingProfile).Assembly);
+        TypeAdapterConfig.GlobalSettings.Scan(typeof(OrganizationMappingProfile).Assembly);
+        services.AddMapster();
 
         var allowedOrigins = configuration.GetSection("Api:AllowedCorsOrigins").Get<string[]>() ?? [];
 

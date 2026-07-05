@@ -45,12 +45,12 @@
             <MudItem xs="12" sm="6">
                 <MudDatePicker Label="@Loc["payment.startDate"]" Date="@_model.StartDate" DateChanged="@(d => _model.StartDate = d ?? _model.StartDate)"
                                Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" DateFormat="dd.MM.yyyy"
-                               AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
+                               AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter"/>
             </MudItem>
             <MudItem xs="12" sm="6">
                 <MudDatePicker Label="@Loc["salaryDialog.endDateOptional"]" Date="@_model.EndDate" DateChanged="@(d => _model.EndDate = d)"
                                Variant="Variant.Outlined" Margin="Margin.Dense" DateFormat="dd.MM.yyyy"
-                               AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
+                               AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" Clearable="true"/>
             </MudItem>
 
             <MudItem xs="12">
@@ -63,7 +63,7 @@
         </MudGrid>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Outlined" OnClick="Cancel">@Loc["common.cancel"]</MudButton>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">@Loc["common.cancel"]</MudButton>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="@_submitted">@ConfirmButtonText</MudButton>
     </DialogActions>
 </MudDialog>

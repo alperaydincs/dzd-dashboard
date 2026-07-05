@@ -117,6 +117,7 @@ public class OffboardingService(AppDbContext context, IAuditProvider audit, Chec
             .Include(p => p.User)
             .Include(p => p.Items).ThenInclude(i => i.Dependents)
             .Include(p => p.Items).ThenInclude(i => i.CompletedBy)
+            .Include(p => p.Items).ThenInclude(i => i.OffboardingDocument)
             .AsSplitQuery()
             .FirstOrDefaultAsync(p => p.Id == processId, cancellationToken)
            ?? throw new EntityNotFoundException(nameof(OffboardingProcess), processId);

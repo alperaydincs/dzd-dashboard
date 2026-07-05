@@ -95,12 +95,6 @@ public partial class PaymentSection
     private SalaryRecordDto? CurrentSalary =>
         _payment?.SalaryHistory.FirstOrDefault(s => s.EndDate is null) ?? _payment?.SalaryHistory.FirstOrDefault();
 
-    private List<CurrencyAmountDto> AdditionalPaymentsTotal =>
-        _payment?.AdditionalPayments
-            .GroupBy(p => p.Currency)
-            .Select(g => new CurrencyAmountDto(g.Key, g.Sum(p => p.Amount)))
-            .ToList() ?? [];
-
 
     private async Task OpenAddSalaryDialogAsync()
     {
@@ -132,7 +126,7 @@ public partial class PaymentSection
 
     private async Task DeleteSalaryRecordAsync(SalaryRecordDto record)
     {
-        if (await DialogService.ShowMessageBox(Loc["payment.deleteSalaryDialogTitle"],
+        if (await DialogService.ShowMessageBoxAsync(Loc["payment.deleteSalaryDialogTitle"],
             string.Format(Loc["payment.deleteSalaryConfirm"], FormatMoney(record.NetAmount, record.Currency), GetPaymentPeriodName(record.Period), AppFormatter.FormatDate(record.StartDate)),
             yesText: Loc["payment.delete"], cancelText: Loc["common.cancel"]) != true) return;
 
@@ -192,7 +186,7 @@ public partial class PaymentSection
 
     private async Task DeleteBenefitRecordAsync(BenefitRecordDto record)
     {
-        if (await DialogService.ShowMessageBox(Loc["payment.deleteBenefitDialogTitle"],
+        if (await DialogService.ShowMessageBoxAsync(Loc["payment.deleteBenefitDialogTitle"],
             string.Format(Loc["payment.deleteBenefitConfirm"], GetBenefitTypeName(record.BenefitType), FormatMoney(record.Amount, record.Currency), GetPaymentPeriodName(record.Period)),
             yesText: Loc["payment.delete"], cancelText: Loc["common.cancel"]) != true) return;
 
@@ -232,7 +226,7 @@ public partial class PaymentSection
 
     private async Task DeleteAdditionalPaymentAsync(AdditionalPaymentDto record)
     {
-        if (await DialogService.ShowMessageBox(Loc["payment.deleteAdditionalPaymentDialogTitle"],
+        if (await DialogService.ShowMessageBoxAsync(Loc["payment.deleteAdditionalPaymentDialogTitle"],
             string.Format(Loc["payment.deleteAdditionalPaymentConfirm"], GetAdditionalPaymentTypeName(record.PaymentType), FormatMoney(record.Amount, record.Currency)),
             yesText: Loc["payment.delete"], cancelText: Loc["common.cancel"]) != true) return;
 
@@ -272,7 +266,7 @@ public partial class PaymentSection
 
     private async Task DeleteDeductionAsync(DeductionDto record)
     {
-        if (await DialogService.ShowMessageBox(Loc["payment.deleteDeductionDialogTitle"],
+        if (await DialogService.ShowMessageBoxAsync(Loc["payment.deleteDeductionDialogTitle"],
             string.Format(Loc["payment.deleteDeductionConfirm"], GetDeductionTypeName(record.DeductionType), FormatMoney(record.Amount, record.Currency), GetAdditionalPaymentPeriodName(record.Period)),
             yesText: Loc["payment.delete"], cancelText: Loc["common.cancel"]) != true) return;
 

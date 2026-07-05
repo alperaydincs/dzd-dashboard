@@ -25,7 +25,7 @@
 
                         @if (TryGetMetaChipText(out var metaText))
                         {
-                            <MudChip T="string" Variant="Variant.Outlined" Size="Size.Small" Class="node-meta-chip">
+                            <MudChip T="string" Variant="Variant.Outlined" Size="Size.Small" Class="node-meta-chip" Style="@GetMetaChipStyle()">
                                 @metaText
                             </MudChip>
                         }
@@ -145,11 +145,48 @@
         chipText = string.Empty;
         if (Node.User is null) return false;
 
-        var jobName = Node.User.Job?.Name?.Trim();
-        if (string.IsNullOrWhiteSpace(jobName)) return false;
+        var deptName = Node.User.Department?.Name?.Trim();
+        if (string.IsNullOrWhiteSpace(deptName)) return false;
 
-        chipText = jobName;
+        chipText = deptName;
         return true;
+    }
+
+    private static readonly (string Bg, string Fg)[] DeptChipColors =
+    [
+        ("#EEF2FF", "#4338CA"),
+        ("#ECFDF5", "#047857"),
+        ("#FEF3C7", "#92400E"),
+        ("#FEE2E2", "#B91C1C"),
+        ("#E0F2FE", "#0369A1"),
+        ("#F3E8FF", "#6D28D9"),
+        ("#FCE7F3", "#BE185D"),
+        ("#D1FAE5", "#065F46"),
+        ("#FFEDD5", "#9A3412"),
+        ("#E0E7FF", "#3730A3"),
+    ];
+
+    private static (string Bg, string Fg) DeptChipColorFor(string name)
+    {
+        unchecked
+        {
+            uint hash = 2166136261;
+            foreach (var c in name.Trim().ToLowerInvariant())
+            {
+                hash ^= c;
+                hash *= 16777619;
+            }
+            return DeptChipColors[hash % (uint)DeptChipColors.Length];
+        }
+    }
+
+    private string GetMetaChipStyle()
+    {
+        var deptName = Node.User?.Department?.Name;
+        if (string.IsNullOrWhiteSpace(deptName)) return string.Empty;
+
+        var (bg, fg) = DeptChipColorFor(deptName);
+        return $"background:{bg};color:{fg};border-color:{fg}33;";
     }
 }
 

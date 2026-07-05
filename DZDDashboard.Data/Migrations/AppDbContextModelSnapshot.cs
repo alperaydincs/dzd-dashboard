@@ -17,7 +17,7 @@ namespace DZDDashboard.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.9")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -55,9 +55,6 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<int?>("ModifiedById")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("PaymentDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("PaymentType")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -67,7 +64,7 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<DateTime?>("StartDate")
+                    b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("UserId")
@@ -80,38 +77,6 @@ namespace DZDDashboard.Data.Migrations
                     b.HasIndex("UserId", "Period");
 
                     b.ToTable("UserAdditionalPayments", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Bank", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("BankName")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BankName")
-                        .IsUnique();
-
-                    b.HasIndex("ModifiedById");
-
-                    b.ToTable("Banks", (string)null);
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.BenefitDependent", b =>
@@ -256,189 +221,6 @@ namespace DZDDashboard.Data.Migrations
                     b.ToTable("UserBenefitRecords", (string)null);
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Bid", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("AnalysisDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("AnalystId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("BankId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Budget")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<DateTime?>("CloseDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("DepartmentId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("DeveloperId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("DzdStatusId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("IntertechTeamId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("JiraProjectNo")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<int?>("PeriodId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ProjectManagerId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ProjectName")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<int?>("TeamId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TshirtSize")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<DateTime?>("UatDate")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AnalystId");
-
-                    b.HasIndex("BankId");
-
-                    b.HasIndex("DepartmentId");
-
-                    b.HasIndex("DeveloperId");
-
-                    b.HasIndex("DzdStatusId");
-
-                    b.HasIndex("IntertechTeamId");
-
-                    b.HasIndex("JiraProjectNo")
-                        .IsUnique()
-                        .HasFilter("[JiraProjectNo] IS NOT NULL");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("PeriodId");
-
-                    b.HasIndex("ProjectManagerId");
-
-                    b.HasIndex("TeamId");
-
-                    b.ToTable("Bids", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.CareerMapRule", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("AssessmentCenterApplication")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<int>("CareerPathId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("CaseStudy")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<bool>("CommitteeApproval")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("EnglishProficiency")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<int>("Grade")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("ManagerPerformanceEvaluation")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ProjectObjective")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("TechnicalInterview")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("CareerPathId", "Grade")
-                        .IsUnique();
-
-                    b.ToTable("CareerMapRules", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.CareerMapRulePosition", b =>
-                {
-                    b.Property<int>("CareerMapRuleId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("JobId")
-                        .HasColumnType("int");
-
-                    b.HasKey("CareerMapRuleId", "JobId");
-
-                    b.HasIndex("JobId");
-
-                    b.ToTable("CareerMapRulePositions", (string)null);
-                });
-
             modelBuilder.Entity("DZDDashboard.Data.Entities.CareerPath", b =>
                 {
                     b.Property<int>("Id")
@@ -468,6 +250,111 @@ namespace DZDDashboard.Data.Migrations
                     b.ToTable("CareerPaths", (string)null);
                 });
 
+            modelBuilder.Entity("DZDDashboard.Data.Entities.CareerPathRule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("AssessmentCenterApplication")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("CareerPathId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("CaseStudy")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("CommitteeApproval")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("EmployerContributionUpperLimitAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("EmployerContributionUpperLimitCurrency")
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<bool>("EnglishProficiency")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("Grade")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("ManagerPerformanceEvaluation")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<decimal?>("MealAllowanceAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("MealAllowanceCurrency")
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ModifiedById")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("PrivatePensionInsuranceAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("PrivatePensionInsuranceCurrency")
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<int?>("ProjectObjective")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("SalaryIncreasePercent")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<bool>("TechnicalInterview")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModifiedById");
+
+                    b.HasIndex("CareerPathId", "Grade")
+                        .IsUnique();
+
+                    b.ToTable("CareerPathRules", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.CareerPathRuleJob", b =>
+                {
+                    b.Property<int>("CareerPathRuleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("JobId")
+                        .HasColumnType("int");
+
+                    b.HasKey("CareerPathRuleId", "JobId");
+
+                    b.HasIndex("JobId");
+
+                    b.ToTable("CareerPathRuleJobs", (string)null);
+                });
+
             modelBuilder.Entity("DZDDashboard.Data.Entities.ChecklistItem", b =>
                 {
                     b.Property<int>("Id")
@@ -493,17 +380,6 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<string>("Currency")
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
-
-                    b.Property<string>("DocumentContentType")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("DocumentFileName")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<int?>("DocumentStoredFileId")
-                        .HasColumnType("int");
 
                     b.Property<decimal?>("EmployeeAmount")
                         .HasPrecision(18, 2)
@@ -566,8 +442,6 @@ namespace DZDDashboard.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CompletedById");
-
-                    b.HasIndex("DocumentStoredFileId");
 
                     b.HasIndex("ModifiedById");
 
@@ -1058,10 +932,6 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
 
@@ -1107,6 +977,9 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
 
@@ -1135,47 +1008,6 @@ namespace DZDDashboard.Data.Migrations
                     b.HasIndex("UserId", "StartDate");
 
                     b.ToTable("UserDeductions", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.DefaultDocument", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ContentType")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DocumentName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DocumentName")
-                        .IsUnique();
-
-                    b.HasIndex("ModifiedById");
-
-                    b.ToTable("DefaultDocuments", (string)null);
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.Department", b =>
@@ -1213,38 +1045,6 @@ namespace DZDDashboard.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Departments", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.DzdStatus", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DzdStatusName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DzdStatusName")
-                        .IsUnique();
-
-                    b.HasIndex("ModifiedById");
-
-                    b.ToTable("DzdStatuses", (string)null);
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.EducationHistory", b =>
@@ -1334,405 +1134,6 @@ namespace DZDDashboard.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("EmergencyContacts");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.ExCompanyHistory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CompanyName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("JobTitle")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("IX_ExCompanyHistories_UserId");
-
-                    b.ToTable("ExCompanyHistories", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Grade", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<string>("Level")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<decimal>("MaxSalary")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("MinSalary")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("NextStepId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NextStepId");
-
-                    b.ToTable("Grades", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.GradeHistory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Grade")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserGradeHistories", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.HeadLeadCoefficient", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Coefficient")
-                        .HasColumnType("decimal(5, 2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("JobId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("PeriodId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("JobId");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("PeriodId", "JobId")
-                        .IsUnique()
-                        .HasFilter("[PeriodId] IS NOT NULL AND [JobId] IS NOT NULL");
-
-                    b.ToTable("HeadLeadCoefficients", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.IssuePaymentType", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Coefficient")
-                        .HasColumnType("decimal(5, 2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PaymentTypeName")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<int?>("PeriodId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("PeriodId");
-
-                    b.HasIndex("PaymentTypeName", "PeriodId")
-                        .IsUnique()
-                        .HasFilter("[PeriodId] IS NOT NULL");
-
-                    b.ToTable("IssuePaymentTypes", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.IssuePriority", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PriorityName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("PriorityName")
-                        .IsUnique();
-
-                    b.ToTable("IssuePriorities", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.IssueStatus", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<string>("StatusName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("StatusName")
-                        .IsUnique();
-
-                    b.ToTable("IssueStatuses", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.IssueType", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TypeName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("TypeName")
-                        .IsUnique();
-
-                    b.ToTable("IssueTypes", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Itsm", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Active")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<int?>("AssigneeId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("BankId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("IssueKey")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int?>("IssuePriorityId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("IssueStatusId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("IssueTypeId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ItsmPaymentTypeId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("PeriodId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ResolutionId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("TeamId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AssigneeId")
-                        .HasDatabaseName("IX_Itsms_AssigneeId");
-
-                    b.HasIndex("BankId");
-
-                    b.HasIndex("IssueKey")
-                        .IsUnique();
-
-                    b.HasIndex("IssuePriorityId");
-
-                    b.HasIndex("IssueStatusId");
-
-                    b.HasIndex("IssueTypeId");
-
-                    b.HasIndex("ItsmPaymentTypeId");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("PeriodId")
-                        .HasDatabaseName("IX_Itsms_PeriodId");
-
-                    b.HasIndex("ResolutionId");
-
-                    b.HasIndex("TeamId");
-
-                    b.ToTable("Itsms", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.JiraStatus", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("JiraStatusName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("JiraStatusName")
-                        .IsUnique();
-
-                    b.HasIndex("ModifiedById");
-
-                    b.ToTable("JiraStatuses", (string)null);
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.Job", b =>
@@ -1929,43 +1330,6 @@ namespace DZDDashboard.Data.Migrations
                     b.ToTable("PayrollLocations", (string)null);
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Period", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Active")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PeriodName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("PeriodName")
-                        .IsUnique();
-
-                    b.ToTable("Periods", (string)null);
-                });
-
             modelBuilder.Entity("DZDDashboard.Data.Entities.PositionHistory", b =>
                 {
                     b.Property<int>("Id")
@@ -1987,6 +1351,10 @@ namespace DZDDashboard.Data.Migrations
 
                     b.Property<int?>("DepartmentId")
                         .HasColumnType("int");
+
+                    b.Property<string>("DepartmentName")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
@@ -2010,6 +1378,10 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<int?>("TeamId")
                         .HasColumnType("int");
 
+                    b.Property<string>("TeamName")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
@@ -2024,339 +1396,6 @@ namespace DZDDashboard.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("UserPositionHistories", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Project", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("AnalystEffort")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<int?>("AnalystId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("BankId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Color")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("DepartmentId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("DeveloperEffort")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<int?>("DeveloperId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("DzdStatusId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("IntertechTeamId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsIncludedInBonus")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<string>("JiraProjectNo")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int?>("JiraStatusId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("JiraTaskNo")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<int?>("PeriodId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("ProjectManagerEffort")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<int?>("ProjectManagerId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ProjectName")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<int?>("TeamId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("TotalEffort")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AnalystId");
-
-                    b.HasIndex("BankId");
-
-                    b.HasIndex("DepartmentId");
-
-                    b.HasIndex("DeveloperId");
-
-                    b.HasIndex("DzdStatusId");
-
-                    b.HasIndex("IntertechTeamId");
-
-                    b.HasIndex("JiraStatusId");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("PeriodId")
-                        .HasDatabaseName("IX_Projects_PeriodId");
-
-                    b.HasIndex("ProjectManagerId");
-
-                    b.HasIndex("TeamId");
-
-                    b.HasIndex("JiraProjectNo", "JiraTaskNo")
-                        .IsUnique()
-                        .HasFilter("[JiraProjectNo] IS NOT NULL AND [JiraTaskNo] IS NOT NULL");
-
-                    b.ToTable("Projects", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.ProjectBonusCoefficient", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Coefficient")
-                        .HasColumnType("decimal(5, 2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("PeriodId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("PeriodId")
-                        .IsUnique()
-                        .HasFilter("[PeriodId] IS NOT NULL");
-
-                    b.ToTable("ProjectBonusCoefficients", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.ProjectDocument", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ContentType")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DocumentName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ProjectId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("ProjectId");
-
-                    b.ToTable("ProjectDocuments", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.ProjectInvoice", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Active")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<int?>("BankId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("DepartmentId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("DzdStatusId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("EFaturaNumber")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("JiraProjectNo")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("JiraTaskNo")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<bool>("PartialInvoice")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<int?>("PayrollLocationId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("PeriodId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ProjectName")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<string>("PurchaseInvoiceNumber")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("PurchaseOrder")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<decimal>("TotalEffort")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<decimal>("UnitEffort")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<decimal>("Vat")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<decimal>("VatIncludedAmount")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BankId");
-
-                    b.HasIndex("DepartmentId");
-
-                    b.HasIndex("DzdStatusId");
-
-                    b.HasIndex("EFaturaNumber")
-                        .IsUnique()
-                        .HasFilter("[EFaturaNumber] IS NOT NULL");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("PayrollLocationId");
-
-                    b.HasIndex("PeriodId");
-
-                    b.HasIndex("PurchaseInvoiceNumber")
-                        .IsUnique()
-                        .HasFilter("[PurchaseInvoiceNumber] IS NOT NULL");
-
-                    b.ToTable("ProjectInvoices", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Resolution", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ResolutionName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("ResolutionName")
-                        .IsUnique();
-
-                    b.ToTable("Resolutions", (string)null);
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.SalaryHistory", b =>
@@ -2428,56 +1467,6 @@ namespace DZDDashboard.Data.Migrations
                     b.ToTable("UserSalaryHistories", (string)null);
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Salesforce", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Info")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("IsSuitable")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("PayrollLocationId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TaskPo")
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<string>("TaskTeam")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("PayrollLocationId");
-
-                    b.HasIndex("TaskTeam", "TaskPo")
-                        .IsUnique()
-                        .HasFilter("[TaskPo] IS NOT NULL");
-
-                    b.ToTable("Salesforces", (string)null);
-                });
-
             modelBuilder.Entity("DZDDashboard.Data.Entities.StoredFile", b =>
                 {
                     b.Property<int>("Id")
@@ -2510,74 +1499,7 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasIndex("ModifiedById");
 
-                    b.ToTable("StoredFiles", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.TargetEffort", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("CompletedTarget")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<decimal>("ItsmBonusAmount")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<decimal>("ManagerBonusAmount")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<decimal>("ManagerBonusEffort")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("PeriodId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("ProjectBonusAmount")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<decimal>("RemainingTarget")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("decimal(18, 2)")
-                        .HasComputedColumnSql("[Target] - [CompletedTarget]", true);
-
-                    b.Property<decimal>("Target")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<decimal>("TotalBonusAmount")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("PeriodId", "UserId")
-                        .IsUnique()
-                        .HasFilter("[PeriodId] IS NOT NULL AND [UserId] IS NOT NULL");
-
-                    b.ToTable("TargetEfforts", (string)null);
+                    b.ToTable("Files", (string)null);
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.Team", b =>
@@ -2615,68 +1537,6 @@ namespace DZDDashboard.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Teams", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Training", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Details")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("InstructorCompanyDetails")
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
-                    b.Property<string>("InstructorName")
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<string>("Location")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<int?>("RepeatFrequency")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("Trainings", (string)null);
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.UdemyCourseActivity", b =>
@@ -2771,23 +1631,11 @@ namespace DZDDashboard.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ApprovalProcessUnit")
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<string>("AutoEnrollmentPensionStatus")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<int?>("AvatarColorIndex")
                         .HasColumnType("int");
 
                     b.Property<int?>("AvatarId")
                         .HasColumnType("int");
-
-                    b.Property<string>("BankName")
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
 
                     b.Property<int?>("CareerPathId")
                         .HasColumnType("int");
@@ -2800,9 +1648,8 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("CompanyName")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("ContractEndDate")
                         .HasColumnType("datetime2");
@@ -2825,10 +1672,6 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<DateTime?>("CurrentAddressChangedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("CvFilePath")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<DateTime?>("DateOfBirth")
                         .HasColumnType("datetime2");
 
@@ -2848,21 +1691,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<string>("EmployeeGroup")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<decimal?>("EmployerPensionEmployeeContribution")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("EmployerPensionEmployerContribution")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime?>("EmployerPensionStartDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("EntraObjectId")
                         .HasMaxLength(36)
                         .HasColumnType("nvarchar(36)");
@@ -2877,20 +1705,6 @@ namespace DZDDashboard.Data.Migrations
 
                     b.Property<int?>("Grade")
                         .HasColumnType("int");
-
-                    b.Property<bool>("HasEmployerPension")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<bool>("HasPrivateHealthInsurance")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("Iban")
-                        .HasMaxLength(34)
-                        .HasColumnType("nvarchar(34)");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
@@ -2924,10 +1738,6 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<string>("MaritalStatus")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
-
-                    b.Property<decimal?>("MealBenefitAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
@@ -2967,14 +1777,6 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<DateTime?>("PositionUpdateDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal?>("PrivateHealthInsuranceDependentCost")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("PrivateHealthInsuranceEmployeeCost")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<string>("RegistrationNumber")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -3003,7 +1805,11 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AvatarId");
+
                     b.HasIndex("CareerPathId");
+
+                    b.HasIndex("CompanyId");
 
                     b.HasIndex("DepartmentId");
 
@@ -3040,46 +1846,7 @@ namespace DZDDashboard.Data.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.UserAvatar", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ContentType")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StorageId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("StorageId");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("UserAvatars", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.UserDocument", b =>
+            modelBuilder.Entity("DZDDashboard.Data.Entities.UserCvDocument", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -3095,7 +1862,7 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("DocumentCategoryId")
+                    b.Property<int?>("FileId")
                         .HasColumnType("int");
 
                     b.Property<string>("FileName")
@@ -3128,33 +1895,31 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<long>("SizeBytes")
                         .HasColumnType("bigint");
 
-                    b.Property<int?>("StoredFileId")
-                        .HasColumnType("int");
-
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DocumentCategoryId");
+                    b.HasIndex("FileId");
 
                     b.HasIndex("ModifiedById");
-
-                    b.HasIndex("StoredFileId");
 
                     b.HasIndex("UserId", "FileName")
                         .IsUnique();
 
-                    b.ToTable("UserDocuments", (string)null);
+                    b.ToTable("UserCvDocuments", (string)null);
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.UserDocumentCategory", b =>
+            modelBuilder.Entity("DZDDashboard.Data.Entities.UserOffboardingDocument", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ChecklistItemId")
+                        .HasColumnType("int");
 
                     b.Property<string>("ContentType")
                         .HasMaxLength(100)
@@ -3163,14 +1928,12 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                    b.Property<int?>("FileId")
+                        .HasColumnType("int");
 
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
+                    b.Property<string>("FileName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
@@ -3178,22 +1941,19 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<int?>("ModifiedById")
                         .HasColumnType("int");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("ChecklistItemId")
+                        .IsUnique();
+
+                    b.HasIndex("FileId");
 
                     b.HasIndex("ModifiedById");
 
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("UserDocumentCategories", (string)null);
+                    b.ToTable("UserOffboardingDocuments", (string)null);
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.UserTraining", b =>
+            modelBuilder.Entity("DZDDashboard.Data.Entities.UserOnboardingDocument", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -3201,23 +1961,22 @@ namespace DZDDashboard.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime?>("CompletionDate")
-                        .HasColumnType("datetime2");
+                    b.Property<int>("ChecklistItemId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ContentType")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int?>("Evaluation")
+                    b.Property<int?>("FileId")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
+                    b.Property<string>("FileName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
@@ -3225,27 +1984,16 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<int?>("ModifiedById")
                         .HasColumnType("int");
 
-                    b.Property<string>("Status")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int?>("TrainingId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("ChecklistItemId")
+                        .IsUnique();
+
+                    b.HasIndex("FileId");
 
                     b.HasIndex("ModifiedById");
 
-                    b.HasIndex("TrainingId");
-
-                    b.HasIndex("UserId", "TrainingId")
-                        .IsUnique()
-                        .HasFilter("[UserId] IS NOT NULL AND [TrainingId] IS NOT NULL");
-
-                    b.ToTable("UserTrainings", (string)null);
+                    b.ToTable("UserOnboardingDocuments", (string)null);
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.AdditionalPayment", b =>
@@ -3264,16 +2012,6 @@ namespace DZDDashboard.Data.Migrations
                     b.Navigation("ModifiedBy");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Bank", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ModifiedBy");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.BenefitDependent", b =>
@@ -3312,80 +2050,17 @@ namespace DZDDashboard.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Bid", b =>
+            modelBuilder.Entity("DZDDashboard.Data.Entities.CareerPath", b =>
                 {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "Analyst")
-                        .WithMany()
-                        .HasForeignKey("AnalystId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.Bank", "Bank")
-                        .WithMany()
-                        .HasForeignKey("BankId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.Department", "Department")
-                        .WithMany()
-                        .HasForeignKey("DepartmentId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "Developer")
-                        .WithMany()
-                        .HasForeignKey("DeveloperId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.DzdStatus", "DzdStatus")
-                        .WithMany()
-                        .HasForeignKey("DzdStatusId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.Salesforce", "IntertechTeam")
-                        .WithMany("Bids")
-                        .HasForeignKey("IntertechTeamId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
                         .WithMany()
                         .HasForeignKey("ModifiedById")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("DZDDashboard.Data.Entities.Period", "Period")
-                        .WithMany()
-                        .HasForeignKey("PeriodId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ProjectManager")
-                        .WithMany()
-                        .HasForeignKey("ProjectManagerId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.Team", "Team")
-                        .WithMany()
-                        .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Analyst");
-
-                    b.Navigation("Bank");
-
-                    b.Navigation("Department");
-
-                    b.Navigation("Developer");
-
-                    b.Navigation("DzdStatus");
-
-                    b.Navigation("IntertechTeam");
-
                     b.Navigation("ModifiedBy");
-
-                    b.Navigation("Period");
-
-                    b.Navigation("ProjectManager");
-
-                    b.Navigation("Team");
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.CareerMapRule", b =>
+            modelBuilder.Entity("DZDDashboard.Data.Entities.CareerPathRule", b =>
                 {
                     b.HasOne("DZDDashboard.Data.Entities.CareerPath", "CareerPath")
                         .WithMany("Rules")
@@ -3400,7 +2075,7 @@ namespace DZDDashboard.Data.Migrations
 
                     b.OwnsOne("DZDDashboard.Data.Entities.RoleDuration", "MinExperience", b1 =>
                         {
-                            b1.Property<int>("CareerMapRuleId")
+                            b1.Property<int>("CareerPathRuleId")
                                 .HasColumnType("int");
 
                             b1.Property<int?>("Months")
@@ -3411,17 +2086,17 @@ namespace DZDDashboard.Data.Migrations
                                 .HasColumnType("int")
                                 .HasColumnName("MinExperienceYear");
 
-                            b1.HasKey("CareerMapRuleId");
+                            b1.HasKey("CareerPathRuleId");
 
-                            b1.ToTable("CareerMapRules");
+                            b1.ToTable("CareerPathRules");
 
                             b1.WithOwner()
-                                .HasForeignKey("CareerMapRuleId");
+                                .HasForeignKey("CareerPathRuleId");
                         });
 
                     b.OwnsOne("DZDDashboard.Data.Entities.RoleDuration", "MinRoleTime", b1 =>
                         {
-                            b1.Property<int>("CareerMapRuleId")
+                            b1.Property<int>("CareerPathRuleId")
                                 .HasColumnType("int");
 
                             b1.Property<int?>("Months")
@@ -3432,12 +2107,12 @@ namespace DZDDashboard.Data.Migrations
                                 .HasColumnType("int")
                                 .HasColumnName("MinRoleTimeYear");
 
-                            b1.HasKey("CareerMapRuleId");
+                            b1.HasKey("CareerPathRuleId");
 
-                            b1.ToTable("CareerMapRules");
+                            b1.ToTable("CareerPathRules");
 
                             b1.WithOwner()
-                                .HasForeignKey("CareerMapRuleId");
+                                .HasForeignKey("CareerPathRuleId");
                         });
 
                     b.Navigation("CareerPath");
@@ -3451,33 +2126,23 @@ namespace DZDDashboard.Data.Migrations
                     b.Navigation("ModifiedBy");
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.CareerMapRulePosition", b =>
+            modelBuilder.Entity("DZDDashboard.Data.Entities.CareerPathRuleJob", b =>
                 {
-                    b.HasOne("DZDDashboard.Data.Entities.CareerMapRule", "CareerMapRule")
+                    b.HasOne("DZDDashboard.Data.Entities.CareerPathRule", "CareerPathRule")
                         .WithMany("Positions")
-                        .HasForeignKey("CareerMapRuleId")
+                        .HasForeignKey("CareerPathRuleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DZDDashboard.Data.Entities.Job", "Job")
                         .WithMany()
                         .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("CareerMapRule");
+                    b.Navigation("CareerPathRule");
 
                     b.Navigation("Job");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.CareerPath", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ModifiedBy");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.ChecklistItem", b =>
@@ -3486,11 +2151,6 @@ namespace DZDDashboard.Data.Migrations
                         .WithMany()
                         .HasForeignKey("CompletedById")
                         .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.StoredFile", "DocumentStoredFile")
-                        .WithMany()
-                        .HasForeignKey("DocumentStoredFileId")
-                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
                         .WithMany()
@@ -3508,8 +2168,6 @@ namespace DZDDashboard.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("CompletedBy");
-
-                    b.Navigation("DocumentStoredFile");
 
                     b.Navigation("ModifiedBy");
 
@@ -3584,16 +2242,6 @@ namespace DZDDashboard.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.DefaultDocument", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ModifiedBy");
-                });
-
             modelBuilder.Entity("DZDDashboard.Data.Entities.Department", b =>
                 {
                     b.HasOne("DZDDashboard.Data.Entities.Company", "Company")
@@ -3607,16 +2255,6 @@ namespace DZDDashboard.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Company");
-
-                    b.Navigation("ModifiedBy");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.DzdStatus", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ModifiedBy");
                 });
@@ -3655,197 +2293,6 @@ namespace DZDDashboard.Data.Migrations
                     b.Navigation("ModifiedBy");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.ExCompanyHistory", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "User")
-                        .WithMany("ExCompanyHistories")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("ModifiedBy");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Grade", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.Grade", "NextStep")
-                        .WithMany()
-                        .HasForeignKey("NextStepId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("NextStep");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.GradeHistory", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "User")
-                        .WithMany("GradeHistories")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.HeadLeadCoefficient", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.Job", "Job")
-                        .WithMany("HeadLeadCoefficients")
-                        .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.Period", "Period")
-                        .WithMany("HeadLeadCoefficients")
-                        .HasForeignKey("PeriodId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Job");
-
-                    b.Navigation("ModifiedBy");
-
-                    b.Navigation("Period");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.IssuePaymentType", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.Period", "Period")
-                        .WithMany()
-                        .HasForeignKey("PeriodId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("ModifiedBy");
-
-                    b.Navigation("Period");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.IssuePriority", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ModifiedBy");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.IssueStatus", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ModifiedBy");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.IssueType", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ModifiedBy");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Itsm", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "Assignee")
-                        .WithMany()
-                        .HasForeignKey("AssigneeId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.Bank", "Bank")
-                        .WithMany("Itsms")
-                        .HasForeignKey("BankId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.IssuePriority", "IssuePriority")
-                        .WithMany("Itsms")
-                        .HasForeignKey("IssuePriorityId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.IssueStatus", "IssueStatus")
-                        .WithMany("Itsms")
-                        .HasForeignKey("IssueStatusId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.IssueType", "IssueType")
-                        .WithMany("Itsms")
-                        .HasForeignKey("IssueTypeId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.IssuePaymentType", "ItsmPaymentType")
-                        .WithMany("Itsms")
-                        .HasForeignKey("ItsmPaymentTypeId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.Period", "Period")
-                        .WithMany("Itsms")
-                        .HasForeignKey("PeriodId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.Resolution", "Resolution")
-                        .WithMany("Itsms")
-                        .HasForeignKey("ResolutionId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.Team", "Team")
-                        .WithMany("Itsms")
-                        .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Assignee");
-
-                    b.Navigation("Bank");
-
-                    b.Navigation("IssuePriority");
-
-                    b.Navigation("IssueStatus");
-
-                    b.Navigation("IssueType");
-
-                    b.Navigation("ItsmPaymentType");
-
-                    b.Navigation("ModifiedBy");
-
-                    b.Navigation("Period");
-
-                    b.Navigation("Resolution");
-
-                    b.Navigation("Team");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.JiraStatus", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ModifiedBy");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.Job", b =>
@@ -3928,22 +2375,12 @@ namespace DZDDashboard.Data.Migrations
                     b.Navigation("ModifiedBy");
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Period", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ModifiedBy");
-                });
-
             modelBuilder.Entity("DZDDashboard.Data.Entities.PositionHistory", b =>
                 {
                     b.HasOne("DZDDashboard.Data.Entities.Department", "Department")
                         .WithMany()
                         .HasForeignKey("DepartmentId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
                         .WithMany()
@@ -3952,7 +2389,7 @@ namespace DZDDashboard.Data.Migrations
                     b.HasOne("DZDDashboard.Data.Entities.Team", "Team")
                         .WithMany()
                         .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("DZDDashboard.Data.Entities.User", "User")
                         .WithMany("PositionHistories")
@@ -3967,175 +2404,6 @@ namespace DZDDashboard.Data.Migrations
                     b.Navigation("Team");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Project", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "Analyst")
-                        .WithMany()
-                        .HasForeignKey("AnalystId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.Bank", "Bank")
-                        .WithMany("Projects")
-                        .HasForeignKey("BankId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.Department", "Department")
-                        .WithMany("Projects")
-                        .HasForeignKey("DepartmentId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "Developer")
-                        .WithMany()
-                        .HasForeignKey("DeveloperId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.DzdStatus", "DzdStatus")
-                        .WithMany("Projects")
-                        .HasForeignKey("DzdStatusId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.Salesforce", "IntertechTeam")
-                        .WithMany("Projects")
-                        .HasForeignKey("IntertechTeamId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.JiraStatus", "JiraStatus")
-                        .WithMany("Projects")
-                        .HasForeignKey("JiraStatusId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.Period", "Period")
-                        .WithMany("Projects")
-                        .HasForeignKey("PeriodId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ProjectManager")
-                        .WithMany()
-                        .HasForeignKey("ProjectManagerId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.Team", "Team")
-                        .WithMany("Projects")
-                        .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Analyst");
-
-                    b.Navigation("Bank");
-
-                    b.Navigation("Department");
-
-                    b.Navigation("Developer");
-
-                    b.Navigation("DzdStatus");
-
-                    b.Navigation("IntertechTeam");
-
-                    b.Navigation("JiraStatus");
-
-                    b.Navigation("ModifiedBy");
-
-                    b.Navigation("Period");
-
-                    b.Navigation("ProjectManager");
-
-                    b.Navigation("Team");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.ProjectBonusCoefficient", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.Period", "Period")
-                        .WithMany()
-                        .HasForeignKey("PeriodId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ModifiedBy");
-
-                    b.Navigation("Period");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.ProjectDocument", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.Project", "Project")
-                        .WithMany()
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("ModifiedBy");
-
-                    b.Navigation("Project");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.ProjectInvoice", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.Bank", "Bank")
-                        .WithMany()
-                        .HasForeignKey("BankId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.Department", "Department")
-                        .WithMany()
-                        .HasForeignKey("DepartmentId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.DzdStatus", "DzdStatus")
-                        .WithMany()
-                        .HasForeignKey("DzdStatusId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.PayrollLocation", "PayrollLocation")
-                        .WithMany()
-                        .HasForeignKey("PayrollLocationId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("DZDDashboard.Data.Entities.Period", "Period")
-                        .WithMany()
-                        .HasForeignKey("PeriodId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Bank");
-
-                    b.Navigation("Department");
-
-                    b.Navigation("DzdStatus");
-
-                    b.Navigation("ModifiedBy");
-
-                    b.Navigation("PayrollLocation");
-
-                    b.Navigation("Period");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Resolution", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ModifiedBy");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.SalaryHistory", b =>
@@ -4156,23 +2424,6 @@ namespace DZDDashboard.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Salesforce", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.PayrollLocation", "PayrollLocation")
-                        .WithMany("IntertechTeams")
-                        .HasForeignKey("PayrollLocationId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("ModifiedBy");
-
-                    b.Navigation("PayrollLocation");
-                });
-
             modelBuilder.Entity("DZDDashboard.Data.Entities.StoredFile", b =>
                 {
                     b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
@@ -4180,30 +2431,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasForeignKey("ModifiedById");
 
                     b.Navigation("ModifiedBy");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.TargetEffort", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.Period", "Period")
-                        .WithMany("TargetEfforts")
-                        .HasForeignKey("PeriodId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "User")
-                        .WithMany("TargetEfforts")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("ModifiedBy");
-
-                    b.Navigation("Period");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.Team", b =>
@@ -4219,16 +2446,6 @@ namespace DZDDashboard.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Department");
-
-                    b.Navigation("ModifiedBy");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Training", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ModifiedBy");
                 });
@@ -4252,10 +2469,20 @@ namespace DZDDashboard.Data.Migrations
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.User", b =>
                 {
+                    b.HasOne("DZDDashboard.Data.Entities.StoredFile", "Avatar")
+                        .WithMany()
+                        .HasForeignKey("AvatarId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("DZDDashboard.Data.Entities.CareerPath", "CareerPath")
                         .WithMany()
                         .HasForeignKey("CareerPathId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("DZDDashboard.Data.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("DZDDashboard.Data.Entities.Department", "Department")
                         .WithMany("Users")
@@ -4292,7 +2519,11 @@ namespace DZDDashboard.Data.Migrations
                         .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.Navigation("Avatar");
+
                     b.Navigation("CareerPath");
+
+                    b.Navigation("Company");
 
                     b.Navigation("Department");
 
@@ -4309,103 +2540,79 @@ namespace DZDDashboard.Data.Migrations
                     b.Navigation("Team");
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.UserAvatar", b =>
+            modelBuilder.Entity("DZDDashboard.Data.Entities.UserCvDocument", b =>
                 {
+                    b.HasOne("DZDDashboard.Data.Entities.StoredFile", "File")
+                        .WithMany()
+                        .HasForeignKey("FileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
                         .WithMany()
                         .HasForeignKey("ModifiedById")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("DZDDashboard.Data.Entities.StoredFile", "Storage")
+                    b.HasOne("DZDDashboard.Data.Entities.User", "User")
                         .WithMany()
-                        .HasForeignKey("StorageId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("DZDDashboard.Data.Entities.User", "User")
-                        .WithOne("Avatar")
-                        .HasForeignKey("DZDDashboard.Data.Entities.UserAvatar", "UserId")
+                    b.Navigation("File");
+
+                    b.Navigation("ModifiedBy");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.UserOffboardingDocument", b =>
+                {
+                    b.HasOne("DZDDashboard.Data.Entities.ChecklistItem", "ChecklistItem")
+                        .WithOne("OffboardingDocument")
+                        .HasForeignKey("DZDDashboard.Data.Entities.UserOffboardingDocument", "ChecklistItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ModifiedBy");
-
-                    b.Navigation("Storage");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.UserDocument", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.UserDocumentCategory", "DocumentCategory")
-                        .WithMany("UserDocuments")
-                        .HasForeignKey("DocumentCategoryId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                    b.HasOne("DZDDashboard.Data.Entities.StoredFile", "File")
+                        .WithMany()
+                        .HasForeignKey("FileId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
                         .WithMany()
                         .HasForeignKey("ModifiedById")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("DZDDashboard.Data.Entities.StoredFile", "StoredFile")
-                        .WithMany()
-                        .HasForeignKey("StoredFileId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                    b.Navigation("ChecklistItem");
 
-                    b.HasOne("DZDDashboard.Data.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                    b.Navigation("File");
+
+                    b.Navigation("ModifiedBy");
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.UserOnboardingDocument", b =>
+                {
+                    b.HasOne("DZDDashboard.Data.Entities.ChecklistItem", "ChecklistItem")
+                        .WithOne("OnboardingDocument")
+                        .HasForeignKey("DZDDashboard.Data.Entities.UserOnboardingDocument", "ChecklistItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("DocumentCategory");
+                    b.HasOne("DZDDashboard.Data.Entities.StoredFile", "File")
+                        .WithMany()
+                        .HasForeignKey("FileId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("ModifiedBy");
-
-                    b.Navigation("StoredFile");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.UserDocumentCategory", b =>
-                {
                     b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
                         .WithMany()
                         .HasForeignKey("ModifiedById")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("ModifiedBy");
-                });
+                    b.Navigation("ChecklistItem");
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.UserTraining", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.Training", "Training")
-                        .WithMany("UserTrainings")
-                        .HasForeignKey("TrainingId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "User")
-                        .WithMany("UserTrainings")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                    b.Navigation("File");
 
                     b.Navigation("ModifiedBy");
-
-                    b.Navigation("Training");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Bank", b =>
-                {
-                    b.Navigation("Itsms");
-
-                    b.Navigation("Projects");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.BenefitRecord", b =>
@@ -4413,19 +2620,23 @@ namespace DZDDashboard.Data.Migrations
                     b.Navigation("Dependents");
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.CareerMapRule", b =>
-                {
-                    b.Navigation("Positions");
-                });
-
             modelBuilder.Entity("DZDDashboard.Data.Entities.CareerPath", b =>
                 {
                     b.Navigation("Rules");
                 });
 
+            modelBuilder.Entity("DZDDashboard.Data.Entities.CareerPathRule", b =>
+                {
+                    b.Navigation("Positions");
+                });
+
             modelBuilder.Entity("DZDDashboard.Data.Entities.ChecklistItem", b =>
                 {
                     b.Navigation("Dependents");
+
+                    b.Navigation("OffboardingDocument");
+
+                    b.Navigation("OnboardingDocument");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.Company", b =>
@@ -4435,47 +2646,13 @@ namespace DZDDashboard.Data.Migrations
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.Department", b =>
                 {
-                    b.Navigation("Projects");
-
                     b.Navigation("Teams");
 
                     b.Navigation("Users");
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.DzdStatus", b =>
-                {
-                    b.Navigation("Projects");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.IssuePaymentType", b =>
-                {
-                    b.Navigation("Itsms");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.IssuePriority", b =>
-                {
-                    b.Navigation("Itsms");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.IssueStatus", b =>
-                {
-                    b.Navigation("Itsms");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.IssueType", b =>
-                {
-                    b.Navigation("Itsms");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.JiraStatus", b =>
-                {
-                    b.Navigation("Projects");
-                });
-
             modelBuilder.Entity("DZDDashboard.Data.Entities.Job", b =>
                 {
-                    b.Navigation("HeadLeadCoefficients");
-
                     b.Navigation("Users");
                 });
 
@@ -4496,53 +2673,14 @@ namespace DZDDashboard.Data.Migrations
                     b.Navigation("Users");
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.PayrollLocation", b =>
-                {
-                    b.Navigation("IntertechTeams");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Period", b =>
-                {
-                    b.Navigation("HeadLeadCoefficients");
-
-                    b.Navigation("Itsms");
-
-                    b.Navigation("Projects");
-
-                    b.Navigation("TargetEfforts");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Resolution", b =>
-                {
-                    b.Navigation("Itsms");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Salesforce", b =>
-                {
-                    b.Navigation("Bids");
-
-                    b.Navigation("Projects");
-                });
-
             modelBuilder.Entity("DZDDashboard.Data.Entities.Team", b =>
                 {
-                    b.Navigation("Itsms");
-
-                    b.Navigation("Projects");
-
                     b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Training", b =>
-                {
-                    b.Navigation("UserTrainings");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.User", b =>
                 {
                     b.Navigation("AdditionalPayments");
-
-                    b.Navigation("Avatar");
 
                     b.Navigation("BenefitRecords");
 
@@ -4554,10 +2692,6 @@ namespace DZDDashboard.Data.Migrations
 
                     b.Navigation("EmergencyContacts");
 
-                    b.Navigation("ExCompanyHistories");
-
-                    b.Navigation("GradeHistories");
-
                     b.Navigation("OffboardingProcess");
 
                     b.Navigation("OnboardingProcess");
@@ -4567,15 +2701,6 @@ namespace DZDDashboard.Data.Migrations
                     b.Navigation("SalaryHistories");
 
                     b.Navigation("Subordinates");
-
-                    b.Navigation("TargetEfforts");
-
-                    b.Navigation("UserTrainings");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.UserDocumentCategory", b =>
-                {
-                    b.Navigation("UserDocuments");
                 });
 #pragma warning restore 612, 618
         }

@@ -6,7 +6,6 @@ using DZDDashboard.Client.Theme;
 using DZDDashboard.Common.Constants;
 using DZDDashboard.Common.DTOs;
 using DZDDashboard.Common.Utils;
-using IntlTelInputBlazor;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
@@ -51,9 +50,6 @@ public partial class Employee
     private string _fullName = string.Empty;
     private string? _employmentDuration;
     private List<EducationHistoryRecord> _educationHistoryRecords = [];
-    private IntlTel _workPhoneIntl = new();
-    private IntlTel _personalPhoneIntl = new();
-    private Dictionary<EmergencyContactDto, IntlTel> _emergencyContactPhones = [];
     private int _activeViewIndex;
     private List<PayrollLocationDto> _payrollLocations = [];
 
@@ -154,10 +150,10 @@ public partial class Employee
             _employmentDuration = FormatDurationLocalized(_profile.UserStartDate ?? _profile.PositionStartDate);
 
             var avatar = await UserService.GetMyAvatarAsync();
-            if (avatar is { ContentBase64: { Length: > 0 } ab64 })
-                _avatarDataUrl = $"data:{avatar.ContentType ?? "image/png"};base64,{ab64}";
+            _avatarDataUrl = avatar is { ContentBase64: { Length: > 0 } ab64 }
+                ? $"data:{avatar.ContentType ?? "image/png"};base64,{ab64}"
+                : string.Empty;
 
-            SyncIntlPhoneInputs();
             _educationHistoryRecords = MapEducationHistories(_profile);
             _positionHistory = MapPositionHistory(_profile);
         }
@@ -192,10 +188,10 @@ public partial class Employee
             _employmentDuration = FormatDurationLocalized(_profile.UserStartDate ?? _profile.PositionStartDate);
 
             var avatar = await avatarTask;
-            if (avatar != null && !string.IsNullOrEmpty(avatar.ContentBase64))
-                _avatarDataUrl = $"data:{avatar.ContentType ?? "image/png"};base64,{avatar.ContentBase64}";
+            _avatarDataUrl = avatar != null && !string.IsNullOrEmpty(avatar.ContentBase64)
+                ? $"data:{avatar.ContentType ?? "image/png"};base64,{avatar.ContentBase64}"
+                : string.Empty;
 
-            SyncIntlPhoneInputs();
             _educationHistoryRecords = MapEducationHistories(_profile);
             _positionHistory = MapPositionHistory(_profile);
         }
@@ -236,10 +232,10 @@ public partial class Employee
         _employmentDuration = FormatDurationLocalized(_profile.UserStartDate ?? _profile.PositionStartDate);
 
         var avatar = SelfService ? await UserService.GetMyAvatarAsync() : await UserService.GetUserAvatarAsync(_userId);
-        if (avatar is { ContentBase64: { Length: > 0 } b64 })
-            _avatarDataUrl = $"data:{avatar.ContentType ?? "image/png"};base64,{b64}";
+        _avatarDataUrl = avatar is { ContentBase64: { Length: > 0 } b64 }
+            ? $"data:{avatar.ContentType ?? "image/png"};base64,{b64}"
+            : string.Empty;
 
-        SyncIntlPhoneInputs();
         _educationHistoryRecords = MapEducationHistories(_profile);
         _positionHistory = MapPositionHistory(_profile);
     }
@@ -309,12 +305,6 @@ public partial class Employee
         {
             Snackbar.Add(Loc["employeeProfile.copyFailed"], Severity.Error);
         }
-    }
-
-    private void SyncIntlPhoneInputs()
-    {
-        _workPhoneIntl     = new IntlTel { Number = _profile?.PhoneNumber };
-        _personalPhoneIntl = new IntlTel { Number = _profile?.PersonalPhoneNumber };
     }
 
     private string? GetWorkPhoneValue()     => _profile?.PhoneNumber;

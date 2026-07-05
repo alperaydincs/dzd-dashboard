@@ -17,7 +17,7 @@ public record UserSearchResultDto
     /// <summary>Last time the avatar changed; used as a cache-busting token in the avatar URL.</summary>
     public DateTime? AvatarUpdatedAt  { get; init; }
 
-    public string? CompanyName            { get; init; }
+    public int?    CompanyId              { get; init; }
     public int?    DepartmentId           { get; init; }
     public int?    TeamId                 { get; init; }
     public int?    OrganizationPositionId { get; init; }

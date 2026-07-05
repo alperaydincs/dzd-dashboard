@@ -263,52 +263,6 @@
     z-index: 1;
 }
 
-.dzd-intl-phone {
-    width: 100%;
-}
-
-::deep .dzd-intl-phone .iti {
-    width: 100%;
-}
-
-::deep .dzd-intl-phone .mud-input-root:before,
-::deep .dzd-intl-phone .mud-input-root:after,
-::deep .dzd-intl-phone .mud-input-root:hover:not(.mud-disabled):before,
-::deep .dzd-intl-phone .mud-input-underline:before,
-::deep .dzd-intl-phone .mud-input-underline:after,
-::deep .dzd-intl-phone .mud-input-underline:hover:not(.mud-disabled):before {
-    display: none !important;
-    border-bottom: 0 !important;
-    height: 0 !important;
-}
-
-::deep .dzd-intl-phone .mud-input,
-::deep .dzd-intl-phone .mud-input-control,
-::deep .dzd-intl-phone .mud-input-slot {
-    margin-bottom: 0 !important;
-}
-
-::deep .dzd-intl-phone .iti__flag-container {
-    border-right: 1px solid #d7dbea;
-}
-
-::deep .dzd-intl-phone .iti__selected-country {
-    padding-inline: 10px 8px;
-}
-
-::deep .dzd-intl-phone input[type="tel"],
-::deep .dzd-intl-phone input {
-    width: 100%;
-    min-height: 40px;
-    border: 0 !important;
-    outline: none;
-    box-shadow: none !important;
-    background-color: transparent;
-    color: var(--dzd-text-primary);
-    padding: 10px 12px 10px 58px;
-    font-size: 0.95rem;
-}
-
 .clp-head {
     display: flex;
     align-items: flex-start;
@@ -581,6 +535,40 @@
 .clp-chip--pending {
     background: #EEF0F5;
     color: #6b7187;
+}
+
+.clp-benefit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.clp-benefit-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 20px;
+    border: 1px solid var(--dzd-bg-input);
+    border-radius: 10px;
+}
+
+.clp-benefit-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.clp-benefit-name {
+    font-size: 0.78rem;
+    color: var(--dzd-text-secondary);
+}
+
+.clp-benefit-value {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--dzd-text-primary);
 }
 
 /* ===== Trainings tab ===== */

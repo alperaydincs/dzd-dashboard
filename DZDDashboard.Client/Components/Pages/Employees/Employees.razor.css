@@ -328,7 +328,7 @@
 ::deep .employee-card-status {
     margin-top: 0;
     font-size: 0.78rem;
-    font-weight: 600;
+    font-weight: 400;
 }
 
 ::deep .employee-card-meta {

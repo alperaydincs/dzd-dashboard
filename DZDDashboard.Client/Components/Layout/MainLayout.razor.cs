@@ -39,8 +39,10 @@ public partial class MainLayout : IDisposable
     [
         new(NavSection.Dashboard,       "/",                 DzdIcons.LayoutDashboard,   "nav.dashboard"),
         new(NavSection.Employees,       "/employees",        DzdIcons.Users,             "nav.employees"),
-        new(NavSection.Settings,        "/settings",         DzdIcons.Settings,          "nav.settings", Roles.AdminOrHr),
     ];
+
+    private static readonly NavLink SettingsNavLink =
+        new(NavSection.Settings, "/settings", DzdIcons.Settings, "nav.settings", Roles.AdminOrHr);
 
     private static readonly Dictionary<NavSection, string> SectionTitles = new()
     {

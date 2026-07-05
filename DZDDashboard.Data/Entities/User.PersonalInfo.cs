@@ -22,7 +22,6 @@ public partial class User
     public string? LegalAddressCountry { get; set; }
     public string? CurrentAddress      { get; set; }
     public DateTime? CurrentAddressChangedAt { get; set; }
-    public string? City                { get; set; }    public string? Country             { get; set; }
-    public string? BankName { get; set; }
-    public string? Iban     { get; set; }
+    public string? City                { get; set; }
+    public string? Country             { get; set; }
 }

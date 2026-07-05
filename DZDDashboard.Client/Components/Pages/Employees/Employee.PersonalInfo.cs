@@ -3,7 +3,7 @@ using DZDDashboard.Client.Services;
 using DZDDashboard.Common.Constants;
 using DZDDashboard.Common.DTOs;
 using DZDDashboard.Common.Utils;
-using IntlTelInputBlazor;
+using DZDDashboard.Common.Validation;
 using MudBlazor;
 
 namespace DZDDashboard.Client.Components.Pages.Employees;
@@ -39,16 +39,13 @@ public partial class Employee
         }));
 
     private Task StartContactsEdit() => StartEditAsync(() =>
-    {
         _contactsEdit.Begin(new EmployeeCardDto
         {
             Email               = _profile!.Email,
             PhoneNumber         = _profile.PhoneNumber,
             PersonalEmail       = _profile.PersonalEmail,
             PersonalPhoneNumber = _profile.PersonalPhoneNumber
-        });
-        SyncIntlPhoneInputs();
-    });
+        }));
 
     private Task StartCitizenshipInfoEdit() => StartEditAsync(() =>
         _citizenshipEdit.Begin(new EmployeeCardDto
@@ -62,7 +59,6 @@ public partial class Employee
         }));
 
     private Task StartEmergencyInfoEdit() => StartEditAsync(() =>
-    {
         _emergencyEdit.Begin(new EmployeeCardDto
         {
             EmergencyContacts = _profile!.EmergencyContacts?
@@ -71,17 +67,7 @@ public partial class Employee
                     Id = c.Id, FullName = c.FullName,
                     Relationship = c.Relationship, PhoneNumber = c.PhoneNumber
                 }).ToList() ?? []
-        });
-        _emergencyContactPhones = _profile.EmergencyContacts?
-            .ToDictionary(c => c, c => new IntlTel { Number = c.PhoneNumber })
-            ?? [];
-    });
-
-    private void OnEmergencyPhoneChanged(EmergencyContactDto contact, IntlTel newValue)
-    {
-        _emergencyContactPhones[contact] = newValue;
-        contact.PhoneNumber              = newValue.Number;
-    }
+        }));
 
     private Task StartAddressInfoEdit() => StartEditAsync(() =>
         _addressEdit.Begin(new EmployeeCardDto
@@ -123,7 +109,6 @@ public partial class Employee
             _profile.PhoneNumber         = backup.PhoneNumber;
             _profile.PersonalEmail       = backup.PersonalEmail;
             _profile.PersonalPhoneNumber = backup.PersonalPhoneNumber;
-            SyncIntlPhoneInputs();
         }
     }
 
@@ -153,33 +138,18 @@ public partial class Employee
                     Relationship = c.Relationship, PhoneNumber = c.PhoneNumber
                 }).ToList() ?? [];
         }
-        _emergencyContactPhones.Clear();
     }
 
     private void AddEmergencyContact()
     {
         if (_profile == null) return;
         _profile.EmergencyContacts ??= [];
-
-        var newContact = new EmergencyContactDto();
-        _profile.EmergencyContacts.Add(newContact);
-        _emergencyContactPhones[newContact] = new IntlTel();
+        _profile.EmergencyContacts.Add(new EmergencyContactDto());
     }
 
     private void RemoveEmergencyContact(EmergencyContactDto contact)
     {
         _profile?.EmergencyContacts?.Remove(contact);
-        _emergencyContactPhones.Remove(contact);
-    }
-
-    private IntlTel GetEmergencyPhone(EmergencyContactDto contact)
-    {
-        if (!_emergencyContactPhones.TryGetValue(contact, out var intl))
-        {
-            intl = new IntlTel { Number = contact.PhoneNumber };
-            _emergencyContactPhones[contact] = intl;
-        }
-        return intl;
     }
 
     private Task StartFamilyInfoEdit() => StartEditAsync(() =>
@@ -271,13 +241,15 @@ public partial class Employee
         var dto = new UpdateContactsDto
         {
             Email               = _profile.Email,
-            PhoneNumber         = _workPhoneIntl?.Number,
+            PhoneNumber         = _profile.PhoneNumber,
             PersonalEmail       = _profile.PersonalEmail,
-            PersonalPhoneNumber = _personalPhoneIntl?.Number
+            PersonalPhoneNumber = _profile.PersonalPhoneNumber
         };
 
         if (!IsEmailValidOrEmpty(dto.Email))        { Snackbar.Add(Loc["employeeProfile.invalidWorkEmail"], Severity.Error); return; }
         if (!IsEmailValidOrEmpty(dto.PersonalEmail)) { Snackbar.Add(Loc["employeeProfile.invalidPersonalEmail"], Severity.Error); return; }
+        if (!AppFormatter.IsValidPhone(dto.PhoneNumber))         { Snackbar.Add(Loc["employeeProfile.invalidWorkPhone"], Severity.Error); return; }
+        if (!AppFormatter.IsValidPhone(dto.PersonalPhoneNumber)) { Snackbar.Add(Loc["employeeProfile.invalidPersonalPhone"], Severity.Error); return; }
 
         Func<Task<HttpResponseMessage>> request = SelfService
             ? () => UserService.UpdateMyContactInfoAsync(new UpdateContactInfoDto
@@ -321,13 +293,10 @@ public partial class Employee
     {
         if (_profile is null) return;
 
-        if (_profile.EmergencyContacts != null)
+        if (_profile.EmergencyContacts?.Any(c => !PhoneValidator.IsValid(c.PhoneNumber)) == true)
         {
-            foreach (var contact in _profile.EmergencyContacts)
-            {
-                if (_emergencyContactPhones.TryGetValue(contact, out var intl))
-                    contact.PhoneNumber = intl.Number;
-            }
+            Snackbar.Add(Loc["employeeProfile.invalidEmergencyPhone"], Severity.Error);
+            return;
         }
 
         var dto = new UpdateEmergencyContactsDto
@@ -347,7 +316,7 @@ public partial class Employee
             Loc["employeeProfile.emergencyContactUpdated"],
             Loc["employeeProfile.emergencyContactUpdateFailed"],
             refreshProfileOnSuccess: true,
-            onSuccess: () => { _emergencyEdit.Commit(); _emergencyContactPhones.Clear(); });
+            onSuccess: () => { _emergencyEdit.Commit(); });
     }
 
     private async Task SaveAddressInfoAsync()

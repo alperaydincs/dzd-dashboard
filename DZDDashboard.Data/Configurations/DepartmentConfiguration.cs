@@ -24,11 +24,6 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
                .HasForeignKey(d => d.CompanyId)
                .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasMany(d => d.Projects)
-               .WithOne(p => p.Department)
-               .HasForeignKey(p => p.DepartmentId)
-               .OnDelete(DeleteBehavior.SetNull);
-
         builder.HasMany(d => d.Users)
                .WithOne(u => u.Department)
                .HasForeignKey(u => u.DepartmentId)

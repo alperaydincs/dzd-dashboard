@@ -104,8 +104,16 @@ public partial class UserService
     {
         var user = await RequireUserAsync(userId, cancellationToken);
 
+        await EnsureExistsAsync<Company>(dto.CompanyId, cancellationToken);
         await EnsureExistsAsync<Department>(dto.DepartmentId, cancellationToken);
         await EnsureExistsAsync<Team>(dto.TeamId, cancellationToken);
+
+        var companyName = dto.CompanyId == null ? null
+            : await context.Companies.Where(c => c.Id == dto.CompanyId).Select(c => c.Name).FirstOrDefaultAsync(cancellationToken);
+        var departmentName = dto.DepartmentId == null ? null
+            : await context.Departments.Where(d => d.Id == dto.DepartmentId).Select(d => d.Name).FirstOrDefaultAsync(cancellationToken);
+        var teamName = dto.TeamId == null ? null
+            : await context.Teams.Where(t => t.Id == dto.TeamId).Select(t => t.Name).FirstOrDefaultAsync(cancellationToken);
 
         var current = await context.PositionHistories
             .Where(p => p.UserId == userId && p.EndDate == null)
@@ -120,13 +128,15 @@ public partial class UserService
             context.PositionHistories.Add(current);
         }
 
-        current.CompanyName  = dto.CompanyName;
-        current.DepartmentId = dto.DepartmentId;
-        current.TeamId       = dto.TeamId;
-        current.StartDate    = dto.StartDate;
-        current.EndDate      = dto.EndDate;
+        current.CompanyName    = companyName;
+        current.DepartmentId   = dto.DepartmentId;
+        current.DepartmentName = departmentName;
+        current.TeamId         = dto.TeamId;
+        current.TeamName       = teamName;
+        current.StartDate      = dto.StartDate;
+        current.EndDate        = dto.EndDate;
 
-        user.CompanyName  = dto.CompanyName;
+        user.CompanyId    = dto.CompanyId;
         user.DepartmentId = dto.DepartmentId;
         user.TeamId       = dto.TeamId;
 
@@ -187,21 +197,33 @@ public partial class UserService
             throw new DomainValidationException($"File size exceeds {AvatarConstants.MaxFileSizeBytes / 1024 / 1024} MB limit.");
 
         var user = await context.Users
-            .Include(u => u.Avatar)
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken)
             ?? throw new EntityNotFoundException("User", userId);
 
-        var previousStorageId = user.Avatar?.StorageId;
-        var newStorageId = await fileStorage.SaveAsync(content, contentType, cancellationToken);
+        var previousFileId = user.AvatarId;
+        var newFileId = await fileStorage.SaveAsync(content, contentType, cancellationToken);
 
-        user.Avatar           ??= new UserAvatar { UserId = userId };
-        user.Avatar.ContentType = contentType;
-        user.Avatar.StorageId   = newStorageId;
+        user.AvatarId = newFileId;
 
         await context.SaveChangesAsync(cancellationToken);
 
-        if (previousStorageId.HasValue)
-            await fileStorage.DeleteAsync(previousStorageId.Value, cancellationToken);
+        if (previousFileId.HasValue)
+            await fileStorage.DeleteAsync(previousFileId.Value, cancellationToken);
+    }
+
+    public async Task RemoveAvatarAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        var user = await context.Users
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken)
+            ?? throw new EntityNotFoundException("User", userId);
+
+        var previousFileId = user.AvatarId;
+        if (previousFileId is null) return;
+
+        user.AvatarId = null;
+        await context.SaveChangesAsync(cancellationToken);
+
+        await fileStorage.DeleteAsync(previousFileId.Value, cancellationToken);
     }
 
     public async Task UpdateAvatarColorAsync(int userId, int? colorIndex, CancellationToken cancellationToken = default)
@@ -232,6 +254,7 @@ public partial class UserService
     {
         var user = await RequireUserAsync(userId, cancellationToken);
 
+        await EnsureExistsAsync<Company>(dto.CompanyId, cancellationToken);
         await EnsureExistsAsync<Department>(dto.DepartmentId, cancellationToken);
         await EnsureExistsAsync<Team>(dto.TeamId, cancellationToken);
         await EnsureExistsAsync<Job>(dto.JobId, cancellationToken);
@@ -240,7 +263,7 @@ public partial class UserService
         var prevGrade = user.Grade;
         var prevJobId = user.JobId;
 
-        user.CompanyName  = dto.CompanyName;
+        user.CompanyId    = dto.CompanyId;
         user.DepartmentId = dto.DepartmentId;
         user.TeamId       = dto.TeamId;
         user.CareerPathId = dto.CareerPathId;
@@ -260,10 +283,9 @@ public partial class UserService
 
     public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        if (await context.SalaryHistories.AnyAsync(h => h.UserId == id, cancellationToken)
-            || await context.GradeHistories.AnyAsync(h => h.UserId == id, cancellationToken))
+        if (await context.SalaryHistories.AnyAsync(h => h.UserId == id, cancellationToken))
             throw new DomainConflictException(
-                "Cannot delete a user with salary or grade history. Archive the history records first.");
+                "Cannot delete a user with salary history. Archive the history records first.");
 
         var user = await context.Users.FindRequiredAsync(id, nameof(User), cancellationToken);
         context.Users.Remove(user);
@@ -285,16 +307,24 @@ public partial class UserService
 
         var jobTitle = user.JobId == null ? null
             : await context.Jobs.Where(j => j.Id == user.JobId).Select(j => j.Title).FirstOrDefaultAsync(cancellationToken);
+        var companyName = user.CompanyId == null ? null
+            : await context.Companies.Where(c => c.Id == user.CompanyId).Select(c => c.Name).FirstOrDefaultAsync(cancellationToken);
+        var departmentName = user.DepartmentId == null ? null
+            : await context.Departments.Where(d => d.Id == user.DepartmentId).Select(d => d.Name).FirstOrDefaultAsync(cancellationToken);
+        var teamName = user.TeamId == null ? null
+            : await context.Teams.Where(t => t.Id == user.TeamId).Select(t => t.Name).FirstOrDefaultAsync(cancellationToken);
 
         context.PositionHistories.Add(new PositionHistory
         {
-            UserId       = user.Id,
-            JobTitle     = jobTitle,
-            CompanyName  = user.CompanyName,
-            DepartmentId = user.DepartmentId,
-            TeamId       = user.TeamId,
-            Grade        = user.Grade,
-            StartDate    = open?.EndDate ?? now,
+            UserId         = user.Id,
+            JobTitle       = jobTitle,
+            CompanyName    = companyName,
+            DepartmentId   = user.DepartmentId,
+            DepartmentName = departmentName,
+            TeamId         = user.TeamId,
+            TeamName       = teamName,
+            Grade          = user.Grade,
+            StartDate      = open?.EndDate ?? now,
             EndDate      = null,
             ChangeType   = (gradeChanged && jobChanged) ? PositionChangeTypes.TitleAndGradeUpgrade
                          : gradeChanged ? PositionChangeTypes.GradeUpgrade : PositionChangeTypes.TitleChange

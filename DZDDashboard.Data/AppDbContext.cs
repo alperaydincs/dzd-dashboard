@@ -11,45 +11,22 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, IAuditProvider
     private readonly IAuditProvider _audit = auditProvider ?? NullAuditProvider.Instance;
 
     public DbSet<User> Users { get; set; }
-    public DbSet<Bank> Banks { get; set; }
-    public DbSet<Bid> Bids { get; set; }
-    public DbSet<ProjectDocument> ProjectDocuments { get; set; }
     public DbSet<Company> Companies { get; set; }
     public DbSet<CareerPath> CareerPaths { get; set; }
-    public DbSet<CareerMapRule> CareerMapRules { get; set; }
-    public DbSet<CareerMapRulePosition> CareerMapRulePositions { get; set; }
+    public DbSet<CareerPathRule> CareerPathRules { get; set; }
+    public DbSet<CareerPathRuleJob> CareerPathRuleJobs { get; set; }
     public DbSet<Department> Departments { get; set; }
-    public DbSet<DefaultDocument> DefaultDocuments { get; set; }
-    public DbSet<DzdStatus> DzdStatuses { get; set; }
-    public DbSet<ExCompanyHistory> ExCompanyHistories { get; set; }
-    public DbSet<HeadLeadCoefficient> HeadLeadCoefficients { get; set; }
-    public DbSet<IssuePriority> IssuePriorities { get; set; }
-    public DbSet<IssueStatus> IssueStatuses { get; set; }
-    public DbSet<IssueType> IssueTypes { get; set; }
-    public DbSet<Itsm> Itsms { get; set; }
-    public DbSet<IssuePaymentType> IssuePaymentTypes { get; set; }
-    public DbSet<JiraStatus> JiraStatuses { get; set; }
     public DbSet<Job> Jobs { get; set; }
     public DbSet<PayrollLocation> PayrollLocations { get; set; }
-    public DbSet<Period> Periods { get; set; }
-    public DbSet<Project> Projects { get; set; }
-    public DbSet<ProjectBonusCoefficient> ProjectBonusCoefficients { get; set; }
-    public DbSet<ProjectInvoice> ProjectInvoices { get; set; }
-    public DbSet<Resolution> Resolutions { get; set; }
-    public DbSet<Salesforce> SalesForces { get; set; }
-    public DbSet<TargetEffort> TargetEfforts { get; set; }
     public DbSet<Team> Teams { get; set; }
-    public DbSet<Training> Trainings { get; set; }
-    public DbSet<UserDocumentCategory> UserDocumentCategories { get; set; }
-    public DbSet<UserDocument> UserDocuments { get; set; }
-    public DbSet<UserAvatar> UserAvatars { get; set; }
+    public DbSet<UserCvDocument> UserCvDocuments { get; set; }
+    public DbSet<UserOnboardingDocument> UserOnboardingDocuments { get; set; }
+    public DbSet<UserOffboardingDocument> UserOffboardingDocuments { get; set; }
     public DbSet<ChildInfo> ChildInfos { get; set; }
     public DbSet<EmergencyContact> EmergencyContacts { get; set; }
     public DbSet<EducationHistory> EducationHistories { get; set; }
-    public DbSet<Grade> Grades { get; set; }
-    public DbSet<GradeHistory> GradeHistories { get; set; }
     public DbSet<PositionHistory> PositionHistories { get; set; }
-    public DbSet<StoredFile> StoredFiles { get; set; }
+    public DbSet<StoredFile> Files { get; set; }
     public DbSet<SalaryHistory> SalaryHistories { get; set; }
     public DbSet<BenefitRecord> BenefitRecords { get; set; }
     public DbSet<BenefitDependent> BenefitDependents { get; set; }

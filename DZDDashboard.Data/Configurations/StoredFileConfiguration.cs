@@ -8,7 +8,7 @@ public class StoredFileConfiguration : IEntityTypeConfiguration<StoredFile>
 {
     public void Configure(EntityTypeBuilder<StoredFile> builder)
     {
-        builder.ToTable("StoredFiles");
+        builder.ToTable("Files");
         builder.HasKey(f => f.Id);
 
         builder.Property(f => f.Content).HasColumnType("varbinary(max)").IsRequired();

@@ -40,13 +40,13 @@
                     <div class="dzd-dialog-label">@Loc["payment.startDate"]</div>
                     <MudDatePicker Date="@_model.StartDate" DateChanged="@(d => _model.StartDate = d ?? _model.StartDate)"
                                    Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" DateFormat="dd.MM.yyyy"
-                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
+                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter"/>
                 </MudItem>
                 <MudItem xs="6">
                     <div class="dzd-dialog-label">@Loc["salaryDialog.endDateOptional"]</div>
                     <MudDatePicker Date="@_model.EndDate" DateChanged="@(d => _model.EndDate = d)"
                                    Variant="Variant.Outlined" Margin="Margin.Dense" DateFormat="dd.MM.yyyy"
-                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" OverflowBehavior="OverflowBehavior.FlipNever" />
+                                   AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.BottomCenter" />
                 </MudItem>
             </MudGrid>
         </MudStack>

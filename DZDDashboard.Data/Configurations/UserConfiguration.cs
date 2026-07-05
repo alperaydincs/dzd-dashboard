@@ -26,12 +26,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.Slug).IsRequired().HasMaxLength(ValidationConstants.MaxStandardLength);
         builder.HasIndex(u => u.Slug).IsUnique().HasDatabaseName("IX_Users_Slug");
-        builder.Property(u => u.CompanyName).HasMaxLength(ValidationConstants.MaxStandardLength);
 
         builder.Property(u => u.ContractType).HasMaxLength(ValidationConstants.MaxStandardLength);
         builder.Property(u => u.WorkModel).HasMaxLength(ValidationConstants.MaxStandardLength);
-
-        builder.Property(u => u.ApprovalProcessUnit).HasMaxLength(ValidationConstants.MaxEntityNameLength);
 
         builder.Property(u => u.PhoneNumber).HasMaxLength(ValidationConstants.MaxPhoneLength);
         builder.Property(u => u.PersonalEmail).HasMaxLength(ValidationConstants.MaxEmailLength);
@@ -51,21 +48,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.City).HasMaxLength(ValidationConstants.MaxNameLength);
         builder.Property(u => u.Country).HasMaxLength(ValidationConstants.MaxNameLength);
 
-        builder.Property(u => u.BankName).HasMaxLength(ValidationConstants.MaxEntityNameLength);
-        builder.Property(u => u.Iban).HasMaxLength(34);
         builder.Property(u => u.RegistrationNumber).HasMaxLength(ValidationConstants.MaxShortNameLength);
-
-        builder.Property(u => u.CvFilePath).HasMaxLength(ValidationConstants.MaxAddressLength);
-        builder.Property(u => u.EmployeeGroup).HasMaxLength(ValidationConstants.MaxNameLength);
-        builder.Property(u => u.AutoEnrollmentPensionStatus).HasMaxLength(ValidationConstants.MaxShortNameLength);
-        
-        builder.Property(u => u.HasEmployerPension).HasDefaultValue(false);
-        builder.Property(u => u.EmployerPensionEmployeeContribution).HasPrecision(18, 2);
-        builder.Property(u => u.EmployerPensionEmployerContribution).HasPrecision(18, 2);
-        builder.Property(u => u.HasPrivateHealthInsurance).HasDefaultValue(false);
-        builder.Property(u => u.PrivateHealthInsuranceEmployeeCost).HasPrecision(18, 2);
-        builder.Property(u => u.PrivateHealthInsuranceDependentCost).HasPrecision(18, 2);
-        builder.Property(u => u.MealBenefitAmount).HasPrecision(18, 2);
 
         builder.Property(u => u.IsActive).HasDefaultValue(true);
 
@@ -73,6 +56,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                .IsRequired()
                .HasMaxLength(ValidationConstants.MaxShortNameLength)
                .HasDefaultValue(DZDDashboard.Common.Constants.UserLifecycleStatuses.Active);
+
+        builder.HasOne(u => u.Company)
+               .WithMany()
+               .HasForeignKey(u => u.CompanyId)
+               .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(u => u.Team)
                .WithMany(t => t.Users)
@@ -93,21 +81,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                .WithMany()
                .HasForeignKey(u => u.PayrollLocationId)
                .OnDelete(DeleteBehavior.SetNull);
-
-        builder.HasMany(u => u.TargetEfforts)
-               .WithOne(te => te.User)
-               .HasForeignKey(te => te.UserId)
-               .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasMany(u => u.UserTrainings)
-               .WithOne(ut => ut.User)
-               .HasForeignKey(ut => ut.UserId)
-               .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasMany(u => u.ExCompanyHistories)
-               .WithOne(ech => ech.User)
-               .HasForeignKey(ech => ech.UserId)
-               .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(u => u.ReportsTo)
                .WithMany(u => u.Subordinates)
@@ -130,9 +103,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(u => u.Avatar)
-               .WithOne(a => a.User)
-               .HasForeignKey<UserAvatar>(a => a.UserId)
-               .OnDelete(DeleteBehavior.Cascade);
+               .WithMany()
+               .HasForeignKey(u => u.AvatarId)
+               .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(u => u.Children)
                .WithOne(c => c.User)
@@ -142,11 +115,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasMany(u => u.SalaryHistories)
                .WithOne(s => s.User)
                .HasForeignKey(s => s.UserId)
-               .OnDelete(DeleteBehavior.Restrict);
-
-        builder.HasMany(u => u.GradeHistories)
-               .WithOne(g => g.User)
-               .HasForeignKey(g => g.UserId)
                .OnDelete(DeleteBehavior.Restrict);
     }
 }

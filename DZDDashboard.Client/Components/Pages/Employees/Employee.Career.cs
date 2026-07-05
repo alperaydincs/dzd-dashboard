@@ -30,14 +30,14 @@ public partial class Employee
             _career.MarkLoaded();
             _ = LoadCvDocumentsAsync();
 
-            _career.CompanyName = _profile?.CompanyName;
+            _career.CompanyId   = _profile?.CompanyId;
             _career.DeptId      = _profile?.DepartmentId;
             _career.TeamId      = _profile?.TeamId;
             _career.PathId      = _profile?.CareerPathId;
             _career.JobId       = _profile?.JobId;
             _career.Grade       = _profile?.Grade;
 
-            _career.FilteredDepts = FilteredDeptsForCompany(_career.CompanyName);
+            _career.FilteredDepts = FilteredDeptsForCompany(_career.CompanyId);
             _career.FilteredTeams = FilteredTeamsForDept(_career.DeptId);
             PrefillManagerFromProfile();
 
@@ -67,12 +67,13 @@ public partial class Employee
         _career.SelectedManager = _profile?.ReportsTo is { } r
             ? new UserSearchResultDto
             {
-                Id               = r.Id,
-                FirstName        = r.FirstName,
-                LastName         = r.LastName,
-                AvatarColorIndex = r.AvatarColorIndex,
-                HasAvatar        = r.HasAvatar,
-                AvatarUpdatedAt  = r.AvatarUpdatedAt,
+                Id                     = r.Id,
+                FirstName              = r.FirstName,
+                LastName               = r.LastName,
+                AvatarColorIndex       = r.AvatarColorIndex,
+                HasAvatar              = r.HasAvatar,
+                AvatarUpdatedAt        = r.AvatarUpdatedAt,
+                OrganizationPositionId = r.OrganizationPositionId,
             }
             : null;
     }
@@ -85,7 +86,7 @@ public partial class Employee
         {
             ManagerId    = _career.SelectedManager?.Id,
             Manager      = _career.SelectedManager,
-            CompanyName  = _profile?.CompanyName,
+            CompanyId    = _profile?.CompanyId,
             DepartmentId = _profile?.DepartmentId,
             TeamId       = _profile?.TeamId,
             PathId       = _profile?.CareerPathId,
@@ -139,7 +140,7 @@ public partial class Employee
         {
             var dto = new UpdateCareerAssignmentDto
             {
-                CompanyName     = data.CompanyName,
+                CompanyId       = data.CompanyId,
                 DepartmentId    = data.DepartmentId,
                 TeamId          = data.TeamId,
                 CareerPathId    = data.PathId,
@@ -157,7 +158,7 @@ public partial class Employee
 
             var posDto = new UpdatePositionHistoryDto
             {
-                CompanyName  = data.CompanyName,
+                CompanyId    = data.CompanyId,
                 DepartmentId = data.DepartmentId,
                 TeamId       = data.TeamId,
                 StartDate    = data.StartDate ?? DateTime.Today,
@@ -199,7 +200,7 @@ public partial class Employee
         {
             var dto = new UpdateCareerAssignmentDto
             {
-                CompanyName  = _profile?.CompanyName,
+                CompanyId    = _profile?.CompanyId,
                 DepartmentId = _profile?.DepartmentId,
                 TeamId       = _profile?.TeamId,
                 CareerPathId = _profile?.CareerPathId,
@@ -224,10 +225,10 @@ public partial class Employee
     private CareerPathDto? AssignedPath()
         => _profile?.CareerPathId is int id ? _career.CareerPaths.FirstOrDefault(p => p.Id == id) : null;
 
-    private List<CareerMapRuleDto> PathRulesOrdered()
+    private List<CareerPathRuleDto> PathRulesOrdered()
         => GradeProgressCalculator.PathRulesOrdered(AssignedPath());
 
-    private CareerMapRuleDto? NextGradeRule()
+    private CareerPathRuleDto? NextGradeRule()
         => GradeProgressCalculator.NextGradeRule(AssignedPath(), _profile?.Grade);
 
     private string FormatPositionRange(PositionHistoryDto p)
@@ -235,18 +236,21 @@ public partial class Employee
 
     private List<GradeRequirement> NextGradeRequirements()
         => GradeProgressCalculator.NextGradeRequirements(
-            AssignedPath(), _profile?.Grade, _profile?.UserStartDate, _profile?.PositionStartDate);
+            Loc, AssignedPath(), _profile?.Grade, _profile?.UserStartDate, _profile?.PositionStartDate);
+
+    private List<GradeBenefit> CurrentGradeBenefits()
+        => GradeProgressCalculator.CurrentGradeBenefits(Loc, AssignedPath(), _profile?.Grade);
 
     private void ApplyProfileToCareerTab()
     {
-        _career.CompanyName   = _profile?.CompanyName;
+        _career.CompanyId     = _profile?.CompanyId;
         _career.DeptId        = _profile?.DepartmentId;
         _career.TeamId        = _profile?.TeamId;
         _career.PathId        = _profile?.CareerPathId;
         _career.JobId         = _profile?.JobId;
         _career.Grade         = _profile?.Grade;
         PrefillManagerFromProfile();
-        _career.FilteredDepts = FilteredDeptsForCompany(_career.CompanyName);
+        _career.FilteredDepts = FilteredDeptsForCompany(_career.CompanyId);
         _career.FilteredTeams = FilteredTeamsForDept(_career.DeptId);
 
         var path = _career.PathId.HasValue
@@ -260,12 +264,10 @@ public partial class Employee
                 .Select(r => r.Grade).OrderBy(g => g).ToList();
     }
 
-    private List<DepartmentDto> FilteredDeptsForCompany(string? companyName)
-        => string.IsNullOrEmpty(companyName)
+    private List<DepartmentDto> FilteredDeptsForCompany(int? companyId)
+        => companyId is null
             ? []
-            : _career.AllDepts
-                .Where(d => _career.Companies.Any(c => c.Name == companyName && c.Id == d.CompanyId))
-                .ToList();
+            : _career.AllDepts.Where(d => d.CompanyId == companyId).ToList();
 
     private List<TeamDto> FilteredTeamsForDept(int? deptId)
         => deptId.HasValue

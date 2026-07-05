@@ -29,11 +29,6 @@ public interface IOrganizationClientService
     Task<HttpResponseMessage> UpdateJobAsync(JobDto dto);
     Task<HttpResponseMessage> DeleteJobAsync(int id);
 
-    Task<List<GradeDto>> GetGradesAsync();
-    Task<HttpResponseMessage> CreateGradeAsync(GradeDto dto);
-    Task<HttpResponseMessage> UpdateGradeAsync(GradeDto dto);
-    Task<HttpResponseMessage> DeleteGradeAsync(int id);
-
     Task<List<PayrollLocationDto>> GetPayrollLocationsAsync();
     Task<HttpResponseMessage> CreatePayrollLocationAsync(PayrollLocationDto dto);
     Task<HttpResponseMessage> UpdatePayrollLocationAsync(PayrollLocationDto dto);
@@ -44,7 +39,7 @@ public interface IOrganizationClientService
     Task<HttpResponseMessage> UpdateCareerPathAsync(CareerPathDto dto);
     Task<HttpResponseMessage> DeleteCareerPathAsync(int id);
 
-    Task<HttpResponseMessage> CreateCareerMapRuleAsync(CareerMapRuleDto dto);
-    Task<HttpResponseMessage> UpdateCareerMapRuleAsync(CareerMapRuleDto dto);
-    Task<HttpResponseMessage> DeleteCareerMapRuleAsync(int id);
+    Task<HttpResponseMessage> CreateCareerPathRuleAsync(CareerPathRuleDto dto);
+    Task<HttpResponseMessage> UpdateCareerPathRuleAsync(CareerPathRuleDto dto);
+    Task<HttpResponseMessage> DeleteCareerPathRuleAsync(int id);
 }

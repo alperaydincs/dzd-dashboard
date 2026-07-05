@@ -8,7 +8,7 @@ public record OrgChartUserDto
     public string? LastName  { get; init; }
     public int?    AvatarColorIndex { get; init; }
     public string? Email     { get; init; }
-    public JobDto? Job       { get; init; }
+    public DepartmentDto? Department { get; init; }
 
     /// <summary>Whether the user has an uploaded avatar. The image is served via the
     /// <c>/avatars/{id}</c> proxy rather than embedded here.</summary>

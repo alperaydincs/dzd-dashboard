@@ -55,6 +55,9 @@ public class UserService : ApiServiceBase, IUserClientService
     public async Task<HttpResponseMessage> UpdateMyProfileAvatarAsync(MultipartFormDataContent content)
         => await PostMultipartAsync(ApiRoutes.Users.MyProfileAvatar, content);
 
+    public async Task<HttpResponseMessage> RemoveMyAvatarAsync()
+        => await DeleteAsync(ApiRoutes.Users.MyProfileAvatar);
+
     public async Task<HttpResponseMessage> UpdateMyAvatarColorAsync(int? colorIndex)
         => await PutAsync(ApiRoutes.Users.MyProfileAvatarColor, new AvatarColorUpdateDto { ColorIndex = colorIndex });
 

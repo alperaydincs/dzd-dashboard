@@ -28,11 +28,33 @@ public partial class Employee
             if (!colorResp.IsSuccessStatusCode) Snackbar.Add(Loc["employeeProfile.avatarColorUpdateFailed"], Severity.Error);
         }
 
-        if (dialogResult.File is not null) await UploadMyAvatarAsync(dialogResult.File);
+        if (dialogResult.Removed) await RemoveMyAvatarAsync();
+        else if (dialogResult.File is not null) await UploadMyAvatarAsync(dialogResult.File);
         else if (dialogResult.ColorChanged) await RefreshProfileAsync();
 
         AvatarState.NotifyChanged();
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RemoveMyAvatarAsync()
+    {
+        try
+        {
+            var response = await UserService.RemoveMyAvatarAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add(Loc["employeeProfile.avatarRemoved"], Severity.Success);
+                await RefreshProfileAsync();
+            }
+            else
+            {
+                Snackbar.Add(await ApiServiceBase.TryReadProblemDetailAsync(response) ?? Loc["employeeProfile.avatarRemoveFailed"], Severity.Error);
+            }
+        }
+        catch
+        {
+            Snackbar.Add(Loc["employeeProfile.avatarRemoveFailed"], Severity.Error);
+        }
     }
 
     private async Task UploadMyAvatarAsync(AvatarUploadResult fileResult)
