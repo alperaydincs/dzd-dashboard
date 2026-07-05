@@ -1,0 +1,264 @@
+@using DZDDashboard.Common.Constants
+@using DZDDashboard.Common.DTOs
+@using DZDDashboard.Client.Theme
+@using DZDDashboard.Client.Localization
+@inject DomainLocalizer Domain
+
+@if (_loading)
+{
+    <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="py-8">
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    </MudStack>
+}
+else if (_loadError is not null)
+{
+    <MudAlert Severity="Severity.Error" Class="my-4">@_loadError</MudAlert>
+}
+else
+{
+    <MudStack Spacing="4">
+
+        <div class="cpm-header">
+            <div>
+                <MudText Typo="Typo.h5" Class="cpm-title">@Loc["gradeManagement.careerPathSettings"]</MudText>
+                <MudText Typo="Typo.body2" Class="cpm-subtitle">@Loc["gradeManagement.careerPathSettingsSubtitle"]</MudText>
+            </div>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       StartIcon="@DzdIcons.Plus" Disabled="@(_editPathId is not null)"
+                       OnClick="OpenAddCareerPathDialog">
+                @Loc["careerPathDialog.addTitle"]
+            </MudButton>
+        </div>
+
+        @foreach (var path in _careerPaths)
+        {
+            var pathCapture = path;
+            var isExpanded  = _expandedIds.Contains(path.Id);
+            var isEditing   = IsEditingPath(path.Id);
+
+            <MudPaper Elevation="0" Outlined="true" Class="cpm-job-card">
+
+                <div class="cpm-job-hdr @(isExpanded ? "cpm-job-hdr-expanded" : "")">
+                    <MudIconButton Icon="@(isExpanded ? DzdIcons.ChevronDown : DzdIcons.ChevronRight)"
+                                   Size="Size.Small" Disabled="@isEditing"
+                                   OnClick="() => TogglePath(pathCapture.Id)" />
+
+                    <div class="cpm-icon-wrap">
+                        <MudIcon Icon="@DzdIcons.Route" Size="Size.Small" />
+                    </div>
+
+                    @if (isEditing)
+                    {
+                        <div class="cpm-edit-hdr-fields">
+                            <MudTextField @bind-Value="_editPathName" Placeholder="@Loc["gradeManagement.careerPathNamePlaceholder"]"
+                                          Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true"
+                                          Class="cpm-hdr-name" />
+                        </div>
+                        <div class="cpm-job-actions">
+                            <MudIconButton Icon="@DzdIcons.Check" Color="Color.Success" Size="Size.Small"
+                                           Disabled="@(!CanSavePath)" OnClick="SavePathEdit" />
+                            <MudIconButton Icon="@DzdIcons.X" Color="Color.Error" Size="Size.Small"
+                                           Disabled="@_saving" OnClick="CancelPathEdit" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="cpm-job-title-group" @onclick="() => TogglePath(pathCapture.Id)">
+                            <span class="cpm-job-name">@path.Name</span>
+                            <span class="cpm-job-meta">
+                                @string.Format(Loc["gradeManagement.gradeLevelsCount"], path.Rules.Count)
+                            </span>
+                        </div>
+                        <div class="cpm-job-actions">
+                            <MudIconButton Icon="@DzdIcons.Pencil" Color="Color.Primary" Size="Size.Small"
+                                           Disabled="@(_editPathId is not null)" OnClick="() => BeginEditPath(pathCapture)" />
+                            <MudIconButton Icon="@DzdIcons.Trash2" Color="Color.Error" Size="Size.Small" 
+                                           Disabled="@(_editPathId is not null)" OnClick="() => DeleteCareerPath(pathCapture)" />
+                        </div>
+                    }
+                </div>
+
+                <MudCollapse Expanded="isExpanded">
+                    @if (isEditing)
+                    {
+                        <div class="cpm-table-wrap">
+                        <MudTable Items="_editRules.OrderBy(r => r.Grade)" Hover="true" Bordered="true"
+                                  Dense="true" Elevation="0" Class="cpm-table" Breakpoint="Breakpoint.None">
+                            <HeaderContent>
+                                <MudTh Class="cpm-th-grade">@Loc["gradeManagement.colGrade"]</MudTh>
+                                <MudTh Class="cpm-th-pos">@Loc["gradeManagement.colJobTitles"]</MudTh>
+                                <MudTh Class="cpm-th-dur">@Loc["gradeManagement.colMinTimeInRole"]</MudTh>
+                                <MudTh Class="cpm-th-dur">@Loc["gradeManagement.colMinExperience"]</MudTh>
+                                <MudTh Class="cpm-th-check">@Loc["gradeManagement.colManagerEval"]</MudTh>
+                                <MudTh Class="cpm-th-check">@Loc["gradeManagement.colAssessmentCenter"]</MudTh>
+                                <MudTh Class="cpm-th-check">@Loc["gradeManagement.colTechnicalInterview"]</MudTh>
+                                <MudTh Class="cpm-th-check">@Loc["gradeManagement.colCaseStudy"]</MudTh>
+                                <MudTh Class="cpm-th-check">@Loc["gradeManagement.colEnglishProficiency"]</MudTh>
+                                <MudTh Class="cpm-th-check">@Loc["gradeManagement.colCommitteeApproval"]</MudTh>
+                                <MudTh>@Loc["gradeManagement.colProjectTarget"]</MudTh>
+                                <MudTh>@Loc["gradeManagement.colSalaryIncrease"]</MudTh>
+                                <MudTh Class="cpm-th-money">@Loc["gradeManagement.colPrivatePensionInsurance"]</MudTh>
+                                <MudTh Class="cpm-th-money">@Loc["gradeManagement.colEmployerContributionLimit"]</MudTh>
+                                <MudTh Class="cpm-th-money">@Loc["gradeManagement.colMealAllowance"]</MudTh>
+                                <MudTh Class="cpm-th-actions"></MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="@Loc["gradeManagement.colGrade"]" Class="cpm-cell-center">
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text" Class="cpm-grade-badge">G@(context.Grade)</MudChip>
+                                </MudTd>
+                                <MudTd DataLabel="@Loc["gradeManagement.colJobTitles"]">
+                                    <JobTitleSelector AllJobs="_allJobs" SelectedIds="context.JobIds" OnChanged="StateHasChanged" />
+                                </MudTd>
+                                <MudTd DataLabel="@Loc["gradeManagement.colMinTimeInRole"]">
+                                    <div class="cpm-edit-duration">
+                                        <MudNumericField T="int?" @bind-Value="context.RetYears"  Min="0" Placeholder="@Loc["gradeManagement.yearPlaceholder"]" Variant="Variant.Outlined" Margin="Margin.Dense" Class="cpm-cell-dur" />
+                                        <MudNumericField T="int?" @bind-Value="context.RetMonths" Min="0" Placeholder="@Loc["gradeManagement.monthPlaceholder"]" Variant="Variant.Outlined" Margin="Margin.Dense" Class="cpm-cell-dur" />
+                                    </div>
+                                </MudTd>
+                                <MudTd DataLabel="@Loc["gradeManagement.colMinExperience"]">
+                                    <div class="cpm-edit-duration">
+                                        <MudNumericField T="int?" @bind-Value="context.ExpYears"  Min="0" Placeholder="@Loc["gradeManagement.yearPlaceholder"]" Variant="Variant.Outlined" Margin="Margin.Dense" Class="cpm-cell-dur" />
+                                        <MudNumericField T="int?" @bind-Value="context.ExpMonths" Min="0" Placeholder="@Loc["gradeManagement.monthPlaceholder"]" Variant="Variant.Outlined" Margin="Margin.Dense" Class="cpm-cell-dur" />
+                                    </div>
+                                </MudTd>
+                                <MudTd Class="cpm-cell-center"><MudCheckBox T="bool" @bind-Value="context.Manager"   Class="cpm-checkbox" Color="Color.Primary" Dense="true" /></MudTd>
+                                <MudTd Class="cpm-cell-center"><MudCheckBox T="bool" @bind-Value="context.Assess"    Class="cpm-checkbox" Color="Color.Primary" Dense="true" /></MudTd>
+                                <MudTd Class="cpm-cell-center"><MudCheckBox T="bool" @bind-Value="context.Tech"      Class="cpm-checkbox" Color="Color.Primary" Dense="true" /></MudTd>
+                                <MudTd Class="cpm-cell-center"><MudCheckBox T="bool" @bind-Value="context.Case"      Class="cpm-checkbox" Color="Color.Primary" Dense="true" /></MudTd>
+                                <MudTd Class="cpm-cell-center"><MudCheckBox T="bool" @bind-Value="context.English"   Class="cpm-checkbox" Color="Color.Primary" Dense="true" /></MudTd>
+                                <MudTd Class="cpm-cell-center"><MudCheckBox T="bool" @bind-Value="context.Committee" Class="cpm-checkbox" Color="Color.Primary" Dense="true" /></MudTd>
+                                <MudTd DataLabel="@Loc["gradeManagement.colProjectTarget"]">
+                                    <MudNumericField T="int?" @bind-Value="context.ProjectTarget" Min="0" Variant="Variant.Outlined" Margin="Margin.Dense" Class="cpm-cell-target" />
+                                </MudTd>
+                                <MudTd DataLabel="@Loc["gradeManagement.colSalaryIncrease"]">
+                                    <MudNumericField T="decimal?" @bind-Value="context.SalaryIncreasePercent" Min="0" Adornment="Adornment.End" AdornmentText="%"
+                                                     Variant="Variant.Outlined" Margin="Margin.Dense" Class="cpm-cell-target" />
+                                </MudTd>
+                                <MudTd DataLabel="@Loc["gradeManagement.colPrivatePensionInsurance"]">
+                                    <div class="cpm-edit-money">
+                                        <MudNumericField T="decimal?" @bind-Value="context.PrivatePensionAmount" Min="0" Placeholder="@Loc["gradeManagement.amountPlaceholder"]"
+                                                         Variant="Variant.Outlined" Margin="Margin.Dense" Class="cpm-cell-money-amount" />
+                                        <MudSelect T="string" @bind-Value="context.PrivatePensionCurrency" Variant="Variant.Outlined" Margin="Margin.Dense" Class="cpm-cell-money-currency">
+                                            @foreach (var option in Domain.Options(DomainCategories.Currency))
+                                            {
+                                                <MudSelectItem Value="@option.Code">@option.Code</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </div>
+                                </MudTd>
+                                <MudTd DataLabel="@Loc["gradeManagement.colEmployerContributionLimit"]">
+                                    <div class="cpm-edit-money">
+                                        <MudNumericField T="decimal?" @bind-Value="context.EmployerContribAmount" Min="0" Placeholder="@Loc["gradeManagement.amountPlaceholder"]"
+                                                         Variant="Variant.Outlined" Margin="Margin.Dense" Class="cpm-cell-money-amount" />
+                                        <MudSelect T="string" @bind-Value="context.EmployerContribCurrency" Variant="Variant.Outlined" Margin="Margin.Dense" Class="cpm-cell-money-currency">
+                                            @foreach (var option in Domain.Options(DomainCategories.Currency))
+                                            {
+                                                <MudSelectItem Value="@option.Code">@option.Code</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </div>
+                                </MudTd>
+                                <MudTd DataLabel="@Loc["gradeManagement.colMealAllowance"]">
+                                    <div class="cpm-edit-money">
+                                        <MudNumericField T="decimal?" @bind-Value="context.MealAllowanceAmount" Min="0" Placeholder="@Loc["gradeManagement.amountPlaceholder"]"
+                                                         Variant="Variant.Outlined" Margin="Margin.Dense" Class="cpm-cell-money-amount" />
+                                        <MudSelect T="string" @bind-Value="context.MealAllowanceCurrency" Variant="Variant.Outlined" Margin="Margin.Dense" Class="cpm-cell-money-currency">
+                                            @foreach (var option in Domain.Options(DomainCategories.Currency))
+                                            {
+                                                <MudSelectItem Value="@option.Code">@option.Code</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </div>
+                                </MudTd>
+                                <MudTd Class="cpm-cell-center">
+                                    @if (IsLastRule(context))
+                                    {
+                                        <MudIconButton Icon="@DzdIcons.Trash2" Color="Color.Error" Size="Size.Small"
+                                                       title="@Loc["gradeManagement.deleteLastGrade"]" Disabled="@_saving" OnClick="RemoveLastRuleRow" />
+                                    }
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                        </div>
+
+                        <div class="cpm-add-grade-row">
+                            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                                       StartIcon="@DzdIcons.Plus" OnClick="AddRuleRow" Class="cpm-add-grade-btn">
+                                @Loc["gradeManagement.addGradeLevel"]
+                            </MudButton>
+                        </div>
+                    }
+                    else if (path.Rules.Count == 0)
+                    {
+                        <div class="cpm-no-grades">@Loc["gradeManagement.noGradesYet"]</div>
+                    }
+                    else
+                    {
+                        <div class="cpm-table-wrap">
+                        <MudTable Items="path.Rules.OrderBy(r => r.Grade)" Hover="true" Bordered="true"
+                                  Dense="true" Elevation="0" Class="cpm-table" Breakpoint="Breakpoint.None">
+                            <HeaderContent>
+                                <MudTh Class="cpm-th-grade">@Loc["gradeManagement.colGrade"]</MudTh>
+                                <MudTh Class="cpm-th-pos">@Loc["gradeManagement.colJobTitles"]</MudTh>
+                                <MudTh Class="cpm-th-dur">@Loc["gradeManagement.colMinTimeInRole"]</MudTh>
+                                <MudTh Class="cpm-th-dur">@Loc["gradeManagement.colMinExperience"]</MudTh>
+                                <MudTh Class="cpm-th-check">@Loc["gradeManagement.colManagerEval"]</MudTh>
+                                <MudTh Class="cpm-th-check">@Loc["gradeManagement.colAssessmentCenter"]</MudTh>
+                                <MudTh Class="cpm-th-check">@Loc["gradeManagement.colTechnicalInterview"]</MudTh>
+                                <MudTh Class="cpm-th-check">@Loc["gradeManagement.colCaseStudy"]</MudTh>
+                                <MudTh Class="cpm-th-check">@Loc["gradeManagement.colEnglishProficiency"]</MudTh>
+                                <MudTh Class="cpm-th-check">@Loc["gradeManagement.colCommitteeApproval"]</MudTh>
+                                <MudTh>@Loc["gradeManagement.colProjectTarget"]</MudTh>
+                                <MudTh>@Loc["gradeManagement.colSalaryIncrease"]</MudTh>
+                                <MudTh Class="cpm-th-money">@Loc["gradeManagement.colPrivatePensionInsurance"]</MudTh>
+                                <MudTh Class="cpm-th-money">@Loc["gradeManagement.colEmployerContributionLimit"]</MudTh>
+                                <MudTh Class="cpm-th-money">@Loc["gradeManagement.colMealAllowance"]</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="@Loc["gradeManagement.colGrade"]" Class="cpm-cell-center">
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text" Class="cpm-grade-badge">G@(context.Grade)</MudChip>
+                                </MudTd>
+                                <MudTd DataLabel="@Loc["gradeManagement.colJobTitles"]">
+                                    @if (context.PositionJobs.Count > 0)
+                                    {
+                                        <div class="cpm-pos-chips">
+                                            @foreach (var j in context.PositionJobs)
+                                            {
+                                                <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Text">@j.Name</MudChip>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="cpm-empty-dash">—</span>
+                                    }
+                                </MudTd>
+                                <MudTd DataLabel="@Loc["gradeManagement.colMinTimeInRole"]" Class="cpm-cell-center">@FormatRetention(context)</MudTd>
+                                <MudTd DataLabel="@Loc["gradeManagement.colMinExperience"]" Class="cpm-cell-center">@FormatMinExperience(context)</MudTd>
+                                <MudTd Class="cpm-cell-center">@CheckIcon(context.ManagerPerformanceEvaluation)</MudTd>
+                                <MudTd Class="cpm-cell-center">@CheckIcon(context.AssessmentCenterApplication)</MudTd>
+                                <MudTd Class="cpm-cell-center">@CheckIcon(context.TechnicalInterview)</MudTd>
+                                <MudTd Class="cpm-cell-center">@CheckIcon(context.CaseStudy)</MudTd>
+                                <MudTd Class="cpm-cell-center">@CheckIcon(context.EnglishProficiency)</MudTd>
+                                <MudTd Class="cpm-cell-center">@CheckIcon(context.CommitteeApproval)</MudTd>
+                                <MudTd DataLabel="@Loc["gradeManagement.colProjectTarget"]" Class="cpm-cell-center">@(context.ProjectObjective?.ToString() ?? "—")</MudTd>
+                                <MudTd DataLabel="@Loc["gradeManagement.colSalaryIncrease"]" Class="cpm-cell-center">@FormatSalaryIncrease(context)</MudTd>
+                                <MudTd DataLabel="@Loc["gradeManagement.colPrivatePensionInsurance"]" Class="cpm-cell-center">@FormatMoney(context.PrivatePensionInsuranceAmount, context.PrivatePensionInsuranceCurrency)</MudTd>
+                                <MudTd DataLabel="@Loc["gradeManagement.colEmployerContributionLimit"]" Class="cpm-cell-center">@FormatMoney(context.EmployerContributionUpperLimitAmount, context.EmployerContributionUpperLimitCurrency)</MudTd>
+                                <MudTd DataLabel="@Loc["gradeManagement.colMealAllowance"]" Class="cpm-cell-center">@FormatMoney(context.MealAllowanceAmount, context.MealAllowanceCurrency)</MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                        </div>
+                    }
+                </MudCollapse>
+            </MudPaper>
+        }
+
+    </MudStack>
+}
+
+@code {
+    private RenderFragment CheckIcon(bool value) => value
+        ? @<MudIcon Icon="@DzdIcons.Check" Size="Size.Small" Class="cpm-check-yes" />
+        : @<MudIcon Icon="@DzdIcons.X"     Size="Size.Small" Class="cpm-check-no"  />;
+}
