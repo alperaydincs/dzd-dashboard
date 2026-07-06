@@ -35,7 +35,7 @@ public partial class Employee
             ContractType       = _profile.ContractType,
             ContractEndDate    = _profile.ContractEndDate,
             WorkModel          = _profile.WorkModel,
-            PayrollLocationId  = _profile.PayrollLocationId
+            PayrollLocation    = _profile.PayrollLocation
         }));
 
     private Task StartContactsEdit() => StartEditAsync(() =>
@@ -96,7 +96,7 @@ public partial class Employee
             _profile.ContractType       = backup.ContractType;
             _profile.ContractEndDate    = backup.ContractEndDate;
             _profile.WorkModel          = backup.WorkModel;
-            _profile.PayrollLocationId  = backup.PayrollLocationId;
+            _profile.PayrollLocation    = backup.PayrollLocation;
         }
     }
 
@@ -138,6 +138,12 @@ public partial class Employee
                     Relationship = c.Relationship, PhoneNumber = c.PhoneNumber
                 }).ToList() ?? [];
         }
+    }
+
+    private void OnPayrollLocationChanged(int? id)
+    {
+        if (_profile is null) return;
+        _profile.PayrollLocation = id.HasValue ? _payrollLocations.FirstOrDefault(l => l.Id == id.Value) : null;
     }
 
     private void AddEmergencyContact()
@@ -220,7 +226,7 @@ public partial class Employee
             ContractType       = _profile.ContractType,
             ContractEndDate    = _profile.ContractEndDate,
             WorkModel          = _profile.WorkModel,
-            PayrollLocationId  = _profile.PayrollLocationId
+            PayrollLocationId  = _profile.PayrollLocation?.Id
         };
 
         await ExecuteSaveRequestAsync(

@@ -23,15 +23,5 @@ public class PositionHistoryConfiguration : IEntityTypeConfiguration<PositionHis
                .WithMany(u => u.PositionHistories)
                .HasForeignKey(p => p.UserId)
                .OnDelete(DeleteBehavior.Restrict);
-
-        builder.HasOne(p => p.Department)
-               .WithMany()
-               .HasForeignKey(p => p.DepartmentId)
-               .OnDelete(DeleteBehavior.SetNull);
-
-        builder.HasOne(p => p.Team)
-               .WithMany()
-               .HasForeignKey(p => p.TeamId)
-               .OnDelete(DeleteBehavior.SetNull);
     }
 }

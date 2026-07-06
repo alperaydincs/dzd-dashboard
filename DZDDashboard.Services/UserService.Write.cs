@@ -129,9 +129,7 @@ public partial class UserService
         }
 
         current.CompanyName    = companyName;
-        current.DepartmentId   = dto.DepartmentId;
         current.DepartmentName = departmentName;
-        current.TeamId         = dto.TeamId;
         current.TeamName       = teamName;
         current.StartDate      = dto.StartDate;
         current.EndDate        = dto.EndDate;
@@ -319,9 +317,7 @@ public partial class UserService
             UserId         = user.Id,
             JobTitle       = jobTitle,
             CompanyName    = companyName,
-            DepartmentId   = user.DepartmentId,
             DepartmentName = departmentName,
-            TeamId         = user.TeamId,
             TeamName       = teamName,
             Grade          = user.Grade,
             StartDate      = open?.EndDate ?? now,

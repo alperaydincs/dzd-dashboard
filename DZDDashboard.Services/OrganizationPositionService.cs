@@ -20,9 +20,7 @@ public class OrganizationPositionService(
             .OrderBy(x => x.Name)
             .ToListAsync(cancellationToken);
 
-        var dtos = mapper.Map<List<OrganizationPositionDto>>(positions);
-        ComputeLevels(dtos);
-        return dtos;
+        return mapper.Map<List<OrganizationPositionDto>>(positions);
     }
 
     public async Task<OrganizationPositionDto> CreatePositionAsync(CreateOrganizationPositionDto dto, CancellationToken cancellationToken = default)
@@ -134,24 +132,4 @@ public class OrganizationPositionService(
             .AsSplitQuery()
             .Include(x => x.Users).ThenInclude(x => x.Department)
             .Include(x => x.Users).ThenInclude(x => x.Avatar);
-    private static void ComputeLevels(IList<OrganizationPositionDto> dtos)
-    {
-        var byId   = dtos.ToDictionary(p => p.Id);
-        var depths = new Dictionary<int, int>(dtos.Count);
-
-        int GetDepth(OrganizationPositionDto node, int guard = 0)
-        {
-            if (guard > dtos.Count) return 0;            if (depths.TryGetValue(node.Id, out var cached)) return cached;
-
-            var depth = node.ParentId.HasValue && byId.TryGetValue(node.ParentId.Value, out var parent)
-                ? 1 + GetDepth(parent, guard + 1)
-                : 0;
-
-            depths[node.Id] = depth;
-            return depth;
-        }
-
-        foreach (var dto in dtos)
-            dto.Level = GetDepth(dto);
-    }
 }

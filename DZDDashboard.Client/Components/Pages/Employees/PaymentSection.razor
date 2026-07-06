@@ -26,7 +26,7 @@
             <MudGrid Class="mt-4 mb-6" Spacing="4">
                 <MudItem xs="12" sm="6" md="3">
                     <InfoCard Label="@Loc["payment.currentSalary"]"
-                              Value="@(CurrentSalary is not null ? FormatMoney(CurrentSalary.NetAmount, CurrentSalary.Currency) : "0,00")"
+                              Value="@(CurrentSalary is not null ? FormatMoney(CurrentSalary.Amount, CurrentSalary.Currency) : "0,00")"
                               Icon="@DzdIcons.Briefcase"
                               Accent="InfoCard.AccentColor.Blue"
                               Class="dzd-payment-summary" />
@@ -100,7 +100,7 @@
                                 <MudItem xs="12">
                                     <div class="dzd-field-box">
                                         <div class="dzd-field-label">@Loc["payment.currentSalary"]</div>
-                                        <span class="dzd-amount-net">@FormatMoney(currentSalary.NetAmount, currentSalary.Currency)</span>
+                                        <span class="dzd-amount-net">@FormatMoney(currentSalary.Amount, currentSalary.Currency)</span>
                                         <span class="dzd-amount-suffix">@GetPayTypeName(currentSalary.PayType)</span>
                                     </div>
                                 </MudItem>
@@ -175,7 +175,7 @@
                                         </div>
                                         <div class="dzd-history-field">
                                             <div class="dzd-history-label">@Loc["payment.netSalary"]</div>
-                                            <div class="dzd-history-amount">@FormatMoney(record.NetAmount, record.Currency)</div>
+                                            <div class="dzd-history-amount">@FormatMoney(record.Amount, record.Currency)</div>
                                         </div>
                                         <div class="dzd-history-field">
                                             <div class="dzd-history-label">@Loc["payment.currency"]</div>
@@ -262,7 +262,7 @@
                                                     <MudIcon Icon="@DzdIcons.Users" Size="Size.Small" /> <span>@string.Format(Loc["payment.dependentsCount2"], record.Dependents.Count, ValidationConstants.MaxBenefitDependents)</span>
                                                 </div>
                                                 <div class="dzd-dependent-grid">
-                                                    @foreach (var dependent in record.Dependents.OrderBy(d => d.Order))
+                                                    @foreach (var dependent in record.Dependents)
                                                     {
                                                         <div class="dzd-dependent-card">
                                                             @if (!string.IsNullOrWhiteSpace(dependent.DependentName))

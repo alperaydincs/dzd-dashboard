@@ -25,7 +25,6 @@ public static class ValidationConstants
     public const int MaxContentTypeLength   = 100;
     public const int MaxProjectNameLength   = 250;
     public const int MaxNotesLength         = 1000;
-    public const int MaxReferenceCodeLength = 50;
     public const int MaxProviderNameLength = 200;
     public const int MaxBenefitDependents  = 5;
     public const int MaxBenefitNameLength   = 150;

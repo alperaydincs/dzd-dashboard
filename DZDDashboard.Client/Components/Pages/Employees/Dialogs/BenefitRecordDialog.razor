@@ -175,11 +175,9 @@
     private BenefitRecordDto _model = new()
     {
         BenefitType = string.Empty,
-        Payer       = BenefitPayers.Employer,
         Currency    = Currencies.Try,
         Period      = PaymentPeriods.Monthly,
-        StartDate   = DateTime.Today,
-        Source      = PaymentSources.Manual
+        StartDate   = DateTime.Today
     };
 
     private bool _initialized;
@@ -221,18 +219,13 @@
 
         _model.Dependents.Add(new BenefitDependentDto
         {
-            Order           = _model.Dependents.Count + 1,
             RelationType    = RelationTypes.Spouse,
             StartDate       = DateTime.Today
         });
     }
 
     private void RemoveDependent(BenefitDependentDto dependent)
-    {
-        _model.Dependents.Remove(dependent);
-        for (var i = 0; i < _model.Dependents.Count; i++)
-            _model.Dependents[i] = _model.Dependents[i] with { Order = i + 1 };
-    }
+        => _model.Dependents.Remove(dependent);
 
     private void Save()
     {

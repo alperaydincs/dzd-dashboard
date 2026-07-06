@@ -148,7 +148,6 @@ public partial class UserService
             .Select(u => new UserSearchResultDto
             {
                 Id                     = u.Id,
-                Slug                   = u.Slug,
                 FirstName              = u.FirstName,
                 LastName               = u.LastName,
                 Email                  = u.Email,

@@ -5,9 +5,7 @@ public record PositionHistoryDto
     public int Id { get; set; }
     public string? JobTitle    { get; set; }
     public string? CompanyName { get; set; }
-    public int?    DepartmentId { get; set; }
     public string? DepartmentName { get; set; }
-    public int?    TeamId       { get; set; }
     public string? TeamName     { get; set; }
     public int?    Grade        { get; set; }
     public DateTime  StartDate { get; set; }

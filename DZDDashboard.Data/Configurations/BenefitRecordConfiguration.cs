@@ -13,12 +13,9 @@ public class BenefitRecordConfiguration : IEntityTypeConfiguration<BenefitRecord
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.BenefitType).IsRequired().HasMaxLength(ValidationConstants.MaxShortNameLength);
-        builder.Property(x => x.Payer).IsRequired().HasMaxLength(ValidationConstants.MaxShortNameLength);
         builder.Property(x => x.BenefitName).HasMaxLength(ValidationConstants.MaxBenefitNameLength);
         builder.Property(x => x.Currency).IsRequired().HasMaxLength(ValidationConstants.MaxCurrencyCodeLength);
         builder.Property(x => x.Period).IsRequired().HasMaxLength(ValidationConstants.MaxShortNameLength);
-        builder.Property(x => x.Source).IsRequired().HasMaxLength(ValidationConstants.MaxShortNameLength);
-        builder.Property(x => x.ReferenceId).HasMaxLength(ValidationConstants.MaxReferenceCodeLength);
         builder.Property(x => x.ProviderName).HasMaxLength(ValidationConstants.MaxProviderNameLength);
         builder.Property(x => x.Notes).HasMaxLength(ValidationConstants.MaxNotesLength);
         builder.Property(x => x.PolicyNumber).HasMaxLength(ValidationConstants.MaxPolicyNumberLength);

@@ -9,12 +9,8 @@ public class SalaryRecordDtoValidator : AbstractValidator<SalaryRecordDto>
 {
     public SalaryRecordDtoValidator()
     {
-        RuleFor(x => x.NetAmount)
+        RuleFor(x => x.Amount)
             .GreaterThan(0).WithMessage(ValidationMessages.SalaryAmountInvalid);
-
-        RuleFor(x => x.GrossAmount)
-            .GreaterThan(0).When(x => x.GrossAmount.HasValue)
-            .WithMessage(ValidationMessages.SalaryAmountInvalid);
 
         RuleFor(x => x.Currency)
             .Must(c => Currencies.All.Contains(c)).WithMessage(ValidationMessages.CurrencyInvalid);
@@ -70,9 +66,6 @@ public class BenefitRecordDtoValidator : AbstractValidator<BenefitRecordDto>
         RuleFor(x => x.BenefitType)
             .Must(t => BenefitTypes.All.Contains(t)).WithMessage(ValidationMessages.BenefitTypeInvalid);
 
-        RuleFor(x => x.Payer)
-            .Must(p => BenefitPayers.All.Contains(p)).WithMessage(ValidationMessages.BenefitPayerInvalid);
-
         RuleFor(x => x.Amount)
             .GreaterThan(0).WithMessage(ValidationMessages.BenefitAmountInvalid);
 
@@ -89,7 +82,6 @@ public class BenefitRecordDtoValidator : AbstractValidator<BenefitRecordDto>
             .GreaterThanOrEqualTo(x => x.StartDate).When(x => x.EndDate.HasValue)
             .WithMessage("End date cannot be before start date.");
 
-        RuleFor(x => x.ReferenceId).MaximumLength(ValidationConstants.MaxReferenceCodeLength);
         RuleFor(x => x.ProviderName).MaximumLength(ValidationConstants.MaxProviderNameLength);
         RuleFor(x => x.Notes).MaximumLength(ValidationConstants.MaxNotesLength);
         RuleFor(x => x.BenefitName).MaximumLength(ValidationConstants.MaxBenefitNameLength);

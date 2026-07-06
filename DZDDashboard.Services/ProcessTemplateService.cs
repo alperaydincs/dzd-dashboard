@@ -79,7 +79,6 @@ public class ProcessTemplateService(AppDbContext context) : IProcessTemplateServ
     {
         Id       = t.Id,
         Kind     = t.Kind,
-        Name     = t.Name,
-        Sequence = t.Sequence
+        Name     = t.Name
     };
 }

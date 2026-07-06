@@ -20,7 +20,6 @@ internal static class ValidationMessages
     internal const string SalaryPayTypeInvalid           = "Salary type must be either Gross or Net.";
     internal const string SalaryStartDateRequired        = "Salary start date is required.";
     internal const string BenefitTypeInvalid             = "Benefit type is not recognised.";
-    internal const string BenefitPayerInvalid            = "Payer must be either Employer or Employee.";
     internal const string BenefitAmountInvalid           = "Benefit amount must be greater than zero.";
     internal const string BenefitStartDateRequired       = "Benefit start date is required.";
     internal const string RelationTypeRequired           = "Relation type is required.";

@@ -127,7 +127,7 @@ public partial class PaymentSection
     private async Task DeleteSalaryRecordAsync(SalaryRecordDto record)
     {
         if (await DialogService.ShowMessageBoxAsync(Loc["payment.deleteSalaryDialogTitle"],
-            string.Format(Loc["payment.deleteSalaryConfirm"], FormatMoney(record.NetAmount, record.Currency), GetPaymentPeriodName(record.Period), AppFormatter.FormatDate(record.StartDate)),
+            string.Format(Loc["payment.deleteSalaryConfirm"], FormatMoney(record.Amount, record.Currency), GetPaymentPeriodName(record.Period), AppFormatter.FormatDate(record.StartDate)),
             yesText: Loc["payment.delete"], cancelText: Loc["common.cancel"]) != true) return;
 
         var resp = await PaymentService.DeleteSalaryRecordAsync(UserId, record.Id);

@@ -36,10 +36,7 @@ public class OrganizationMappingProfile : IRegister
                 src.Avatar != null ? (DateTime?)(src.Avatar.ModifiedAt ?? src.Avatar.CreatedAt) : null);
 
         config.NewConfig<OrganizationPosition, OrganizationPositionDto>()
-            .Map(dest => dest.UserCount, src => src.Users.Count)
-            .Map(dest => dest.User, src => src.Users.OrderBy(x => x.Id).FirstOrDefault())
-            .Map(dest => dest.UserId, src => src.Users.OrderBy(x => x.Id).Select(x => (int?)x.Id).FirstOrDefault())
-            .Ignore("Children");
+            .Map(dest => dest.User, src => src.Users.OrderBy(x => x.Id).FirstOrDefault());
 
         config.NewConfig<CreateOrganizationPositionDto, OrganizationPosition>();
         config.NewConfig<UpdateOrganizationPositionDto, OrganizationPosition>()

@@ -167,7 +167,6 @@ public class LifecycleEngine(AppDbContext context, IAuditProvider audit, IFileSt
     {
         Id          = item.Id,
         Title       = item.Title,
-        Sequence    = item.Sequence,
         IsRequired  = item.IsRequired,
         Status      = item.Status,
         CompletedAt = item.CompletedAt,

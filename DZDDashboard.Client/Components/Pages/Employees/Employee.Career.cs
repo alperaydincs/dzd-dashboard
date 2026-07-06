@@ -30,11 +30,11 @@ public partial class Employee
             _career.MarkLoaded();
             _ = LoadCvDocumentsAsync();
 
-            _career.CompanyId   = _profile?.CompanyId;
-            _career.DeptId      = _profile?.DepartmentId;
-            _career.TeamId      = _profile?.TeamId;
+            _career.CompanyId   = _profile?.Company?.Id;
+            _career.DeptId      = _profile?.Department?.Id;
+            _career.TeamId      = _profile?.Team?.Id;
             _career.PathId      = _profile?.CareerPathId;
-            _career.JobId       = _profile?.JobId;
+            _career.JobId       = _profile?.Job?.Id;
             _career.Grade       = _profile?.Grade;
 
             _career.FilteredDepts = FilteredDeptsForCompany(_career.CompanyId);
@@ -86,11 +86,11 @@ public partial class Employee
         {
             ManagerId    = _career.SelectedManager?.Id,
             Manager      = _career.SelectedManager,
-            CompanyId    = _profile?.CompanyId,
-            DepartmentId = _profile?.DepartmentId,
-            TeamId       = _profile?.TeamId,
+            CompanyId    = _profile?.Company?.Id,
+            DepartmentId = _profile?.Department?.Id,
+            TeamId       = _profile?.Team?.Id,
             PathId       = _profile?.CareerPathId,
-            JobId        = _profile?.JobId,
+            JobId        = _profile?.Job?.Id,
             Grade        = _profile?.Grade,
             StartDate    = current?.StartDate ?? _profile?.PositionStartDate ?? DateTime.Today,
             EndDate      = current?.EndDate
@@ -187,7 +187,7 @@ public partial class Employee
         var parameters = new DialogParameters
         {
             [nameof(PromotionDialog.Path)]  = path,
-            [nameof(PromotionDialog.JobId)] = _profile?.JobId,
+            [nameof(PromotionDialog.JobId)] = _profile?.Job?.Id,
             [nameof(PromotionDialog.Grade)] = _profile?.Grade
         };
         var dialog = await DialogService.ShowAsync<PromotionDialog>(Loc["employeeProfile.promotionDialogTitle"], parameters, SmallEscDialog);
@@ -200,9 +200,9 @@ public partial class Employee
         {
             var dto = new UpdateCareerAssignmentDto
             {
-                CompanyId    = _profile?.CompanyId,
-                DepartmentId = _profile?.DepartmentId,
-                TeamId       = _profile?.TeamId,
+                CompanyId    = _profile?.Company?.Id,
+                DepartmentId = _profile?.Department?.Id,
+                TeamId       = _profile?.Team?.Id,
                 CareerPathId = _profile?.CareerPathId,
                 JobId        = data.JobId,
                 Grade        = data.Grade
@@ -243,11 +243,11 @@ public partial class Employee
 
     private void ApplyProfileToCareerTab()
     {
-        _career.CompanyId     = _profile?.CompanyId;
-        _career.DeptId        = _profile?.DepartmentId;
-        _career.TeamId        = _profile?.TeamId;
+        _career.CompanyId     = _profile?.Company?.Id;
+        _career.DeptId        = _profile?.Department?.Id;
+        _career.TeamId        = _profile?.Team?.Id;
         _career.PathId        = _profile?.CareerPathId;
-        _career.JobId         = _profile?.JobId;
+        _career.JobId         = _profile?.Job?.Id;
         _career.Grade         = _profile?.Grade;
         PrefillManagerFromProfile();
         _career.FilteredDepts = FilteredDeptsForCompany(_career.CompanyId);

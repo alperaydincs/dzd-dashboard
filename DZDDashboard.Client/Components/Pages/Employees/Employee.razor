@@ -781,8 +781,8 @@
                                     <div class="dzd-field-label"><MudIcon Icon="@DzdIcons.MapPin" Size="Size.Small" Style="color: #FEA82F !important;" /> @Loc["employeeProfile.payrollLocation"]</div>
                                     @if (_basicInfoEdit.IsEditing)
                                     {
-                                        <MudSelect T="int?" @bind-Value="_profile!.PayrollLocationId" 
-                                                   Variant="Variant.Outlined" 
+                                        <MudSelect T="int?" Value="_profile!.PayrollLocation?.Id" ValueChanged="OnPayrollLocationChanged"
+                                                   Variant="Variant.Outlined"
                                                    AnchorOrigin="Origin.BottomLeft" Class="dzd-input"
                                                    Margin="Margin.Dense">
                                             @foreach (var location in _payrollLocations)

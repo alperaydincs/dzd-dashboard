@@ -51,22 +51,6 @@ public static class BenefitTypes
         [PrivateHealthInsurance, PrivatePension, Other];
 }
 
-public static class BenefitPayers
-{
-    public const string Employer = "Employer";
-    public const string Employee = "Employee";
-
-    public static readonly IReadOnlyList<string> All = [Employer, Employee];
-}
-
-public static class PaymentSources
-{
-    public const string Manual     = "Manual";
-    public const string Onboarding = "Onboarding";
-
-    public static readonly IReadOnlyList<string> All = [Manual, Onboarding];
-}
-
 public static class RelationTypes
 {
     public const string Spouse = "Spouse";

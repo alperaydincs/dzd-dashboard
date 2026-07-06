@@ -10,16 +10,10 @@ public class EmployeeDto
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public int? AvatarColorIndex { get; set; }
-    public int? CompanyId { get; set; }
     public CompanyDto? Company { get; set; }
     public string? RegistrationNumber { get; set; }
     public int? Grade { get; set; }
-    public int? JobId { get; set; }
-    public int? DepartmentId { get; set; }
-    public int? TeamId { get; set; }
-    public int? PayrollLocationId { get; set; }
     public int? CareerPathId { get; set; }
-    public int? ReportsToId { get; set; }
     public int? OrganizationPositionId { get; set; }
     public DateTime? PositionStartDate { get; set; }
     public DateTime? UserStartDate { get; set; }

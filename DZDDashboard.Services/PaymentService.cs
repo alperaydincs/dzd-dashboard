@@ -89,7 +89,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
 
         var opensNewPeriod =
             entity.StartDate != dto.StartDate || entity.EndDate != dto.EndDate ||
-            entity.NetAmount != dto.NetAmount || entity.Currency != dto.Currency;
+            entity.Amount != dto.Amount || entity.Currency != dto.Currency;
 
         if (opensNewPeriod)
         {
@@ -128,7 +128,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         await context.Users.FindRequiredAsync(userId, nameof(User), cancellationToken);
         EnsureDependentsValid(dto);
 
-        var entity = new BenefitRecord { UserId = userId, Source = string.IsNullOrWhiteSpace(dto.Source) ? PaymentSources.Manual : dto.Source };
+        var entity = new BenefitRecord { UserId = userId };
         ApplyBenefitDto(dto, entity);
         await ReplaceDependentsAsync(entity, dto.Dependents, cancellationToken);
 
@@ -245,8 +245,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         if (entity.Notes != dto.Notes)
             entity.NotesModifiedAt = DateTime.UtcNow;
 
-        entity.NetAmount    = dto.NetAmount;
-        entity.GrossAmount  = dto.GrossAmount;
+        entity.Amount       = dto.Amount;
         entity.PayType      = dto.PayType;
         entity.Currency     = dto.Currency;
         entity.Period       = dto.Period;
@@ -259,14 +258,12 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
     private static void ApplyBenefitDto(BenefitRecordDto dto, BenefitRecord entity)
     {
         entity.BenefitType  = dto.BenefitType;
-        entity.Payer        = dto.Payer;
         entity.BenefitName  = dto.BenefitName;
         entity.Amount       = dto.Amount;
         entity.Currency     = dto.Currency;
         entity.Period       = dto.Period;
         entity.StartDate    = dto.StartDate;
         entity.EndDate      = dto.EndDate;
-        entity.ReferenceId  = dto.ReferenceId;
         entity.ProviderName = dto.ProviderName;
         entity.Notes        = dto.Notes;
         var isPension = dto.BenefitType == BenefitTypes.PrivatePension;
@@ -364,31 +361,12 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         List<SalaryHistory> salaryHistory, List<BenefitRecord> benefits, List<AdditionalPayment> additionalPayments, List<Deduction> deductions)
     {
         var today = DateTime.UtcNow.Date;
-        var horizon = today.AddDays(30);
 
         bool IsActive(DateTime start, DateTime? end) => start <= today && (end is null || end >= today);
-        bool ExpiresWithinHorizon(DateTime? end) => end.HasValue && end.Value >= today && end.Value <= horizon;
 
-        var activeSalary      = salaryHistory.Where(s => IsActive(s.StartDate, s.EndDate)).ToList();
         var activeBenefits    = benefits.Where(b => IsActive(b.StartDate, b.EndDate)).ToList();
         var activeAdditional = additionalPayments.Where(p => IsActive(p.StartDate, p.EndDate)).ToList();
         var activeDeductions  = deductions.Where(d => IsActive(d.StartDate, d.EndDate)).ToList();
-
-        var monthlyCost = new Dictionary<string, decimal>();
-        void AddMonthlyCost(string currency, decimal? amount)
-        {
-            if (amount is not { } value) return;
-            monthlyCost[currency] = monthlyCost.GetValueOrDefault(currency) + value;
-        }
-
-        foreach (var salary in activeSalary)
-            AddMonthlyCost(salary.Currency, NormalizeToMonthly(salary.NetAmount, salary.Period));
-
-        foreach (var benefit in activeBenefits.Where(b => b.Payer == BenefitPayers.Employer))
-            AddMonthlyCost(benefit.Currency, NormalizeToMonthly(BenefitTotalAmount(benefit), benefit.Period));
-
-        foreach (var payment in activeAdditional)
-            AddMonthlyCost(payment.Currency, payment.Period == AdditionalPaymentPeriods.OneTime ? payment.Amount : NormalizeToMonthly(payment.Amount, payment.Period));
 
         var benefitsTotal = new Dictionary<string, decimal>();
         foreach (var benefit in activeBenefits)
@@ -402,30 +380,13 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         foreach (var payment in activeAdditional)
             additionalTotal[payment.Currency] = additionalTotal.GetValueOrDefault(payment.Currency) + payment.Amount;
 
-        var upcomingExpirations =
-            salaryHistory.Count(s => ExpiresWithinHorizon(s.EndDate)) +
-            benefits.Count(b => ExpiresWithinHorizon(b.EndDate)) +
-            additionalPayments.Count(p => ExpiresWithinHorizon(p.EndDate)) +
-            deductions.Count(d => ExpiresWithinHorizon(d.EndDate));
-
         return new EmployeePaymentSummaryDto
         {
-            EstimatedMonthlyCost           = [.. monthlyCost.Select(kv => new CurrencyAmountDto(kv.Key, kv.Value))],
             ActiveBenefitsTotal            = [.. benefitsTotal.Select(kv => new CurrencyAmountDto(kv.Key, kv.Value))],
             ActiveDeductionsTotal          = [.. deductionsTotal.Select(kv => new CurrencyAmountDto(kv.Key, kv.Value))],
-            ActiveAdditionalPaymentsTotal  = [.. additionalTotal.Select(kv => new CurrencyAmountDto(kv.Key, kv.Value))],
-            ActiveItemCount          = activeSalary.Count + activeBenefits.Count + activeAdditional.Count + activeDeductions.Count,
-            UpcomingExpirationCount  = upcomingExpirations
+            ActiveAdditionalPaymentsTotal  = [.. additionalTotal.Select(kv => new CurrencyAmountDto(kv.Key, kv.Value))]
         };
     }
-
-    private static decimal? NormalizeToMonthly(decimal amount, string period) => period switch
-    {
-        PaymentPeriods.Monthly => amount,
-        PaymentPeriods.Yearly  => amount / 12m,
-        PaymentPeriods.Weekly  => amount * 52m / 12m,
-        _ => null
-    };
 
     private static decimal BenefitTotalAmount(BenefitRecord benefit) => benefit.BenefitType == BenefitTypes.PrivateHealthInsurance
         ? benefit.Amount + benefit.Dependents.Sum(d => d.Amount)

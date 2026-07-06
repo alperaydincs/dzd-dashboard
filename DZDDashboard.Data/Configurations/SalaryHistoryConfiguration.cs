@@ -12,8 +12,7 @@ public class SalaryHistoryConfiguration : IEntityTypeConfiguration<SalaryHistory
         builder.ToTable("UserSalaryHistories");
         builder.HasKey(s => s.Id);
 
-        builder.Property(s => s.NetAmount).HasPrecision(18, 2);
-        builder.Property(s => s.GrossAmount).HasPrecision(18, 2);
+        builder.Property(s => s.Amount).HasPrecision(18, 2);
 
         builder.Property(s => s.PayType)
             .IsRequired()
