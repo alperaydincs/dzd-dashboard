@@ -1,6 +1,6 @@
 namespace DZDDashboard.Common.DTOs;
 
-public record UpdateUserOrganizationPositionDto
+public record AssignUserOrganizationPositionDto
 {
     public int? OrganizationPositionId { get; init; }
 }

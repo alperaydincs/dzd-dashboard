@@ -107,8 +107,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOffboardingClientService>(sp => sp.GetRequiredService<OffboardingClientService>());
         services.AddScoped<MyOnboardingClientService>();
         services.AddScoped<IMyOnboardingClientService>(sp => sp.GetRequiredService<MyOnboardingClientService>());
+        services.AddScoped<ProcessTemplateClientService>();
+        services.AddScoped<IProcessTemplateClientService>(sp => sp.GetRequiredService<ProcessTemplateClientService>());
         services.AddScoped<ChecklistTemplateClientService>();
         services.AddScoped<IChecklistTemplateClientService>(sp => sp.GetRequiredService<ChecklistTemplateClientService>());
+        services.AddScoped<DocumentTemplateClientService>();
+        services.AddScoped<IDocumentTemplateClientService>(sp => sp.GetRequiredService<DocumentTemplateClientService>());
         services.AddScoped<TrainingClientService>();
         services.AddScoped<ITrainingClientService>(sp => sp.GetRequiredService<TrainingClientService>());
         services.AddScoped<NotificationCenterService>();

@@ -1,297 +1,204 @@
 using DZDDashboard.Common.Constants;
-using DZDDashboard.Common.DTOs;
 using DZDDashboard.Common.Exceptions;
 using DZDDashboard.Common.Utils;
-using DZDDashboard.Common.Validation;
 using DZDDashboard.Data;
 using DZDDashboard.Data.Abstractions;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
+using DZDDashboard.Common.DTOs;
 
 namespace DZDDashboard.Services;
 
-public class ChecklistEngine(
-    AppDbContext context,
-    IAuditProvider audit,
-    IFileStorageService fileStorage,
-    IPaymentService paymentService)
+public class LifecycleEngine(AppDbContext context, IAuditProvider audit, IFileStorageService fileStorage)
 {
-    public async Task<List<ChecklistItem>> BuildItemsAsync(string processType, CancellationToken cancellationToken)
+    public async Task<List<ChecklistItem>> BuildChecklistItemsAsync(int processTemplateId, CancellationToken cancellationToken)
     {
         var templates = await context.ChecklistStepTemplates.AsNoTracking()
-            .Where(t => t.ProcessType == processType && t.IsEnabled)
+            .Where(t => t.ProcessTemplateId == processTemplateId)
             .OrderBy(t => t.Sequence)
             .ToListAsync(cancellationToken);
 
-        IEnumerable<ChecklistStepDefinition> source = templates.Count > 0
-            ? templates.Select(t => new ChecklistStepDefinition(t.StepKey, t.Title, t.Sequence, t.IsRequired, t.IsGate, t.BenefitKind, t.RequiresDocument))
-            : FallbackCatalog(processType);
-
-        return [.. source.Select(s => new ChecklistItem
+        return [.. templates.Select(t => new ChecklistItem
         {
-            StepKey          = s.Key,
-            Title            = s.Title,
-            Sequence         = s.Sequence,
-            IsRequired       = s.IsRequired,
-            IsGate           = s.IsGate,
-            RequiresDocument = s.RequiresDocument,
-            BenefitKind      = s.BenefitKind,
-            Status           = ChecklistItemStatuses.Pending
+            Title      = t.Title,
+            Sequence   = t.Sequence,
+            IsRequired = t.IsRequired,
+            Status     = ChecklistItemStatuses.Pending
         })];
     }
 
-    private static IReadOnlyList<ChecklistStepDefinition> FallbackCatalog(string processType) => processType switch
+    public async Task<List<ProcessDocument>> BuildDocumentsAsync(int processTemplateId, DateTime anchorDate, CancellationToken cancellationToken)
     {
-        TemplateProcessTypes.OffboardingResignation => OffboardingStepCatalog.ResignationSteps,
-        TemplateProcessTypes.OffboardingTermination => OffboardingStepCatalog.TerminationSteps,
-        _                                           => OnboardingStepCatalog.Steps
-    };
+        var templates = await context.DocumentTemplates.AsNoTracking()
+            .Where(t => t.ProcessTemplateId == processTemplateId)
+            .OrderBy(t => t.Sequence)
+            .ToListAsync(cancellationToken);
 
-    public async Task CompleteAsync(ChecklistItem item, IReadOnlyList<ChecklistItem> siblings, int userId, DateTime processStartDate, CompleteChecklistItemDto dto, CancellationToken cancellationToken)
+        return [.. templates.Select(t => new ProcessDocument
+        {
+            Name       = t.Name,
+            IsRequired = t.IsRequired,
+            Deadline   = anchorDate.AddDays(t.DeadlineDays),
+            Status     = DocumentReviewStatuses.Pending
+        })];
+    }
+
+    public async Task CompleteChecklistItemAsync(ChecklistItem item, CancellationToken cancellationToken)
     {
         if (item.Status == ChecklistItemStatuses.Completed) return;
-
-        EnsureGateUnblocked(item, siblings);
-
-        if (item.RequiresDocument && item.OnboardingDocument is null && item.OffboardingDocument is null)
-            throw new DomainValidationException("Bu adım tamamlanmadan önce bir belge yüklenmelidir.");
-
-        if (item.BenefitKind != ChecklistBenefitKinds.None)
-            await ApplyBenefitInputAsync(item, dto, cancellationToken);
-
-        if (dto.Note is not null) item.Note = dto.Note;
 
         item.Status        = ChecklistItemStatuses.Completed;
         item.CompletedAt   = audit.GetNow();
         item.CompletedById = audit.GetCurrentUserId();
-
-        await context.SaveChangesAsync(cancellationToken);
-
-        if (item.BenefitKind != ChecklistBenefitKinds.None && item.ReflectedBenefitRecordId is null)
-        {
-            var created = await paymentService.CreateBenefitRecordAsync(userId, BuildBenefitDto(item, dto, processStartDate), cancellationToken);
-            item.ReflectedBenefitRecordId = created.Id;
-            await context.SaveChangesAsync(cancellationToken);
-        }
-    }
-
-    public async Task SkipAsync(ChecklistItem item, CancellationToken cancellationToken)
-    {
-        if (item.IsRequired)
-            throw new DomainValidationException("Zorunlu bir adım atlanamaz.");
-
-        item.Status        = ChecklistItemStatuses.Skipped;
-        item.CompletedAt   = null;
-        item.CompletedById = null;
+        await LogAsync(item.OnboardingProcessId, item.OffboardingProcessId, OnboardingOffboardingAuditActions.ChecklistCompleted, item.Title, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task ReopenAsync(ChecklistItem item, int userId, CancellationToken cancellationToken)
+    public async Task ReopenChecklistItemAsync(ChecklistItem item, CancellationToken cancellationToken)
     {
-        if (item.ReflectedBenefitRecordId is { } benefitId)
-        {
-            await paymentService.DeleteBenefitRecordAsync(userId, benefitId, cancellationToken);
-            item.ReflectedBenefitRecordId = null;
-        }
-
         item.Status        = ChecklistItemStatuses.Pending;
-        item.CompletedAt   = null;
-        item.CompletedById = null;
+        item.CompletedAt    = null;
+        item.CompletedById  = null;
+        await LogAsync(item.OnboardingProcessId, item.OffboardingProcessId, OnboardingOffboardingAuditActions.ChecklistReopened, item.Title, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task UpdateNoteAsync(ChecklistItem item, string? note, CancellationToken cancellationToken)
+    public async Task<ProcessDocument> AddDocumentAsync(int? onboardingProcessId, int? offboardingProcessId, AddProcessDocumentDto dto, CancellationToken cancellationToken)
     {
-        item.Note = note;
+        var doc = new ProcessDocument
+        {
+            OnboardingProcessId  = onboardingProcessId,
+            OffboardingProcessId = offboardingProcessId,
+            Name       = dto.Name.Trim(),
+            IsRequired = dto.IsRequired,
+            Deadline   = dto.Deadline,
+            Status     = DocumentReviewStatuses.Pending
+        };
+        context.ProcessDocuments.Add(doc);
+        await LogAsync(onboardingProcessId, offboardingProcessId, OnboardingOffboardingAuditActions.DocumentAdded, doc.Name, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
+        return doc;
     }
 
-    public async Task UploadDocumentAsync(ChecklistItem item, string fileName, string contentType, byte[] content, CancellationToken cancellationToken)
+    public async Task UploadDocumentAsync(ProcessDocument document, string fileName, string contentType, byte[] content, CancellationToken cancellationToken)
     {
-        var existingFileId = item.OnboardingDocument?.FileId ?? item.OffboardingDocument?.FileId;
-        if (existingFileId is { } existing)
+        if (document.FileId is { } existing)
             await fileStorage.DeleteAsync(existing, cancellationToken);
 
-        var storageId = await fileStorage.SaveAsync(content, contentType, cancellationToken);
+        document.FileId      = await fileStorage.SaveAsync(content, contentType, cancellationToken);
+        document.FileName    = fileName;
+        document.ContentType = contentType;
+        document.Status      = DocumentReviewStatuses.Uploaded;
+        document.UploadedAt  = audit.GetNow();
+        document.UploadedById = audit.GetCurrentUserId();
+        document.ReviewedAt   = null;
+        document.ReviewedById = null;
 
-        if (item.OnboardingProcessId.HasValue)
-        {
-            if (item.OnboardingDocument is null)
-            {
-                item.OnboardingDocument = new UserOnboardingDocument { ChecklistItemId = item.Id };
-                context.UserOnboardingDocuments.Add(item.OnboardingDocument);
-            }
-            item.OnboardingDocument.FileId      = storageId;
-            item.OnboardingDocument.FileName    = fileName;
-            item.OnboardingDocument.ContentType = contentType;
-        }
-        else if (item.OffboardingProcessId.HasValue)
-        {
-            if (item.OffboardingDocument is null)
-            {
-                item.OffboardingDocument = new UserOffboardingDocument { ChecklistItemId = item.Id };
-                context.UserOffboardingDocuments.Add(item.OffboardingDocument);
-            }
-            item.OffboardingDocument.FileId      = storageId;
-            item.OffboardingDocument.FileName    = fileName;
-            item.OffboardingDocument.ContentType = contentType;
-        }
-
+        await LogAsync(document.OnboardingProcessId, document.OffboardingProcessId, OnboardingOffboardingAuditActions.DocumentUploaded, $"{document.Name}: {fileName}", cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task DeleteDocumentAsync(ChecklistItem item, CancellationToken cancellationToken)
+    public async Task ApproveDocumentAsync(ProcessDocument document, CancellationToken cancellationToken)
     {
-        var fileId = item.OnboardingDocument?.FileId ?? item.OffboardingDocument?.FileId;
-        if (fileId is not { } storageId) return;
+        if (document.FileId is null)
+            throw new DomainValidationException("Onaylanmadan önce belge yüklenmelidir.");
 
-        await fileStorage.DeleteAsync(storageId, cancellationToken);
+        document.Status       = DocumentReviewStatuses.Approved;
+        document.ReviewedAt   = audit.GetNow();
+        document.ReviewedById = audit.GetCurrentUserId();
 
-        if (item.OnboardingDocument is not null)
-        {
-            context.UserOnboardingDocuments.Remove(item.OnboardingDocument);
-            item.OnboardingDocument = null;
-        }
-        if (item.OffboardingDocument is not null)
-        {
-            context.UserOffboardingDocuments.Remove(item.OffboardingDocument);
-            item.OffboardingDocument = null;
-        }
-
+        await LogAsync(document.OnboardingProcessId, document.OffboardingProcessId, OnboardingOffboardingAuditActions.DocumentApproved, document.Name, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<(byte[] Content, string? ContentType, string FileName)?> GetDocumentAsync(ChecklistItem item, CancellationToken cancellationToken)
+    public async Task RequestDocumentCorrectionAsync(ProcessDocument document, CancellationToken cancellationToken)
     {
-        var doc = item.OnboardingDocument is not null
-            ? (item.OnboardingDocument.FileId, item.OnboardingDocument.ContentType, item.OnboardingDocument.FileName)
-            : item.OffboardingDocument is not null
-                ? (item.OffboardingDocument.FileId, item.OffboardingDocument.ContentType, item.OffboardingDocument.FileName)
-                : ((int?)null, null, null);
+        document.Status       = DocumentReviewStatuses.NeedsCorrection;
+        document.ReviewedAt   = audit.GetNow();
+        document.ReviewedById = audit.GetCurrentUserId();
 
-        if (doc.Item1 is not { } storageId) return null;
+        await LogAsync(document.OnboardingProcessId, document.OffboardingProcessId, OnboardingOffboardingAuditActions.DocumentCorrectionRequested, document.Name, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task ReopenDocumentAsync(ProcessDocument document, CancellationToken cancellationToken)
+    {
+        document.Status       = document.FileId is null ? DocumentReviewStatuses.Pending : DocumentReviewStatuses.Uploaded;
+        document.ReviewedAt   = null;
+        document.ReviewedById = null;
+
+        await LogAsync(document.OnboardingProcessId, document.OffboardingProcessId, OnboardingOffboardingAuditActions.ChecklistReopened, document.Name, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteDocumentAsync(ProcessDocument document, CancellationToken cancellationToken)
+    {
+        if (document.FileId is { } fileId)
+            await fileStorage.DeleteAsync(fileId, cancellationToken);
+
+        await LogAsync(document.OnboardingProcessId, document.OffboardingProcessId, OnboardingOffboardingAuditActions.DocumentDeleted, document.Name, cancellationToken);
+        context.ProcessDocuments.Remove(document);
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<(byte[] Content, string? ContentType, string FileName)?> GetDocumentContentAsync(ProcessDocument document, CancellationToken cancellationToken)
+    {
+        if (document.FileId is not { } storageId) return null;
         var file = await fileStorage.GetAsync(storageId, cancellationToken);
         if (file is null) return null;
-        return (file.Value.Content, file.Value.ContentType ?? doc.Item2, doc.Item3 ?? "document");
+        return (file.Value.Content, file.Value.ContentType ?? document.ContentType, document.FileName ?? "document");
     }
 
-    private static void EnsureGateUnblocked(ChecklistItem item, IReadOnlyList<ChecklistItem> siblings)
+    public async Task LogAsync(int? onboardingProcessId, int? offboardingProcessId, string action, string detail, CancellationToken cancellationToken)
     {
-        if (item.StepKey != OffboardingStepCatalog.PaymentDoneKey) return;
-
-        var blocking = siblings.Any(s => s.Id != item.Id && s.IsRequired && s.Status != ChecklistItemStatuses.Completed);
-        if (blocking)
-            throw new DomainConflictException("Tüm işlemler tamamlanmadan ve zimmet teslim alınmadan ödeme adımı tamamlanamaz.");
+        context.LifecycleAuditLogEntries.Add(new LifecycleAuditLogEntry
+        {
+            OnboardingProcessId  = onboardingProcessId,
+            OffboardingProcessId = offboardingProcessId,
+            Action        = action,
+            Detail        = detail,
+            PerformedById = audit.GetCurrentUserId(),
+            CreatedAt     = audit.GetNow()
+        });
+        await Task.CompletedTask;
     }
 
-    private async Task ApplyBenefitInputAsync(ChecklistItem item, CompleteChecklistItemDto dto, CancellationToken ct)
+    public static ChecklistItemDto MapItem(ChecklistItem item) => new()
     {
-        item.ProviderName   = dto.ProviderName;
-        item.Currency       = string.IsNullOrWhiteSpace(dto.Currency) ? Currencies.Try : dto.Currency;
-        item.EmployeeAmount = dto.EmployeeAmount;
-        item.EmployerAmount = dto.EmployerAmount;
+        Id          = item.Id,
+        Title       = item.Title,
+        Sequence    = item.Sequence,
+        IsRequired  = item.IsRequired,
+        Status      = item.Status,
+        CompletedAt = item.CompletedAt,
+        CompletedByName = item.CompletedBy != null
+            ? AppFormatter.BuildFullName(item.CompletedBy.FirstName, item.CompletedBy.LastName)
+            : null
+    };
 
-        if (item.BenefitKind == ChecklistBenefitKinds.Bes)
-        {
-            if (dto.EmployeeAmount is null && dto.EmployerAmount is null)
-                throw new DomainValidationException("BES adımı için işveren ve/veya çalışan tutarı girilmelidir.");
-        }
-        else if (item.BenefitKind == ChecklistBenefitKinds.Oss)
-        {
-            if (dto.EmployeeAmount is null)
-                throw new DomainValidationException("ÖSS adımı için çalışan tutarı girilmelidir.");
-            if (dto.Dependents.Count > ValidationConstants.MaxBenefitDependents)
-                throw new DomainValidationException($"En fazla {ValidationConstants.MaxBenefitDependents} bağımlı eklenebilir.");
-        }
-
-        if (item.Dependents.Count > 0)
-            context.ChecklistItemDependents.RemoveRange(item.Dependents);
-
-        item.Dependents = [.. dto.Dependents.Select((d, index) => new ChecklistItemDependent
-        {
-            ChecklistItemId = item.Id,
-            Order           = index + 1,
-            RelationType    = d.RelationType,
-            DependentName   = d.DependentName,
-            Amount          = d.Amount
-        })];
-    }
-
-    private static BenefitRecordDto BuildBenefitDto(ChecklistItem item, CompleteChecklistItemDto dto, DateTime startDate)
+    public static ProcessDocumentDto MapDocument(ProcessDocument doc) => new()
     {
-        if (item.BenefitKind == ChecklistBenefitKinds.Bes)
-        {
-            return new BenefitRecordDto
-            {
-                BenefitType  = BenefitTypes.PrivatePension,
-                Payer        = BenefitPayers.Employer,
-                BenefitName  = "BES",
-                Amount       = (item.EmployerAmount ?? 0m) + (item.EmployeeAmount ?? 0m),
-                Currency     = item.Currency ?? Currencies.Try,
-                Period       = PaymentPeriods.Monthly,
-                StartDate    = startDate,
-                Source       = PaymentSources.Onboarding,
-                ProviderName = item.ProviderName,
-                EmployeeContributionAmount = item.EmployeeAmount,
-                EmployerContributionAmount = item.EmployerAmount
-            };
-        }
+        Id             = doc.Id,
+        Name           = doc.Name,
+        IsRequired     = doc.IsRequired,
+        Deadline       = doc.Deadline,
+        Status         = doc.Status,
+        FileName       = doc.FileName,
+        UploadedAt     = doc.UploadedAt,
+        ReviewedAt     = doc.ReviewedAt,
+        ReviewedByName = doc.ReviewedBy != null
+            ? AppFormatter.BuildFullName(doc.ReviewedBy.FirstName, doc.ReviewedBy.LastName)
+            : null
+    };
 
-        return new BenefitRecordDto
-        {
-            BenefitType  = BenefitTypes.PrivateHealthInsurance,
-            Payer        = BenefitPayers.Employer,
-            BenefitName  = "ÖSS",
-            Amount       = (item.EmployeeAmount ?? 0m) + dto.Dependents.Sum(d => d.Amount),
-            Currency     = item.Currency ?? Currencies.Try,
-            Period       = PaymentPeriods.Monthly,
-            StartDate    = startDate,
-            Source       = PaymentSources.Onboarding,
-            ProviderName = item.ProviderName,
-            Dependents   = [.. dto.Dependents.Select((d, index) => new BenefitDependentDto
-            {
-                Order           = index + 1,
-                RelationType    = d.RelationType,
-                DependentName   = d.DependentName,
-                Amount          = d.Amount,
-                StartDate       = startDate
-            })]
-        };
-    }
-
-    public static ChecklistItemDto Map(ChecklistItem item, IReadOnlyList<ChecklistItem> siblings)
+    public static AuditLogEntryDto MapAuditEntry(LifecycleAuditLogEntry entry) => new()
     {
-        var gateBlocked = item.StepKey == OffboardingStepCatalog.PaymentDoneKey
-            && siblings.Any(s => s.Id != item.Id && s.IsRequired && s.Status != ChecklistItemStatuses.Completed);
-
-        return new ChecklistItemDto
-        {
-            Id          = item.Id,
-            StepKey     = item.StepKey,
-            Title       = item.Title,
-            Sequence    = item.Sequence,
-            IsRequired  = item.IsRequired,
-            IsGate      = item.IsGate,
-            RequiresDocument = item.RequiresDocument,
-            BenefitKind = item.BenefitKind,
-            Status      = item.Status,
-            Note        = item.Note,
-            CompletedAt = item.CompletedAt,
-            CompletedByName = item.CompletedBy != null
-                ? AppFormatter.BuildFullName(item.CompletedBy.FirstName, item.CompletedBy.LastName)
-                : null,
-            HasDocument      = item.OnboardingDocument is not null || item.OffboardingDocument is not null,
-            DocumentFileName = item.OnboardingDocument?.FileName ?? item.OffboardingDocument?.FileName,
-            ProviderName     = item.ProviderName,
-            Currency         = item.Currency,
-            EmployeeAmount   = item.EmployeeAmount,
-            EmployerAmount   = item.EmployerAmount,
-            Dependents       = [.. item.Dependents.OrderBy(d => d.Order).Select(d => new ChecklistItemDependentInputDto
-            {
-                Order = d.Order, RelationType = d.RelationType, DependentName = d.DependentName, Amount = d.Amount
-            })],
-            IsActionable  = item.Status == ChecklistItemStatuses.Pending && !gateBlocked,
-            BlockedReason = gateBlocked ? "Tüm işlemler ve zimmet iadesi tamamlanmadan bu adım aktifleşmez." : null
-        };
-    }
+        Id              = entry.Id,
+        Action          = entry.Action,
+        Detail          = entry.Detail,
+        PerformedByName = entry.PerformedBy != null
+            ? AppFormatter.BuildFullName(entry.PerformedBy.FirstName, entry.PerformedBy.LastName)
+            : null,
+        CreatedAt       = entry.CreatedAt
+    };
 }

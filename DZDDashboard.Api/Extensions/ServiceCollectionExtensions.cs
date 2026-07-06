@@ -155,10 +155,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IFileStorageService, DbFileStorageService>();
         services.AddScoped<IUserDocumentService, UserDocumentService>();
-        services.AddScoped<ChecklistEngine>();
+        services.AddScoped<LifecycleEngine>();
         services.AddScoped<IOnboardingService, OnboardingService>();
         services.AddScoped<IOffboardingService, OffboardingService>();
+        services.AddScoped<IProcessTemplateService, ProcessTemplateService>();
         services.AddScoped<IChecklistTemplateService, ChecklistTemplateService>();
+        services.AddScoped<IDocumentTemplateService, DocumentTemplateService>();
         services.AddScoped<ITrainingProgressService, TrainingProgressService>();
         return services;
     }

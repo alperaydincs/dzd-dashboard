@@ -6,9 +6,6 @@ namespace DZDDashboard.Api.Udemy;
 
 public interface IUdemyApiClient
 {
-    /// <summary>
-    /// Streams every user-course-activity row, following Udemy's pagination.
-    /// </summary>
     IAsyncEnumerable<UdemyActivityRecord> GetAllCourseActivityAsync(CancellationToken cancellationToken = default);
 }
 
@@ -38,8 +35,6 @@ public class UdemyApiClient(HttpClient httpClient, IOptions<UdemyOptions> option
             foreach (var record in page.Results)
                 yield return record;
 
-            // "next" is an absolute URL; HttpClient.BaseAddress only applies to relative URIs,
-            // so an absolute next link is used as-is on the following iteration.
             url = page.Next;
         }
     }

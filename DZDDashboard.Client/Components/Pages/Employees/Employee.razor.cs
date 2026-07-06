@@ -37,13 +37,13 @@ public partial class Employee
 
     private bool _loading;
     private string? _error;
-    private EmployeeCardDto? _profile;
-    private readonly SectionEditState<EmployeeCardDto>              _basicInfoEdit   = new();
-    private readonly SectionEditState<EmployeeCardDto>              _contactsEdit    = new();
-    private readonly SectionEditState<EmployeeCardDto>              _citizenshipEdit = new();
-    private readonly SectionEditState<EmployeeCardDto>              _emergencyEdit   = new();
-    private readonly SectionEditState<EmployeeCardDto>              _familyEdit      = new();
-    private readonly SectionEditState<EmployeeCardDto>              _addressEdit     = new();
+    private EmployeeDto? _profile;
+    private readonly SectionEditState<EmployeeDto>              _basicInfoEdit   = new();
+    private readonly SectionEditState<EmployeeDto>              _contactsEdit    = new();
+    private readonly SectionEditState<EmployeeDto>              _citizenshipEdit = new();
+    private readonly SectionEditState<EmployeeDto>              _emergencyEdit   = new();
+    private readonly SectionEditState<EmployeeDto>              _familyEdit      = new();
+    private readonly SectionEditState<EmployeeDto>              _addressEdit     = new();
     private readonly SectionEditState<List<EducationHistoryRecord>> _educationEdit   = new();
 
     private string _avatarDataUrl = string.Empty;
@@ -240,7 +240,7 @@ public partial class Employee
         _positionHistory = MapPositionHistory(_profile);
     }
 
-    private static void MergeSensitiveInfo(EmployeeCardDto card, EmployeeSensitiveInfoDto? pii)
+    private static void MergeSensitiveInfo(EmployeeDto card, EmployeeSensitiveInfoDto? pii)
     {
         if (pii is null) return;
         card.DateOfBirth        = pii.DateOfBirth;
@@ -265,7 +265,7 @@ public partial class Employee
             .ToList();
     }
 
-    private static List<EducationHistoryRecord> MapEducationHistories(EmployeeCardDto? profile)
+    private static List<EducationHistoryRecord> MapEducationHistories(EmployeeDto? profile)
         => (profile?.EducationHistories ?? [])
             .Select(x => new EducationHistoryRecord
             {
@@ -278,7 +278,7 @@ public partial class Employee
             })
             .ToList();
 
-    private static List<PositionHistoryDto> MapPositionHistory(EmployeeCardDto? profile)
+    private static List<PositionHistoryDto> MapPositionHistory(EmployeeDto? profile)
         => (profile?.PositionHistories ?? [])
             .OrderByDescending(p => p.EndDate == null)
             .ThenByDescending(p => p.StartDate)

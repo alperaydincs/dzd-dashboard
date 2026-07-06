@@ -42,7 +42,7 @@ public static class GradeProgressCalculator
         return grade is null ? rules.FirstOrDefault() : rules.FirstOrDefault(r => r.Grade == grade);
     }
 
-    public static int ToMonths(RoleDurationDto d) => d.Years.GetValueOrDefault() * 12 + d.Months.GetValueOrDefault();
+    public static int ToMonths(MonthYearDurationDto d) => d.Years.GetValueOrDefault() * 12 + d.Months.GetValueOrDefault();
 
     public static int MonthsSince(DateTime? start)
     {
@@ -53,7 +53,7 @@ public static class GradeProgressCalculator
         return Math.Max(0, total);
     }
 
-    public static string FormatRoleDuration(AppLocalizer loc, RoleDurationDto d)
+    public static string FormatRoleDuration(AppLocalizer loc, MonthYearDurationDto d)
         => FormatDurationLocalized(loc, d.Years.GetValueOrDefault(), d.Months.GetValueOrDefault());
 
     private static string FormatDurationLocalized(AppLocalizer loc, int years, int months)
@@ -82,7 +82,7 @@ public static class GradeProgressCalculator
         var pendingReview = loc["employeeProfile.pendingReview"];
 
         GradeRequirement Duration(string icon, string bg, string fg, string name,
-            RoleDurationDto reqDuration, int actualMonths, string currentStatus)
+            MonthYearDurationDto reqDuration, int actualMonths, string currentStatus)
         {
             var requiredMonths = ToMonths(reqDuration);
             var progress = requiredMonths <= 0 ? 100 : Math.Clamp(actualMonths * 100 / requiredMonths, 0, 100);

@@ -10,13 +10,6 @@ using System.Linq.Expressions;
 
 namespace DZDDashboard.Services;
 
-/// <summary>
-/// User aggregate service. The implementation is split across partial files by
-/// responsibility — <c>UserService.Read.cs</c> (queries / projections),
-/// <c>UserService.Write.cs</c> (mutations &amp; org-chart wiring) and
-/// <c>UserService.Sync.cs</c> (Entra provisioning). This file holds the
-/// constructor and the helpers shared between them.
-/// </summary>
 public partial class UserService(
     IMapper mapper,
     AppDbContext context,
@@ -50,11 +43,6 @@ public partial class UserService(
                .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken)
            ?? throw new EntityNotFoundException("User", userId);
 
-    /// <summary>
-    /// Throws <see cref="EntityNotFoundException"/> when an optional foreign-key
-    /// id is supplied but no matching row exists. Centralizes the FK-existence
-    /// guard that the write methods would otherwise repeat per relation.
-    /// </summary>
     private async Task EnsureExistsAsync<TEntity>(int? id, CancellationToken cancellationToken)
         where TEntity : class
     {

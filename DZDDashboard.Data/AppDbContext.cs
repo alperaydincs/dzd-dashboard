@@ -20,8 +20,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, IAuditProvider
     public DbSet<PayrollLocation> PayrollLocations { get; set; }
     public DbSet<Team> Teams { get; set; }
     public DbSet<UserCvDocument> UserCvDocuments { get; set; }
-    public DbSet<UserOnboardingDocument> UserOnboardingDocuments { get; set; }
-    public DbSet<UserOffboardingDocument> UserOffboardingDocuments { get; set; }
     public DbSet<ChildInfo> ChildInfos { get; set; }
     public DbSet<EmergencyContact> EmergencyContacts { get; set; }
     public DbSet<EducationHistory> EducationHistories { get; set; }
@@ -36,8 +34,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, IAuditProvider
     public DbSet<OnboardingProcess> OnboardingProcesses { get; set; }
     public DbSet<OffboardingProcess> OffboardingProcesses { get; set; }
     public DbSet<ChecklistItem> ChecklistItems { get; set; }
-    public DbSet<ChecklistItemDependent> ChecklistItemDependents { get; set; }
+    public DbSet<ProcessTemplate> ProcessTemplates { get; set; }
     public DbSet<ChecklistStepTemplate> ChecklistStepTemplates { get; set; }
+    public DbSet<DocumentTemplate> DocumentTemplates { get; set; }
+    public DbSet<ProcessDocument> ProcessDocuments { get; set; }
+    public DbSet<LifecycleAuditLogEntry> LifecycleAuditLogEntries { get; set; }
     public DbSet<UdemyCourseActivity> UdemyCourseActivities { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

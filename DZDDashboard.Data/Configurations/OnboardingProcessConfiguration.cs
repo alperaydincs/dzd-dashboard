@@ -14,6 +14,7 @@ public class OnboardingProcessConfiguration : IEntityTypeConfiguration<Onboardin
 
         builder.Property(x => x.Status).IsRequired().HasMaxLength(ValidationConstants.MaxShortNameLength);
         builder.Property(x => x.StartDate).IsRequired();
+        builder.Property(x => x.TemplateName).IsRequired().HasMaxLength(ValidationConstants.MaxStandardLength);
 
         builder.HasOne(x => x.User)
             .WithOne(u => u.OnboardingProcess)
@@ -23,6 +24,11 @@ public class OnboardingProcessConfiguration : IEntityTypeConfiguration<Onboardin
         builder.HasOne(x => x.Manager)
             .WithMany()
             .HasForeignKey(x => x.ManagerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<ProcessTemplate>()
+            .WithMany()
+            .HasForeignKey(x => x.TemplateId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(x => x.ModifiedBy)
@@ -45,7 +51,7 @@ public class OffboardingProcessConfiguration : IEntityTypeConfiguration<Offboard
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.Status).IsRequired().HasMaxLength(ValidationConstants.MaxShortNameLength);
-        builder.Property(x => x.Type).IsRequired().HasMaxLength(ValidationConstants.MaxShortNameLength);
+        builder.Property(x => x.TemplateName).IsRequired().HasMaxLength(ValidationConstants.MaxStandardLength);
         builder.Property(x => x.ExitDate).IsRequired();
 
         builder.HasOne(x => x.User)
@@ -56,6 +62,11 @@ public class OffboardingProcessConfiguration : IEntityTypeConfiguration<Offboard
         builder.HasOne(x => x.ModifiedBy)
             .WithMany()
             .HasForeignKey(x => x.ModifiedById)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<ProcessTemplate>()
+            .WithMany()
+            .HasForeignKey(x => x.TemplateId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(x => x.Items)

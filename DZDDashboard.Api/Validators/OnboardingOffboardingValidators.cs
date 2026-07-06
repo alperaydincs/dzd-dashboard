@@ -21,9 +21,13 @@ public class StartOnboardingDtoValidator : AbstractValidator<StartOnboardingDto>
             .MaximumLength(ValidationConstants.MaxEmailLength)
             .EmailAddress().WithMessage(ValidationMessages.WorkEmailInvalid);
 
-        RuleFor(x => x.PersonalEmail)
-            .MaximumLength(ValidationConstants.MaxEmailLength)
-            .EmailAddress().When(x => !string.IsNullOrWhiteSpace(x.PersonalEmail))
-            .WithMessage(ValidationMessages.PersonalEmailInvalid);
+        RuleFor(x => x.CitizenshipNumber)
+            .NotEmpty().WithMessage("ID number is required.")
+            .MaximumLength(ValidationConstants.MaxNumericIdentifierLength)
+            .Matches(@"^\d+$").When(x => !string.IsNullOrWhiteSpace(x.CitizenshipNumber))
+            .WithMessage("ID number must contain digits only.");
+
+        RuleFor(x => x.StartDate)
+            .NotEqual(default(DateTime)).WithMessage("Start date is required.");
     }
 }

@@ -269,7 +269,6 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         entity.ReferenceId  = dto.ReferenceId;
         entity.ProviderName = dto.ProviderName;
         entity.Notes        = dto.Notes;
-
         var isPension = dto.BenefitType == BenefitTypes.PrivatePension;
         entity.EmployeeContributionAmount = isPension ? dto.EmployeeContributionAmount : null;
         entity.EmployerContributionAmount = isPension ? dto.EmployerContributionAmount : null;

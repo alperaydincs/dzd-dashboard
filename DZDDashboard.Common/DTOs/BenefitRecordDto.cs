@@ -6,29 +6,18 @@ public record BenefitRecordDto
 
     public string BenefitType { get; set; } = string.Empty;
     public string Payer       { get; set; } = string.Empty;
-
     public string? BenefitName { get; set; }
-
     public decimal Amount   { get; set; }
     public string  Currency { get; set; } = string.Empty;
     public string  Period   { get; set; } = string.Empty;
-
     public DateTime  StartDate { get; set; }
     public DateTime? EndDate   { get; set; }
-
     public string  Source      { get; set; } = string.Empty;
     public string? ReferenceId { get; set; }
-
     public string? ProviderName { get; set; }
     public string? Notes        { get; set; }
-
     public decimal? EmployeeContributionAmount { get; set; }
     public decimal? EmployerContributionAmount { get; set; }
     public string?  PolicyNumber               { get; set; }
-
     public List<BenefitDependentDto> Dependents { get; set; } = [];
-
-    public DateTime  CreatedAt      { get; set; }
-    public DateTime? ModifiedAt     { get; set; }
-    public string?   ModifiedByName { get; set; }
 }

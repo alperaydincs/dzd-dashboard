@@ -1,6 +1,5 @@
 using MapsterMapper;
 using DZDDashboard.Common.DTOs;
-using DZDDashboard.Common.Exceptions;
 using DZDDashboard.Data;
 using DZDDashboard.Data.Entities;
 using DZDDashboard.Data.Extensions;

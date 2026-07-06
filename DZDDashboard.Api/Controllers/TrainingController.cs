@@ -8,11 +8,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace DZDDashboard.Api.Controllers;
 
 [Route("api/trainings")]
-public class TrainingsController(
+public class TrainingController(
     ITrainingProgressService trainingProgress,
     ICurrentUserAccessor currentUser) : BaseController
 {
-    /// <summary>Udemy training progress for the signed-in employee.</summary>
     [HttpGet("my-progress")]
     public async Task<ActionResult<TrainingProgressSummaryDto>> GetMyProgress(CancellationToken cancellationToken)
     {
@@ -21,7 +20,6 @@ public class TrainingsController(
         return Ok(await trainingProgress.GetForUserAsync(id.Value, cancellationToken));
     }
 
-    /// <summary>Udemy training progress for a specific employee (Admin/HR only).</summary>
     [HttpGet("users/{userId:int}/progress")]
     [Authorize(Roles = Roles.AdminOrHr)]
     public async Task<ActionResult<TrainingProgressSummaryDto>> GetUserProgress(int userId, CancellationToken cancellationToken)

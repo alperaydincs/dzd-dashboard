@@ -1,10 +1,4 @@
 namespace DZDDashboard.Common.Constants;
-
-/// <summary>
-/// Stable category keys for the code-embedded reference lists that replaced the
-/// former parametric lookup tables. The same key drives client localization
-/// (<c>option.&lt;category&gt;.&lt;code&gt;</c>) and server-side validation.
-/// </summary>
 public static class DomainCategories
 {
     public const string ContractType          = "contractType";
@@ -21,12 +15,6 @@ public static class DomainCategories
     public const string BenefitType              = "benefitType";
     public const string PositionChangeType        = "positionChangeType";
 }
-
-/// <summary>
-/// Single source of truth mapping each domain category to its allowed codes.
-/// Reuses the canonical constant lists so options, dropdowns and validation
-/// stay in sync (DRY).
-/// </summary>
 public static class DomainOptionCatalog
 {
     public static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> ByCategory =

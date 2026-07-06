@@ -9,14 +9,6 @@ public class UserMappingProfile : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<User, UserDto>()
-            .Map(dest => dest.ReportsToName, src => src.ReportsTo != null
-                ? AppFormatter.BuildFullName(src.ReportsTo.FirstName, src.ReportsTo.LastName)
-                : null)
-            .Map(dest => dest.HasAvatar, src => src.Avatar != null)
-            .Map(dest => dest.AvatarUpdatedAt, src =>
-                src.Avatar != null ? (DateTime?)(src.Avatar.ModifiedAt ?? src.Avatar.CreatedAt) : null);
-
         config.NewConfig<User, UserSummaryDto>()
             .Map(dest => dest.Avatar, src =>
                 src.Avatar == null ? null : new UserAvatarSummaryDto
@@ -26,7 +18,6 @@ public class UserMappingProfile : IRegister
                     UpdatedAt = src.Avatar.ModifiedAt ?? src.Avatar.CreatedAt
                 })
             .Ignore("Department")
-            .Ignore("Team")
             .Ignore("Job");
 
         config.NewConfig<User, UserProfileReportsToDto>()
@@ -48,10 +39,8 @@ public class UserMappingProfile : IRegister
 
         config.NewConfig<PositionHistory, PositionHistoryDto>();
 
-        config.NewConfig<User, EmployeeCardDto>()
-            .Map(dest => dest.OrganizationPositionName, src => src.OrganizationPosition != null ? src.OrganizationPosition.Name : null)
+        config.NewConfig<User, EmployeeDto>()
             .Map(dest => dest.FullName, src => (src.FirstName + " " + src.LastName).Trim())
-            .Map(dest => dest.CareerPathName, src => src.CareerPath != null ? src.CareerPath.Name : null)
             .Ignore("DateOfBirth")
             .Ignore("Gender")
             .Ignore("Nationality")

@@ -3,7 +3,6 @@ namespace DZDDashboard.Common.DTOs;
 public record EducationHistoryDto
 {
     public int Id { get; set; }
-
     public string? EducationLevel { get; set; }
     public string? Institution    { get; set; }
     public string? Program        { get; set; }

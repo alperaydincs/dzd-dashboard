@@ -5,15 +5,15 @@ namespace DZDDashboard.Client.Services;
 public interface IUserClientService
 {
     Task<UserProfileDto?> GetMyProfileAsync();
-    Task<EmployeeCardDto?> GetMyCardAsync();
+    Task<EmployeeDto?> GetMyCardAsync();
     Task<EmployeeSensitiveInfoDto?> GetMySensitiveInfoAsync();
     Task<HttpResponseMessage> UpdateMyEmergencyContactsAsync(UpdateEmergencyContactsDto dto);
     Task<HttpResponseMessage> UpdateMyFamilyInfoAsync(UpdateFamilyInfoDto dto);
     Task<HttpResponseMessage> UpdateMyAddressInfoAsync(UpdateAddressInfoDto dto);
     Task<HttpResponseMessage> UpdateMyEducationInfoAsync(UpdateEducationInfoDto dto);
     Task<PagedResult<UserSummaryDto>?> GetAllUsersAsync(int page = 1, int pageSize = 50);
-    Task<EmployeeCardDto?> GetEmployeeCardAsync(int userId);
-    Task<EmployeeCardDto?> GetEmployeeCardBySlugAsync(string slug);
+    Task<EmployeeDto?> GetEmployeeCardAsync(int userId);
+    Task<EmployeeDto?> GetEmployeeCardBySlugAsync(string slug);
     Task<List<UserSearchResultDto>> SearchUsersAsync(string? query);
     Task<EmployeeSensitiveInfoDto?> GetSensitiveInfoAsync(int userId);
     Task<UserAvatarDto?> GetUserAvatarAsync(int userId);
@@ -22,7 +22,7 @@ public interface IUserClientService
     Task<HttpResponseMessage> RemoveMyAvatarAsync();
     Task<HttpResponseMessage> UpdateMyAvatarColorAsync(int? colorIndex);
     Task<HttpResponseMessage> UpdateMyContactInfoAsync(UpdateContactInfoDto dto);
-    Task<HttpResponseMessage> UpdateOrganizationPositionAsync(int userId, UpdateUserOrganizationPositionDto dto);
+    Task<HttpResponseMessage> UpdateOrganizationPositionAsync(int userId, AssignUserOrganizationPositionDto dto);
     Task<HttpResponseMessage> UpdateEmergencyContactsAsync(int userId, UpdateEmergencyContactsDto dto);
     Task<HttpResponseMessage> UpdateFamilyInfoAsync(int userId, UpdateFamilyInfoDto dto);
     Task<HttpResponseMessage> UpdateCareerAssignmentAsync(int userId, UpdateCareerAssignmentDto dto);

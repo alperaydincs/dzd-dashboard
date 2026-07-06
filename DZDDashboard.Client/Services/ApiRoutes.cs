@@ -75,21 +75,39 @@ public static class ApiRoutes
     public static class Onboarding
     {
         public const string Base = "api/onboarding";
+        public const string DueSoonDocuments = "api/onboarding/due-soon-documents";
 
-        public static string Process(int id)                 => $"{Base}/{id}";
-        public static string Complete(int id)                => $"{Base}/{id}/complete";
-        public static string Cancel(int id)                  => $"{Base}/{id}/cancel";
-        public static string ItemComplete(int id, int itemId) => $"{Base}/{id}/items/{itemId}/complete";
-        public static string ItemSkip(int id, int itemId)     => $"{Base}/{id}/items/{itemId}/skip";
-        public static string ItemReopen(int id, int itemId)   => $"{Base}/{id}/items/{itemId}/reopen";
-        public static string ItemNote(int id, int itemId)     => $"{Base}/{id}/items/{itemId}/note";
-        public static string ItemDocument(int id, int itemId) => $"{Base}/{id}/items/{itemId}/document";
+        public static string Process(int id)                    => $"{Base}/{id}";
+        public static string Complete(int id)                   => $"{Base}/{id}/complete";
+        public static string Cancel(int id)                     => $"{Base}/{id}/cancel";
+        public static string ItemComplete(int id, int itemId)   => $"{Base}/{id}/items/{itemId}/complete";
+        public static string ItemReopen(int id, int itemId)     => $"{Base}/{id}/items/{itemId}/reopen";
+        public static string Documents(int id)                  => $"{Base}/{id}/documents";
+        public static string DocumentUpload(int id, int docId)  => $"{Base}/{id}/documents/{docId}/upload";
+        public static string Document(int id, int docId)        => $"{Base}/{id}/documents/{docId}";
+        public static string DocumentApprove(int id, int docId) => $"{Base}/{id}/documents/{docId}/approve";
+        public static string DocumentRequestCorrection(int id, int docId) => $"{Base}/{id}/documents/{docId}/request-correction";
+        public static string DocumentReopen(int id, int docId)  => $"{Base}/{id}/documents/{docId}/reopen";
+    }
+
+    public static class ProcessTemplates
+    {
+        public const string Base = "api/process-templates";
+        public static string List(string kind) => $"{Base}?kind={Uri.EscapeDataString(kind)}";
+        public static string Item(int id) => $"{Base}/{id}";
     }
 
     public static class ChecklistTemplates
     {
         public const string Base = "api/checklist-templates";
-        public static string List(string processType) => $"{Base}?processType={Uri.EscapeDataString(processType)}";
+        public static string List(int processTemplateId) => $"{Base}?processTemplateId={processTemplateId}";
+        public static string Item(int id) => $"{Base}/{id}";
+    }
+
+    public static class DocumentTemplates
+    {
+        public const string Base = "api/document-templates";
+        public static string List(int processTemplateId) => $"{Base}?processTemplateId={processTemplateId}";
         public static string Item(int id) => $"{Base}/{id}";
     }
 
@@ -110,12 +128,16 @@ public static class ApiRoutes
     public static class Offboarding
     {
         public const string Base = "api/offboarding";
+        public const string DueSoonDocuments = "api/offboarding/due-soon-documents";
 
-        public static string Process(int id)                 => $"{Base}/{id}";
-        public static string ItemComplete(int id, int itemId) => $"{Base}/{id}/items/{itemId}/complete";
-        public static string ItemSkip(int id, int itemId)     => $"{Base}/{id}/items/{itemId}/skip";
-        public static string ItemReopen(int id, int itemId)   => $"{Base}/{id}/items/{itemId}/reopen";
-        public static string ItemNote(int id, int itemId)     => $"{Base}/{id}/items/{itemId}/note";
-        public static string ItemDocument(int id, int itemId) => $"{Base}/{id}/items/{itemId}/document";
+        public static string Process(int id)                    => $"{Base}/{id}";
+        public static string ItemComplete(int id, int itemId)   => $"{Base}/{id}/items/{itemId}/complete";
+        public static string ItemReopen(int id, int itemId)     => $"{Base}/{id}/items/{itemId}/reopen";
+        public static string Documents(int id)                  => $"{Base}/{id}/documents";
+        public static string DocumentUpload(int id, int docId)  => $"{Base}/{id}/documents/{docId}/upload";
+        public static string Document(int id, int docId)        => $"{Base}/{id}/documents/{docId}";
+        public static string DocumentApprove(int id, int docId) => $"{Base}/{id}/documents/{docId}/approve";
+        public static string DocumentRequestCorrection(int id, int docId) => $"{Base}/{id}/documents/{docId}/request-correction";
+        public static string DocumentReopen(int id, int docId)  => $"{Base}/{id}/documents/{docId}/reopen";
     }
 }

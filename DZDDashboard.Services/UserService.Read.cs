@@ -30,10 +30,8 @@ public partial class UserService
                 Email           = u.Email,
                 PhoneNumber     = u.PhoneNumber,
                 City            = u.City,
-                Country         = u.Country,
                 IsActive        = u.IsActive,
                 UserStartDate   = u.UserStartDate,
-                DepartmentId           = u.DepartmentId,
                 OrganizationPositionId = u.OrganizationPositionId,
                 Avatar = u.Avatar == null ? null : new UserAvatarSummaryDto
                 {
@@ -46,12 +44,6 @@ public partial class UserService
                     Id        = u.Department.Id,
                     Name      = u.Department.Name,
                     CompanyId = u.Department.CompanyId
-                },
-                Team = u.Team == null ? null : new TeamDto
-                {
-                    Id           = u.Team.Id,
-                    Name         = u.Team.Name,
-                    DepartmentId = u.Team.DepartmentId
                 },
                 Job = u.Job == null ? null : new JobDto
                 {
@@ -70,18 +62,18 @@ public partial class UserService
         };
     }
 
-    public async Task<EmployeeCardDto?> GetEmployeeCardAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<EmployeeDto?> GetEmployeeCardAsync(int id, CancellationToken cancellationToken = default)
         => await context.Users
             .AsNoTracking()
             .Where(u => u.Id == id)
-            .ProjectToType<EmployeeCardDto>(mapper.Config)
+            .ProjectToType<EmployeeDto>(mapper.Config)
             .FirstOrDefaultAsync(cancellationToken);
 
-    public async Task<EmployeeCardDto?> GetEmployeeCardBySlugAsync(string slug, CancellationToken cancellationToken = default)
+    public async Task<EmployeeDto?> GetEmployeeCardBySlugAsync(string slug, CancellationToken cancellationToken = default)
         => await context.Users
             .AsNoTracking()
             .Where(u => u.Slug == slug)
-            .ProjectToType<EmployeeCardDto>(mapper.Config)
+            .ProjectToType<EmployeeDto>(mapper.Config)
             .FirstOrDefaultAsync(cancellationToken);
 
     public async Task<UserAvatarDto?> GetAvatarByUserIdAsync(int id, CancellationToken cancellationToken = default)

@@ -231,8 +231,8 @@ public partial class CareerPathManagementPanel
         CareerPathId                 = pathId,
         Grade                        = r.Grade,
         PositionJobIds               = [.. r.JobIds],
-        MinRoleTime                  = new RoleDurationDto { Years = r.RetYears, Months = r.RetMonths },
-        MinExperience                = new RoleDurationDto { Years = r.ExpYears, Months = r.ExpMonths },
+        MinRoleTime                  = new MonthYearDurationDto { Years = r.RetYears, Months = r.RetMonths },
+        MinExperience                = new MonthYearDurationDto { Years = r.ExpYears, Months = r.ExpMonths },
         ManagerPerformanceEvaluation = r.Manager,
         AssessmentCenterApplication  = r.Assess,
         TechnicalInterview           = r.Tech,
@@ -266,7 +266,7 @@ public partial class CareerPathManagementPanel
     private static string FormatRetention(CareerPathRuleDto r) =>
         FormatDuration(r.MinRoleTime);
 
-    private static string FormatDuration(RoleDurationDto? duration)
+    private static string FormatDuration(MonthYearDurationDto? duration)
     {
         if (duration is null) return "—";
         var years  = duration.Years  is > 0 ? $"{duration.Years}yr"  : null;

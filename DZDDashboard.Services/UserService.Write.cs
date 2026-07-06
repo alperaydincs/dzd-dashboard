@@ -398,10 +398,6 @@ public partial class UserService
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    /// <summary>
-    /// Loads the position parent graph and delegates the ancestry rule to the
-    /// <see cref="OrganizationHierarchy"/> domain object.
-    /// </summary>
     private async Task<bool> IsDescendantAsync(int ancestorId, int potentialDescendantId, CancellationToken cancellationToken)
     {
         var parentMap = await context.OrganizationPositions.AsNoTracking()

@@ -10,7 +10,7 @@ namespace DZDDashboard.Api.Controllers;
 
 [Route("api/users/{userId:int}/documents")]
 [Authorize(Roles = Roles.AdminOrHr)]
-public class UserDocumentsController(IUserDocumentService documents) : BaseController
+public class DocumentController(IUserDocumentService documents) : BaseController
 {
     [HttpGet]
     public async Task<ActionResult<List<UserDocumentDto>>> List(int userId, CancellationToken cancellationToken)

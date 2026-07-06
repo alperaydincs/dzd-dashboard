@@ -12,33 +12,14 @@ public class ChecklistItem : AuditableEntity
     public int? OffboardingProcessId { get; set; }
     public OffboardingProcess? OffboardingProcess { get; set; }
 
-    public string StepKey  { get; set; } = string.Empty;
     public string Title    { get; set; } = string.Empty;
     public int    Sequence { get; set; }
 
-    public bool IsRequired      { get; set; } = true;
-    public bool IsGate          { get; set; }
-    public bool RequiresDocument { get; set; }
-
-    public string BenefitKind { get; set; } = ChecklistBenefitKinds.None;
+    public bool IsRequired { get; set; } = true;
 
     public string Status { get; set; } = ChecklistItemStatuses.Pending;
-
-    public string? Note { get; set; }
 
     public DateTime? CompletedAt   { get; set; }
     public int?      CompletedById { get; set; }
     public User?     CompletedBy   { get; set; }
-
-    public UserOnboardingDocument?  OnboardingDocument  { get; set; }
-    public UserOffboardingDocument? OffboardingDocument { get; set; }
-
-    public string?  ProviderName   { get; set; }
-    public string?  Currency       { get; set; }
-    public decimal? EmployeeAmount { get; set; }
-    public decimal? EmployerAmount { get; set; }
-
-    public int? ReflectedBenefitRecordId { get; set; }
-
-    public List<ChecklistItemDependent> Dependents { get; set; } = [];
 }

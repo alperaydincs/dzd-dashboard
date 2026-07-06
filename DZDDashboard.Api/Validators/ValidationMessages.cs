@@ -14,7 +14,6 @@ internal static class ValidationMessages
     internal const string EmergencyRelationRequired   = "Relationship is required.";
     internal const string EducationLevelRequired      = "Education level is required.";
     internal const string EducationInstitutionRequired = "Institution is required.";
-
     internal const string CurrencyInvalid                = "Currency must be one of the supported codes (TRY, USD, EUR).";
     internal const string SalaryPeriodInvalid            = "Salary period must be one of: Monthly, Weekly, Hourly, Yearly.";
     internal const string SalaryAmountInvalid            = "Salary amount must be greater than zero.";

@@ -20,6 +20,8 @@ public partial class MainLayout : IDisposable
     [Inject] private INotificationCenterService   NotificationCenter { get; set; } = default!;
     [Inject] private IUserAvatarState             AvatarState        { get; set; } = default!;
     [Inject] private IMyOnboardingClientService   MyOnboarding       { get; set; } = default!;
+    [Inject] private IOnboardingClientService     OnboardingService  { get; set; } = default!;
+    [Inject] private IOffboardingClientService    OffboardingService { get; set; } = default!;
 
     private const string OnboardingPath = "my-onboarding";
     private bool _onboardingMode;
@@ -37,8 +39,9 @@ public partial class MainLayout : IDisposable
 
     private static readonly IReadOnlyList<NavLink> NavLinks =
     [
-        new(NavSection.Dashboard,       "/",                 DzdIcons.LayoutDashboard,   "nav.dashboard"),
-        new(NavSection.Employees,       "/employees",        DzdIcons.Users,             "nav.employees"),
+        new(NavSection.Dashboard,       "/",                     DzdIcons.LayoutDashboard, "nav.dashboard"),
+        new(NavSection.Employees,       "/employees",            DzdIcons.Users,           "nav.employees"),
+        new(NavSection.Onboarding,      "/onboarding-offboarding", DzdIcons.UserPlus,       "nav.onboardingOffboarding", Roles.AdminOrHr),
     ];
 
     private static readonly NavLink SettingsNavLink =
@@ -47,8 +50,8 @@ public partial class MainLayout : IDisposable
     private static readonly Dictionary<NavSection, string> SectionTitles = new()
     {
         [NavSection.Employees]       = "nav.employees",
-        [NavSection.Onboarding]      = "nav.onboarding",
-        [NavSection.Offboarding]     = "nav.offboarding",
+        [NavSection.Onboarding]      = "nav.onboardingOffboarding",
+        [NavSection.Offboarding]     = "nav.onboardingOffboarding",
         [NavSection.Departments]     = "nav.departments",
         [NavSection.Positions]       = "nav.positions",
         [NavSection.Attendance]      = "nav.attendance",
@@ -113,11 +116,31 @@ public partial class MainLayout : IDisposable
         {
             _header = await LoadHeaderAsync(user);
             await RefreshOnboardingModeAsync();
+            await RefreshDueSoonDocumentNotificationsAsync();
         }
         finally
         {
             _ready = true;
             await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private bool _dueSoonNotificationsLoaded;
+
+    private async Task RefreshDueSoonDocumentNotificationsAsync()
+    {
+        if (_dueSoonNotificationsLoaded) return;
+        try
+        {
+            _dueSoonNotificationsLoaded = true;
+            var onboardingDue  = await OnboardingService.GetDueSoonDocumentsAsync() ?? [];
+            var offboardingDue = await OffboardingService.GetDueSoonDocumentsAsync() ?? [];
+            foreach (var due in onboardingDue.Concat(offboardingDue))
+                NotificationCenter.Add(due.EmployeeName ?? Loc["appbar.notifications"], string.Format(Loc["notifications.documentDueSoon"], due.DocumentName));
+        }
+        catch
+        {
+            // Non-admin/HR users are not authorized for this endpoint — safe to ignore.
         }
     }
 
@@ -221,6 +244,7 @@ public partial class MainLayout : IDisposable
         _activeSection = true switch
         {
             _ when string.IsNullOrEmpty(path)                                    => NavSection.Dashboard,
+            _ when Seg(path, "onboarding-offboarding")                           => NavSection.Onboarding,
             _ when Seg(path, "onboarding")                                       => NavSection.Onboarding,
             _ when Seg(path, "offboarding")                                      => NavSection.Offboarding,
             _ when Seg(path, "employees") || Seg(path, "employee")               => NavSection.Employees,

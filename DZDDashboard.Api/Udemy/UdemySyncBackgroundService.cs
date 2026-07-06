@@ -5,10 +5,6 @@ using Microsoft.Extensions.Options;
 
 namespace DZDDashboard.Api.Udemy;
 
-/// <summary>
-/// Periodically pulls course-activity from the Udemy Business Reporting API and
-/// upserts it into UdemyCourseActivities, linking each row to a local user by e-mail.
-/// </summary>
 public class UdemySyncBackgroundService(
     IServiceScopeFactory scopeFactory,
     IOptions<UdemyOptions> options,
@@ -26,7 +22,6 @@ public class UdemySyncBackgroundService(
 
         var interval = TimeSpan.FromHours(Math.Max(1, _options.SyncIntervalHours));
 
-        // Run once shortly after startup, then on the configured interval.
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -52,16 +47,12 @@ public class UdemySyncBackgroundService(
         using var scope = scopeFactory.CreateScope();
         var db     = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var client = scope.ServiceProvider.GetRequiredService<IUdemyApiClient>();
-
         logger.LogInformation("Udemy sync started.");
-
-        // email (normalized) -> local user id
         var emailToUserId = await db.Users
             .Where(u => u.NormalizedEmail != null)
             .Select(u => new { u.Id, u.NormalizedEmail })
             .ToDictionaryAsync(u => u.NormalizedEmail!, u => u.Id, cancellationToken);
 
-        // (UdemyUserId, CourseId) -> existing tracked row
         var existing = await db.UdemyCourseActivities
             .ToDictionaryAsync(a => (a.UdemyUserId, a.CourseId), cancellationToken);
 

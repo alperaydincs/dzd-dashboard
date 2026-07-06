@@ -10,8 +10,8 @@ public class ReferenceDataMappingProfile : IRegister
     {
         config.NewConfig<ChildInfo, ChildInfoDto>();
         config.NewConfig<ChildInfoDto, ChildInfo>();
-        config.NewConfig<RoleDuration, RoleDurationDto>();
-        config.NewConfig<RoleDurationDto, RoleDuration>();
+        config.NewConfig<RoleDuration, MonthYearDurationDto>();
+        config.NewConfig<MonthYearDurationDto, RoleDuration>();
 
         config.NewConfig<CareerPathRule, CareerPathRuleDto>()
             .Map(dest => dest.MinRoleTime, src => src.MinRoleTime)

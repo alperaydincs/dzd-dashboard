@@ -4,9 +4,9 @@ using FluentValidation;
 
 namespace DZDDashboard.Api.Validators;
 
-public class RoleDurationDtoValidator : AbstractValidator<RoleDurationDto>
+public class MonthYearDurationDtoValidator : AbstractValidator<MonthYearDurationDto>
 {
-    public RoleDurationDtoValidator()
+    public MonthYearDurationDtoValidator()
     {
         RuleFor(x => x.Months)
             .InclusiveBetween(0, ValidationConstants.MaxRoleTimeMonths)
@@ -33,8 +33,8 @@ public class CareerPathRuleDtoValidator : AbstractValidator<CareerPathRuleDto>
         RuleFor(x => x.PositionJobIds)
             .NotEmpty().WithMessage("At least one job must be assigned to the career path rule.");
 
-        RuleFor(x => x.MinRoleTime).SetValidator(new RoleDurationDtoValidator());
-        RuleFor(x => x.MinExperience).SetValidator(new RoleDurationDtoValidator());
+        RuleFor(x => x.MinRoleTime).SetValidator(new MonthYearDurationDtoValidator());
+        RuleFor(x => x.MinExperience).SetValidator(new MonthYearDurationDtoValidator());
     }
 }
 
@@ -75,9 +75,9 @@ public class UpdateCareerAssignmentDtoValidator : AbstractValidator<UpdateCareer
     }
 }
 
-public class UpdateUserOrganizationPositionDtoValidator : AbstractValidator<UpdateUserOrganizationPositionDto>
+public class AssignUserOrganizationPositionDtoValidator : AbstractValidator<AssignUserOrganizationPositionDto>
 {
-    public UpdateUserOrganizationPositionDtoValidator()
+    public AssignUserOrganizationPositionDtoValidator()
     {
         RuleFor(x => x.OrganizationPositionId)
             .GreaterThan(0).When(x => x.OrganizationPositionId.HasValue)

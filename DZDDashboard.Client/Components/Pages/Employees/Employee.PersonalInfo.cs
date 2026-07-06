@@ -25,7 +25,7 @@ public partial class Employee
     }
 
     private Task StartBasicInfoEdit() => StartEditAsync(() =>
-        _basicInfoEdit.Begin(new EmployeeCardDto
+        _basicInfoEdit.Begin(new EmployeeDto
         {
             FirstName          = _profile!.FirstName,
             LastName           = _profile.LastName,
@@ -39,7 +39,7 @@ public partial class Employee
         }));
 
     private Task StartContactsEdit() => StartEditAsync(() =>
-        _contactsEdit.Begin(new EmployeeCardDto
+        _contactsEdit.Begin(new EmployeeDto
         {
             Email               = _profile!.Email,
             PhoneNumber         = _profile.PhoneNumber,
@@ -48,7 +48,7 @@ public partial class Employee
         }));
 
     private Task StartCitizenshipInfoEdit() => StartEditAsync(() =>
-        _citizenshipEdit.Begin(new EmployeeCardDto
+        _citizenshipEdit.Begin(new EmployeeDto
         {
             DateOfBirth       = _profile!.DateOfBirth,
             Gender            = _profile.Gender,
@@ -59,7 +59,7 @@ public partial class Employee
         }));
 
     private Task StartEmergencyInfoEdit() => StartEditAsync(() =>
-        _emergencyEdit.Begin(new EmployeeCardDto
+        _emergencyEdit.Begin(new EmployeeDto
         {
             EmergencyContacts = _profile!.EmergencyContacts?
                 .Select(c => new EmergencyContactDto
@@ -70,7 +70,7 @@ public partial class Employee
         }));
 
     private Task StartAddressInfoEdit() => StartEditAsync(() =>
-        _addressEdit.Begin(new EmployeeCardDto
+        _addressEdit.Begin(new EmployeeDto
         {
             LegalAddress        = _profile!.LegalAddress,
             LegalAddressCity    = _profile.LegalAddressCity,
@@ -153,7 +153,7 @@ public partial class Employee
     }
 
     private Task StartFamilyInfoEdit() => StartEditAsync(() =>
-        _familyEdit.Begin(new EmployeeCardDto
+        _familyEdit.Begin(new EmployeeDto
         {
             MaritalStatus  = _profile!.MaritalStatus,
             SpouseFullName = _profile.SpouseFullName,

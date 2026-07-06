@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace DZDDashboard.Api.Controllers;
 
 [Route("api/organization")]
-public class OrganizationPositionsController(IOrganizationPositionService positionService) : BaseController
+public class OrganizationPositionController(IOrganizationPositionService positionService) : BaseController
 {
     [HttpGet("positions")]
     public async Task<ActionResult<List<OrganizationPositionDto>>> GetPositions(CancellationToken cancellationToken)

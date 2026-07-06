@@ -13,8 +13,8 @@ public class UserService : ApiServiceBase, IUserClientService
     public async Task<UserProfileDto?> GetMyProfileAsync()
         => await GetAsync<UserProfileDto>(ApiRoutes.Users.MyProfile);
 
-    public async Task<EmployeeCardDto?> GetMyCardAsync()
-        => await GetAsync<EmployeeCardDto>(ApiRoutes.Users.MyCard);
+    public async Task<EmployeeDto?> GetMyCardAsync()
+        => await GetAsync<EmployeeDto>(ApiRoutes.Users.MyCard);
 
     public async Task<EmployeeSensitiveInfoDto?> GetMySensitiveInfoAsync()
         => await GetAsync<EmployeeSensitiveInfoDto>(ApiRoutes.Users.MySensitiveInfo);
@@ -34,11 +34,11 @@ public class UserService : ApiServiceBase, IUserClientService
     public async Task<PagedResult<UserSummaryDto>?> GetAllUsersAsync(int page = 1, int pageSize = 50)
         => await GetAsync<PagedResult<UserSummaryDto>>(ApiRoutes.Users.All(page, pageSize));
 
-    public async Task<EmployeeCardDto?> GetEmployeeCardAsync(int userId)
-        => await GetAsync<EmployeeCardDto>(ApiRoutes.Users.Card(userId));
+    public async Task<EmployeeDto?> GetEmployeeCardAsync(int userId)
+        => await GetAsync<EmployeeDto>(ApiRoutes.Users.Card(userId));
 
-    public async Task<EmployeeCardDto?> GetEmployeeCardBySlugAsync(string slug)
-        => await GetAsync<EmployeeCardDto>(ApiRoutes.Users.CardBySlug(slug));
+    public async Task<EmployeeDto?> GetEmployeeCardBySlugAsync(string slug)
+        => await GetAsync<EmployeeDto>(ApiRoutes.Users.CardBySlug(slug));
 
     public async Task<List<UserSearchResultDto>> SearchUsersAsync(string? query)
         => await GetAsync<List<UserSearchResultDto>>(ApiRoutes.Users.Search(query)) ?? [];
@@ -64,7 +64,7 @@ public class UserService : ApiServiceBase, IUserClientService
     public async Task<HttpResponseMessage> UpdateMyContactInfoAsync(UpdateContactInfoDto dto)
         => await PutAsync(ApiRoutes.Users.MyContactInfo, dto);
 
-    public async Task<HttpResponseMessage> UpdateOrganizationPositionAsync(int userId, UpdateUserOrganizationPositionDto dto)
+    public async Task<HttpResponseMessage> UpdateOrganizationPositionAsync(int userId, AssignUserOrganizationPositionDto dto)
         => await PutAsync(ApiRoutes.Users.OrganizationPosition(userId), dto);
 
     public async Task<HttpResponseMessage> UpdateEmergencyContactsAsync(int userId, UpdateEmergencyContactsDto dto)

@@ -1,6 +1,6 @@
 namespace DZDDashboard.Common.DTOs;
 
-public record RoleDurationDto
+public record MonthYearDurationDto
 {
     public int? Months { get; set; }
     public int? Years  { get; set; }

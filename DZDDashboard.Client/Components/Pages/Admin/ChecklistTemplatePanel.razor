@@ -1,7 +1,9 @@
 @using DZDDashboard.Client.Services
 @using DZDDashboard.Common.Constants
 @using DZDDashboard.Common.DTOs
-@inject IChecklistTemplateClientService Templates
+@inject IProcessTemplateClientService ProcessTemplates
+@inject IChecklistTemplateClientService ChecklistTemplates
+@inject IDocumentTemplateClientService DocumentTemplates
 @inject ISnackbar Snackbar
 @inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
@@ -16,256 +18,346 @@
         </div>
     </div>
 
-    <div class="@($"ckl-tabs-shell active-{_tabIndex}")" role="tablist" aria-label="@Loc["checklistTemplate.title"]">
-        @for (var i = 0; i < _processTabs.Length; i++)
-        {
-            var idx = i;
-            var tab = _processTabs[i];
-            <button type="button" class="ckl-tab-segment" role="tab"
-                    aria-selected="@(_tabIndex == idx ? "true" : "false")"
-                    @onclick="() => SetTab(idx)">
-                <MudIcon Icon="@tab.Icon" Size="Size.Small" Class="ckl-tab-icon" />
-                @Loc[tab.LabelKey]
-            </button>
-        }
+    <div class="@($"ckl-tabs-shell active-{_kindIndex}")" role="tablist">
+        <button type="button" class="ckl-tab-segment" role="tab" @onclick="() => SetKindAsync(0)">
+            <MudIcon Icon="@DzdIcons.UserPlus" Size="Size.Small" Class="ckl-tab-icon" /> @Loc["checklistTemplate.tabOnboarding"]
+        </button>
+        <button type="button" class="ckl-tab-segment" role="tab" @onclick="() => SetKindAsync(1)">
+            <MudIcon Icon="@DzdIcons.UserMinus" Size="Size.Small" Class="ckl-tab-icon" /> @Loc["checklistTemplate.tabOffboarding"]
+        </button>
     </div>
 
-    @if (_loading)
+    @if (_loadingTemplates)
     {
         <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-4" />
     }
     else
     {
-        <div class="ckl-card">
-            <div class="ckl-card-head">
-                <div class="@($"ckl-icon-wrap {ActiveTab.Accent}")">
-                    <MudIcon Icon="@ActiveTab.Icon" Size="Size.Small" />
-                </div>
-                <div class="ckl-title-group">
-                    <span class="ckl-title">@Loc[ActiveTab.LabelKey]</span>
-                    <span class="ckl-subtitle">@string.Format(Loc["checklistTemplate.stepsCount"], _items.Count)</span>
-                </div>
-            </div>
+        <MudStack Row="true" Spacing="2" Wrap="Wrap.Wrap" Class="mt-4 mb-2" AlignItems="AlignItems.Center">
+            @foreach (var t in _templates)
+            {
+                var template = t;
+                <MudChip T="string" Selected="@(_selectedTemplate?.Id == template.Id)" OnClick="@(() => SelectTemplateAsync(template))"
+                         Color="Color.Primary" Variant="Variant.Filled">
+                    @template.Name
+                </MudChip>
+            }
 
-            <div class="ckl-body">
-                @if (_items.Count == 0)
-                {
-                    <div class="ckl-empty">
-                        <MudIcon Icon="@DzdIcons.ClipboardList" Style="font-size:34px;" />
-                        <span>@Loc["checklistTemplate.noSteps"]</span>
-                    </div>
-                }
-                else
-                {
-                    <div class="ckl-col-legend">
-                        <span class="ckl-legend-grow"></span>
-                        <span class="ckl-legend-cell">@Loc["checklistTemplate.colActive"]</span>
-                        <span class="ckl-legend-cell">@Loc["checklistTemplate.colRequired"]</span>
-                        <span class="ckl-legend-cell">@Loc["checklistTemplate.colDocument"]</span>
-                        <span class="ckl-legend-actions"></span>
-                    </div>
+            @if (_addingTemplate)
+            {
+                <input class="ckl-title-input" style="max-width:220px;" value="@_newTemplateName" @oninput="e => _newTemplateName = e.Value?.ToString() ?? string.Empty" placeholder="@Loc["checklistTemplate.newTemplateName"]" autofocus />
+                <MudIconButton Icon="@DzdIcons.Check" Size="Size.Small" Color="Color.Success" OnClick="AddTemplateAsync" />
+                <MudIconButton Icon="@DzdIcons.X" Size="Size.Small" OnClick="@(() => _addingTemplate = false)" />
+            }
+            else
+            {
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" StartIcon="@DzdIcons.Plus" OnClick="@(() => _addingTemplate = true)">@Loc["checklistTemplate.addTemplate"]</MudButton>
+            }
+        </MudStack>
+    }
 
-                    @foreach (var t in _items.OrderBy(i => i.Sequence))
+    @if (_selectedTemplate is not null)
+    {
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
+            <input class="ckl-title-input" style="max-width:260px;" value="@_selectedTemplate.Name"
+                   @oninput="e => _selectedTemplate.Name = e.Value?.ToString() ?? string.Empty"
+                   @onblur="PersistTemplateAsync" />
+            <MudIconButton Icon="@DzdIcons.Trash2" Size="Size.Small" Color="Color.Error" OnClick="DeleteTemplateAsync" />
+        </MudStack>
+
+        <div class="@($"ckl-tabs-shell active-{_sectionIndex}")" role="tablist">
+            <button type="button" class="ckl-tab-segment" role="tab" @onclick="() => SetSectionAsync(0)">@Loc["checklistTemplate.sectionChecklist"]</button>
+            <button type="button" class="ckl-tab-segment" role="tab" @onclick="() => SetSectionAsync(1)">@Loc["checklistTemplate.sectionDocuments"]</button>
+        </div>
+
+        @if (_loadingSection)
+        {
+            <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-4" />
+        }
+        else if (_sectionIndex == 0)
+        {
+            <div class="ckl-card">
+                <div class="ckl-body">
+                    @if (_items.Count == 0)
                     {
-                        var step = t;
-                        <div class="ckl-row @(step.IsEnabled ? "" : "ckl-row-disabled")">
-                            <span class="ckl-seq">@step.Sequence</span>
-                            <input class="ckl-title-input"
-                                   value="@step.Title"
-                                   @oninput="e => step.Title = e.Value?.ToString() ?? string.Empty"
-                                   @onkeydown="e => OnTitleKeyDown(e, step)"
-                                   @onblur="() => PersistAsync(step)"
-                                   placeholder="@Loc["checklistTemplate.newStepTitle"]" />
-
-                            @if (step.BenefitKind != ChecklistBenefitKinds.None)
-                            {
-                                <span class="ckl-benefit-chip">@BenefitLabel(step.BenefitKind)</span>
-                            }
-
-                            <button type="button" class="ckl-toggle @(step.IsEnabled ? "on ckl-on-blue" : "")"
-                                    title="@Loc["checklistTemplate.colActive"]"
-                                    @onclick="() => ToggleAsync(step, StepField.Enabled)">
-                                <MudIcon Icon="@DzdIcons.Eye" Size="Size.Small" />
-                            </button>
-                            <button type="button" class="ckl-toggle @(step.IsRequired ? "on ckl-on-amber" : "")"
-                                    title="@Loc["checklistTemplate.colRequired"]"
-                                    @onclick="() => ToggleAsync(step, StepField.Required)">
-                                <MudIcon Icon="@DzdIcons.Asterisk" Size="Size.Small" />
-                            </button>
-                            <button type="button" class="ckl-toggle @(step.RequiresDocument ? "on ckl-on-teal" : "")"
-                                    title="@Loc["checklistTemplate.colDocument"]"
-                                    @onclick="() => ToggleAsync(step, StepField.Document)">
-                                <MudIcon Icon="@DzdIcons.FileText" Size="Size.Small" />
-                            </button>
-
-                            <div class="ckl-row-actions">
-                                <button type="button" class="ckl-icon-btn ckl-icon-btn-danger" title="@Loc["payment.delete"]"
-                                        @onclick="() => DeleteAsync(step)">
-                                    <MudIcon Icon="@DzdIcons.Trash2" Size="Size.Small" />
-                                </button>
-                            </div>
+                        <div class="ckl-empty">
+                            <MudIcon Icon="@DzdIcons.ClipboardList" Style="font-size:34px;" />
+                            <span>@Loc["checklistTemplate.noSteps"]</span>
                         </div>
                     }
-                }
+                    else
+                    {
+                        @foreach (var t in _items.OrderBy(i => i.Sequence))
+                        {
+                            var step = t;
+                            <div class="ckl-row">
+                                <span class="ckl-seq">@step.Sequence</span>
+                                <input class="ckl-title-input"
+                                       value="@step.Title"
+                                       @oninput="e => step.Title = e.Value?.ToString() ?? string.Empty"
+                                       @onblur="() => PersistItemAsync(step)"
+                                       placeholder="@Loc["checklistTemplate.newStepTitle"]" />
+                                <button type="button" class="ckl-toggle @(step.IsRequired ? "on ckl-on-amber" : "")"
+                                        title="@Loc["checklistTemplate.colRequired"]" @onclick="() => ToggleItemAsync(step)">
+                                    <MudIcon Icon="@DzdIcons.Asterisk" Size="Size.Small" />
+                                </button>
+                                <div class="ckl-row-actions">
+                                    <button type="button" class="ckl-icon-btn ckl-icon-btn-danger" @onclick="() => DeleteItemAsync(step)">
+                                        <MudIcon Icon="@DzdIcons.Trash2" Size="Size.Small" />
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    }
 
-                @if (_adding)
-                {
-                    <div class="ckl-inline-add">
-                        <span class="ckl-seq ckl-seq-ghost">@NextSequence()</span>
-                        <input class="ckl-title-input"
-                               value="@_newTitle"
-                               @oninput="e => _newTitle = e.Value?.ToString() ?? string.Empty"
-                               @onkeydown="OnNewKeyDown"
-                               placeholder="@Loc["checklistTemplate.newStepTitle"]" autofocus />
-                        <button type="button" class="ckl-toggle @(_newRequired ? "on ckl-on-amber" : "")"
-                                title="@Loc["checklistTemplate.colRequired"]" @onclick="() => _newRequired = !_newRequired">
-                            <MudIcon Icon="@DzdIcons.Asterisk" Size="Size.Small" />
+                    @if (_addingItem)
+                    {
+                        <div class="ckl-inline-add">
+                            <span class="ckl-seq ckl-seq-ghost">@NextItemSequence()</span>
+                            <input class="ckl-title-input" value="@_newItemTitle" @oninput="e => _newItemTitle = e.Value?.ToString() ?? string.Empty" placeholder="@Loc["checklistTemplate.newStepTitle"]" autofocus />
+                            <button type="button" class="ckl-inline-confirm" @onclick="AddItemAsync"><MudIcon Icon="@DzdIcons.Check" Size="Size.Small" /></button>
+                            <button type="button" class="ckl-inline-cancel" @onclick="() => _addingItem = false"><MudIcon Icon="@DzdIcons.X" Size="Size.Small" /></button>
+                        </div>
+                    }
+                    else
+                    {
+                        <button type="button" class="ckl-add-btn" @onclick="@(() => _addingItem = true)">
+                            <MudIcon Icon="@DzdIcons.Plus" Size="Size.Small" /> @Loc["checklistTemplate.addStep"]
                         </button>
-                        <button type="button" class="ckl-toggle @(_newRequiresDocument ? "on ckl-on-teal" : "")"
-                                title="@Loc["checklistTemplate.colDocument"]" @onclick="() => _newRequiresDocument = !_newRequiresDocument">
-                            <MudIcon Icon="@DzdIcons.FileText" Size="Size.Small" />
-                        </button>
-                        <button type="button" class="ckl-inline-confirm" @onclick="AddAsync">
-                            <MudIcon Icon="@DzdIcons.Check" Size="Size.Small" />
-                        </button>
-                        <button type="button" class="ckl-inline-cancel" @onclick="CancelAdd">
-                            <MudIcon Icon="@DzdIcons.X" Size="Size.Small" />
-                        </button>
-                    </div>
-                }
-                else
-                {
-                    <button type="button" class="ckl-add-btn" @onclick="StartAdd">
-                        <MudIcon Icon="@DzdIcons.Plus" Size="Size.Small" /> @Loc["checklistTemplate.addStep"]
-                    </button>
-                }
+                    }
+                </div>
             </div>
-        </div>
+        }
+        else
+        {
+            <div class="ckl-card">
+                <div class="ckl-body">
+                    @if (_documents.Count == 0)
+                    {
+                        <div class="ckl-empty">
+                            <MudIcon Icon="@DzdIcons.FileText" Style="font-size:34px;" />
+                            <span>@Loc["checklistTemplate.noDocuments"]</span>
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var d in _documents.OrderBy(i => i.Sequence))
+                        {
+                            var doc = d;
+                            <div class="ckl-row">
+                                <span class="ckl-seq">@doc.Sequence</span>
+                                <input class="ckl-title-input"
+                                       value="@doc.Name"
+                                       @oninput="e => doc.Name = e.Value?.ToString() ?? string.Empty"
+                                       @onblur="() => PersistDocumentAsync(doc)"
+                                       placeholder="@Loc["checklistTemplate.documentName"]" />
+                                <input class="ckl-title-input" style="max-width:120px;" type="number" min="0"
+                                       value="@doc.DeadlineDays"
+                                       @oninput="e => doc.DeadlineDays = int.TryParse(e.Value?.ToString(), out var n) ? n : 0"
+                                       @onblur="() => PersistDocumentAsync(doc)" />
+                                <button type="button" class="ckl-toggle @(doc.IsRequired ? "on ckl-on-amber" : "")"
+                                        title="@Loc["checklistTemplate.colRequired"]" @onclick="() => ToggleDocumentAsync(doc)">
+                                    <MudIcon Icon="@DzdIcons.Asterisk" Size="Size.Small" />
+                                </button>
+                                <div class="ckl-row-actions">
+                                    <button type="button" class="ckl-icon-btn ckl-icon-btn-danger" @onclick="() => DeleteDocumentAsync(doc)">
+                                        <MudIcon Icon="@DzdIcons.Trash2" Size="Size.Small" />
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    }
+
+                    @if (_addingDocument)
+                    {
+                        <div class="ckl-inline-add">
+                            <span class="ckl-seq ckl-seq-ghost">@NextDocumentSequence()</span>
+                            <input class="ckl-title-input" value="@_newDocName" @oninput="e => _newDocName = e.Value?.ToString() ?? string.Empty" placeholder="@Loc["checklistTemplate.documentName"]" autofocus />
+                            <input class="ckl-title-input" style="max-width:120px;" type="number" min="0" value="@_newDocDeadlineDays" @oninput="e => _newDocDeadlineDays = int.TryParse(e.Value?.ToString(), out var n) ? n : 0" />
+                            <button type="button" class="ckl-inline-confirm" @onclick="AddDocumentAsync"><MudIcon Icon="@DzdIcons.Check" Size="Size.Small" /></button>
+                            <button type="button" class="ckl-inline-cancel" @onclick="() => _addingDocument = false"><MudIcon Icon="@DzdIcons.X" Size="Size.Small" /></button>
+                        </div>
+                    }
+                    else
+                    {
+                        <button type="button" class="ckl-add-btn" @onclick="@(() => _addingDocument = true)">
+                            <MudIcon Icon="@DzdIcons.Plus" Size="Size.Small" /> @Loc["checklistTemplate.addDocument"]
+                        </button>
+                    }
+                </div>
+            </div>
+        }
     }
 </div>
 
 @code {
-    private int _tabIndex;
-    private bool _loading = true;
-    private List<ChecklistStepTemplateDto> _items = [];
+    private int _kindIndex;
+    private int _sectionIndex;
+    private bool _loadingTemplates = true;
+    private bool _loadingSection;
 
-    private bool _adding;
-    private string _newTitle = string.Empty;
-    private bool _newRequired = true;
-    private bool _newRequiresDocument;
+    private List<ProcessTemplateDto> _templates = [];
+    private ProcessTemplateDto? _selectedTemplate;
 
-    private int _lastTab = -1;
+    private List<ChecklistItemTemplateDto> _items = [];
+    private List<DocumentTemplateDto> _documents = [];
 
-    private enum StepField { Enabled, Required, Document }
+    private bool _addingTemplate;
+    private string _newTemplateName = string.Empty;
 
-    private readonly record struct ProcessTab(string LabelKey, string Icon, string Accent, string ProcessType);
+    private bool _addingItem;
+    private string _newItemTitle = string.Empty;
 
-    private readonly ProcessTab[] _processTabs =
-    [
-        new("checklistTemplate.tabOnboarding",  DzdIcons.UserPlus,  "ckl-blue",  TemplateProcessTypes.Onboarding),
-        new("checklistTemplate.tabResignation", DzdIcons.LogOut,    "ckl-amber", TemplateProcessTypes.OffboardingResignation),
-        new("checklistTemplate.tabTermination", DzdIcons.UserX,     "ckl-red",   TemplateProcessTypes.OffboardingTermination)
-    ];
+    private bool _addingDocument;
+    private string _newDocName = string.Empty;
+    private int _newDocDeadlineDays = 7;
 
-    private ProcessTab ActiveTab => _processTabs[_tabIndex];
-    private string CurrentProcessType => ActiveTab.ProcessType;
+    private string CurrentKind => _kindIndex == 0 ? ProcessTemplateKinds.Onboarding : ProcessTemplateKinds.Offboarding;
 
-    private void SetTab(int index)
+    protected override async Task OnInitializedAsync() => await LoadTemplatesAsync();
+
+    private async Task SetKindAsync(int index)
     {
-        if (index == _tabIndex) return;
-        _tabIndex = index;
-        CancelAdd();
+        if (index == _kindIndex) return;
+        _kindIndex = index;
+        _selectedTemplate = null;
+        _addingTemplate = false;
+        await LoadTemplatesAsync();
     }
 
-    protected override async Task OnParametersSetAsync()
+    private async Task SetSectionAsync(int index)
     {
-        if (_tabIndex != _lastTab)
+        if (index == _sectionIndex) return;
+        _sectionIndex = index;
+        CancelAdds();
+        await LoadSectionAsync();
+    }
+
+    private void CancelAdds() { _addingItem = false; _addingDocument = false; }
+
+    private async Task LoadTemplatesAsync()
+    {
+        _loadingTemplates = true;
+        _templates = await ProcessTemplates.GetAsync(CurrentKind) ?? [];
+        _selectedTemplate = _templates.FirstOrDefault();
+        _loadingTemplates = false;
+        await LoadSectionAsync();
+    }
+
+    private async Task SelectTemplateAsync(ProcessTemplateDto template)
+    {
+        _selectedTemplate = template;
+        await LoadSectionAsync();
+    }
+
+    private async Task LoadSectionAsync()
+    {
+        if (_selectedTemplate is null) { _items = []; _documents = []; return; }
+        _loadingSection = true;
+        if (_sectionIndex == 0)
+            _items = await ChecklistTemplates.GetAsync(_selectedTemplate.Id) ?? [];
+        else
+            _documents = await DocumentTemplates.GetAsync(_selectedTemplate.Id) ?? [];
+        _loadingSection = false;
+    }
+
+    private async Task AddTemplateAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newTemplateName)) { Snackbar.Add(Loc["checklistTemplate.titleRequired"], Severity.Warning); return; }
+        var created = await ProcessTemplates.CreateAsync(new ProcessTemplateDto { Kind = CurrentKind, Name = _newTemplateName.Trim() });
+        if (created is null) { Snackbar.Add(Loc["checklistTemplate.addFailed"], Severity.Error); return; }
+        _templates.Add(created);
+        _addingTemplate = false;
+        _newTemplateName = string.Empty;
+        await SelectTemplateAsync(created);
+    }
+
+    private async Task PersistTemplateAsync()
+    {
+        if (_selectedTemplate is null || string.IsNullOrWhiteSpace(_selectedTemplate.Name)) return;
+        var resp = await ProcessTemplates.UpdateAsync(_selectedTemplate.Id, _selectedTemplate);
+        if (!resp.IsSuccessStatusCode) Snackbar.Add(Loc["checklistTemplate.saveFailed"], Severity.Error);
+    }
+
+    private async Task DeleteTemplateAsync()
+    {
+        if (_selectedTemplate is null) return;
+        var resp = await ProcessTemplates.DeleteAsync(_selectedTemplate.Id);
+        if (!resp.IsSuccessStatusCode)
         {
-            _lastTab = _tabIndex;
-            await LoadAsync();
+            var detail = await ApiServiceBase.TryReadProblemDetailAsync(resp);
+            Snackbar.Add(detail ?? Loc["checklistTemplate.deleteFailed"], Severity.Error);
+            return;
         }
+        _templates.Remove(_selectedTemplate);
+        _selectedTemplate = _templates.FirstOrDefault();
+        await LoadSectionAsync();
     }
 
-    private async Task LoadAsync()
+    private int NextItemSequence() => (_items.Count == 0 ? 0 : _items.Max(i => i.Sequence)) + 1;
+    private int NextDocumentSequence() => (_documents.Count == 0 ? 0 : _documents.Max(i => i.Sequence)) + 1;
+
+    private async Task ToggleItemAsync(ChecklistItemTemplateDto t)
     {
-        _loading = true;
-        _items = await Templates.GetAsync(CurrentProcessType) ?? [];
-        _loading = false;
+        t.IsRequired = !t.IsRequired;
+        await PersistItemAsync(t);
     }
 
-    private int NextSequence() => (_items.Count == 0 ? 0 : _items.Max(i => i.Sequence)) + 1;
-
-    private async Task ToggleAsync(ChecklistStepTemplateDto t, StepField field)
-    {
-        switch (field)
-        {
-            case StepField.Enabled:  t.IsEnabled = !t.IsEnabled; break;
-            case StepField.Required: t.IsRequired = !t.IsRequired; break;
-            case StepField.Document: t.RequiresDocument = !t.RequiresDocument; break;
-        }
-        await PersistAsync(t, silent: true);
-    }
-
-    private async Task OnTitleKeyDown(KeyboardEventArgs e, ChecklistStepTemplateDto t)
-    {
-        if (e.Key == "Enter") await PersistAsync(t);
-    }
-
-    private async Task PersistAsync(ChecklistStepTemplateDto t, bool silent = false)
+    private async Task PersistItemAsync(ChecklistItemTemplateDto t)
     {
         if (string.IsNullOrWhiteSpace(t.Title)) { Snackbar.Add(Loc["checklistTemplate.titleRequired"], Severity.Warning); return; }
-        var resp = await Templates.UpdateAsync(t.Id, t);
-        if (!resp.IsSuccessStatusCode) { Snackbar.Add(Loc["checklistTemplate.saveFailed"], Severity.Error); return; }
-        if (!silent) Snackbar.Add(Loc["checklistTemplate.stepUpdated"], Severity.Success);
+        var resp = await ChecklistTemplates.UpdateAsync(t.Id, t);
+        if (!resp.IsSuccessStatusCode) Snackbar.Add(Loc["checklistTemplate.saveFailed"], Severity.Error);
     }
 
-    private async Task DeleteAsync(ChecklistStepTemplateDto t)
+    private async Task DeleteItemAsync(ChecklistItemTemplateDto t)
     {
-        var resp = await Templates.DeleteAsync(t.Id);
+        var resp = await ChecklistTemplates.DeleteAsync(t.Id);
         if (!resp.IsSuccessStatusCode) { Snackbar.Add(Loc["checklistTemplate.deleteFailed"], Severity.Error); return; }
         _items.Remove(t);
     }
 
-    private void StartAdd()
+    private async Task AddItemAsync()
     {
-        _adding = true;
-        _newTitle = string.Empty;
-        _newRequired = true;
-        _newRequiresDocument = false;
-    }
-
-    private void CancelAdd() => _adding = false;
-
-    private async Task OnNewKeyDown(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter") await AddAsync();
-        else if (e.Key == "Escape") CancelAdd();
-    }
-
-    private async Task AddAsync()
-    {
-        if (string.IsNullOrWhiteSpace(_newTitle)) { Snackbar.Add(Loc["checklistTemplate.titleRequired"], Severity.Warning); return; }
-        var dto = new ChecklistStepTemplateDto
-        {
-            ProcessType      = CurrentProcessType,
-            Title            = _newTitle.Trim(),
-            Sequence         = NextSequence(),
-            IsRequired       = _newRequired,
-            RequiresDocument = _newRequiresDocument,
-            IsEnabled        = true,
-            BenefitKind      = ChecklistBenefitKinds.None
-        };
-        var created = await Templates.CreateAsync(dto);
+        if (_selectedTemplate is null) return;
+        if (string.IsNullOrWhiteSpace(_newItemTitle)) { Snackbar.Add(Loc["checklistTemplate.titleRequired"], Severity.Warning); return; }
+        var dto = new ChecklistItemTemplateDto { ProcessTemplateId = _selectedTemplate.Id, Title = _newItemTitle.Trim(), Sequence = NextItemSequence(), IsRequired = true };
+        var created = await ChecklistTemplates.CreateAsync(dto);
         if (created is null) { Snackbar.Add(Loc["checklistTemplate.addFailed"], Severity.Error); return; }
         _items.Add(created);
-        _adding = false;
-        Snackbar.Add(Loc["checklistTemplate.stepAdded"], Severity.Success);
+        _addingItem = false;
+        _newItemTitle = string.Empty;
     }
 
-    private static string BenefitLabel(string kind) => kind switch
+    private async Task ToggleDocumentAsync(DocumentTemplateDto d)
     {
-        ChecklistBenefitKinds.Bes => "BES",
-        ChecklistBenefitKinds.Oss => "ÖSS",
-        _                         => "—"
-    };
+        d.IsRequired = !d.IsRequired;
+        await PersistDocumentAsync(d);
+    }
+
+    private async Task PersistDocumentAsync(DocumentTemplateDto d)
+    {
+        if (string.IsNullOrWhiteSpace(d.Name)) { Snackbar.Add(Loc["checklistTemplate.titleRequired"], Severity.Warning); return; }
+        var resp = await DocumentTemplates.UpdateAsync(d.Id, d);
+        if (!resp.IsSuccessStatusCode) Snackbar.Add(Loc["checklistTemplate.saveFailed"], Severity.Error);
+    }
+
+    private async Task DeleteDocumentAsync(DocumentTemplateDto d)
+    {
+        var resp = await DocumentTemplates.DeleteAsync(d.Id);
+        if (!resp.IsSuccessStatusCode) { Snackbar.Add(Loc["checklistTemplate.deleteFailed"], Severity.Error); return; }
+        _documents.Remove(d);
+    }
+
+    private async Task AddDocumentAsync()
+    {
+        if (_selectedTemplate is null) return;
+        if (string.IsNullOrWhiteSpace(_newDocName)) { Snackbar.Add(Loc["checklistTemplate.titleRequired"], Severity.Warning); return; }
+        var dto = new DocumentTemplateDto { ProcessTemplateId = _selectedTemplate.Id, Name = _newDocName.Trim(), Sequence = NextDocumentSequence(), IsRequired = true, DeadlineDays = _newDocDeadlineDays };
+        var created = await DocumentTemplates.CreateAsync(dto);
+        if (created is null) { Snackbar.Add(Loc["checklistTemplate.addFailed"], Severity.Error); return; }
+        _documents.Add(created);
+        _addingDocument = false;
+        _newDocName = string.Empty;
+    }
 }

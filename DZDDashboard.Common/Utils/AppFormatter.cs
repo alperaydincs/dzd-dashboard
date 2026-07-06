@@ -50,12 +50,6 @@ public static class AppFormatter
         return $"{years} year{(years > 1 ? "s" : "")} {months} month{(months > 1 ? "s" : "")}";
     }
 
-    /// <summary>
-    /// Formats a phone number for display by grouping digits (e.g. "+905434762342" -&gt; "+90 543 476 2342").
-    /// Assumes the last 10 digits are the national number and any digits before that are the country code
-    /// (matches typical mobile numbers such as Turkish "+90 5XX XXX XXXX"); this is a display-only heuristic,
-    /// not a validated parse.
-    /// </summary>
     public static string FormatPhoneDisplay(string? phone)
     {
         if (string.IsNullOrWhiteSpace(phone)) return string.Empty;

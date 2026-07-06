@@ -9,8 +9,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DZDDashboard.Api.Controllers;
 
-[Route("api/[controller]")]
-public class UsersController(
+[Route("api/users")]
+public class UserController(
     IUserReadService  readService,
     IUserWriteService writeService,
     IUserDocumentService documents,
@@ -54,7 +54,7 @@ public class UsersController(
     }
 
     [HttpGet("my-profile/card")]
-    public async Task<ActionResult<EmployeeCardDto>> GetMyCard(CancellationToken cancellationToken)
+    public async Task<ActionResult<EmployeeDto>> GetMyCard(CancellationToken cancellationToken)
     {
         if (!TryGetUserId(out var userId)) return Unauthorized();
 
@@ -127,7 +127,7 @@ public class UsersController(
 
     [HttpGet("{id:int}/card")]
     [Authorize(Roles = Roles.AdminOrHr)]
-    public async Task<ActionResult<EmployeeCardDto>> GetEmployeeCard(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<EmployeeDto>> GetEmployeeCard(int id, CancellationToken cancellationToken)
     {
         var card = await readService.GetEmployeeCardAsync(id, cancellationToken);
         return card is null ? NotFound() : Ok(card);
@@ -135,7 +135,7 @@ public class UsersController(
 
     [HttpGet("by-slug/{slug}/card")]
     [Authorize(Roles = Roles.AdminOrHr)]
-    public async Task<ActionResult<EmployeeCardDto>> GetEmployeeCardBySlug(string slug, CancellationToken cancellationToken)
+    public async Task<ActionResult<EmployeeDto>> GetEmployeeCardBySlug(string slug, CancellationToken cancellationToken)
     {
         var card = await readService.GetEmployeeCardBySlugAsync(slug, cancellationToken);
         return card is null ? NotFound() : Ok(card);
@@ -204,9 +204,6 @@ public class UsersController(
         return NoContent();
     }
 
-    // Any authenticated user may fetch a user's avatar: the org chart (visible to all
-    // authenticated users) exposes names/emails/jobs and renders these avatars, so the
-    // image is no more sensitive than data already shown there.
     [HttpGet("{id:int}/avatar")]
     public async Task<ActionResult<UserAvatarDto>> GetUserAvatar(int id, CancellationToken cancellationToken)
         => Ok(await readService.GetAvatarByUserIdAsync(id, cancellationToken) ?? new UserAvatarDto());
@@ -269,7 +266,7 @@ public class UsersController(
 
     [HttpPut("{id:int}/organization-position")]
     [Authorize(Roles = Roles.Admin)]
-    public async Task<IActionResult> UpdateOrganizationPosition(int id, [FromBody] UpdateUserOrganizationPositionDto dto, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateOrganizationPosition(int id, [FromBody] AssignUserOrganizationPositionDto dto, CancellationToken cancellationToken)
     {
         await writeService.UpdateOrganizationPositionAsync(id, dto.OrganizationPositionId, cancellationToken);
         return NoContent();
@@ -290,11 +287,6 @@ public class UsersController(
         await writeService.UpdateFamilyInfoAsync(id, dto, cancellationToken);
         return NoContent();
     }
-
-    /// <summary>
-    /// Resolves the authenticated user's id, centralizing the "is there a
-    /// current user?" guard that every self-service endpoint shares.
-    /// </summary>
     private bool TryGetUserId(out int userId)
     {
         var id = currentUser.UserId;

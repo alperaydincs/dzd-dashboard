@@ -1,0 +1,251 @@
+@using DZDDashboard.Common.Constants
+@using DZDDashboard.Common.DTOs
+@using DZDDashboard.Common.Utils
+@using Microsoft.AspNetCore.Components.Forms
+@inject ISnackbar Snackbar
+@inject DZDDashboard.Client.Localization.AppLocalizer Loc
+
+<MudDrawer Open="@IsOpen" OpenChanged="@(v => IsOpen = v)" Anchor="Anchor.End" Elevation="2" Variant="DrawerVariant.Temporary" Width="720px" Class="lifecycle-drawer">
+    @if (Process is not null)
+    {
+        <div class="pa-4">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+                <MudText Typo="Typo.h6">@Process.EmployeeName</MudText>
+                <MudIconButton Icon="@DzdIcons.X" OnClick="@(() => IsOpen = false)" />
+            </MudStack>
+            <MudStack Row="true" Spacing="4" Class="mb-3" Wrap="Wrap.Wrap">
+                <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">@Loc["lifecycleDrawer.manager"]: @(Process.ManagerName ?? Loc["common.notAvailable"])</MudText>
+                <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">@Process.ProcessTypeLabel: @AppFormatter.FormatDate(Process.Date)</MudText>
+                <MudChip T="string" Size="Size.Small" Variant="Variant.Text">@Process.Status</MudChip>
+            </MudStack>
+
+            <div class="@($"ckl-tabs-shell active-{_tab}")" role="tablist">
+                <button type="button" class="ckl-tab-segment" role="tab" @onclick="() => _tab = 0"><MudIcon Icon="@DzdIcons.FileText" Size="Size.Small" /> @Loc["lifecycleDrawer.documents"]</button>
+                <button type="button" class="ckl-tab-segment" role="tab" @onclick="() => _tab = 1"><MudIcon Icon="@DzdIcons.ListChecks" Size="Size.Small" /> @Loc["lifecycleDrawer.checklist"]</button>
+                <button type="button" class="ckl-tab-segment" role="tab" @onclick="() => _tab = 2"><MudIcon Icon="@DzdIcons.History" Size="Size.Small" /> @Loc["lifecycleDrawer.auditLog"]</button>
+                <button type="button" class="ckl-tab-segment" role="tab" @onclick="() => _tab = 3"><MudIcon Icon="@DzdIcons.Bell" Size="Size.Small" /> @Loc["lifecycleDrawer.notifications"]</button>
+            </div>
+
+            <div class="mt-3">
+                @if (_tab == 0)
+                {
+                    <MudStack Spacing="2">
+                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                            <MudText Typo="Typo.subtitle2">@Loc["lifecycleDrawer.requiredDocuments"]</MudText>
+                            <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@DzdIcons.Plus" OnClick="@(() => _addingDocument = true)">@Loc["lifecycleDrawer.addDocument"]</MudButton>
+                        </MudStack>
+
+                        @if (_addingDocument)
+                        {
+                            <MudPaper Elevation="0" Class="pa-3" Style="border:1px solid var(--mud-palette-lines-default);">
+                                <MudGrid Spacing="2">
+                                    <MudItem xs="12" sm="5">
+                                        <MudTextField T="string" Label="@Loc["lifecycleDrawer.documentName"]" @bind-Value="_newDocName" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                                    </MudItem>
+                                    <MudItem xs="6" sm="3">
+                                        <MudDatePicker Label="@Loc["lifecycleDrawer.deadline"]" Date="@_newDocDeadline" DateChanged="@(d => _newDocDeadline = d)" Variant="Variant.Outlined" Margin="Margin.Dense" DateFormat="dd.MM.yyyy" />
+                                    </MudItem>
+                                    <MudItem xs="6" sm="2">
+                                        <MudCheckBox T="bool" Value="_newDocRequired" ValueChanged="@(v => _newDocRequired = v)" Label="@Loc["lifecycleDrawer.required"]" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="2" Class="d-flex gap-2 align-center">
+                                        <MudIconButton Icon="@DzdIcons.Check" Color="Color.Success" OnClick="AddDocumentAsync" />
+                                        <MudIconButton Icon="@DzdIcons.X" Color="Color.Error" OnClick="@(() => _addingDocument = false)" />
+                                    </MudItem>
+                                </MudGrid>
+                            </MudPaper>
+                        }
+
+                        <MudTable Items="Process.Documents" Dense="true" Hover="true">
+                            <HeaderContent>
+                                <MudTh>@Loc["lifecycleDrawer.documentName"]</MudTh>
+                                <MudTh>@Loc["lifecycleDrawer.required"]</MudTh>
+                                <MudTh>@Loc["lifecycleDrawer.status"]</MudTh>
+                                <MudTh>@Loc["lifecycleDrawer.deadline"]</MudTh>
+                                <MudTh>@Loc["lifecycleDrawer.reviewedBy"]</MudTh>
+                                <MudTh>@Loc["lifecycleDrawer.reviewedAt"]</MudTh>
+                                <MudTh>@Loc["lifecycleDrawer.actions"]</MudTh>
+                            </HeaderContent>
+                            <RowTemplate Context="doc">
+                                <MudTd>@doc.Name</MudTd>
+                                <MudTd><MudChip T="string" Size="Size.Small" Color="@(doc.IsRequired ? Color.Error : Color.Default)" Variant="Variant.Text">@(doc.IsRequired ? Loc["lifecycleDrawer.required"] : Loc["lifecycleDrawer.optional"])</MudChip></MudTd>
+                                <MudTd><MudChip T="string" Size="Size.Small" Color="@DocStatusColor(doc.Status)" Variant="Variant.Text">@DocStatusLabel(doc.Status)</MudChip></MudTd>
+                                <MudTd>@AppFormatter.FormatDate(doc.Deadline)</MudTd>
+                                <MudTd>@(doc.ReviewedByName ?? "—")</MudTd>
+                                <MudTd>@(doc.ReviewedAt is { } reviewedAt ? AppFormatter.FormatDate(reviewedAt) : "—")</MudTd>
+                                <MudTd>
+                                    <MudStack Row="true" Spacing="1">
+                                        @if (!string.IsNullOrWhiteSpace(doc.FileName))
+                                        {
+                                            <MudIconButton Icon="@DzdIcons.Eye" Size="Size.Small" Color="Color.Primary" OnClick="@(() => Actions.DownloadDocument(doc.Id))" />
+                                        }
+                                        else
+                                        {
+                                            <MudFileUpload T="IBrowserFile" FilesChanged="@(f => OnFileSelected(doc.Id, f))" MaximumFileCount="1">
+                                                <CustomContent Context="fileUpload">
+                                                    <MudIconButton Icon="@DzdIcons.Upload" Size="Size.Small" OnClick="@fileUpload.OpenFilePickerAsync" />
+                                                </CustomContent>
+                                            </MudFileUpload>
+                                        }
+                                        @if (doc.Status == DocumentReviewStatuses.Uploaded)
+                                        {
+                                            <MudIconButton Icon="@DzdIcons.Check" Size="Size.Small" Color="Color.Success" OnClick="@(() => Actions.ApproveDocument(doc.Id))" />
+                                            <MudIconButton Icon="@DzdIcons.TriangleAlert" Size="Size.Small" Color="Color.Warning" OnClick="@(() => Actions.RequestCorrection(doc.Id))" />
+                                        }
+                                        @if (doc.Status is DocumentReviewStatuses.Approved or DocumentReviewStatuses.NeedsCorrection)
+                                        {
+                                            <MudIconButton Icon="@DzdIcons.RotateCcw" Size="Size.Small" OnClick="@(() => Actions.ReopenDocument(doc.Id))" />
+                                        }
+                                        <MudIconButton Icon="@DzdIcons.Trash2" Size="Size.Small" Color="Color.Error" OnClick="@(() => Actions.DeleteDocument(doc.Id))" />
+                                    </MudStack>
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </MudStack>
+                }
+                else if (_tab == 1)
+                {
+                    <MudTable Items="Process.Items" Dense="true" Hover="true">
+                        <HeaderContent>
+                            <MudTh>@Loc["lifecycleDrawer.checklistItem"]</MudTh>
+                            <MudTh>@Loc["lifecycleDrawer.status"]</MudTh>
+                            <MudTh>@Loc["lifecycleDrawer.assignedTo"]</MudTh>
+                            <MudTh>@Loc["lifecycleDrawer.completedAt"]</MudTh>
+                            <MudTh>@Loc["lifecycleDrawer.completedBy"]</MudTh>
+                            <MudTh>@Loc["lifecycleDrawer.actions"]</MudTh>
+                        </HeaderContent>
+                        <RowTemplate Context="item">
+                            <MudTd>@item.Title</MudTd>
+                            <MudTd><MudChip T="string" Size="Size.Small" Color="@(item.Status == ChecklistItemStatuses.Completed ? Color.Success : Color.Warning)" Variant="Variant.Text">@ItemStatusLabel(item.Status)</MudChip></MudTd>
+                            <MudTd>@(Process.ManagerName ?? Loc["common.notAvailable"])</MudTd>
+                            <MudTd>@(item.CompletedAt is { } d ? AppFormatter.FormatDate(d) : "—")</MudTd>
+                            <MudTd>@(item.CompletedByName ?? "—")</MudTd>
+                            <MudTd>
+                                @if (item.Status == ChecklistItemStatuses.Completed)
+                                {
+                                    <MudIconButton Icon="@DzdIcons.RotateCcw" Size="Size.Small" OnClick="@(() => Actions.ReopenItem(item.Id))" />
+                                }
+                                else
+                                {
+                                    <MudIconButton Icon="@DzdIcons.Check" Size="Size.Small" Color="Color.Success" OnClick="@(() => Actions.CompleteItem(item.Id))" />
+                                }
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+                else if (_tab == 2)
+                {
+                    <MudTable Items="Process.AuditLog" Dense="true" Hover="true">
+                        <HeaderContent>
+                            <MudTh>@Loc["lifecycleDrawer.action"]</MudTh>
+                            <MudTh>@Loc["lifecycleDrawer.user"]</MudTh>
+                            <MudTh>@Loc["lifecycleDrawer.dateTime"]</MudTh>
+                            <MudTh>@Loc["lifecycleDrawer.detail"]</MudTh>
+                        </HeaderContent>
+                        <RowTemplate Context="entry">
+                            <MudTd>@ActionLabel(entry.Action)</MudTd>
+                            <MudTd>@(entry.PerformedByName ?? Loc["common.notAvailable"])</MudTd>
+                            <MudTd>@entry.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</MudTd>
+                            <MudTd>@entry.Detail</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+                else
+                {
+                    var messages = BuildNotifications();
+                    @if (messages.Count == 0)
+                    {
+                        <MudText Typo="Typo.body2" Style="color:var(--dzd-text-secondary);">@Loc["lifecycleDrawer.noNotifications"]</MudText>
+                    }
+                    else
+                    {
+                        <MudStack Spacing="2">
+                            @foreach (var msg in messages)
+                            {
+                                <MudAlert Severity="Severity.Warning" Dense="true" Icon="@DzdIcons.Bell">@msg</MudAlert>
+                            }
+                        </MudStack>
+                    }
+                }
+            </div>
+        </div>
+    }
+</MudDrawer>
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+    [Parameter] public LifecycleProcessView? Process { get; set; }
+    [Parameter] public LifecycleDrawerActions Actions { get; set; } = default!;
+
+    private int _tab;
+    private bool _addingDocument;
+    private string _newDocName = string.Empty;
+    private bool _newDocRequired = true;
+    private DateTime? _newDocDeadline = DateTime.Today.AddDays(7);
+
+    private List<string> BuildNotifications()
+    {
+        var messages = new List<string>();
+        if (Process is null) return messages;
+
+        foreach (var doc in Process.Documents.Where(d => d.Status != DocumentReviewStatuses.Approved))
+        {
+            var days = (doc.Deadline.Date - DateTime.UtcNow.Date).Days;
+            if (days is >= 0 and <= 1)
+                messages.Add(string.Format(Loc["lifecycleDrawer.dueSoonMessage"], doc.Name));
+            if (doc.Status == DocumentReviewStatuses.NeedsCorrection)
+                messages.Add(string.Format(Loc["lifecycleDrawer.correctionPendingMessage"], doc.Name));
+        }
+        return messages;
+    }
+
+    private async Task AddDocumentAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newDocName) || _newDocDeadline is null)
+        {
+            Snackbar.Add(Loc["lifecycleDrawer.documentNameRequired"], Severity.Warning);
+            return;
+        }
+        await Actions.AddDocument(new AddProcessDocumentDto { Name = _newDocName.Trim(), IsRequired = _newDocRequired, Deadline = _newDocDeadline.Value });
+        _addingDocument = false;
+        _newDocName = string.Empty;
+    }
+
+    private async Task OnFileSelected(int documentId, IBrowserFile? file)
+    {
+        if (file is null) return;
+        if (!DocumentConstants.AllowedMimeTypes.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
+        {
+            Snackbar.Add(string.Format(Loc["myOnboarding.unsupportedFileType"], file.ContentType), Severity.Warning);
+            return;
+        }
+        if (file.Size > DocumentConstants.MaxFileSizeBytes)
+        {
+            Snackbar.Add(string.Format(Loc["myOnboarding.fileTooLarge"], DocumentConstants.MaxFileSizeBytes / 1024 / 1024), Severity.Warning);
+            return;
+        }
+        await Actions.UploadDocument(documentId, file);
+    }
+
+    private static Color DocStatusColor(string status) => status switch
+    {
+        DocumentReviewStatuses.Approved        => Color.Success,
+        DocumentReviewStatuses.NeedsCorrection  => Color.Warning,
+        DocumentReviewStatuses.Uploaded         => Color.Info,
+        _                                       => Color.Default
+    };
+
+    private string DocStatusLabel(string status) => status switch
+    {
+        DocumentReviewStatuses.Approved        => Loc["review.approved"],
+        DocumentReviewStatuses.NeedsCorrection  => Loc["review.needsCorrection"],
+        DocumentReviewStatuses.Uploaded         => Loc["lifecycleDrawer.uploaded"],
+        _                                       => Loc["review.pending"]
+    };
+
+    private string ItemStatusLabel(string status)
+        => status == ChecklistItemStatuses.Completed ? Loc["lifecycle.completed"] : Loc["lifecycleDrawer.pendingStatus"];
+
+    private string ActionLabel(string action) => Loc[$"lifecycleAuditAction.{action}"];
+}

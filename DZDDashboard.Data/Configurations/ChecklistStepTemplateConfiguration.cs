@@ -1,4 +1,3 @@
-using DZDDashboard.Common.Constants;
 using DZDDashboard.Common.Validation;
 using DZDDashboard.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -15,12 +14,14 @@ public class ChecklistStepTemplateConfiguration : IEntityTypeConfiguration<Check
         builder.ToTable("ChecklistStepTemplates");
         builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.ProcessType).IsRequired().HasMaxLength(ValidationConstants.MaxShortNameLength);
-        builder.Property(x => x.StepKey).IsRequired().HasMaxLength(ValidationConstants.MaxShortNameLength);
         builder.Property(x => x.Title).IsRequired().HasMaxLength(ValidationConstants.MaxStandardLength);
-        builder.Property(x => x.BenefitKind).IsRequired().HasMaxLength(ValidationConstants.MaxShortNameLength);
 
-        builder.HasIndex(x => new { x.ProcessType, x.StepKey }).IsUnique();
+        builder.HasIndex(x => x.ProcessTemplateId);
+
+        builder.HasOne(x => x.ProcessTemplate)
+            .WithMany(t => t.ChecklistItems)
+            .HasForeignKey(x => x.ProcessTemplateId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(x => x.ModifiedBy)
             .WithMany()
@@ -35,28 +36,46 @@ public class ChecklistStepTemplateConfiguration : IEntityTypeConfiguration<Check
         var id = 1;
         var rows = new List<ChecklistStepTemplate>();
 
-        void Add(string processType, IReadOnlyList<ChecklistStepDefinition> steps)
+        void Add(int processTemplateId, IReadOnlyList<string> titles)
         {
-            foreach (var step in steps)
+            var sequence = 1;
+            foreach (var title in titles)
                 rows.Add(new ChecklistStepTemplate
                 {
-                    Id               = id++,
-                    ProcessType      = processType,
-                    StepKey          = step.Key,
-                    Title            = step.Title,
-                    Sequence         = step.Sequence,
-                    IsRequired       = step.IsRequired,
-                    IsGate           = step.IsGate,
-                    RequiresDocument = step.RequiresDocument,
-                    BenefitKind      = step.BenefitKind,
-                    IsEnabled        = true,
-                    CreatedAt        = SeedTimestamp
+                    Id                = id++,
+                    ProcessTemplateId = processTemplateId,
+                    Title             = title,
+                    Sequence          = sequence++,
+                    IsRequired        = true,
+                    CreatedAt         = SeedTimestamp
                 });
         }
 
-        Add(TemplateProcessTypes.Onboarding, OnboardingStepCatalog.Steps);
-        Add(TemplateProcessTypes.OffboardingResignation, OffboardingStepCatalog.ResignationSteps);
-        Add(TemplateProcessTypes.OffboardingTermination, OffboardingStepCatalog.TerminationSteps);
+        Add(ProcessTemplateConfiguration.GeneralOnboardingId,
+        [
+            "Contract prepared and signed",
+            "Social security registration completed",
+            "Accountant notified",
+            "Private Pension System (BES) account opened",
+            "Private Health Insurance (ÖSS) opened",
+            "Computer delivered"
+        ]);
+        Add(ProcessTemplateConfiguration.ResignationId,
+        [
+            "Resignation letter received",
+            "Social security exit processed",
+            "Access revoked",
+            "Asset return confirmed",
+            "Final settlement calculated"
+        ]);
+        Add(ProcessTemplateConfiguration.TerminationId,
+        [
+            "Justification documented",
+            "Settlement/severance calculated",
+            "Social security exit processed",
+            "Access revoked",
+            "Asset return confirmed"
+        ]);
 
         return rows;
     }

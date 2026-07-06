@@ -363,11 +363,6 @@ namespace DZDDashboard.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("BenefitKind")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime2");
 
@@ -376,21 +371,6 @@ namespace DZDDashboard.Data.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("Currency")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<decimal?>("EmployeeAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("EmployerAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<bool>("IsGate")
-                        .HasColumnType("bit");
 
                     b.Property<bool>("IsRequired")
                         .HasColumnType("bit");
@@ -401,35 +381,16 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<int?>("ModifiedById")
                         .HasColumnType("int");
 
-                    b.Property<string>("Note")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
                     b.Property<int?>("OffboardingProcessId")
                         .HasColumnType("int");
 
                     b.Property<int?>("OnboardingProcessId")
                         .HasColumnType("int");
 
-                    b.Property<string>("ProviderName")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<int?>("ReflectedBenefitRecordId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("RequiresDocument")
-                        .HasColumnType("bit");
-
                     b.Property<int>("Sequence")
                         .HasColumnType("int");
 
                     b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("StepKey")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -452,39 +413,6 @@ namespace DZDDashboard.Data.Migrations
                     b.ToTable("ChecklistItems", (string)null);
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.ChecklistItemDependent", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("ChecklistItemId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("DependentName")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("int");
-
-                    b.Property<string>("RelationType")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ChecklistItemId");
-
-                    b.ToTable("ChecklistItemDependents", (string)null);
-                });
-
             modelBuilder.Entity("DZDDashboard.Data.Entities.ChecklistStepTemplate", b =>
                 {
                     b.Property<int>("Id")
@@ -493,19 +421,8 @@ namespace DZDDashboard.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("BenefitKind")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsGate")
-                        .HasColumnType("bit");
 
                     b.Property<bool>("IsRequired")
                         .HasColumnType("bit");
@@ -516,21 +433,11 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<int?>("ModifiedById")
                         .HasColumnType("int");
 
-                    b.Property<string>("ProcessType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<bool>("RequiresDocument")
-                        .HasColumnType("bit");
+                    b.Property<int>("ProcessTemplateId")
+                        .HasColumnType("int");
 
                     b.Property<int>("Sequence")
                         .HasColumnType("int");
-
-                    b.Property<string>("StepKey")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -541,8 +448,7 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasIndex("ModifiedById");
 
-                    b.HasIndex("ProcessType", "StepKey")
-                        .IsUnique();
+                    b.HasIndex("ProcessTemplateId");
 
                     b.ToTable("ChecklistStepTemplates", (string)null);
 
@@ -550,338 +456,146 @@ namespace DZDDashboard.Data.Migrations
                         new
                         {
                             Id = 1,
-                            BenefitKind = "None",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = false,
                             IsRequired = true,
-                            ProcessType = "Onboarding",
-                            RequiresDocument = false,
+                            ProcessTemplateId = 1,
                             Sequence = 1,
-                            StepKey = "documents",
-                            Title = "Zorunlu evraklar tamamlandı"
+                            Title = "Contract prepared and signed"
                         },
                         new
                         {
                             Id = 2,
-                            BenefitKind = "None",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = false,
                             IsRequired = true,
-                            ProcessType = "Onboarding",
-                            RequiresDocument = false,
+                            ProcessTemplateId = 1,
                             Sequence = 2,
-                            StepKey = "contract",
-                            Title = "Sözleşme hazırlandı ve imzalatıldı"
+                            Title = "Social security registration completed"
                         },
                         new
                         {
                             Id = 3,
-                            BenefitKind = "None",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = false,
                             IsRequired = true,
-                            ProcessType = "Onboarding",
-                            RequiresDocument = false,
+                            ProcessTemplateId = 1,
                             Sequence = 3,
-                            StepKey = "sgk-entry",
-                            Title = "SGK işe giriş yapıldı"
+                            Title = "Accountant notified"
                         },
                         new
                         {
                             Id = 4,
-                            BenefitKind = "None",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = false,
                             IsRequired = true,
-                            ProcessType = "Onboarding",
-                            RequiresDocument = false,
+                            ProcessTemplateId = 1,
                             Sequence = 4,
-                            StepKey = "accountant-info",
-                            Title = "Mali müşavire bilgi verildi"
+                            Title = "Private Pension System (BES) account opened"
                         },
                         new
                         {
                             Id = 5,
-                            BenefitKind = "BES",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = false,
                             IsRequired = true,
-                            ProcessType = "Onboarding",
-                            RequiresDocument = false,
+                            ProcessTemplateId = 1,
                             Sequence = 5,
-                            StepKey = "bes",
-                            Title = "BES açıldı (işveren + çalışan payı)"
+                            Title = "Private Health Insurance (ÖSS) opened"
                         },
                         new
                         {
                             Id = 6,
-                            BenefitKind = "OSS",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = false,
                             IsRequired = true,
-                            ProcessType = "Onboarding",
-                            RequiresDocument = false,
+                            ProcessTemplateId = 1,
                             Sequence = 6,
-                            StepKey = "oss",
-                            Title = "ÖSS açıldı (çalışan + bağımlılar)"
+                            Title = "Computer delivered"
                         },
                         new
                         {
                             Id = 7,
-                            BenefitKind = "None",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = false,
                             IsRequired = true,
-                            ProcessType = "Onboarding",
-                            RequiresDocument = false,
-                            Sequence = 7,
-                            StepKey = "asset-handover",
-                            Title = "Bilgisayar teslim edildi (zimmet)"
+                            ProcessTemplateId = 2,
+                            Sequence = 1,
+                            Title = "Resignation letter received"
                         },
                         new
                         {
                             Id = 8,
-                            BenefitKind = "None",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = false,
                             IsRequired = true,
-                            ProcessType = "Offboarding:Resignation",
-                            RequiresDocument = false,
-                            Sequence = 1,
-                            StepKey = "resignation-letter",
-                            Title = "İstifa alındı"
+                            ProcessTemplateId = 2,
+                            Sequence = 2,
+                            Title = "Social security exit processed"
                         },
                         new
                         {
                             Id = 9,
-                            BenefitKind = "None",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = false,
                             IsRequired = true,
-                            ProcessType = "Offboarding:Resignation",
-                            RequiresDocument = false,
-                            Sequence = 2,
-                            StepKey = "sgk-exit",
-                            Title = "SGK işten çıkış"
+                            ProcessTemplateId = 2,
+                            Sequence = 3,
+                            Title = "Access revoked"
                         },
                         new
                         {
                             Id = 10,
-                            BenefitKind = "None",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = false,
                             IsRequired = true,
-                            ProcessType = "Offboarding:Resignation",
-                            RequiresDocument = false,
-                            Sequence = 3,
-                            StepKey = "oss-cancel",
-                            Title = "ÖSS iptal"
+                            ProcessTemplateId = 2,
+                            Sequence = 4,
+                            Title = "Asset return confirmed"
                         },
                         new
                         {
                             Id = 11,
-                            BenefitKind = "None",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = false,
                             IsRequired = true,
-                            ProcessType = "Offboarding:Resignation",
-                            RequiresDocument = false,
-                            Sequence = 4,
-                            StepKey = "bes-cancel",
-                            Title = "BES iptal"
+                            ProcessTemplateId = 2,
+                            Sequence = 5,
+                            Title = "Final settlement calculated"
                         },
                         new
                         {
                             Id = 12,
-                            BenefitKind = "None",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = false,
                             IsRequired = true,
-                            ProcessType = "Offboarding:Resignation",
-                            RequiresDocument = false,
-                            Sequence = 5,
-                            StepKey = "access-revocation",
-                            Title = "Erişim kapatma"
+                            ProcessTemplateId = 3,
+                            Sequence = 1,
+                            Title = "Justification documented"
                         },
                         new
                         {
                             Id = 13,
-                            BenefitKind = "None",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = false,
                             IsRequired = true,
-                            ProcessType = "Offboarding:Resignation",
-                            RequiresDocument = false,
-                            Sequence = 6,
-                            StepKey = "asset-return",
-                            Title = "Zimmet iadesi"
+                            ProcessTemplateId = 3,
+                            Sequence = 2,
+                            Title = "Settlement/severance calculated"
                         },
                         new
                         {
                             Id = 14,
-                            BenefitKind = "None",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = false,
                             IsRequired = true,
-                            ProcessType = "Offboarding:Resignation",
-                            RequiresDocument = false,
-                            Sequence = 7,
-                            StepKey = "final-settlement",
-                            Title = "Hakediş hesaplama"
+                            ProcessTemplateId = 3,
+                            Sequence = 3,
+                            Title = "Social security exit processed"
                         },
                         new
                         {
                             Id = 15,
-                            BenefitKind = "None",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = true,
                             IsRequired = true,
-                            ProcessType = "Offboarding:Resignation",
-                            RequiresDocument = false,
-                            Sequence = 8,
-                            StepKey = "payment-done",
-                            Title = "Ödeme yapıldı"
+                            ProcessTemplateId = 3,
+                            Sequence = 4,
+                            Title = "Access revoked"
                         },
                         new
                         {
                             Id = 16,
-                            BenefitKind = "None",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = false,
                             IsRequired = true,
-                            ProcessType = "Offboarding:Termination",
-                            RequiresDocument = false,
-                            Sequence = 1,
-                            StepKey = "justification",
-                            Title = "Gerekçe dokümantasyonu"
-                        },
-                        new
-                        {
-                            Id = 17,
-                            BenefitKind = "None",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = true,
-                            IsRequired = true,
-                            ProcessType = "Offboarding:Termination",
-                            RequiresDocument = false,
-                            Sequence = 2,
-                            StepKey = "mediator-meeting",
-                            Title = "Arabulucu/avukat görüşmesi (zorunlu)"
-                        },
-                        new
-                        {
-                            Id = 18,
-                            BenefitKind = "None",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = false,
-                            IsRequired = true,
-                            ProcessType = "Offboarding:Termination",
-                            RequiresDocument = false,
-                            Sequence = 3,
-                            StepKey = "settlement-calc",
-                            Title = "Hakediş/tazminat hesaplama"
-                        },
-                        new
-                        {
-                            Id = 19,
-                            BenefitKind = "None",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = false,
-                            IsRequired = false,
-                            ProcessType = "Offboarding:Termination",
-                            RequiresDocument = false,
-                            Sequence = 4,
-                            StepKey = "approval",
-                            Title = "Onay"
-                        },
-                        new
-                        {
-                            Id = 20,
-                            BenefitKind = "None",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = false,
-                            IsRequired = true,
-                            ProcessType = "Offboarding:Termination",
-                            RequiresDocument = false,
+                            ProcessTemplateId = 3,
                             Sequence = 5,
-                            StepKey = "sgk-exit",
-                            Title = "SGK işten çıkış"
-                        },
-                        new
-                        {
-                            Id = 21,
-                            BenefitKind = "None",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = false,
-                            IsRequired = true,
-                            ProcessType = "Offboarding:Termination",
-                            RequiresDocument = false,
-                            Sequence = 6,
-                            StepKey = "oss-bes-cancel",
-                            Title = "ÖSS/BES iptal"
-                        },
-                        new
-                        {
-                            Id = 22,
-                            BenefitKind = "None",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = false,
-                            IsRequired = true,
-                            ProcessType = "Offboarding:Termination",
-                            RequiresDocument = false,
-                            Sequence = 7,
-                            StepKey = "access-revocation",
-                            Title = "Erişim kapatma"
-                        },
-                        new
-                        {
-                            Id = 23,
-                            BenefitKind = "None",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = false,
-                            IsRequired = true,
-                            ProcessType = "Offboarding:Termination",
-                            RequiresDocument = false,
-                            Sequence = 8,
-                            StepKey = "asset-return",
-                            Title = "Zimmet iadesi"
-                        },
-                        new
-                        {
-                            Id = 24,
-                            BenefitKind = "None",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsEnabled = true,
-                            IsGate = true,
-                            IsRequired = true,
-                            ProcessType = "Offboarding:Termination",
-                            RequiresDocument = false,
-                            Sequence = 9,
-                            StepKey = "payment-done",
-                            Title = "Ödeme yapıldı"
+                            Title = "Asset return confirmed"
                         });
                 });
 
@@ -1047,6 +761,161 @@ namespace DZDDashboard.Data.Migrations
                     b.ToTable("Departments", (string)null);
                 });
 
+            modelBuilder.Entity("DZDDashboard.Data.Entities.DocumentTemplate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DeadlineDays")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ModifiedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("ProcessTemplateId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModifiedById");
+
+                    b.HasIndex("ProcessTemplateId");
+
+                    b.ToTable("DocumentTemplates", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DeadlineDays = 4,
+                            IsRequired = true,
+                            Name = "İkametgâh",
+                            ProcessTemplateId = 1,
+                            Sequence = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DeadlineDays = 4,
+                            IsRequired = true,
+                            Name = "Diploma",
+                            ProcessTemplateId = 1,
+                            Sequence = 2
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DeadlineDays = 6,
+                            IsRequired = true,
+                            Name = "Nüfus Kayıt Örneği",
+                            ProcessTemplateId = 1,
+                            Sequence = 3
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DeadlineDays = 9,
+                            IsRequired = true,
+                            Name = "TC Kimlik Kartı Fotokopisi",
+                            ProcessTemplateId = 1,
+                            Sequence = 4
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DeadlineDays = 9,
+                            IsRequired = false,
+                            Name = "Adli Sicil Kaydı",
+                            ProcessTemplateId = 1,
+                            Sequence = 5
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DeadlineDays = 9,
+                            IsRequired = false,
+                            Name = "Akciğer grafisi, hemogram ve göz raporu",
+                            ProcessTemplateId = 1,
+                            Sequence = 6
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DeadlineDays = 7,
+                            IsRequired = true,
+                            Name = "Akbank Maaş Hesabı Bilgisi",
+                            ProcessTemplateId = 1,
+                            Sequence = 7
+                        },
+                        new
+                        {
+                            Id = 8,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DeadlineDays = 1,
+                            IsRequired = true,
+                            Name = "İstifa Dilekçesi",
+                            ProcessTemplateId = 2,
+                            Sequence = 1
+                        },
+                        new
+                        {
+                            Id = 9,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DeadlineDays = 7,
+                            IsRequired = true,
+                            Name = "Zimmet İade Tutanağı",
+                            ProcessTemplateId = 2,
+                            Sequence = 2
+                        },
+                        new
+                        {
+                            Id = 10,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DeadlineDays = 1,
+                            IsRequired = true,
+                            Name = "Fesih Bildirimi",
+                            ProcessTemplateId = 3,
+                            Sequence = 1
+                        },
+                        new
+                        {
+                            Id = 11,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DeadlineDays = 7,
+                            IsRequired = true,
+                            Name = "Zimmet İade Tutanağı",
+                            ProcessTemplateId = 3,
+                            Sequence = 2
+                        });
+                });
+
             modelBuilder.Entity("DZDDashboard.Data.Entities.EducationHistory", b =>
                 {
                     b.Property<int>("Id")
@@ -1171,6 +1040,47 @@ namespace DZDDashboard.Data.Migrations
                     b.ToTable("Jobs", (string)null);
                 });
 
+            modelBuilder.Entity("DZDDashboard.Data.Entities.LifecycleAuditLogEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Detail")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int?>("OffboardingProcessId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("OnboardingProcessId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PerformedById")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OffboardingProcessId");
+
+                    b.HasIndex("OnboardingProcessId");
+
+                    b.HasIndex("PerformedById");
+
+                    b.ToTable("LifecycleAuditLogEntries", (string)null);
+                });
+
             modelBuilder.Entity("DZDDashboard.Data.Entities.OffboardingProcess", b =>
                 {
                     b.Property<int>("Id")
@@ -1199,10 +1109,13 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("Type")
+                    b.Property<int>("TemplateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TemplateName")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -1210,6 +1123,8 @@ namespace DZDDashboard.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ModifiedById");
+
+                    b.HasIndex("TemplateId");
 
                     b.HasIndex("UserId")
                         .IsUnique();
@@ -1248,6 +1163,14 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int>("TemplateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TemplateName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
@@ -1256,6 +1179,8 @@ namespace DZDDashboard.Data.Migrations
                     b.HasIndex("ManagerId");
 
                     b.HasIndex("ModifiedById");
+
+                    b.HasIndex("TemplateId");
 
                     b.HasIndex("UserId")
                         .IsUnique();
@@ -1396,6 +1321,150 @@ namespace DZDDashboard.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("UserPositionHistories", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.ProcessDocument", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContentType")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Deadline")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("FileId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FileName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ModifiedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int?>("OffboardingProcessId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("OnboardingProcessId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ReviewedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UploadedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UploadedById")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FileId");
+
+                    b.HasIndex("ModifiedById");
+
+                    b.HasIndex("OffboardingProcessId");
+
+                    b.HasIndex("OnboardingProcessId");
+
+                    b.HasIndex("ReviewedById");
+
+                    b.HasIndex("UploadedById");
+
+                    b.ToTable("ProcessDocuments", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.ProcessTemplate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ModifiedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Kind");
+
+                    b.HasIndex("ModifiedById");
+
+                    b.ToTable("ProcessTemplates", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Kind = "Onboarding",
+                            Name = "General Onboarding",
+                            Sequence = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Kind = "Offboarding",
+                            Name = "Resignation",
+                            Sequence = 1
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Kind = "Offboarding",
+                            Name = "Termination",
+                            Sequence = 2
+                        });
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.SalaryHistory", b =>
@@ -1910,92 +1979,6 @@ namespace DZDDashboard.Data.Migrations
                     b.ToTable("UserCvDocuments", (string)null);
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.UserOffboardingDocument", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ChecklistItemId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ContentType")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("FileId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("FileName")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ChecklistItemId")
-                        .IsUnique();
-
-                    b.HasIndex("FileId");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.ToTable("UserOffboardingDocuments", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.UserOnboardingDocument", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ChecklistItemId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ContentType")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("FileId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("FileName")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ChecklistItemId")
-                        .IsUnique();
-
-                    b.HasIndex("FileId");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.ToTable("UserOnboardingDocuments", (string)null);
-                });
-
             modelBuilder.Entity("DZDDashboard.Data.Entities.AdditionalPayment", b =>
                 {
                     b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
@@ -2176,17 +2159,6 @@ namespace DZDDashboard.Data.Migrations
                     b.Navigation("OnboardingProcess");
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.ChecklistItemDependent", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.ChecklistItem", "ChecklistItem")
-                        .WithMany("Dependents")
-                        .HasForeignKey("ChecklistItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ChecklistItem");
-                });
-
             modelBuilder.Entity("DZDDashboard.Data.Entities.ChecklistStepTemplate", b =>
                 {
                     b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
@@ -2194,7 +2166,15 @@ namespace DZDDashboard.Data.Migrations
                         .HasForeignKey("ModifiedById")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("DZDDashboard.Data.Entities.ProcessTemplate", "ProcessTemplate")
+                        .WithMany("ChecklistItems")
+                        .HasForeignKey("ProcessTemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("ModifiedBy");
+
+                    b.Navigation("ProcessTemplate");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.ChildInfo", b =>
@@ -2259,6 +2239,24 @@ namespace DZDDashboard.Data.Migrations
                     b.Navigation("ModifiedBy");
                 });
 
+            modelBuilder.Entity("DZDDashboard.Data.Entities.DocumentTemplate", b =>
+                {
+                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
+                        .WithMany()
+                        .HasForeignKey("ModifiedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("DZDDashboard.Data.Entities.ProcessTemplate", "ProcessTemplate")
+                        .WithMany("Documents")
+                        .HasForeignKey("ProcessTemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ModifiedBy");
+
+                    b.Navigation("ProcessTemplate");
+                });
+
             modelBuilder.Entity("DZDDashboard.Data.Entities.EducationHistory", b =>
                 {
                     b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
@@ -2305,12 +2303,42 @@ namespace DZDDashboard.Data.Migrations
                     b.Navigation("ModifiedBy");
                 });
 
+            modelBuilder.Entity("DZDDashboard.Data.Entities.LifecycleAuditLogEntry", b =>
+                {
+                    b.HasOne("DZDDashboard.Data.Entities.OffboardingProcess", "OffboardingProcess")
+                        .WithMany("AuditLog")
+                        .HasForeignKey("OffboardingProcessId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("DZDDashboard.Data.Entities.OnboardingProcess", "OnboardingProcess")
+                        .WithMany("AuditLog")
+                        .HasForeignKey("OnboardingProcessId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("DZDDashboard.Data.Entities.User", "PerformedBy")
+                        .WithMany()
+                        .HasForeignKey("PerformedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("OffboardingProcess");
+
+                    b.Navigation("OnboardingProcess");
+
+                    b.Navigation("PerformedBy");
+                });
+
             modelBuilder.Entity("DZDDashboard.Data.Entities.OffboardingProcess", b =>
                 {
                     b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
                         .WithMany()
                         .HasForeignKey("ModifiedById")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("DZDDashboard.Data.Entities.ProcessTemplate", null)
+                        .WithMany()
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("DZDDashboard.Data.Entities.User", "User")
                         .WithOne("OffboardingProcess")
@@ -2334,6 +2362,12 @@ namespace DZDDashboard.Data.Migrations
                         .WithMany()
                         .HasForeignKey("ModifiedById")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("DZDDashboard.Data.Entities.ProcessTemplate", null)
+                        .WithMany()
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("DZDDashboard.Data.Entities.User", "User")
                         .WithOne("OnboardingProcess")
@@ -2404,6 +2438,61 @@ namespace DZDDashboard.Data.Migrations
                     b.Navigation("Team");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.ProcessDocument", b =>
+                {
+                    b.HasOne("DZDDashboard.Data.Entities.StoredFile", "File")
+                        .WithMany()
+                        .HasForeignKey("FileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
+                        .WithMany()
+                        .HasForeignKey("ModifiedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("DZDDashboard.Data.Entities.OffboardingProcess", "OffboardingProcess")
+                        .WithMany("Documents")
+                        .HasForeignKey("OffboardingProcessId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("DZDDashboard.Data.Entities.OnboardingProcess", "OnboardingProcess")
+                        .WithMany("Documents")
+                        .HasForeignKey("OnboardingProcessId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("DZDDashboard.Data.Entities.User", "ReviewedBy")
+                        .WithMany()
+                        .HasForeignKey("ReviewedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("DZDDashboard.Data.Entities.User", "UploadedBy")
+                        .WithMany()
+                        .HasForeignKey("UploadedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("File");
+
+                    b.Navigation("ModifiedBy");
+
+                    b.Navigation("OffboardingProcess");
+
+                    b.Navigation("OnboardingProcess");
+
+                    b.Navigation("ReviewedBy");
+
+                    b.Navigation("UploadedBy");
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.ProcessTemplate", b =>
+                {
+                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
+                        .WithMany()
+                        .HasForeignKey("ModifiedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ModifiedBy");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.SalaryHistory", b =>
@@ -2565,56 +2654,6 @@ namespace DZDDashboard.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.UserOffboardingDocument", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.ChecklistItem", "ChecklistItem")
-                        .WithOne("OffboardingDocument")
-                        .HasForeignKey("DZDDashboard.Data.Entities.UserOffboardingDocument", "ChecklistItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DZDDashboard.Data.Entities.StoredFile", "File")
-                        .WithMany()
-                        .HasForeignKey("FileId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ChecklistItem");
-
-                    b.Navigation("File");
-
-                    b.Navigation("ModifiedBy");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.UserOnboardingDocument", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.ChecklistItem", "ChecklistItem")
-                        .WithOne("OnboardingDocument")
-                        .HasForeignKey("DZDDashboard.Data.Entities.UserOnboardingDocument", "ChecklistItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DZDDashboard.Data.Entities.StoredFile", "File")
-                        .WithMany()
-                        .HasForeignKey("FileId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ChecklistItem");
-
-                    b.Navigation("File");
-
-                    b.Navigation("ModifiedBy");
-                });
-
             modelBuilder.Entity("DZDDashboard.Data.Entities.BenefitRecord", b =>
                 {
                     b.Navigation("Dependents");
@@ -2628,15 +2667,6 @@ namespace DZDDashboard.Data.Migrations
             modelBuilder.Entity("DZDDashboard.Data.Entities.CareerPathRule", b =>
                 {
                     b.Navigation("Positions");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.ChecklistItem", b =>
-                {
-                    b.Navigation("Dependents");
-
-                    b.Navigation("OffboardingDocument");
-
-                    b.Navigation("OnboardingDocument");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.Company", b =>
@@ -2658,11 +2688,19 @@ namespace DZDDashboard.Data.Migrations
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.OffboardingProcess", b =>
                 {
+                    b.Navigation("AuditLog");
+
+                    b.Navigation("Documents");
+
                     b.Navigation("Items");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.OnboardingProcess", b =>
                 {
+                    b.Navigation("AuditLog");
+
+                    b.Navigation("Documents");
+
                     b.Navigation("Items");
                 });
 
@@ -2671,6 +2709,13 @@ namespace DZDDashboard.Data.Migrations
                     b.Navigation("Children");
 
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.ProcessTemplate", b =>
+                {
+                    b.Navigation("ChecklistItems");
+
+                    b.Navigation("Documents");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.Team", b =>

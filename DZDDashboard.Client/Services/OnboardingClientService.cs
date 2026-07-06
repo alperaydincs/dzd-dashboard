@@ -27,38 +27,47 @@ public class OnboardingClientService(IHttpClientFactory httpClientFactory, Navig
     public async Task<HttpResponseMessage> CancelAsync(int id)
         => await PostAsync(ApiRoutes.Onboarding.Cancel(id), new { });
 
-    public async Task<OnboardingProcessDto?> DeleteDocumentAsync(int id, int itemId)
-    {
-        var response = await DeleteAsync(ApiRoutes.Onboarding.ItemDocument(id, itemId));
-        return response.IsSuccessStatusCode ? await GetAsync(id) : null;
-    }
-
-    public async Task<OnboardingProcessDto?> CompleteItemAsync(int id, int itemId, CompleteChecklistItemDto dto)
-        => await PostAsync<OnboardingProcessDto>(ApiRoutes.Onboarding.ItemComplete(id, itemId), dto);
-
-    public async Task<OnboardingProcessDto?> SkipItemAsync(int id, int itemId)
-        => await PostAsync<OnboardingProcessDto>(ApiRoutes.Onboarding.ItemSkip(id, itemId), new { });
+    public async Task<OnboardingProcessDto?> CompleteItemAsync(int id, int itemId)
+        => await PostAsync<OnboardingProcessDto>(ApiRoutes.Onboarding.ItemComplete(id, itemId), new { });
 
     public async Task<OnboardingProcessDto?> ReopenItemAsync(int id, int itemId)
         => await PostAsync<OnboardingProcessDto>(ApiRoutes.Onboarding.ItemReopen(id, itemId), new { });
 
-    public async Task<HttpResponseMessage> UpdateNoteAsync(int id, int itemId, UpdateChecklistNoteDto dto)
-        => await PutAsync(ApiRoutes.Onboarding.ItemNote(id, itemId), dto);
+    public async Task<OnboardingProcessDto?> AddDocumentAsync(int id, AddProcessDocumentDto dto)
+        => await PostAsync<OnboardingProcessDto>(ApiRoutes.Onboarding.Documents(id), dto);
 
-    public async Task<HttpResponseMessage> UploadDocumentAsync(int id, int itemId, string fileName, string contentType, Stream content)
+    public async Task<HttpResponseMessage> UploadDocumentAsync(int id, int documentId, string fileName, string contentType, Stream content)
     {
         using var form = new MultipartFormDataContent();
         var streamContent = new StreamContent(content);
         streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
         form.Add(streamContent, "file", fileName);
-        return await PostMultipartAsync(ApiRoutes.Onboarding.ItemDocument(id, itemId), form);
+        return await PostMultipartAsync(ApiRoutes.Onboarding.DocumentUpload(id, documentId), form);
     }
 
-    public async Task<byte[]?> DownloadDocumentAsync(int id, int itemId)
+    public async Task<OnboardingProcessDto?> ApproveDocumentAsync(int id, int documentId)
+        => await PostAsync<OnboardingProcessDto>(ApiRoutes.Onboarding.DocumentApprove(id, documentId), new { });
+
+    public async Task<OnboardingProcessDto?> RequestDocumentCorrectionAsync(int id, int documentId)
+        => await PostAsync<OnboardingProcessDto>(ApiRoutes.Onboarding.DocumentRequestCorrection(id, documentId), new { });
+
+    public async Task<OnboardingProcessDto?> ReopenDocumentAsync(int id, int documentId)
+        => await PostAsync<OnboardingProcessDto>(ApiRoutes.Onboarding.DocumentReopen(id, documentId), new { });
+
+    public async Task<OnboardingProcessDto?> DeleteDocumentAsync(int id, int documentId)
     {
-        var resp = await ApiClient.GetAsync(ApiRoutes.Onboarding.ItemDocument(id, itemId));
+        var response = await DeleteAsync(ApiRoutes.Onboarding.Document(id, documentId));
+        return response.IsSuccessStatusCode ? await GetAsync(id) : null;
+    }
+
+    public async Task<byte[]?> DownloadDocumentAsync(int id, int documentId)
+    {
+        var resp = await ApiClient.GetAsync(ApiRoutes.Onboarding.Document(id, documentId));
         return resp.IsSuccessStatusCode ? await resp.Content.ReadAsByteArrayAsync() : null;
     }
+
+    public async Task<List<DueSoonDocumentDto>?> GetDueSoonDocumentsAsync()
+        => await GetAsync<List<DueSoonDocumentDto>>(ApiRoutes.Onboarding.DueSoonDocuments);
 }
 
 public class MyOnboardingClientService(IHttpClientFactory httpClientFactory, NavigationManager navigationManager)
@@ -101,36 +110,45 @@ public class OffboardingClientService(IHttpClientFactory httpClientFactory, Navi
     public async Task<OffboardingProcessDto?> StartAsync(StartOffboardingDto dto)
         => await PostAsync<OffboardingProcessDto>(ApiRoutes.Offboarding.Base, dto);
 
-    public async Task<OffboardingProcessDto?> CompleteItemAsync(int id, int itemId, CompleteChecklistItemDto dto)
-        => await PostAsync<OffboardingProcessDto>(ApiRoutes.Offboarding.ItemComplete(id, itemId), dto);
-
-    public async Task<OffboardingProcessDto?> SkipItemAsync(int id, int itemId)
-        => await PostAsync<OffboardingProcessDto>(ApiRoutes.Offboarding.ItemSkip(id, itemId), new { });
+    public async Task<OffboardingProcessDto?> CompleteItemAsync(int id, int itemId)
+        => await PostAsync<OffboardingProcessDto>(ApiRoutes.Offboarding.ItemComplete(id, itemId), new { });
 
     public async Task<OffboardingProcessDto?> ReopenItemAsync(int id, int itemId)
         => await PostAsync<OffboardingProcessDto>(ApiRoutes.Offboarding.ItemReopen(id, itemId), new { });
 
-    public async Task<HttpResponseMessage> UpdateNoteAsync(int id, int itemId, UpdateChecklistNoteDto dto)
-        => await PutAsync(ApiRoutes.Offboarding.ItemNote(id, itemId), dto);
+    public async Task<OffboardingProcessDto?> AddDocumentAsync(int id, AddProcessDocumentDto dto)
+        => await PostAsync<OffboardingProcessDto>(ApiRoutes.Offboarding.Documents(id), dto);
 
-    public async Task<HttpResponseMessage> UploadDocumentAsync(int id, int itemId, string fileName, string contentType, Stream content)
+    public async Task<HttpResponseMessage> UploadDocumentAsync(int id, int documentId, string fileName, string contentType, Stream content)
     {
         using var form = new MultipartFormDataContent();
         var streamContent = new StreamContent(content);
         streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
         form.Add(streamContent, "file", fileName);
-        return await PostMultipartAsync(ApiRoutes.Offboarding.ItemDocument(id, itemId), form);
+        return await PostMultipartAsync(ApiRoutes.Offboarding.DocumentUpload(id, documentId), form);
     }
 
-    public async Task<OffboardingProcessDto?> DeleteDocumentAsync(int id, int itemId)
+    public async Task<OffboardingProcessDto?> ApproveDocumentAsync(int id, int documentId)
+        => await PostAsync<OffboardingProcessDto>(ApiRoutes.Offboarding.DocumentApprove(id, documentId), new { });
+
+    public async Task<OffboardingProcessDto?> RequestDocumentCorrectionAsync(int id, int documentId)
+        => await PostAsync<OffboardingProcessDto>(ApiRoutes.Offboarding.DocumentRequestCorrection(id, documentId), new { });
+
+    public async Task<OffboardingProcessDto?> ReopenDocumentAsync(int id, int documentId)
+        => await PostAsync<OffboardingProcessDto>(ApiRoutes.Offboarding.DocumentReopen(id, documentId), new { });
+
+    public async Task<OffboardingProcessDto?> DeleteDocumentAsync(int id, int documentId)
     {
-        var response = await DeleteAsync(ApiRoutes.Offboarding.ItemDocument(id, itemId));
+        var response = await DeleteAsync(ApiRoutes.Offboarding.Document(id, documentId));
         return response.IsSuccessStatusCode ? await GetAsync(id) : null;
     }
 
-    public async Task<byte[]?> DownloadDocumentAsync(int id, int itemId)
+    public async Task<byte[]?> DownloadDocumentAsync(int id, int documentId)
     {
-        var resp = await ApiClient.GetAsync(ApiRoutes.Offboarding.ItemDocument(id, itemId));
+        var resp = await ApiClient.GetAsync(ApiRoutes.Offboarding.Document(id, documentId));
         return resp.IsSuccessStatusCode ? await resp.Content.ReadAsByteArrayAsync() : null;
     }
+
+    public async Task<List<DueSoonDocumentDto>?> GetDueSoonDocumentsAsync()
+        => await GetAsync<List<DueSoonDocumentDto>>(ApiRoutes.Offboarding.DueSoonDocuments);
 }

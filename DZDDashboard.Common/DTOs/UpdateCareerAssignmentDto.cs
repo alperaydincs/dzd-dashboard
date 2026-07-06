@@ -8,8 +8,6 @@ public record UpdateCareerAssignmentDto
     public int?    CareerPathId { get; init; }
     public int?    JobId        { get; init; }
     public int?    Grade        { get; init; }
-
     public int?    ManagerId       { get; init; }
-
     public string? NewPositionName { get; init; }
 }

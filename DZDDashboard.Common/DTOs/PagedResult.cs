@@ -14,11 +14,10 @@ public sealed record PagedResult<T>
 public sealed record PaginationParams
 {
     public const int DefaultPageSize = 50;
+    
     public const int MaxPageSize     = 200;
-
-    public int Page     { get; init; } = 1;
+    public int Page    { get; init; } = 1;
     public int PageSize { get; init; } = DefaultPageSize;
-
     public int NormalizedPage     => Math.Max(1, Page);
     public int NormalizedPageSize => Math.Clamp(PageSize, 1, MaxPageSize);
 }

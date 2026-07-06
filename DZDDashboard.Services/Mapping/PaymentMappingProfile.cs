@@ -28,32 +28,23 @@ public class PaymentMappingProfile : IRegister
             .Ignore("CreatedAt")
             .Ignore("ModifiedAt");
 
-        config.NewConfig<BenefitRecord, BenefitRecordDto>()
-            .Map(d => d.ModifiedByName, s => s.ModifiedBy != null ? AppFormatter.BuildFullName(s.ModifiedBy.FirstName, s.ModifiedBy.LastName) : null);
+        config.NewConfig<BenefitRecord, BenefitRecordDto>();
         config.NewConfig<BenefitRecordDto, BenefitRecord>()
             .Ignore("User")
             .Ignore("ModifiedBy")
             .Ignore("ModifiedById")
-            .Ignore("CreatedAt")
-            .Ignore("ModifiedAt")
             .Ignore("Dependents");
 
-        config.NewConfig<AdditionalPayment, AdditionalPaymentDto>()
-            .Map(d => d.ModifiedByName, s => s.ModifiedBy != null ? AppFormatter.BuildFullName(s.ModifiedBy.FirstName, s.ModifiedBy.LastName) : null);
+        config.NewConfig<AdditionalPayment, AdditionalPaymentDto>();
         config.NewConfig<AdditionalPaymentDto, AdditionalPayment>()
             .Ignore("User")
             .Ignore("ModifiedBy")
-            .Ignore("ModifiedById")
-            .Ignore("CreatedAt")
-            .Ignore("ModifiedAt");
+            .Ignore("ModifiedById");
 
-        config.NewConfig<Deduction, DeductionDto>()
-            .Map(d => d.ModifiedByName, s => s.ModifiedBy != null ? AppFormatter.BuildFullName(s.ModifiedBy.FirstName, s.ModifiedBy.LastName) : null);
+        config.NewConfig<Deduction, DeductionDto>();
         config.NewConfig<DeductionDto, Deduction>()
             .Ignore("User")
             .Ignore("ModifiedBy")
-            .Ignore("ModifiedById")
-            .Ignore("CreatedAt")
-            .Ignore("ModifiedAt");
+            .Ignore("ModifiedById");
     }
 }
