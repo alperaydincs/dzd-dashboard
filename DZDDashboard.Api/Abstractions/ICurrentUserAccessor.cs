@@ -7,7 +7,6 @@ namespace DZDDashboard.Api.Abstractions;
 public interface ICurrentUserAccessor
 {
     int? UserId { get; }
-
     int RequiredUserId { get; }
 }
 
