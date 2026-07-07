@@ -1,3 +1,4 @@
+using DZDDashboard.Api.Abstractions;
 using DZDDashboard.Api.Utils;
 using DZDDashboard.Common.Constants;
 using DZDDashboard.Common.DTOs;
@@ -14,8 +15,71 @@ public class OnboardingOffboardingController(
     IChecklistTemplateService checklistTemplates,
     IDocumentTemplateService documentTemplates,
     IOnboardingService onboarding,
-    IOffboardingService offboarding) : BaseController
+    IOffboardingService offboarding,
+    IUserDocumentService myDocuments,
+    ICurrentUserAccessor currentUser) : BaseController
 {
+    [Authorize]
+    [HttpGet("api/my-onboarding/state")]
+    public async Task<ActionResult<MyOnboardingStateDto>> GetMyOnboardingState(CancellationToken cancellationToken)
+    {
+        if (currentUser.UserId is not { } userId) return Unauthorized();
+        return Ok(await onboarding.GetOrStartMyAsync(userId, cancellationToken));
+    }
+
+    [Authorize]
+    [HttpGet("api/my-onboarding/documents")]
+    public async Task<ActionResult<List<UserDocumentDto>>> ListMyOnboardingDocuments(CancellationToken cancellationToken)
+    {
+        if (currentUser.UserId is not { } userId) return Unauthorized();
+        return Ok(await myDocuments.GetUserDocumentsAsync(userId, cancellationToken));
+    }
+
+    [Authorize]
+    [HttpPost("api/my-onboarding/documents")]
+    [EnableRateLimiting("upload")]
+    [RequestSizeLimit(DocumentConstants.MaxFileSizeBytes)]
+    [RequestFormLimits(MultipartBodyLengthLimit = DocumentConstants.MaxFileSizeBytes)]
+    public async Task<ActionResult<UserDocumentDto>> UploadMyOnboardingDocument([FromForm] IFormFile file, CancellationToken cancellationToken)
+    {
+        if (currentUser.UserId is not { } userId) return Unauthorized();
+
+        if (file == null || file.Length == 0)
+            return Problem("No file uploaded.", statusCode: 400, title: "Validation Error");
+
+        if (!DocumentConstants.AllowedMimeTypes.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
+            return Problem($"Unsupported file type '{file.ContentType}'.", statusCode: 400, title: "Validation Error");
+
+        using var ms = new MemoryStream((int)file.Length);
+        await file.CopyToAsync(ms, cancellationToken);
+        var bytes = ms.ToArray();
+
+        if (!FileMagicBytes.IsValid(bytes, file.ContentType))
+            return Problem("File content does not match the declared content type.", statusCode: 400, title: "Validation Error");
+
+        var fileName = Path.GetFileName(file.FileName);
+        return Ok(await myDocuments.UploadAsync(userId, fileName, file.ContentType, bytes, cancellationToken));
+    }
+
+    [Authorize]
+    [HttpGet("api/my-onboarding/documents/{documentId:int}/content")]
+    public async Task<IActionResult> DownloadMyOnboardingDocument(int documentId, CancellationToken cancellationToken)
+    {
+        if (currentUser.UserId is not { } userId) return Unauthorized();
+        var content = await myDocuments.GetContentAsync(userId, documentId, cancellationToken);
+        if (content is null) return NotFound();
+        return File(content.Value.Content, content.Value.ContentType ?? "application/octet-stream", content.Value.FileName);
+    }
+
+    [Authorize]
+    [HttpDelete("api/my-onboarding/documents/{documentId:int}")]
+    public async Task<IActionResult> DeleteMyOnboardingDocument(int documentId, CancellationToken cancellationToken)
+    {
+        if (currentUser.UserId is not { } userId) return Unauthorized();
+        await myDocuments.DeleteAsync(userId, documentId, cancellationToken);
+        return NoContent();
+    }
+
     [HttpGet("api/process-templates")]
     public async Task<ActionResult<List<ProcessTemplateDto>>> ListProcessTemplates([FromQuery] string kind, CancellationToken cancellationToken)
         => Ok(await processTemplates.GetAsync(kind, cancellationToken));

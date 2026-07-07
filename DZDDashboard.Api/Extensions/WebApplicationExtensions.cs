@@ -14,7 +14,6 @@ public static class WebApplicationExtensions
             app.MapOpenApi();
             app.UseDeveloperExceptionPage();
         }
-
         app.UseForwardedHeaders();
         app.UseHttpsRedirection();
         app.UseRateLimiter();
@@ -23,7 +22,6 @@ public static class WebApplicationExtensions
         app.UseMiddleware<EntraUserSyncMiddleware>();
         app.UseAuthorization();
         app.MapControllers().RequireRateLimiting("api");
-
         app.MapHealthChecks("/health", new HealthCheckOptions
         {
             ResultStatusCodes =
@@ -33,12 +31,10 @@ public static class WebApplicationExtensions
                 [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
             }
         }).AllowAnonymous();
-
         app.MapHealthChecks("/health/ready", new HealthCheckOptions
         {
             Predicate = check => check.Tags.Contains("ready")
         }).AllowAnonymous();
-
         return app;
     }
 }

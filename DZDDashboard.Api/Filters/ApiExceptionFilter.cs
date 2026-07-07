@@ -11,27 +11,24 @@ public class ApiExceptionFilter(ILogger<ApiExceptionFilter> logger) : IException
     {
         var ex      = context.Exception;
         var request = context.HttpContext.Request;
-
         context.Result = ex switch
         {
-            EntityNotFoundException e      => LogAndMap(e, StatusCodes.Status404NotFound,             "Not Found",           e.Message, isWarning: true),
-            DomainValidationException e    => LogAndMap(e, StatusCodes.Status400BadRequest,           "Validation Error",    e.Message, isWarning: true),
-            DomainConflictException e      => LogAndMap(e, StatusCodes.Status409Conflict,             "Conflict",            e.Message, isWarning: true),
-            UnauthorizedAccessException e  => LogAndMap(e, StatusCodes.Status403Forbidden,            "Forbidden",           e.Message, isWarning: true),
-            KeyNotFoundException e         => LogAndMap(e, StatusCodes.Status404NotFound,             "Not Found",           e.Message, isWarning: true),
-            DbUpdateConcurrencyException e => LogAndMap(e, StatusCodes.Status409Conflict,             "Conflict",            "The resource was modified by another request. Please retry.", isWarning: true),
+            EntityNotFoundException e      => LogAndMap(e, StatusCodes.Status404NotFound, "Not Found", e.Message, isWarning: true),
+            DomainValidationException e    => LogAndMap(e, StatusCodes.Status400BadRequest, "Validation Error", e.Message, isWarning: true),
+            DomainConflictException e      => LogAndMap(e, StatusCodes.Status409Conflict, "Conflict", e.Message, isWarning: true),
+            UnauthorizedAccessException e  => LogAndMap(e, StatusCodes.Status403Forbidden, "Forbidden", e.Message, isWarning: true),
+            KeyNotFoundException e         => LogAndMap(e, StatusCodes.Status404NotFound, "Not Found", e.Message, isWarning: true),
+            DbUpdateConcurrencyException e => LogAndMap(e, StatusCodes.Status409Conflict,  "Conflict", "The resource was modified by another request. Please retry.", isWarning: true),
             _                              => LogAndMap(ex, StatusCodes.Status500InternalServerError, "Internal Server Error", "An unexpected error occurred. Please contact support.", isWarning: false)
         };
 
         context.ExceptionHandled = true;
-
         ObjectResult LogAndMap(Exception e, int statusCode, string title, string detail, bool isWarning)
         {
             if (isWarning)
                 logger.LogWarning(e, "{Method} {Path} → {StatusCode} {Title}", request.Method, request.Path, statusCode, title);
             else
                 logger.LogError(e, "Unhandled exception for {Method} {Path}", request.Method, request.Path);
-
             return Problem(statusCode, title, detail);
         }
     }

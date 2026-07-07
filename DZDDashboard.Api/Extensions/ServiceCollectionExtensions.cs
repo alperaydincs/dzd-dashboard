@@ -11,7 +11,6 @@ using DZDDashboard.Services;
 using DZDDashboard.Services.Mapping;
 using FluentValidation;
 using Mapster;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Identity.Web;
