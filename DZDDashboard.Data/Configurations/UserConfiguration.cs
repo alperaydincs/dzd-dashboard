@@ -94,7 +94,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasIndex(u => u.OrganizationPositionId)
                .IsUnique()
-               .HasFilter("[OrganizationPositionId] IS NOT NULL")
+               .HasFilter("\"OrganizationPositionId\" IS NOT NULL")
                .HasDatabaseName("IX_Users_OrganizationPositionId");
 
         builder.HasOne(u => u.CareerPath)

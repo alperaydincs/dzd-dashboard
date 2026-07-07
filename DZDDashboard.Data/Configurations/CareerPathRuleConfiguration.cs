@@ -32,15 +32,15 @@ public class CareerPathRuleConfiguration : IEntityTypeConfiguration<CareerPathRu
             b.Property(d => d.Years).HasColumnName("MinExperienceYear");
         });
 
-        builder.Property(c => c.SalaryIncreasePercent).HasColumnType("decimal(5,2)");
+        builder.Property(c => c.SalaryIncreasePercent).HasPrecision(5, 2);
 
-        builder.Property(c => c.PrivatePensionInsuranceAmount).HasColumnType("decimal(18,2)");
+        builder.Property(c => c.PrivatePensionInsuranceAmount).HasPrecision(18, 2);
         builder.Property(c => c.PrivatePensionInsuranceCurrency).HasMaxLength(3);
 
-        builder.Property(c => c.EmployerContributionUpperLimitAmount).HasColumnType("decimal(18,2)");
+        builder.Property(c => c.EmployerContributionUpperLimitAmount).HasPrecision(18, 2);
         builder.Property(c => c.EmployerContributionUpperLimitCurrency).HasMaxLength(3);
 
-        builder.Property(c => c.MealAllowanceAmount).HasColumnType("decimal(18,2)");
+        builder.Property(c => c.MealAllowanceAmount).HasPrecision(18, 2);
         builder.Property(c => c.MealAllowanceCurrency).HasMaxLength(3);
 
         builder.HasOne(c => c.CareerPath)

@@ -11,7 +11,7 @@ public class StoredFileConfiguration : IEntityTypeConfiguration<StoredFile>
         builder.ToTable("Files");
         builder.HasKey(f => f.Id);
 
-        builder.Property(f => f.Content).HasColumnType("varbinary(max)").IsRequired();
+        builder.Property(f => f.Content).IsRequired();
         builder.Property(f => f.ContentType).HasMaxLength(200);
     }
 }
