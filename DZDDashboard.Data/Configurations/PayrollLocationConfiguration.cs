@@ -18,10 +18,5 @@ public class PayrollLocationConfiguration : IEntityTypeConfiguration<PayrollLoca
                .HasMaxLength(ValidationConstants.MaxEntityNameLength);
 
         builder.HasIndex(p => p.Location).IsUnique();
-
-        builder.HasOne(p => p.ModifiedBy)
-               .WithMany()
-               .HasForeignKey(p => p.ModifiedById)
-               .OnDelete(DeleteBehavior.Restrict);
     }
 }

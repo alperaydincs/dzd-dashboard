@@ -337,7 +337,7 @@ public partial class Employee
         var name = AppFormatter.BuildFullName(_profile.ReportsTo.FirstName, _profile.ReportsTo.LastName);
         return string.IsNullOrWhiteSpace(name) ? Loc["common.notAvailable"] : name;
     }
-    private string? GetManagerAvatarUrl() => _profile?.ReportsTo is { HasAvatar: true } m ? AvatarUrl.For(m.Id, m.AvatarUpdatedAt) : null;
+    private string? GetManagerAvatarUrl() => _profile?.ReportsTo is { HasAvatar: true } m ? AvatarUrl.For(m.Id, m.AvatarId) : null;
     private string GetManagerEmailDisplay() => _profile?.ReportsTo?.Email ?? Loc["common.notAvailable"];
     private string GetManagerPhoneDisplay() => _profile?.ReportsTo?.PhoneNumber is { } v ? AppFormatter.FormatPhoneDisplay(v) : Loc["common.notAvailable"];
 

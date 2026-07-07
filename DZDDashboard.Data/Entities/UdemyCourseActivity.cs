@@ -6,7 +6,7 @@ namespace DZDDashboard.Data.Entities;
 /// by e-mail when a match exists; unmatched rows are still stored so they can be
 /// reconciled later.
 /// </summary>
-public class UdemyCourseActivity : AuditableEntity
+public class UdemyCourseActivity : EntityWithHistory
 {
     public int Id { get; set; }
 

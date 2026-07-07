@@ -1,7 +1,6 @@
 ﻿@page "/employees"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = Roles.AdminOrHrPolicy)]
 @using DZDDashboard.Client.Components.OrgChart
-@using DZDDashboard.Client.Components.Pages.Onboarding.Dialogs
 @using DZDDashboard.Client.Services
 @using DZDDashboard.Common.Constants
 @using DZDDashboard.Common.DTOs
@@ -10,7 +9,6 @@
 @inject NavigationManager Nav
 @inject IOrganizationClientService OrgService
 @inject IUserClientService UserService
-@inject IOnboardingClientService OnboardingService
 @inject IDialogService DialogService
 @inject DZDDashboard.Client.Localization.AppLocalizer Loc
 
@@ -363,7 +361,7 @@
         => !string.IsNullOrWhiteSpace(u.PhoneNumber) ? DzdIcons.Phone : DzdIcons.Mail;
 
     private static string? AvatarSrc(UserSummaryDto u)
-        => u.Avatar is null ? null : AvatarUrl.For(u.Id, u.Avatar.UpdatedAt);
+        => u.Avatar is null ? null : AvatarUrl.For(u.Id, u.Avatar.Id);
 
     private void SetView(int index)
     {
@@ -373,18 +371,7 @@
     private void ImportEmployees() => Snackbar.Add(Loc["employees.featureComingSoon"], Severity.Info);
     private void ExportEmployees() => Snackbar.Add(Loc["employees.featureComingSoon"], Severity.Info);
 
-    private async Task AddEmployee()
-    {
-        var dialog = await DialogService.ShowAsync<StartOnboardingDialog>(Loc["onboarding.dialogTitle"]);
-        var result = await dialog.Result;
-        if (result is { Canceled: false, Data: StartOnboardingDto dto })
-        {
-            var created = await OnboardingService.StartAsync(dto);
-            if (created is null) { Snackbar.Add(Loc["onboarding.startFailed"], Severity.Error); return; }
-            Snackbar.Add(Loc["onboarding.startSuccess"], Severity.Success);
-            Nav.NavigateTo("/onboarding-offboarding");
-        }
-    }
+    private void AddEmployee() => Snackbar.Add(Loc["employees.featureComingSoon"], Severity.Info);
 
     private void View(UserSummaryDto user)
     {

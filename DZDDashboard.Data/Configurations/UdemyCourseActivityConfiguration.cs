@@ -39,10 +39,5 @@ public class UdemyCourseActivityConfiguration : IEntityTypeConfiguration<UdemyCo
                .WithMany()
                .HasForeignKey(a => a.UserId)
                .OnDelete(DeleteBehavior.SetNull);
-
-        builder.HasOne(a => a.ModifiedBy)
-               .WithMany()
-               .HasForeignKey(a => a.ModifiedById)
-               .OnDelete(DeleteBehavior.Restrict);
     }
 }

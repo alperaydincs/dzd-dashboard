@@ -34,9 +34,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Currency")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -48,12 +45,6 @@ namespace DZDDashboard.Data.Migrations
 
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
 
                     b.Property<string>("PaymentType")
                         .HasMaxLength(200)
@@ -72,64 +63,12 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ModifiedById");
-
                     b.HasIndex("UserId", "Period");
 
                     b.ToTable("UserAdditionalPayments", (string)null);
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.BenefitDependent", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<int>("BenefitRecordId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DependentName")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("RelationType")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BenefitRecordId");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.ToTable("UserBenefitDependents", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.BenefitRecord", b =>
+            modelBuilder.Entity("DZDDashboard.Data.Entities.BenefitPayment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -150,30 +89,13 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Currency")
                         .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)");
 
-                    b.Property<decimal?>("EmployeeContributionAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<decimal?>("EmployerContributionAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
@@ -181,10 +103,6 @@ namespace DZDDashboard.Data.Migrations
 
                     b.Property<string>("Period")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("PolicyNumber")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
@@ -200,11 +118,49 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ModifiedById");
-
                     b.HasIndex("UserId", "BenefitType", "StartDate");
 
                     b.ToTable("UserBenefitRecords", (string)null);
+
+                    b.HasDiscriminator<string>("BenefitType").HasValue("BenefitPayment");
+
+                    b.UseTphMappingStrategy();
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.BenefitPaymentDependent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("BenefitPaymentId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DependentName")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RelationType")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BenefitPaymentId");
+
+                    b.ToTable("UserBenefitDependents", (string)null);
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.CareerPath", b =>
@@ -215,23 +171,12 @@ namespace DZDDashboard.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
 
                     b.ToTable("CareerPaths", (string)null);
                 });
@@ -262,9 +207,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<decimal?>("EmployerContributionUpperLimitAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
@@ -294,12 +236,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(3)
                         .HasColumnType("character varying(3)");
 
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
-
                     b.Property<decimal?>("PrivatePensionInsuranceAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
@@ -322,8 +258,6 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ModifiedById");
-
                     b.HasIndex("CareerPathId", "Grade")
                         .IsUnique();
 
@@ -345,250 +279,6 @@ namespace DZDDashboard.Data.Migrations
                     b.ToTable("CareerPathRuleJobs", (string)null);
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.ChecklistItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("CompletedById")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsRequired")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("OffboardingProcessId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("OnboardingProcessId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Sequence")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CompletedById");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("OffboardingProcessId");
-
-                    b.HasIndex("OnboardingProcessId");
-
-                    b.ToTable("ChecklistItems", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.ChecklistStepTemplate", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsRequired")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ProcessTemplateId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Sequence")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("ProcessTemplateId");
-
-                    b.ToTable("ChecklistStepTemplates", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsRequired = true,
-                            ProcessTemplateId = 1,
-                            Sequence = 1,
-                            Title = "Contract prepared and signed"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsRequired = true,
-                            ProcessTemplateId = 1,
-                            Sequence = 2,
-                            Title = "Social security registration completed"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsRequired = true,
-                            ProcessTemplateId = 1,
-                            Sequence = 3,
-                            Title = "Accountant notified"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsRequired = true,
-                            ProcessTemplateId = 1,
-                            Sequence = 4,
-                            Title = "Private Pension System (BES) account opened"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsRequired = true,
-                            ProcessTemplateId = 1,
-                            Sequence = 5,
-                            Title = "Private Health Insurance (ÖSS) opened"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsRequired = true,
-                            ProcessTemplateId = 1,
-                            Sequence = 6,
-                            Title = "Computer delivered"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsRequired = true,
-                            ProcessTemplateId = 2,
-                            Sequence = 1,
-                            Title = "Resignation letter received"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsRequired = true,
-                            ProcessTemplateId = 2,
-                            Sequence = 2,
-                            Title = "Social security exit processed"
-                        },
-                        new
-                        {
-                            Id = 9,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsRequired = true,
-                            ProcessTemplateId = 2,
-                            Sequence = 3,
-                            Title = "Access revoked"
-                        },
-                        new
-                        {
-                            Id = 10,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsRequired = true,
-                            ProcessTemplateId = 2,
-                            Sequence = 4,
-                            Title = "Asset return confirmed"
-                        },
-                        new
-                        {
-                            Id = 11,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsRequired = true,
-                            ProcessTemplateId = 2,
-                            Sequence = 5,
-                            Title = "Final settlement calculated"
-                        },
-                        new
-                        {
-                            Id = 12,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsRequired = true,
-                            ProcessTemplateId = 3,
-                            Sequence = 1,
-                            Title = "Justification documented"
-                        },
-                        new
-                        {
-                            Id = 13,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsRequired = true,
-                            ProcessTemplateId = 3,
-                            Sequence = 2,
-                            Title = "Settlement/severance calculated"
-                        },
-                        new
-                        {
-                            Id = 14,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsRequired = true,
-                            ProcessTemplateId = 3,
-                            Sequence = 3,
-                            Title = "Social security exit processed"
-                        },
-                        new
-                        {
-                            Id = 15,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsRequired = true,
-                            ProcessTemplateId = 3,
-                            Sequence = 4,
-                            Title = "Access revoked"
-                        },
-                        new
-                        {
-                            Id = 16,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsRequired = true,
-                            ProcessTemplateId = 3,
-                            Sequence = 5,
-                            Title = "Asset return confirmed"
-                        });
-                });
-
             modelBuilder.Entity("DZDDashboard.Data.Entities.ChildInfo", b =>
                 {
                     b.Property<int>("Id")
@@ -597,9 +287,6 @@ namespace DZDDashboard.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<DateTime?>("DateOfBirth")
                         .HasColumnType("timestamp with time zone");
 
@@ -607,18 +294,10 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
-
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
 
                     b.HasIndex("UserId");
 
@@ -633,23 +312,12 @@ namespace DZDDashboard.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
 
                     b.HasIndex("Name")
                         .IsUnique();
@@ -669,9 +337,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Currency")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -683,12 +348,6 @@ namespace DZDDashboard.Data.Migrations
 
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
@@ -707,8 +366,6 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ModifiedById");
-
                     b.HasIndex("UserId", "StartDate");
 
                     b.ToTable("UserDeductions", (string)null);
@@ -725,15 +382,6 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<int?>("CompanyId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -743,179 +391,19 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasIndex("CompanyId");
 
-                    b.HasIndex("ModifiedById");
-
                     b.HasIndex("Name")
                         .IsUnique();
 
                     b.ToTable("Departments", (string)null);
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.DocumentTemplate", b =>
+            modelBuilder.Entity("DZDDashboard.Data.Entities.Education", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("DeadlineDays")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IsRequired")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<int>("ProcessTemplateId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Sequence")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("ProcessTemplateId");
-
-                    b.ToTable("DocumentTemplates", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DeadlineDays = 4,
-                            IsRequired = true,
-                            Name = "İkametgâh",
-                            ProcessTemplateId = 1,
-                            Sequence = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DeadlineDays = 4,
-                            IsRequired = true,
-                            Name = "Diploma",
-                            ProcessTemplateId = 1,
-                            Sequence = 2
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DeadlineDays = 6,
-                            IsRequired = true,
-                            Name = "Nüfus Kayıt Örneği",
-                            ProcessTemplateId = 1,
-                            Sequence = 3
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DeadlineDays = 9,
-                            IsRequired = true,
-                            Name = "TC Kimlik Kartı Fotokopisi",
-                            ProcessTemplateId = 1,
-                            Sequence = 4
-                        },
-                        new
-                        {
-                            Id = 5,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DeadlineDays = 9,
-                            IsRequired = false,
-                            Name = "Adli Sicil Kaydı",
-                            ProcessTemplateId = 1,
-                            Sequence = 5
-                        },
-                        new
-                        {
-                            Id = 6,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DeadlineDays = 9,
-                            IsRequired = false,
-                            Name = "Akciğer grafisi, hemogram ve göz raporu",
-                            ProcessTemplateId = 1,
-                            Sequence = 6
-                        },
-                        new
-                        {
-                            Id = 7,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DeadlineDays = 7,
-                            IsRequired = true,
-                            Name = "Akbank Maaş Hesabı Bilgisi",
-                            ProcessTemplateId = 1,
-                            Sequence = 7
-                        },
-                        new
-                        {
-                            Id = 8,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DeadlineDays = 1,
-                            IsRequired = true,
-                            Name = "İstifa Dilekçesi",
-                            ProcessTemplateId = 2,
-                            Sequence = 1
-                        },
-                        new
-                        {
-                            Id = 9,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DeadlineDays = 7,
-                            IsRequired = true,
-                            Name = "Zimmet İade Tutanağı",
-                            ProcessTemplateId = 2,
-                            Sequence = 2
-                        },
-                        new
-                        {
-                            Id = 10,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DeadlineDays = 1,
-                            IsRequired = true,
-                            Name = "Fesih Bildirimi",
-                            ProcessTemplateId = 3,
-                            Sequence = 1
-                        },
-                        new
-                        {
-                            Id = 11,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DeadlineDays = 7,
-                            IsRequired = true,
-                            Name = "Zimmet İade Tutanağı",
-                            ProcessTemplateId = 3,
-                            Sequence = 2
-                        });
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.EducationHistory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("EducationLevel")
                         .HasMaxLength(200)
@@ -927,12 +415,6 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<string>("Institution")
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Program")
                         .HasMaxLength(200)
@@ -947,11 +429,9 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ModifiedById");
-
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserEducationHistories", (string)null);
+                    b.ToTable("UserEducations", (string)null);
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.EmergencyContact", b =>
@@ -962,18 +442,9 @@ namespace DZDDashboard.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("FullName")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
 
                     b.Property<string>("PhoneNumber")
                         .HasMaxLength(20)
@@ -988,11 +459,1260 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ModifiedById");
-
                     b.HasIndex("UserId");
 
                     b.ToTable("EmergencyContacts");
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.AdditionalPaymentHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("PaymentType")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Period")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("AdditionalPaymentHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.BenefitPaymentDependentHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("BenefitPaymentId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DependentName")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("RelationType")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("BenefitPaymentDependentHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.CareerPathHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("CareerPathHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.CareerPathRuleHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<bool>("AssessmentCenterApplication")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("CareerPathId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("CaseStudy")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CommitteeApproval")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal?>("EmployerContributionUpperLimitAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("EmployerContributionUpperLimitCurrency")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("EnglishProficiency")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Grade")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("ManagerPerformanceEvaluation")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal?>("MealAllowanceAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("MealAllowanceCurrency")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("MinExperienceMonths")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("MinExperienceYears")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("MinRoleTimeMonths")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("MinRoleTimeYears")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<decimal?>("PrivatePensionInsuranceAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("PrivatePensionInsuranceCurrency")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("ProjectObjective")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("SalaryIncreasePercent")
+                        .HasColumnType("numeric");
+
+                    b.Property<bool>("TechnicalInterview")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("CareerPathRuleHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.ChildInfoHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<DateTime?>("DateOfBirth")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FullName")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("ChildInfoHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.CompanyHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("CompanyHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.DeductionHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("DeductionType")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("Period")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("DeductionHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.DepartmentHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("DepartmentHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.EducationHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<string>("EducationLevel")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("GraduationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Institution")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("Program")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("text");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("EducationHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.EmergencyContactHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<string>("FullName")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Relationship")
+                        .HasColumnType("text");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("EmergencyContactHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.HealthInsuranceBenefitHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("BenefitName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("BenefitType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("Period")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProviderName")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("HealthInsuranceBenefitHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.JobHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("Level")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("text");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("JobHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.OrganizationPositionHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("OrganizationPositionHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.OtherBenefitHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("BenefitName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("BenefitType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("Period")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProviderName")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("OtherBenefitHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.PayrollLocationHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("PayrollLocationHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.PensionBenefitHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("BenefitName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("BenefitType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("EmployeeContributionAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("EmployerContributionAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("Period")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PolicyNumber")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProviderName")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("PensionBenefitHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.PositionHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<string>("ChangeType")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CompanyName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DepartmentName")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("Grade")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("JobTitle")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TeamName")
+                        .HasColumnType("text");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("PositionHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.SalaryHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("NotesModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("PayType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PayrollCycle")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Period")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("SalaryHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.StoredFileHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<string>("ContentType")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("StoredFileHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.TeamHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<int?>("DepartmentId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("TeamHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.UdemyCourseActivityHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<string>("AssignedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("CompletionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<double>("CompletionRatio")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("CourseCategory")
+                        .HasColumnType("text");
+
+                    b.Property<double?>("CourseDurationMinutes")
+                        .HasColumnType("double precision");
+
+                    b.Property<long>("CourseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CourseTitle")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("EnrollDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsAssigned")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastAccessedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("LastSyncedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("UdemyUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("UserEmail")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserExternalId")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("UdemyCourseActivityHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.UserCvDocumentHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<string>("ContentType")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("FileId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("FileName")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("UserCvDocumentHistory", (string)null);
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.History.UserHistory", b =>
+                {
+                    b.Property<long>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("HistoryId"));
+
+                    b.Property<int?>("AvatarColorIndex")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("AvatarId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CareerPathId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CitizenshipNumber")
+                        .HasColumnType("text");
+
+                    b.Property<string>("City")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ContractEndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ContractType")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Country")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CurrentAddress")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("CurrentAddressChangedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DateOfBirth")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("DepartmentId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DisabilityDegree")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("DisabilityStatus")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EntraObjectId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FirstName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Gender")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("Grade")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("HistoryRecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("HistoryRecordedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<int?>("JobId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("LastName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LegalAddress")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LegalAddressCity")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LegalAddressCountry")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LifecycleStatus")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("MaritalStatus")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Nationality")
+                        .HasColumnType("text");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<int?>("OrganizationPositionId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("PayrollLocationId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("PersonalEmail")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PersonalPhoneNumber")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("PositionStartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("PositionUpdateDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RegistrationNumber")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("ReportsToId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SpouseFullName")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("TeamId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UserStartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("WorkModel")
+                        .HasColumnType("text");
+
+                    b.HasKey("HistoryId");
+
+                    b.HasIndex("Id");
+
+                    b.ToTable("UserHistory", (string)null);
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.Job", b =>
@@ -1003,16 +1723,7 @@ namespace DZDDashboard.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<int?>("Level")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
                         .HasColumnType("integer");
 
                     b.Property<string>("Title")
@@ -1022,160 +1733,10 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ModifiedById");
-
                     b.HasIndex("Title")
                         .IsUnique();
 
                     b.ToTable("Jobs", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.LifecycleAuditLogEntry", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Detail")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<int?>("OffboardingProcessId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("OnboardingProcessId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("PerformedById")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OffboardingProcessId");
-
-                    b.HasIndex("OnboardingProcessId");
-
-                    b.HasIndex("PerformedById");
-
-                    b.ToTable("LifecycleAuditLogEntries", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.OffboardingProcess", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("ExitDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<int>("TemplateId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("TemplateName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("TemplateId");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("OffboardingProcesses", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.OnboardingProcess", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ManagerId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<int>("TemplateId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("TemplateName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ManagerId");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("TemplateId");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("OnboardingProcesses", (string)null);
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.OrganizationPosition", b =>
@@ -1186,15 +1747,6 @@ namespace DZDDashboard.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -1204,8 +1756,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
 
                     b.HasIndex("ParentId")
                         .HasDatabaseName("IX_OrganizationPositions_ParentId");
@@ -1221,31 +1771,20 @@ namespace DZDDashboard.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Location")
                         .IsUnique();
 
-                    b.HasIndex("ModifiedById");
-
                     b.ToTable("PayrollLocations", (string)null);
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.PositionHistory", b =>
+            modelBuilder.Entity("DZDDashboard.Data.Entities.Position", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1261,9 +1800,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("DepartmentName")
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
@@ -1278,12 +1814,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -1296,158 +1826,13 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ModifiedById");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserPositionHistories", (string)null);
+                    b.ToTable("UserPositions", (string)null);
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.ProcessDocument", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ContentType")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("Deadline")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("FileId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("FileName")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
-                    b.Property<bool>("IsRequired")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<int?>("OffboardingProcessId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("OnboardingProcessId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("ReviewedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ReviewedById")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime?>("UploadedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("UploadedById")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FileId");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.HasIndex("OffboardingProcessId");
-
-                    b.HasIndex("OnboardingProcessId");
-
-                    b.HasIndex("ReviewedById");
-
-                    b.HasIndex("UploadedById");
-
-                    b.ToTable("ProcessDocuments", (string)null);
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.ProcessTemplate", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Kind")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<int>("Sequence")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Kind");
-
-                    b.HasIndex("ModifiedById");
-
-                    b.ToTable("ProcessTemplates", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Kind = "Onboarding",
-                            Name = "General Onboarding",
-                            Sequence = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Kind = "Offboarding",
-                            Name = "Resignation",
-                            Sequence = 1
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Kind = "Offboarding",
-                            Name = "Termination",
-                            Sequence = 2
-                        });
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.SalaryHistory", b =>
+            modelBuilder.Entity("DZDDashboard.Data.Entities.Salary", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1459,9 +1844,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Currency")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -1469,12 +1851,6 @@ namespace DZDDashboard.Data.Migrations
 
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
@@ -1505,11 +1881,10 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ModifiedById");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
-                    b.HasIndex("UserId", "StartDate");
-
-                    b.ToTable("UserSalaryHistories", (string)null);
+                    b.ToTable("UserSalaries", (string)null);
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.StoredFile", b =>
@@ -1528,21 +1903,10 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
-
                     b.Property<long>("SizeBytes")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
 
                     b.ToTable("Files", (string)null);
                 });
@@ -1555,16 +1919,7 @@ namespace DZDDashboard.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<int?>("DepartmentId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
                         .HasColumnType("integer");
 
                     b.Property<string>("Name")
@@ -1575,8 +1930,6 @@ namespace DZDDashboard.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("DepartmentId");
-
-                    b.HasIndex("ModifiedById");
 
                     b.HasIndex("Name")
                         .IsUnique();
@@ -1617,9 +1970,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("character varying(250)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<DateTime?>("EnrollDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -1631,12 +1981,6 @@ namespace DZDDashboard.Data.Migrations
 
                     b.Property<DateTime>("LastSyncedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("StartDate")
                         .HasColumnType("timestamp with time zone");
@@ -1657,8 +2001,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
 
                     b.HasIndex("UserId");
 
@@ -1706,9 +2048,6 @@ namespace DZDDashboard.Data.Migrations
                     b.Property<string>("Country")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CurrentAddress")
                         .HasMaxLength(500)
@@ -1784,12 +2123,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Nationality")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -1864,8 +2197,6 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasIndex("JobId");
 
-                    b.HasIndex("ModifiedById");
-
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("IX_Users_NormalizedEmail");
 
@@ -1903,9 +2234,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<int?>("FileId")
                         .HasColumnType("integer");
 
@@ -1919,25 +2247,11 @@ namespace DZDDashboard.Data.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ReviewNote")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<string>("ReviewStatus")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasDefaultValue("Pending");
-
                     b.Property<long>("SizeBytes")
                         .HasColumnType("bigint");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
@@ -1946,76 +2260,76 @@ namespace DZDDashboard.Data.Migrations
 
                     b.HasIndex("FileId");
 
-                    b.HasIndex("ModifiedById");
-
                     b.HasIndex("UserId", "FileName")
                         .IsUnique();
 
                     b.ToTable("UserCvDocuments", (string)null);
                 });
 
+            modelBuilder.Entity("DZDDashboard.Data.Entities.HealthInsuranceBenefit", b =>
+                {
+                    b.HasBaseType("DZDDashboard.Data.Entities.BenefitPayment");
+
+                    b.HasDiscriminator().HasValue("Health Insurance");
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.OtherBenefit", b =>
+                {
+                    b.HasBaseType("DZDDashboard.Data.Entities.BenefitPayment");
+
+                    b.HasDiscriminator().HasValue("Other");
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.PensionBenefit", b =>
+                {
+                    b.HasBaseType("DZDDashboard.Data.Entities.BenefitPayment");
+
+                    b.Property<decimal?>("EmployeeContributionAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal?>("EmployerContributionAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("PolicyNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasDiscriminator().HasValue("Private Pension");
+                });
+
             modelBuilder.Entity("DZDDashboard.Data.Entities.AdditionalPayment", b =>
                 {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("DZDDashboard.Data.Entities.User", "User")
                         .WithMany("AdditionalPayments")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("ModifiedBy");
-
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.BenefitDependent", b =>
+            modelBuilder.Entity("DZDDashboard.Data.Entities.BenefitPayment", b =>
                 {
-                    b.HasOne("DZDDashboard.Data.Entities.BenefitRecord", "BenefitRecord")
-                        .WithMany("Dependents")
-                        .HasForeignKey("BenefitRecordId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("BenefitRecord");
-
-                    b.Navigation("ModifiedBy");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.BenefitRecord", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("DZDDashboard.Data.Entities.User", "User")
-                        .WithMany("BenefitRecords")
+                        .WithMany("BenefitPayments")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("ModifiedBy");
-
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.CareerPath", b =>
+            modelBuilder.Entity("DZDDashboard.Data.Entities.BenefitPaymentDependent", b =>
                 {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
+                    b.HasOne("DZDDashboard.Data.Entities.HealthInsuranceBenefit", "BenefitPayment")
+                        .WithMany("Dependents")
+                        .HasForeignKey("BenefitPaymentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("ModifiedBy");
+                    b.Navigation("BenefitPayment");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.CareerPathRule", b =>
@@ -2025,11 +2339,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasForeignKey("CareerPathId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.OwnsOne("DZDDashboard.Data.Entities.RoleDuration", "MinExperience", b1 =>
                         {
@@ -2080,8 +2389,6 @@ namespace DZDDashboard.Data.Migrations
 
                     b.Navigation("MinRoleTime")
                         .IsRequired();
-
-                    b.Navigation("ModifiedBy");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.CareerPathRuleJob", b =>
@@ -2103,96 +2410,24 @@ namespace DZDDashboard.Data.Migrations
                     b.Navigation("Job");
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.ChecklistItem", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "CompletedBy")
-                        .WithMany()
-                        .HasForeignKey("CompletedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.OffboardingProcess", "OffboardingProcess")
-                        .WithMany("Items")
-                        .HasForeignKey("OffboardingProcessId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("DZDDashboard.Data.Entities.OnboardingProcess", "OnboardingProcess")
-                        .WithMany("Items")
-                        .HasForeignKey("OnboardingProcessId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("CompletedBy");
-
-                    b.Navigation("ModifiedBy");
-
-                    b.Navigation("OffboardingProcess");
-
-                    b.Navigation("OnboardingProcess");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.ChecklistStepTemplate", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.ProcessTemplate", "ProcessTemplate")
-                        .WithMany("ChecklistItems")
-                        .HasForeignKey("ProcessTemplateId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ModifiedBy");
-
-                    b.Navigation("ProcessTemplate");
-                });
-
             modelBuilder.Entity("DZDDashboard.Data.Entities.ChildInfo", b =>
                 {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById");
-
                     b.HasOne("DZDDashboard.Data.Entities.User", "User")
                         .WithMany("Children")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ModifiedBy");
-
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Company", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ModifiedBy");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.Deduction", b =>
                 {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("DZDDashboard.Data.Entities.User", "User")
                         .WithMany("Deductions")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("ModifiedBy");
 
                     b.Navigation("User");
                 });
@@ -2204,283 +2439,61 @@ namespace DZDDashboard.Data.Migrations
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("Company");
-
-                    b.Navigation("ModifiedBy");
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.DocumentTemplate", b =>
+            modelBuilder.Entity("DZDDashboard.Data.Entities.Education", b =>
                 {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.ProcessTemplate", "ProcessTemplate")
-                        .WithMany("Documents")
-                        .HasForeignKey("ProcessTemplateId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ModifiedBy");
-
-                    b.Navigation("ProcessTemplate");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.EducationHistory", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("DZDDashboard.Data.Entities.User", "User")
                         .WithMany("EducationHistories")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ModifiedBy");
-
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.EmergencyContact", b =>
                 {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("DZDDashboard.Data.Entities.User", "User")
                         .WithMany("EmergencyContacts")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ModifiedBy");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.Job", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ModifiedBy");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.LifecycleAuditLogEntry", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.OffboardingProcess", "OffboardingProcess")
-                        .WithMany("AuditLog")
-                        .HasForeignKey("OffboardingProcessId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("DZDDashboard.Data.Entities.OnboardingProcess", "OnboardingProcess")
-                        .WithMany("AuditLog")
-                        .HasForeignKey("OnboardingProcessId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "PerformedBy")
-                        .WithMany()
-                        .HasForeignKey("PerformedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("OffboardingProcess");
-
-                    b.Navigation("OnboardingProcess");
-
-                    b.Navigation("PerformedBy");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.OffboardingProcess", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.ProcessTemplate", null)
-                        .WithMany()
-                        .HasForeignKey("TemplateId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "User")
-                        .WithOne("OffboardingProcess")
-                        .HasForeignKey("DZDDashboard.Data.Entities.OffboardingProcess", "UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("ModifiedBy");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.OnboardingProcess", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "Manager")
-                        .WithMany()
-                        .HasForeignKey("ManagerId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.ProcessTemplate", null)
-                        .WithMany()
-                        .HasForeignKey("TemplateId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "User")
-                        .WithOne("OnboardingProcess")
-                        .HasForeignKey("DZDDashboard.Data.Entities.OnboardingProcess", "UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Manager");
-
-                    b.Navigation("ModifiedBy");
-
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.OrganizationPosition", b =>
                 {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("DZDDashboard.Data.Entities.OrganizationPosition", "Parent")
                         .WithMany("Children")
                         .HasForeignKey("ParentId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("ModifiedBy");
-
                     b.Navigation("Parent");
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.PayrollLocation", b =>
+            modelBuilder.Entity("DZDDashboard.Data.Entities.Position", b =>
                 {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ModifiedBy");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.PositionHistory", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById");
-
                     b.HasOne("DZDDashboard.Data.Entities.User", "User")
-                        .WithMany("PositionHistories")
-                        .HasForeignKey("UserId")
+                        .WithOne("Position")
+                        .HasForeignKey("DZDDashboard.Data.Entities.Position", "UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("ModifiedBy");
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.ProcessDocument", b =>
+            modelBuilder.Entity("DZDDashboard.Data.Entities.Salary", b =>
                 {
-                    b.HasOne("DZDDashboard.Data.Entities.StoredFile", "File")
-                        .WithMany()
-                        .HasForeignKey("FileId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.OffboardingProcess", "OffboardingProcess")
-                        .WithMany("Documents")
-                        .HasForeignKey("OffboardingProcessId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("DZDDashboard.Data.Entities.OnboardingProcess", "OnboardingProcess")
-                        .WithMany("Documents")
-                        .HasForeignKey("OnboardingProcessId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ReviewedBy")
-                        .WithMany()
-                        .HasForeignKey("ReviewedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("DZDDashboard.Data.Entities.User", "UploadedBy")
-                        .WithMany()
-                        .HasForeignKey("UploadedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("File");
-
-                    b.Navigation("ModifiedBy");
-
-                    b.Navigation("OffboardingProcess");
-
-                    b.Navigation("OnboardingProcess");
-
-                    b.Navigation("ReviewedBy");
-
-                    b.Navigation("UploadedBy");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.ProcessTemplate", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ModifiedBy");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.SalaryHistory", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("DZDDashboard.Data.Entities.User", "User")
-                        .WithMany("SalaryHistories")
-                        .HasForeignKey("UserId")
+                        .WithOne("Salary")
+                        .HasForeignKey("DZDDashboard.Data.Entities.Salary", "UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("ModifiedBy");
-
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.StoredFile", b =>
-                {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById");
-
-                    b.Navigation("ModifiedBy");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.Team", b =>
@@ -2490,29 +2503,15 @@ namespace DZDDashboard.Data.Migrations
                         .HasForeignKey("DepartmentId")
                         .OnDelete(DeleteBehavior.ClientCascade);
 
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("Department");
-
-                    b.Navigation("ModifiedBy");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.UdemyCourseActivity", b =>
                 {
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("DZDDashboard.Data.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("ModifiedBy");
 
                     b.Navigation("User");
                 });
@@ -2544,11 +2543,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasForeignKey("JobId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("DZDDashboard.Data.Entities.OrganizationPosition", "OrganizationPosition")
                         .WithMany("Users")
                         .HasForeignKey("OrganizationPositionId")
@@ -2579,8 +2573,6 @@ namespace DZDDashboard.Data.Migrations
 
                     b.Navigation("Job");
 
-                    b.Navigation("ModifiedBy");
-
                     b.Navigation("OrganizationPosition");
 
                     b.Navigation("PayrollLocation");
@@ -2597,11 +2589,6 @@ namespace DZDDashboard.Data.Migrations
                         .HasForeignKey("FileId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("DZDDashboard.Data.Entities.User", "ModifiedBy")
-                        .WithMany()
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("DZDDashboard.Data.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -2610,14 +2597,7 @@ namespace DZDDashboard.Data.Migrations
 
                     b.Navigation("File");
 
-                    b.Navigation("ModifiedBy");
-
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.BenefitRecord", b =>
-                {
-                    b.Navigation("Dependents");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.CareerPath", b =>
@@ -2647,36 +2627,11 @@ namespace DZDDashboard.Data.Migrations
                     b.Navigation("Users");
                 });
 
-            modelBuilder.Entity("DZDDashboard.Data.Entities.OffboardingProcess", b =>
-                {
-                    b.Navigation("AuditLog");
-
-                    b.Navigation("Documents");
-
-                    b.Navigation("Items");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.OnboardingProcess", b =>
-                {
-                    b.Navigation("AuditLog");
-
-                    b.Navigation("Documents");
-
-                    b.Navigation("Items");
-                });
-
             modelBuilder.Entity("DZDDashboard.Data.Entities.OrganizationPosition", b =>
                 {
                     b.Navigation("Children");
 
                     b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("DZDDashboard.Data.Entities.ProcessTemplate", b =>
-                {
-                    b.Navigation("ChecklistItems");
-
-                    b.Navigation("Documents");
                 });
 
             modelBuilder.Entity("DZDDashboard.Data.Entities.Team", b =>
@@ -2688,7 +2643,7 @@ namespace DZDDashboard.Data.Migrations
                 {
                     b.Navigation("AdditionalPayments");
 
-                    b.Navigation("BenefitRecords");
+                    b.Navigation("BenefitPayments");
 
                     b.Navigation("Children");
 
@@ -2698,15 +2653,16 @@ namespace DZDDashboard.Data.Migrations
 
                     b.Navigation("EmergencyContacts");
 
-                    b.Navigation("OffboardingProcess");
+                    b.Navigation("Position");
 
-                    b.Navigation("OnboardingProcess");
-
-                    b.Navigation("PositionHistories");
-
-                    b.Navigation("SalaryHistories");
+                    b.Navigation("Salary");
 
                     b.Navigation("Subordinates");
+                });
+
+            modelBuilder.Entity("DZDDashboard.Data.Entities.HealthInsuranceBenefit", b =>
+                {
+                    b.Navigation("Dependents");
                 });
 #pragma warning restore 612, 618
         }

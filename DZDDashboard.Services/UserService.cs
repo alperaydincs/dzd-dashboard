@@ -15,7 +15,6 @@ public partial class UserService(
     AppDbContext context,
     IFileStorageService fileStorage,
     IReportsToCalculator reportsToCalculator,
-    IOptions<OnboardingOptions> onboardingOptions,
     ILogger<UserService> logger)
     : IUserService, IUserReadService, IUserWriteService, IUserSyncService
 {

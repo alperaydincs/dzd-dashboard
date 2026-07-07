@@ -9,6 +9,6 @@ public record OrgChartUserDto
     public int?    AvatarColorIndex { get; init; }
     public string? Email     { get; init; }
     public DepartmentDto? Department { get; init; }
-    public bool      HasAvatar       { get; init; }
-    public DateTime? AvatarUpdatedAt { get; init; }
+    public bool HasAvatar { get; init; }
+    public int? AvatarId  { get; init; }
 }

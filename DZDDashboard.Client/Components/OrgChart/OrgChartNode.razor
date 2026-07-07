@@ -100,7 +100,7 @@
     [Parameter] public EventCallback<OrgChartNodeItem> OnNodeSelected { get; set; }
 
     private static string? AvatarSrc(OrgChartUserDto u)
-        => u.HasAvatar ? AvatarUrl.For(u.Id, u.AvatarUpdatedAt) : null;
+        => u.HasAvatar ? AvatarUrl.For(u.Id, u.AvatarId) : null;
 
     private void ToggleExpand()
     {

@@ -1,6 +1,6 @@
 namespace DZDDashboard.Data.Entities;
 
-public class OrganizationPosition : AuditableEntity
+public class OrganizationPosition : EntityWithHistory
 {
     public int    Id       { get; set; }
     public string Name     { get; set; } = string.Empty;

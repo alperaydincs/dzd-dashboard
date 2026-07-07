@@ -1,6 +1,6 @@
 namespace DZDDashboard.Data.Entities;
 
-public class StoredFile : AuditableEntity
+public class StoredFile : EntityWithHistory
 {
     public int Id { get; set; }
 

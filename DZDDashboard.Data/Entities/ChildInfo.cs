@@ -1,6 +1,6 @@
 namespace DZDDashboard.Data.Entities;
 
-public class ChildInfo : AuditableEntity
+public class ChildInfo : EntityWithHistory
 {
     public int Id { get; set; }
     public string? FullName { get; set; }

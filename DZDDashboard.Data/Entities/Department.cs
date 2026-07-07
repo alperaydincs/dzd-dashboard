@@ -1,6 +1,6 @@
 ﻿namespace DZDDashboard.Data.Entities;
 
-public class Department : AuditableEntity
+public class Department : EntityWithHistory
 {
     public int Id { get; set; }
     public string? Name { get; set; }

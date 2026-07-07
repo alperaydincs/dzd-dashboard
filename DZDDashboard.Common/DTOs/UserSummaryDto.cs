@@ -22,5 +22,4 @@ public record UserAvatarSummaryDto
 {
     public int Id { get; init; }
     public string? ContentType { get; init; }
-    public DateTime? UpdatedAt { get; init; }
 }

@@ -28,10 +28,5 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
                .WithOne(u => u.Department)
                .HasForeignKey(u => u.DepartmentId)
                .OnDelete(DeleteBehavior.SetNull);
-
-        builder.HasOne(d => d.ModifiedBy)
-               .WithMany()
-               .HasForeignKey(d => d.ModifiedById)
-               .OnDelete(DeleteBehavior.Restrict);
     }
 }

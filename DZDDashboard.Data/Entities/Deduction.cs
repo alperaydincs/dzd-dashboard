@@ -1,6 +1,6 @@
 namespace DZDDashboard.Data.Entities;
 
-public class Deduction : AuditableEntity
+public class Deduction : EntityWithHistory
 {
     public int Id { get; set; }
 

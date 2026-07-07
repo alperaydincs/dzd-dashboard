@@ -72,7 +72,7 @@ public partial class Employee
                 LastName               = r.LastName,
                 AvatarColorIndex       = r.AvatarColorIndex,
                 HasAvatar              = r.HasAvatar,
-                AvatarUpdatedAt        = r.AvatarUpdatedAt,
+                AvatarId               = r.AvatarId,
                 OrganizationPositionId = r.OrganizationPositionId,
             }
             : null;

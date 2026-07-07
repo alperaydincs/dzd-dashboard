@@ -1,5 +1,4 @@
 using DZDDashboard.Common.DTOs;
-using DZDDashboard.Common.Utils;
 using DZDDashboard.Data.Entities;
 using Mapster;
 
@@ -9,42 +8,42 @@ public class PaymentMappingProfile : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<SalaryHistory, SalaryRecordDto>()
-            .Map(d => d.ModifiedByName, s => s.ModifiedBy != null ? AppFormatter.BuildFullName(s.ModifiedBy.FirstName, s.ModifiedBy.LastName) : null);
-        config.NewConfig<SalaryRecordDto, SalaryHistory>()
+        // ModifiedAt/ModifiedByName are populated separately from Salary's history table
+        // (see PaymentService.PopulateSalaryLastModifiedAsync) - Salary itself no
+        // longer carries them (see EntityWithHistory).
+        config.NewConfig<Salary, SalaryRecordDto>()
+            .Ignore(d => d.ModifiedAt)
+            .Ignore(d => d.ModifiedByName);
+        config.NewConfig<SalaryRecordDto, Salary>()
             .Ignore("User")
-            .Ignore("ModifiedBy")
-            .Ignore("ModifiedById")
             .Ignore("CreatedAt")
-            .Ignore("ModifiedAt")
             .Ignore("NotesModifiedAt");
 
-        config.NewConfig<BenefitDependent, BenefitDependentDto>();
-        config.NewConfig<BenefitDependentDto, BenefitDependent>()
-            .Ignore("BenefitRecord")
-            .Ignore("BenefitRecordId")
-            .Ignore("ModifiedBy")
-            .Ignore("ModifiedById")
-            .Ignore("CreatedAt")
-            .Ignore("ModifiedAt");
+        config.NewConfig<BenefitPaymentDependent, BenefitDependentDto>();
+        config.NewConfig<BenefitDependentDto, BenefitPaymentDependent>()
+            .Ignore("BenefitPayment")
+            .Ignore("BenefitPaymentId")
+            .Ignore("CreatedAt");
 
-        config.NewConfig<BenefitRecord, BenefitRecordDto>();
-        config.NewConfig<BenefitRecordDto, BenefitRecord>()
-            .Ignore("User")
-            .Ignore("ModifiedBy")
-            .Ignore("ModifiedById")
-            .Ignore("Dependents");
+        // BenefitPayment is a TPH base (see HealthInsuranceBenefit/PensionBenefit/OtherBenefit) -
+        // Include<> registers the derived-type fields so mapping a BenefitPayment-typed
+        // reference at runtime still picks up e.g. PolicyNumber for an actual PensionBenefit.
+        // DTO -> entity isn't mapped via Mapster: BenefitPayment is abstract, entities are
+        // constructed explicitly per type in PaymentService (see CreateBenefitEntity).
+        config.NewConfig<BenefitPayment, BenefitRecordDto>()
+            .Include<HealthInsuranceBenefit, BenefitRecordDto>()
+            .Include<PensionBenefit, BenefitRecordDto>()
+            .Include<OtherBenefit, BenefitRecordDto>();
+        config.NewConfig<HealthInsuranceBenefit, BenefitRecordDto>();
+        config.NewConfig<PensionBenefit, BenefitRecordDto>();
+        config.NewConfig<OtherBenefit, BenefitRecordDto>();
 
         config.NewConfig<AdditionalPayment, AdditionalPaymentDto>();
         config.NewConfig<AdditionalPaymentDto, AdditionalPayment>()
-            .Ignore("User")
-            .Ignore("ModifiedBy")
-            .Ignore("ModifiedById");
+            .Ignore("User");
 
         config.NewConfig<Deduction, DeductionDto>();
         config.NewConfig<DeductionDto, Deduction>()
-            .Ignore("User")
-            .Ignore("ModifiedBy")
-            .Ignore("ModifiedById");
+            .Ignore("User");
     }
 }

@@ -23,10 +23,5 @@ public class CompanyConfiguration : IEntityTypeConfiguration<Company>
                .WithOne(d => d.Company)
                .HasForeignKey(d => d.CompanyId)
                .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasOne(c => c.ModifiedBy)
-               .WithMany()
-               .HasForeignKey(c => c.ModifiedById)
-               .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -11,5 +11,5 @@ public record PositionHistoryDto
     public DateTime  StartDate { get; set; }
     public DateTime? EndDate   { get; set; }
     public string? ChangeType { get; set; }
-    public bool IsCurrent => EndDate == null;
+    public bool IsCurrent { get; set; }
 }

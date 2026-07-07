@@ -1,6 +1,6 @@
 namespace DZDDashboard.Data.Entities;
 
-public class CareerPathRule : AuditableEntity
+public class CareerPathRule : EntityWithHistory
 {
     public int Id { get; set; }
     public int CareerPathId { get; set; }

@@ -47,10 +47,5 @@ public class CareerPathRuleConfiguration : IEntityTypeConfiguration<CareerPathRu
                .WithMany(p => p.Rules)
                .HasForeignKey(c => c.CareerPathId)
                .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasOne(c => c.ModifiedBy)
-               .WithMany()
-               .HasForeignKey(c => c.ModifiedById)
-               .OnDelete(DeleteBehavior.Restrict);
     }
 }

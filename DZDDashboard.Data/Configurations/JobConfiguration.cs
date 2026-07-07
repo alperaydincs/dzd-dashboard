@@ -23,10 +23,5 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
                .WithOne(u => u.Job)
                .HasForeignKey(u => u.JobId)
                .OnDelete(DeleteBehavior.SetNull);
-
-        builder.HasOne(j => j.ModifiedBy)
-               .WithMany()
-               .HasForeignKey(j => j.ModifiedById)
-               .OnDelete(DeleteBehavior.Restrict);
     }
 }

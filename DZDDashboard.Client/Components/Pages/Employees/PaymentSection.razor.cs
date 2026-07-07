@@ -92,8 +92,7 @@ public partial class PaymentSection
         || !string.IsNullOrWhiteSpace(record.ProviderName)
         || !string.IsNullOrWhiteSpace(record.PolicyNumber);
 
-    private SalaryRecordDto? CurrentSalary =>
-        _payment?.SalaryHistory.FirstOrDefault(s => s.EndDate is null) ?? _payment?.SalaryHistory.FirstOrDefault();
+    private SalaryRecordDto? CurrentSalary => _payment?.CurrentSalary;
 
 
     private async Task OpenAddSalaryDialogAsync()

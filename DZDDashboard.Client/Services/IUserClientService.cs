@@ -39,5 +39,4 @@ public interface IUserClientService
     Task<HttpResponseMessage> UploadUserDocumentAsync(int userId, MultipartFormDataContent content);
     Task<byte[]?> DownloadUserDocumentAsync(int userId, int documentId);
     Task<HttpResponseMessage> DeleteUserDocumentAsync(int userId, int documentId);
-    Task<HttpResponseMessage> ReviewUserDocumentAsync(int userId, int documentId, ReviewDocumentDto dto);
 }

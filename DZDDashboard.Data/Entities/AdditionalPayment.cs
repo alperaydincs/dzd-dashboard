@@ -1,6 +1,6 @@
 namespace DZDDashboard.Data.Entities;
 
-public class AdditionalPayment : AuditableEntity
+public class AdditionalPayment : EntityWithHistory
 {
     public int Id { get; set; }
     public string? PaymentType { get; set; }

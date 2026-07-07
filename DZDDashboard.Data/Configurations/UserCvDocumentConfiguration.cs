@@ -24,14 +24,6 @@ public class UserCvDocumentConfiguration : IEntityTypeConfiguration<UserCvDocume
         builder.Property(ud => ud.IsActive)
                .HasDefaultValue(true);
 
-        builder.Property(ud => ud.ReviewStatus)
-               .IsRequired()
-               .HasMaxLength(ValidationConstants.MaxShortNameLength)
-               .HasDefaultValue(DZDDashboard.Common.Constants.DocumentReviewStatuses.Pending);
-
-        builder.Property(ud => ud.ReviewNote)
-               .HasMaxLength(ValidationConstants.MaxNotesLength);
-
         builder.HasIndex(ud => new { ud.UserId, ud.FileName }).IsUnique();
 
         builder.HasOne(ud => ud.User)
@@ -42,11 +34,6 @@ public class UserCvDocumentConfiguration : IEntityTypeConfiguration<UserCvDocume
         builder.HasOne(ud => ud.File)
                .WithMany()
                .HasForeignKey(ud => ud.FileId)
-               .OnDelete(DeleteBehavior.Restrict);
-
-        builder.HasOne(ud => ud.ModifiedBy)
-               .WithMany()
-               .HasForeignKey(ud => ud.ModifiedById)
                .OnDelete(DeleteBehavior.Restrict);
     }
 }

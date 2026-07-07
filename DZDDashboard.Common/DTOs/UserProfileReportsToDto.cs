@@ -12,5 +12,5 @@ public record UserProfileReportsToDto
     public string? Email { get; init; }
     public string? PhoneNumber { get; init; }
     public bool HasAvatar { get; init; }
-    public DateTime? AvatarUpdatedAt { get; init; }
+    public int? AvatarId  { get; init; }
 }

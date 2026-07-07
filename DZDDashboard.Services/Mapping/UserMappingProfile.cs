@@ -11,33 +11,28 @@ public class UserMappingProfile : IRegister
     {
         config.NewConfig<User, UserSummaryDto>()
             .Map(dest => dest.Avatar, src =>
-                src.Avatar == null ? null : new UserAvatarSummaryDto
+                src.AvatarId == null ? null : new UserAvatarSummaryDto
                 {
-                    Id = src.Avatar.Id,
-                    ContentType = src.Avatar.ContentType,
-                    UpdatedAt = src.Avatar.ModifiedAt ?? src.Avatar.CreatedAt
+                    Id = src.AvatarId!.Value,
+                    ContentType = src.Avatar!.ContentType
                 })
             .Ignore("Department")
             .Ignore("Job");
 
         config.NewConfig<User, UserProfileReportsToDto>()
-            .Map(dest => dest.HasAvatar, src => src.Avatar != null)
-            .Map(dest => dest.AvatarUpdatedAt, src =>
-                src.Avatar != null ? (DateTime?)(src.Avatar.ModifiedAt ?? src.Avatar.CreatedAt) : null);
+            .Map(dest => dest.HasAvatar, src => src.AvatarId != null);
 
         config.NewConfig<User, UserProfileDto>()
-            .Map(dest => dest.HasAvatar, src => src.Avatar != null)
-            .Map(dest => dest.AvatarUpdatedAt, src =>
-                src.Avatar != null ? (DateTime?)(src.Avatar.ModifiedAt ?? src.Avatar.CreatedAt) : null);
+            .Map(dest => dest.HasAvatar, src => src.AvatarId != null);
 
         config.NewConfig<EmergencyContact, EmergencyContactDto>();
         config.NewConfig<EmergencyContactDto, EmergencyContact>()
             .Ignore("UserId");
 
-        config.NewConfig<EducationHistory, EducationHistoryDto>();
-        config.NewConfig<EducationHistoryDto, EducationHistory>();
+        config.NewConfig<Education, EducationHistoryDto>();
+        config.NewConfig<EducationHistoryDto, Education>();
 
-        config.NewConfig<PositionHistory, PositionHistoryDto>();
+        config.NewConfig<Position, PositionHistoryDto>();
 
         config.NewConfig<User, EmployeeDto>()
             .Map(dest => dest.FullName, src => (src.FirstName + " " + src.LastName).Trim())
@@ -56,6 +51,7 @@ public class UserMappingProfile : IRegister
             .Ignore("CurrentAddressChangedAt")
             .Ignore("City")
             .Ignore("Country")
-            .Ignore("Children");
+            .Ignore("Children")
+            .Ignore(dest => dest.PositionHistories);
     }
 }

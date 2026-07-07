@@ -1,6 +1,6 @@
 ﻿namespace DZDDashboard.Data.Entities;
 
-public class EmergencyContact : AuditableEntity
+public class EmergencyContact : EntityWithHistory
 {
     public int Id { get; set; }
     public int UserId { get; set; }

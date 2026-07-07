@@ -1,7 +1,7 @@
 namespace DZDDashboard.Data.Entities;
 
 
-public partial class User : AuditableEntity
+public partial class User : EntityWithHistory
 {
     public int     Id              { get; set; }
     public string? EntraObjectId   { get; set; }

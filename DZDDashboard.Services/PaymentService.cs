@@ -2,9 +2,12 @@ using MapsterMapper;
 using DZDDashboard.Common.Constants;
 using DZDDashboard.Common.DTOs;
 using DZDDashboard.Common.Exceptions;
+using DZDDashboard.Common.Utils;
 using DZDDashboard.Data;
 using DZDDashboard.Data.Entities;
+using DZDDashboard.Data.Entities.History;
 using DZDDashboard.Data.Extensions;
+using DZDDashboard.Data.History;
 using Microsoft.EntityFrameworkCore;
 
 namespace DZDDashboard.Services;
@@ -17,31 +20,25 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
     {
         await context.Users.FindRequiredAsync(userId, nameof(User), cancellationToken);
 
-        var salaryHistory = await context.SalaryHistories.AsNoTracking()
-            .Include(s => s.ModifiedBy)
-            .Where(s => s.UserId == userId)
-            .OrderByDescending(s => s.StartDate)
-            .ToListAsync(cancellationToken);
+        var salary = await context.Salaries.AsNoTracking()
+            .FirstOrDefaultAsync(s => s.UserId == userId, cancellationToken);
 
-        var benefits = await context.BenefitRecords.AsNoTracking()
+        var benefits = await context.BenefitPayments.AsNoTracking()
             .AsSplitQuery()
-            .Include(b => b.Dependents)
-            .Include(b => b.ModifiedBy)
+            .Include(b => (b as HealthInsuranceBenefit)!.Dependents)
             .Where(b => b.UserId == userId)
             .OrderByDescending(b => b.StartDate)
             .ToListAsync(cancellationToken);
 
-        foreach (var benefit in benefits)
-            benefit.Dependents = [.. benefit.Dependents.OrderBy(d => d.Order)];
+        foreach (var benefit in benefits.OfType<HealthInsuranceBenefit>())
+            benefit.Dependents = [.. benefit.Dependents.OrderBy(d => d.Id)];
 
         var additionalPayments = await context.AdditionalPayments.AsNoTracking()
-            .Include(p => p.ModifiedBy)
             .Where(p => p.UserId == userId)
             .OrderByDescending(p => p.StartDate)
             .ToListAsync(cancellationToken);
 
         var deductions = await context.Deductions.AsNoTracking()
-            .Include(d => d.ModifiedBy)
             .Where(d => d.UserId == userId)
             .OrderByDescending(d => d.StartDate)
             .ToListAsync(cancellationToken);
@@ -49,29 +46,71 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         return new EmployeePaymentDto
         {
             EmployeeId         = userId,
-            SalaryHistory      = mapper.Map<List<SalaryRecordDto>>(salaryHistory),
+            CurrentSalary      = salary is null ? null : mapper.Map<SalaryRecordDto>(salary),
+            SalaryHistory      = await BuildSalaryChangeLogAsync(salary?.Id, cancellationToken),
             Benefits           = mapper.Map<List<BenefitRecordDto>>(benefits),
             AdditionalPayments = mapper.Map<List<AdditionalPaymentDto>>(additionalPayments),
             Deductions         = mapper.Map<List<DeductionDto>>(deductions),
-            Summary            = BuildSummary(salaryHistory, benefits, additionalPayments, deductions)
+            Summary            = BuildSummary(benefits, additionalPayments, deductions)
         };
+    }
+
+    /// <summary>
+    /// Salary is 1:1 with User now - there's no "list of past periods" to query. The change
+    /// log shown in the UI is read back from Salary's history table instead (every insert/update
+    /// is captured automatically, see EntityWithHistory / HistoryEntryFactory).
+    /// </summary>
+    private async Task<List<SalaryRecordDto>> BuildSalaryChangeLogAsync(int? salaryId, CancellationToken cancellationToken)
+    {
+        if (salaryId is null) return [];
+
+        var entries = await context.Set<SalaryHistory>()
+            .Where(h => h.Id == salaryId)
+            .OrderByDescending(h => h.HistoryRecordedAt)
+            .ToListAsync(cancellationToken);
+
+        var performedByIds = entries
+            .Where(h => h.HistoryRecordedById.HasValue)
+            .Select(h => h.HistoryRecordedById!.Value)
+            .Distinct()
+            .ToList();
+
+        var performedByNames = await context.Users.AsNoTracking()
+            .Where(u => performedByIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, u => AppFormatter.BuildFullName(u.FirstName, u.LastName), cancellationToken);
+
+        return entries.Select(h => new SalaryRecordDto
+        {
+            Id              = h.Id,
+            Amount          = h.Amount,
+            PayType         = h.PayType,
+            Currency        = h.Currency,
+            Period          = h.Period,
+            PayrollCycle    = h.PayrollCycle,
+            StartDate       = h.StartDate,
+            EndDate         = h.EndDate,
+            Notes           = h.Notes,
+            NotesModifiedAt = h.NotesModifiedAt,
+            ModifiedAt      = h.HistoryRecordedAt,
+            ModifiedByName  = h.HistoryRecordedById.HasValue && performedByNames.TryGetValue(h.HistoryRecordedById.Value, out var name)
+                ? name
+                : null
+        }).ToList();
     }
 
     public async Task<SalaryRecordDto> CreateSalaryRecordAsync(int userId, SalaryRecordDto dto, CancellationToken cancellationToken = default)
     {
         await context.Users.FindRequiredAsync(userId, nameof(User), cancellationToken);
 
-        var existing = await context.SalaryHistories.AsNoTracking()
-            .Where(s => s.UserId == userId)
-            .Select(s => new { s.StartDate, s.EndDate })
-            .ToListAsync(cancellationToken);
+        if (await context.Salaries.AnyAsync(s => s.UserId == userId, cancellationToken))
+            throw new DomainConflictException("This employee already has a salary record. Edit the existing one instead.");
 
-        EnsureNoOverlap(existing.Select(e => (e.StartDate, e.EndDate)), dto.StartDate, dto.EndDate, "salary");
+        EnsureSalaryDatesValid(dto);
 
-        var entity = new SalaryHistory { UserId = userId };
+        var entity = new Salary { UserId = userId };
         ApplySalaryDto(dto, entity);
 
-        context.SalaryHistories.Add(entity);
+        context.Salaries.Add(entity);
         await context.SaveChangesAsync(cancellationToken);
 
         return mapper.Map<SalaryRecordDto>(entity);
@@ -80,45 +119,15 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
     public async Task UpdateSalaryRecordAsync(int userId, int recordId, SalaryRecordDto dto, CancellationToken cancellationToken = default)
     {
         var entity = await RequireSalaryRecordAsync(userId, recordId, cancellationToken);
-
-        var others = await context.SalaryHistories.AsNoTracking()
-            .Where(s => s.UserId == userId && s.Id != recordId)
-            .Select(s => new { s.StartDate, s.EndDate })
-            .ToListAsync(cancellationToken);
-        var otherRanges = others.Select(e => (e.StartDate, e.EndDate));
-
-        var opensNewPeriod =
-            entity.StartDate != dto.StartDate || entity.EndDate != dto.EndDate ||
-            entity.Amount != dto.Amount || entity.Currency != dto.Currency;
-
-        if (opensNewPeriod)
-        {
-            var closedEndDate = dto.StartDate.AddDays(-1);
-            if (closedEndDate < entity.StartDate)
-                closedEndDate = entity.StartDate;
-
-            EnsureNoOverlap(otherRanges, entity.StartDate, closedEndDate, "salary");
-            EnsureNoOverlap(otherRanges, dto.StartDate, dto.EndDate, "salary");
-
-            entity.EndDate = closedEndDate;
-
-            var newEntity = new SalaryHistory { UserId = userId };
-            ApplySalaryDto(dto, newEntity);
-            context.SalaryHistories.Add(newEntity);
-        }
-        else
-        {
-            EnsureNoOverlap(otherRanges, dto.StartDate, dto.EndDate, "salary");
-            ApplySalaryDto(dto, entity);
-        }
-
+        EnsureSalaryDatesValid(dto);
+        ApplySalaryDto(dto, entity);
         await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task DeleteSalaryRecordAsync(int userId, int recordId, CancellationToken cancellationToken = default)
     {
         var entity = await RequireSalaryRecordAsync(userId, recordId, cancellationToken);
-        context.SalaryHistories.Remove(entity);
+        context.Salaries.Remove(entity);
         await context.SaveChangesAsync(cancellationToken);
     }
 
@@ -128,11 +137,12 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         await context.Users.FindRequiredAsync(userId, nameof(User), cancellationToken);
         EnsureDependentsValid(dto);
 
-        var entity = new BenefitRecord { UserId = userId };
+        var entity = CreateBenefitEntity(dto.BenefitType, userId);
         ApplyBenefitDto(dto, entity);
-        await ReplaceDependentsAsync(entity, dto.Dependents, cancellationToken);
+        if (entity is HealthInsuranceBenefit healthInsurance)
+            await ReplaceDependentsAsync(healthInsurance, dto.Dependents, cancellationToken);
 
-        context.BenefitRecords.Add(entity);
+        context.BenefitPayments.Add(entity);
         await context.SaveChangesAsync(cancellationToken);
 
         return mapper.Map<BenefitRecordDto>(entity);
@@ -143,8 +153,25 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         var entity = await RequireBenefitRecordAsync(userId, recordId, cancellationToken);
         EnsureDependentsValid(dto);
 
-        ApplyBenefitDto(dto, entity);
-        await ReplaceDependentsAsync(entity, dto.Dependents, cancellationToken);
+        // TPH: the benefit type dropdown is editable, but a row's concrete CLR type can't
+        // change in place - if the type changed, replace the row instead of mutating it.
+        if (!MatchesBenefitType(entity, dto.BenefitType))
+        {
+            context.BenefitPayments.Remove(entity);
+
+            var replacement = CreateBenefitEntity(dto.BenefitType, userId);
+            ApplyBenefitDto(dto, replacement);
+            if (replacement is HealthInsuranceBenefit healthInsurance)
+                await ReplaceDependentsAsync(healthInsurance, dto.Dependents, cancellationToken);
+
+            context.BenefitPayments.Add(replacement);
+        }
+        else
+        {
+            ApplyBenefitDto(dto, entity);
+            if (entity is HealthInsuranceBenefit healthInsurance)
+                await ReplaceDependentsAsync(healthInsurance, dto.Dependents, cancellationToken);
+        }
 
         await context.SaveChangesAsync(cancellationToken);
     }
@@ -152,7 +179,8 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
     public async Task DeleteBenefitRecordAsync(int userId, int recordId, CancellationToken cancellationToken = default)
     {
         var entity = await RequireBenefitRecordAsync(userId, recordId, cancellationToken);
-        context.BenefitRecords.Remove(entity);        await context.SaveChangesAsync(cancellationToken);
+        context.BenefitPayments.Remove(entity);
+        await context.SaveChangesAsync(cancellationToken);
     }
 
 
@@ -222,14 +250,14 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
     }
 
 
-    private async Task<SalaryHistory> RequireSalaryRecordAsync(int userId, int recordId, CancellationToken cancellationToken)
-        => await context.SalaryHistories.FirstOrDefaultAsync(s => s.Id == recordId && s.UserId == userId, cancellationToken)
-           ?? throw new EntityNotFoundException(nameof(SalaryHistory), recordId);
+    private async Task<Salary> RequireSalaryRecordAsync(int userId, int recordId, CancellationToken cancellationToken)
+        => await context.Salaries.FirstOrDefaultAsync(s => s.Id == recordId && s.UserId == userId, cancellationToken)
+           ?? throw new EntityNotFoundException(nameof(Salary), recordId);
 
-    private async Task<BenefitRecord> RequireBenefitRecordAsync(int userId, int recordId, CancellationToken cancellationToken)
-        => await context.BenefitRecords.Include(b => b.Dependents)
+    private async Task<BenefitPayment> RequireBenefitRecordAsync(int userId, int recordId, CancellationToken cancellationToken)
+        => await context.BenefitPayments.Include(b => (b as HealthInsuranceBenefit)!.Dependents)
                .FirstOrDefaultAsync(b => b.Id == recordId && b.UserId == userId, cancellationToken)
-           ?? throw new EntityNotFoundException(nameof(BenefitRecord), recordId);
+           ?? throw new EntityNotFoundException(nameof(BenefitPayment), recordId);
 
     private async Task<AdditionalPayment> RequireAdditionalPaymentAsync(int userId, int paymentId, CancellationToken cancellationToken)
         => await context.AdditionalPayments.FirstOrDefaultAsync(p => p.Id == paymentId && p.UserId == userId, cancellationToken)
@@ -240,7 +268,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
            ?? throw new EntityNotFoundException(nameof(Deduction), deductionId);
 
 
-    private static void ApplySalaryDto(SalaryRecordDto dto, SalaryHistory entity)
+    private static void ApplySalaryDto(SalaryRecordDto dto, Salary entity)
     {
         if (entity.Notes != dto.Notes)
             entity.NotesModifiedAt = DateTime.UtcNow;
@@ -255,9 +283,23 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         entity.Notes        = dto.Notes;
     }
 
-    private static void ApplyBenefitDto(BenefitRecordDto dto, BenefitRecord entity)
+    private static BenefitPayment CreateBenefitEntity(string benefitType, int userId) => benefitType switch
     {
-        entity.BenefitType  = dto.BenefitType;
+        BenefitTypes.PrivateHealthInsurance => new HealthInsuranceBenefit { UserId = userId },
+        BenefitTypes.PrivatePension         => new PensionBenefit { UserId = userId },
+        _                                   => new OtherBenefit { UserId = userId }
+    };
+
+    private static bool MatchesBenefitType(BenefitPayment entity, string benefitType) => entity switch
+    {
+        HealthInsuranceBenefit => benefitType == BenefitTypes.PrivateHealthInsurance,
+        PensionBenefit         => benefitType == BenefitTypes.PrivatePension,
+        OtherBenefit           => benefitType == BenefitTypes.Other,
+        _                      => false
+    };
+
+    private static void ApplyBenefitDto(BenefitRecordDto dto, BenefitPayment entity)
+    {
         entity.BenefitName  = dto.BenefitName;
         entity.Amount       = dto.Amount;
         entity.Currency     = dto.Currency;
@@ -266,10 +308,13 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         entity.EndDate      = dto.EndDate;
         entity.ProviderName = dto.ProviderName;
         entity.Notes        = dto.Notes;
-        var isPension = dto.BenefitType == BenefitTypes.PrivatePension;
-        entity.EmployeeContributionAmount = isPension ? dto.EmployeeContributionAmount : null;
-        entity.EmployerContributionAmount = isPension ? dto.EmployerContributionAmount : null;
-        entity.PolicyNumber               = isPension ? dto.PolicyNumber : null;
+
+        if (entity is PensionBenefit pension)
+        {
+            pension.EmployeeContributionAmount = dto.EmployeeContributionAmount;
+            pension.EmployerContributionAmount = dto.EmployerContributionAmount;
+            pension.PolicyNumber               = dto.PolicyNumber;
+        }
     }
 
     private static void ApplyAdditionalPaymentDto(AdditionalPaymentDto dto, AdditionalPayment entity)
@@ -292,39 +337,27 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         entity.Notes         = dto.Notes;
     }
 
-    private async Task ReplaceDependentsAsync(BenefitRecord entity, List<BenefitDependentDto> dependents, CancellationToken ct)
+    private async Task ReplaceDependentsAsync(HealthInsuranceBenefit entity, List<BenefitDependentDto> dependents, CancellationToken ct)
     {
         if (entity.Dependents.Count > 0)
-            context.BenefitDependents.RemoveRange(entity.Dependents);
+            context.BenefitPaymentDependents.RemoveRange(entity.Dependents);
 
-        entity.Dependents = [.. dependents.Select((d, index) => new BenefitDependent
+        entity.Dependents = [.. dependents.Select(d => new BenefitPaymentDependent
         {
-            BenefitRecordId = entity.Id,
-            Order           = index + 1,
-            DependentName   = d.DependentName,
-            RelationType    = d.RelationType,
-            Amount          = d.Amount,
-            StartDate       = d.StartDate,
-            EndDate         = d.EndDate
+            BenefitPaymentId = entity.Id,
+            DependentName    = d.DependentName,
+            RelationType     = d.RelationType,
+            Amount           = d.Amount,
+            StartDate        = d.StartDate,
+            EndDate          = d.EndDate
         })];
     }
 
 
-    private static void EnsureNoOverlap(IEnumerable<(DateTime StartDate, DateTime? EndDate)> existingRanges,
-        DateTime newStart, DateTime? newEnd, string recordKind)
+    private static void EnsureSalaryDatesValid(SalaryRecordDto dto)
     {
-        if (newEnd.HasValue && newEnd.Value < newStart)
+        if (dto.EndDate.HasValue && dto.EndDate.Value < dto.StartDate)
             throw new DomainValidationException("End date cannot be before start date.");
-
-        if (existingRanges.Any(r => RangesOverlap(r.StartDate, r.EndDate, newStart, newEnd)))
-            throw new DomainConflictException($"This {recordKind} period overlaps with an existing record. Close the active record first or adjust the date range.");
-    }
-
-    private static bool RangesOverlap(DateTime startA, DateTime? endA, DateTime startB, DateTime? endB)
-    {
-        var endAValue = endA ?? DateTime.MaxValue;
-        var endBValue = endB ?? DateTime.MaxValue;
-        return startA < endBValue && startB < endAValue;
     }
 
     private static void EnsureDependentsValid(BenefitRecordDto dto)
@@ -358,7 +391,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
 
 
     private static EmployeePaymentSummaryDto BuildSummary(
-        List<SalaryHistory> salaryHistory, List<BenefitRecord> benefits, List<AdditionalPayment> additionalPayments, List<Deduction> deductions)
+        List<BenefitPayment> benefits, List<AdditionalPayment> additionalPayments, List<Deduction> deductions)
     {
         var today = DateTime.UtcNow.Date;
 
@@ -388,7 +421,7 @@ public class PaymentService(AppDbContext context, IMapper mapper) : IPaymentServ
         };
     }
 
-    private static decimal BenefitTotalAmount(BenefitRecord benefit) => benefit.BenefitType == BenefitTypes.PrivateHealthInsurance
-        ? benefit.Amount + benefit.Dependents.Sum(d => d.Amount)
+    private static decimal BenefitTotalAmount(BenefitPayment benefit) => benefit is HealthInsuranceBenefit healthInsurance
+        ? benefit.Amount + healthInsurance.Dependents.Sum(d => d.Amount)
         : benefit.Amount;
 }

@@ -6,6 +6,46 @@ namespace DZDDashboard.Services;
 
 public partial class UserService
 {
+    /// <summary>
+    /// Position is 1:1 with User now (see EntityWithHistory) so it's excluded from the
+    /// User -> EmployeeDto projection; here we attach the live row (editable, "current")
+    /// plus its change log from the history table (read-only, past assignments).
+    /// </summary>
+    private async Task PopulatePositionHistoryAsync(EmployeeDto dto, CancellationToken cancellationToken)
+    {
+        var position = await context.Positions.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.UserId == dto.Id, cancellationToken);
+
+        if (position is null)
+        {
+            dto.PositionHistories = [];
+            return;
+        }
+
+        var current = mapper.Map<PositionHistoryDto>(position);
+        current.IsCurrent = true;
+
+        var auditEntries = await context.Set<Data.Entities.History.PositionHistory>()
+            .Where(h => h.Id == position.Id)
+            .OrderByDescending(h => h.HistoryRecordedAt)
+            .ToListAsync(cancellationToken);
+
+        var pastEntries = auditEntries.Select(h => new PositionHistoryDto
+        {
+            Id             = h.Id,
+            JobTitle       = h.JobTitle,
+            CompanyName    = h.CompanyName,
+            DepartmentName = h.DepartmentName,
+            TeamName       = h.TeamName,
+            Grade          = h.Grade,
+            StartDate      = h.StartDate,
+            EndDate        = h.EndDate,
+            ChangeType     = h.ChangeType,
+            IsCurrent      = false
+        });
+
+        dto.PositionHistories = [current, .. pastEntries];
+    }
     public async Task<UserProfileDto?> GetProfileByIdAsync(int id, CancellationToken cancellationToken = default)
         => await context.Users
             .AsNoTracking()
@@ -36,8 +76,7 @@ public partial class UserService
                 Avatar = u.Avatar == null ? null : new UserAvatarSummaryDto
                 {
                     Id          = u.Avatar.Id,
-                    ContentType = u.Avatar.ContentType,
-                    UpdatedAt   = u.Avatar.ModifiedAt ?? u.Avatar.CreatedAt
+                    ContentType = u.Avatar.ContentType
                 },
                 Department = u.Department == null ? null : new DepartmentDto
                 {
@@ -63,18 +102,26 @@ public partial class UserService
     }
 
     public async Task<EmployeeDto?> GetEmployeeCardAsync(int id, CancellationToken cancellationToken = default)
-        => await context.Users
+    {
+        var dto = await context.Users
             .AsNoTracking()
             .Where(u => u.Id == id)
             .ProjectToType<EmployeeDto>(mapper.Config)
             .FirstOrDefaultAsync(cancellationToken);
+        if (dto is not null) await PopulatePositionHistoryAsync(dto, cancellationToken);
+        return dto;
+    }
 
     public async Task<EmployeeDto?> GetEmployeeCardBySlugAsync(string slug, CancellationToken cancellationToken = default)
-        => await context.Users
+    {
+        var dto = await context.Users
             .AsNoTracking()
             .Where(u => u.Slug == slug)
             .ProjectToType<EmployeeDto>(mapper.Config)
             .FirstOrDefaultAsync(cancellationToken);
+        if (dto is not null) await PopulatePositionHistoryAsync(dto, cancellationToken);
+        return dto;
+    }
 
     public async Task<UserAvatarDto?> GetAvatarByUserIdAsync(int id, CancellationToken cancellationToken = default)
     {
@@ -152,8 +199,8 @@ public partial class UserService
                 LastName               = u.LastName,
                 Email                  = u.Email,
                 AvatarColorIndex       = u.AvatarColorIndex,
-                HasAvatar              = u.Avatar != null,
-                AvatarUpdatedAt        = u.Avatar != null ? (u.Avatar.ModifiedAt ?? u.Avatar.CreatedAt) : null,
+                HasAvatar              = u.AvatarId != null,
+                AvatarId               = u.AvatarId,
                 CompanyId              = u.CompanyId,
                 DepartmentId           = u.DepartmentId,
                 TeamId                 = u.TeamId,

@@ -32,12 +32,6 @@ public partial class UserService
             }
         }
 
-        var options    = onboardingOptions.Value;
-        var isFirstUser = !await context.Users.AnyAsync(cancellationToken);
-        var isBypassed  = normalizedEmail is not null
-                          && options.BypassEmails.Any(e => string.Equals(e?.Trim(), email?.Trim(), StringComparison.OrdinalIgnoreCase));
-        var startAsActive = isFirstUser || isBypassed || hasElevatedRole || !options.AutoStartEnabled;
-
         var newUser = new User
         {
             EntraObjectId   = objectId,
@@ -46,8 +40,8 @@ public partial class UserService
             FirstName       = firstName,
             LastName        = lastName,
             Slug            = await GenerateUniqueSlugAsync(email, firstName, lastName, cancellationToken),
-            IsActive        = startAsActive,
-            LifecycleStatus = startAsActive ? UserLifecycleStatuses.Active : UserLifecycleStatuses.Onboarding
+            IsActive        = true,
+            LifecycleStatus = UserLifecycleStatuses.Active
         };
 
         context.Users.Add(newUser);

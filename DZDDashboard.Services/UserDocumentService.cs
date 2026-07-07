@@ -11,32 +11,16 @@ public class UserDocumentService(AppDbContext context, IFileStorageService stora
     public async Task<List<UserDocumentDto>> GetUserDocumentsAsync(int userId, CancellationToken cancellationToken = default)
         => await context.UserCvDocuments.AsNoTracking()
             .Where(d => d.UserId == userId && d.IsActive)
-            .OrderByDescending(d => d.CreatedAt)
+            .OrderByDescending(d => d.UploadedAt)
             .Select(d => new UserDocumentDto
             {
-                Id           = d.Id,
-                FileName     = d.FileName,
-                ContentType  = d.ContentType,
-                SizeBytes    = d.SizeBytes,
-                UploadedAt   = d.CreatedAt,
-                ReviewStatus = d.ReviewStatus,
-                ReviewNote   = d.ReviewNote
+                Id          = d.Id,
+                FileName    = d.FileName,
+                ContentType = d.ContentType,
+                SizeBytes   = d.SizeBytes,
+                UploadedAt  = d.UploadedAt
             })
             .ToListAsync(cancellationToken);
-
-    public async Task ReviewAsync(int userId, int documentId, string status, string? note, CancellationToken cancellationToken = default)
-    {
-        if (!DZDDashboard.Common.Constants.DocumentReviewStatuses.All.Contains(status))
-            throw new DomainValidationException("Geçersiz belge inceleme durumu.");
-
-        var doc = await context.UserCvDocuments
-            .FirstOrDefaultAsync(d => d.Id == documentId && d.UserId == userId && d.IsActive, cancellationToken)
-            ?? throw new EntityNotFoundException("UserCvDocument", documentId);
-
-        doc.ReviewStatus = status;
-        doc.ReviewNote   = status == DZDDashboard.Common.Constants.DocumentReviewStatuses.NeedsCorrection ? note : null;
-        await context.SaveChangesAsync(cancellationToken);
-    }
 
     public async Task<UserDocumentDto> UploadAsync(int userId, string fileName, string contentType, byte[] content, CancellationToken cancellationToken = default)
     {
@@ -53,7 +37,8 @@ public class UserDocumentService(AppDbContext context, IFileStorageService stora
             ContentType = contentType,
             SizeBytes   = content.LongLength,
             IsActive    = true,
-            FileId      = storageId
+            FileId      = storageId,
+            UploadedAt  = DateTime.UtcNow
         };
         context.UserCvDocuments.Add(doc);
         await context.SaveChangesAsync(cancellationToken);
@@ -61,7 +46,7 @@ public class UserDocumentService(AppDbContext context, IFileStorageService stora
         return new UserDocumentDto
         {
             Id = doc.Id, FileName = doc.FileName, ContentType = doc.ContentType,
-            SizeBytes = doc.SizeBytes, UploadedAt = doc.CreatedAt
+            SizeBytes = doc.SizeBytes, UploadedAt = doc.UploadedAt
         };
     }
 

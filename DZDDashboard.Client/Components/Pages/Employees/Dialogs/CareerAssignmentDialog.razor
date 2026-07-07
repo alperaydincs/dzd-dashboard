@@ -188,7 +188,7 @@
     }
 
     private static string? ManagerAvatarUrl(UserSearchResultDto u)
-        => u.HasAvatar ? AvatarUrl.For(u.Id, u.AvatarUpdatedAt) : null;
+        => u.HasAvatar ? AvatarUrl.For(u.Id, u.AvatarId) : null;
 
     private void OnManagerSelected(UserSearchResultDto? manager)
     {

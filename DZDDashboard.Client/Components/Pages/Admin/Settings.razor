@@ -1,11 +1,7 @@
 @page "/settings"
 @using Microsoft.AspNetCore.Authorization
 @using DZDDashboard.Client.Components.OrgChart
-@using DZDDashboard.Client.Components.Pages.Admin.Dialogs
-@using DZDDashboard.Client.Components.Pages.Employees
-@using DZDDashboard.Client.Services
 @using DZDDashboard.Common.Constants
-@using DZDDashboard.Common.DTOs
 @attribute [Authorize(Policy = Roles.AdminOrHrPolicy)]
 
 <div class="settings-scope">
@@ -20,7 +16,7 @@
         else
         {
             <MudStack Spacing="4">
-                <div class="@($"settings-tabs-shell settings-tabs-3 active-{_activeSettingsTabIndex}")" role="tablist" aria-label="Settings tabs">
+                <div class="@($"settings-tabs-shell settings-tabs-2 active-{_activeSettingsTabIndex}")" role="tablist" aria-label="Settings tabs">
                     <button type="button" class="settings-tab-segment" role="tab" aria-selected="@(_activeSettingsTabIndex == 0 ? "true" : "false")" @onclick="() => SetSettingsTab(0)">
                         <MudIcon Icon="@DzdIcons.Workflow" Size="Size.Small" Class="settings-tab-icon" />
                         @Loc["settings.tabOrganization"]
@@ -29,16 +25,7 @@
                         <MudIcon Icon="@DzdIcons.ChartNoAxesCombined" Size="Size.Small" Class="settings-tab-icon" />
                         @Loc["settings.tabCareerPaths"]
                     </button>
-                    <button type="button" class="settings-tab-segment" role="tab" aria-selected="@(_activeSettingsTabIndex == 2 ? "true" : "false")" @onclick="() => SetSettingsTab(2)">
-                        <MudIcon Icon="@DzdIcons.SlidersHorizontal" Size="Size.Small" Class="settings-tab-icon" />
-                        @Loc["settings.tabOnboardingOffboarding"]
-                    </button>
                 </div>
-
-                @if (_activeSettingsTabIndex == 2)
-                {
-                    <ChecklistTemplatePanel />
-                }
 
                 @if (_activeSettingsTabIndex == 1)
                 {

@@ -31,9 +31,7 @@ public class OrganizationMappingProfile : IRegister
 
         config.NewConfig<User, OrgChartUserDto>()
             .Map(dest => dest.Department, src => src.Department)
-            .Map(dest => dest.HasAvatar, src => src.Avatar != null)
-            .Map(dest => dest.AvatarUpdatedAt, src =>
-                src.Avatar != null ? (DateTime?)(src.Avatar.ModifiedAt ?? src.Avatar.CreatedAt) : null);
+            .Map(dest => dest.HasAvatar, src => src.AvatarId != null);
 
         config.NewConfig<OrganizationPosition, OrganizationPositionDto>()
             .Map(dest => dest.User, src => src.Users.OrderBy(x => x.Id).FirstOrDefault());
@@ -42,7 +40,6 @@ public class OrganizationMappingProfile : IRegister
         config.NewConfig<UpdateOrganizationPositionDto, OrganizationPosition>()
             .Ignore("Users")
             .Ignore("Parent")
-            .Ignore("Children")
-            .Ignore("ModifiedBy");
+            .Ignore("Children");
     }
 }

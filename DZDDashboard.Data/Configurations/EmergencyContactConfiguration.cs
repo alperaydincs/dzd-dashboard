@@ -24,10 +24,5 @@ public class EmergencyContactConfiguration : IEntityTypeConfiguration<EmergencyC
             .WithMany(u => u.EmergencyContacts)
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasOne(x => x.ModifiedBy)
-            .WithMany()
-            .HasForeignKey(x => x.ModifiedById)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 }

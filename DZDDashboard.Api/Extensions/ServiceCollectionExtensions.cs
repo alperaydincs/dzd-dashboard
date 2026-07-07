@@ -45,10 +45,10 @@ public static class ServiceCollectionExtensions
                     partitionKey: ResolveClientIp(context),
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
-                        PermitLimit          = rl.GeneralPermitLimit,
-                        Window               = TimeSpan.FromMinutes(rl.GeneralWindowMinutes),
+                        PermitLimit = rl.GeneralPermitLimit,
+                        Window = TimeSpan.FromMinutes(rl.GeneralWindowMinutes),
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                        QueueLimit           = 0
+                        QueueLimit = 0
                     }));
 
             options.AddPolicy("upload", context =>
@@ -72,9 +72,9 @@ public static class ServiceCollectionExtensions
         {
             services.AddDistributedPostgreSqlCache(options =>
             {
-                options.ConnectionString     = connectionString;
-                options.SchemaName           = "public";
-                options.TableName            = "ApiTokenCache";
+                options.ConnectionString = connectionString;
+                options.SchemaName = "public";
+                options.TableName = "ApiTokenCache";
                 options.CreateInfrastructure = true;
             });
         }
@@ -110,7 +110,6 @@ public static class ServiceCollectionExtensions
 
         services.Configure<ApiOptions>(configuration.GetSection("Api"));
         services.Configure<MiddlewareOptions>(configuration.GetSection("Middleware"));
-        services.Configure<OnboardingOptions>(configuration.GetSection(OnboardingOptions.SectionName));
         services.AddUdemyIntegration(configuration);
 
         services.AddMemoryCache();
@@ -157,12 +156,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IFileStorageService, DbFileStorageService>();
         services.AddScoped<IUserDocumentService, UserDocumentService>();
-        services.AddScoped<LifecycleEngine>();
-        services.AddScoped<IOnboardingService, OnboardingService>();
-        services.AddScoped<IOffboardingService, OffboardingService>();
-        services.AddScoped<IProcessTemplateService, ProcessTemplateService>();
-        services.AddScoped<IChecklistTemplateService, ChecklistTemplateService>();
-        services.AddScoped<IDocumentTemplateService, DocumentTemplateService>();
         services.AddScoped<ITrainingProgressService, TrainingProgressService>();
         return services;
     }

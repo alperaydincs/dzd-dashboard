@@ -87,11 +87,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                .HasForeignKey(u => u.ReportsToId)
                .OnDelete(DeleteBehavior.Restrict); 
 
-        builder.HasOne(u => u.ModifiedBy)
-               .WithMany()
-               .HasForeignKey(u => u.ModifiedById)
-               .OnDelete(DeleteBehavior.Restrict);
-
         builder.HasIndex(u => u.OrganizationPositionId)
                .IsUnique()
                .HasFilter("\"OrganizationPositionId\" IS NOT NULL")
@@ -110,11 +105,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasMany(u => u.Children)
                .WithOne(c => c.User)
                .HasForeignKey(c => c.UserId)
-               .OnDelete(DeleteBehavior.Cascade); 
-
-        builder.HasMany(u => u.SalaryHistories)
-               .WithOne(s => s.User)
-               .HasForeignKey(s => s.UserId)
-               .OnDelete(DeleteBehavior.Restrict);
+               .OnDelete(DeleteBehavior.Cascade);
     }
 }

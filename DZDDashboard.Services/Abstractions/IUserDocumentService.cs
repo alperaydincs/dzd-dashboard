@@ -8,5 +8,4 @@ public interface IUserDocumentService
     Task<UserDocumentDto> UploadAsync(int userId, string fileName, string contentType, byte[] content, CancellationToken cancellationToken = default);
     Task<(byte[] Content, string? ContentType, string FileName)?> GetContentAsync(int userId, int documentId, CancellationToken cancellationToken = default);
     Task DeleteAsync(int userId, int documentId, CancellationToken cancellationToken = default);
-    Task ReviewAsync(int userId, int documentId, string status, string? note, CancellationToken cancellationToken = default);
 }

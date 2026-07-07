@@ -27,10 +27,5 @@ public class OrganizationPositionConfiguration : IEntityTypeConfiguration<Organi
             .WithOne(x => x.OrganizationPosition)
             .HasForeignKey(x => x.OrganizationPositionId)
             .OnDelete(DeleteBehavior.SetNull);
-
-        builder.HasOne(x => x.ModifiedBy)
-            .WithMany()
-            .HasForeignKey(x => x.ModifiedById)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 }

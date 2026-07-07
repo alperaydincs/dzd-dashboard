@@ -1,6 +1,6 @@
 namespace DZDDashboard.Data.Entities;
 
-public class UserCvDocument : AuditableEntity
+public class UserCvDocument : EntityWithHistory
 {
     public int Id { get; set; }
     public int UserId { get; set; }
@@ -13,6 +13,5 @@ public class UserCvDocument : AuditableEntity
     public int? FileId { get; set; }
     public StoredFile? File { get; set; }
 
-    public string  ReviewStatus { get; set; } = DZDDashboard.Common.Constants.DocumentReviewStatuses.Pending;
-    public string? ReviewNote   { get; set; }
+    public DateTime UploadedAt { get; set; }
 }

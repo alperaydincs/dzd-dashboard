@@ -82,11 +82,11 @@ public partial class UserService
         var user = await RequireUserWithAsync(userId, u => u.EducationHistories!, cancellationToken);
 
         if (user.EducationHistories?.Count > 0)
-            context.EducationHistories.RemoveRange(user.EducationHistories);
+            context.Educations.RemoveRange(user.EducationHistories);
 
         user.EducationHistories = (dto.EducationHistories ?? [])
             .Where(x => !string.IsNullOrWhiteSpace(x.EducationLevel) && !string.IsNullOrWhiteSpace(x.Institution))
-            .Select(x => new EducationHistory
+            .Select(x => new Education
             {
                 UserId           = userId,
                 EducationLevel   = x.EducationLevel,
@@ -115,17 +115,15 @@ public partial class UserService
         var teamName = dto.TeamId == null ? null
             : await context.Teams.Where(t => t.Id == dto.TeamId).Select(t => t.Name).FirstOrDefaultAsync(cancellationToken);
 
-        var current = await context.PositionHistories
-            .Where(p => p.UserId == userId && p.EndDate == null)
-            .OrderByDescending(p => p.StartDate)
-            .FirstOrDefaultAsync(cancellationToken);
+        var current = await context.Positions
+            .FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
 
         if (current is null)
         {
             var jobTitle = user.JobId == null ? null
                 : await context.Jobs.Where(j => j.Id == user.JobId).Select(j => j.Title).FirstOrDefaultAsync(cancellationToken);
-            current = new PositionHistory { UserId = userId, JobTitle = jobTitle, Grade = user.Grade };
-            context.PositionHistories.Add(current);
+            current = new Position { UserId = userId, JobTitle = jobTitle, Grade = user.Grade };
+            context.Positions.Add(current);
         }
 
         current.CompanyName    = companyName;
@@ -281,7 +279,7 @@ public partial class UserService
 
     public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        if (await context.SalaryHistories.AnyAsync(h => h.UserId == id, cancellationToken))
+        if (await context.Salaries.AnyAsync(h => h.UserId == id, cancellationToken))
             throw new DomainConflictException(
                 "Cannot delete a user with salary history. Archive the history records first.");
 
@@ -297,11 +295,7 @@ public partial class UserService
         if (!gradeChanged && !jobChanged) return;
 
         var now = DateTime.UtcNow;
-        var open = await context.PositionHistories
-            .Where(p => p.UserId == user.Id && p.EndDate == null)
-            .OrderByDescending(p => p.StartDate)
-            .FirstOrDefaultAsync(cancellationToken);
-        if (open != null) open.EndDate = now;
+        var position = await context.Positions.FirstOrDefaultAsync(p => p.UserId == user.Id, cancellationToken);
 
         var jobTitle = user.JobId == null ? null
             : await context.Jobs.Where(j => j.Id == user.JobId).Select(j => j.Title).FirstOrDefaultAsync(cancellationToken);
@@ -312,19 +306,33 @@ public partial class UserService
         var teamName = user.TeamId == null ? null
             : await context.Teams.Where(t => t.Id == user.TeamId).Select(t => t.Name).FirstOrDefaultAsync(cancellationToken);
 
-        context.PositionHistories.Add(new PositionHistory
+        var changeType = (gradeChanged && jobChanged) ? PositionChangeTypes.TitleAndGradeUpgrade
+                        : gradeChanged ? PositionChangeTypes.GradeUpgrade : PositionChangeTypes.TitleChange;
+
+        if (position is null)
         {
-            UserId         = user.Id,
-            JobTitle       = jobTitle,
-            CompanyName    = companyName,
-            DepartmentName = departmentName,
-            TeamName       = teamName,
-            Grade          = user.Grade,
-            StartDate      = open?.EndDate ?? now,
-            EndDate      = null,
-            ChangeType   = (gradeChanged && jobChanged) ? PositionChangeTypes.TitleAndGradeUpgrade
-                         : gradeChanged ? PositionChangeTypes.GradeUpgrade : PositionChangeTypes.TitleChange
-        });
+            context.Positions.Add(new Position
+            {
+                UserId         = user.Id,
+                JobTitle       = jobTitle,
+                CompanyName    = companyName,
+                DepartmentName = departmentName,
+                TeamName       = teamName,
+                Grade          = user.Grade,
+                StartDate      = now,
+                ChangeType     = changeType
+            });
+        }
+        else
+        {
+            position.JobTitle       = jobTitle;
+            position.CompanyName    = companyName;
+            position.DepartmentName = departmentName;
+            position.TeamName       = teamName;
+            position.Grade          = user.Grade;
+            position.StartDate      = now;
+            position.ChangeType     = changeType;
+        }
     }
 
     private async Task WireEmployeeUnderManagerAsync(User employee, int managerId, string? newPositionName, CancellationToken cancellationToken)
