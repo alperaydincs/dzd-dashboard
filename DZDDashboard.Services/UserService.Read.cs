@@ -135,11 +135,11 @@ public partial class UserService
         var users = context.Users.AsNoTracking().Where(u => u.IsActive);
         if (!string.IsNullOrWhiteSpace(query))
         {
-            var term = query.Trim();
+            var pattern = $"%{query.Trim()}%";
             users = users.Where(u =>
-                (u.FirstName != null && u.FirstName.Contains(term)) ||
-                (u.LastName  != null && u.LastName.Contains(term))  ||
-                (u.Email     != null && u.Email.Contains(term)));
+                (u.FirstName != null && EF.Functions.ILike(u.FirstName, pattern)) ||
+                (u.LastName  != null && EF.Functions.ILike(u.LastName, pattern))  ||
+                (u.Email     != null && EF.Functions.ILike(u.Email, pattern)));
         }
 
         return await users
