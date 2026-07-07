@@ -1,3 +1,4 @@
+using Community.Microsoft.Extensions.Caching.PostgreSql;
 using DZDDashboard.Api.Abstractions;
 using Microsoft.AspNetCore.HttpOverrides;
 using DZDDashboard.Api.Filters;
@@ -69,16 +70,17 @@ public static class ServiceCollectionExtensions
         }
         else
         {
-            services.AddDistributedSqlServerCache(options =>
+            services.AddDistributedPostgreSqlCache(options =>
             {
-                options.ConnectionString = connectionString;
-                options.SchemaName       = "dbo";
-                options.TableName        = "ApiTokenCache";
+                options.ConnectionString     = connectionString;
+                options.SchemaName           = "public";
+                options.TableName            = "ApiTokenCache";
+                options.CreateInfrastructure = true;
             });
         }
 
         services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(connectionString));
+            options.UseNpgsql(connectionString));
 
         services
             .AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
@@ -133,7 +135,7 @@ public static class ServiceCollectionExtensions
                       .AllowAnyMethod()));
 
         services.AddHealthChecks()
-            .AddSqlServer(connectionString, name: "sql", failureStatus: HealthStatus.Degraded);
+            .AddNpgSql(connectionString, name: "sql", failureStatus: HealthStatus.Degraded);
 
         return services;
     }

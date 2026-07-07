@@ -74,6 +74,6 @@ public partial class UserService
     }
 
     private static bool IsUniqueConstraintViolation(DbUpdateException ex)
-        => ex.InnerException is Microsoft.Data.SqlClient.SqlException sqlEx
-           && (sqlEx.Number == 2627 || sqlEx.Number == 2601);
+        => ex.InnerException is Npgsql.PostgresException pgEx
+           && pgEx.SqlState == Npgsql.PostgresErrorCodes.UniqueViolation;
 }

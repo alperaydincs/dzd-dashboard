@@ -1,3 +1,4 @@
+using Community.Microsoft.Extensions.Caching.PostgreSql;
 using DZDDashboard.Client.Services;
 using DZDDashboard.Common.Constants;
 using DZDDashboard.Common.DTOs;
@@ -36,11 +37,12 @@ public static class ServiceCollectionExtensions
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection is required.");
 
-        services.AddDistributedSqlServerCache(options =>
+        services.AddDistributedPostgreSqlCache(options =>
         {
-            options.ConnectionString = connectionString;
-            options.SchemaName       = "dbo";
-            options.TableName        = "TokenCache";
+            options.ConnectionString     = connectionString;
+            options.SchemaName           = "public";
+            options.TableName            = "TokenCache";
+            options.CreateInfrastructure = true;
         });
 
         services
